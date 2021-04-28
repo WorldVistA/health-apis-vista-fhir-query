@@ -63,9 +63,7 @@ public class VistaApiConfig {
     return getSiteSpecificPrincipals().getOrDefault(site, defaultPrincipal());
   }
 
-  /**
-   * Lazy initializer.
-   */
+  /** Lazy initializer. */
   private Map<String, RpcPrincipal> getSiteSpecificPrincipals() {
     if (siteSpecificPrincipals == null) {
       siteSpecificPrincipals = Collections.emptyMap();
