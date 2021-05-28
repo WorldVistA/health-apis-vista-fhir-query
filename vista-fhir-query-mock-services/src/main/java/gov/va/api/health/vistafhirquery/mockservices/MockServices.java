@@ -9,10 +9,11 @@ import java.util.ArrayList;
 import java.util.List;
 import lombok.extern.slf4j.Slf4j;
 import org.mockserver.client.MockServerClient;
-import org.mockserver.mockserver.MockServer;
 import org.mockserver.model.Header;
+import org.mockserver.netty.MockServer;
 import org.springframework.stereotype.Component;
 
+/** Defines mock server configuration. */
 @Slf4j
 @Component
 public class MockServices {

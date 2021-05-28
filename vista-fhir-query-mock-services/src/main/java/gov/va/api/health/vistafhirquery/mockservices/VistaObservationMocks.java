@@ -22,6 +22,7 @@ import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.mockserver.client.MockServerClient;
 
+/** Mocked Observations from VPRGETPATIENTDATA. */
 @Data
 @Slf4j
 @RequiredArgsConstructor(staticName = "using")
@@ -100,10 +101,11 @@ public class VistaObservationMocks implements MockService {
     return json(
         RpcResponse.builder()
             .status(RpcResponse.Status.OK)
-            .result(
-                RpcInvocationResult.builder()
-                    .vista("673")
-                    .response(contentOfFile(rpcResponseFile))
-                    .build()));
+            .results(
+                List.of(
+                    RpcInvocationResult.builder()
+                        .vista("673")
+                        .response(contentOfFile(rpcResponseFile))
+                        .build())));
   }
 }

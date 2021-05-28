@@ -2,8 +2,11 @@ package gov.va.api.health.vistafhirquery.service.controller;
 
 import com.google.errorprone.annotations.FormatMethod;
 
+/** The because methods exist to add readability when throwing exceptions. */
+@SuppressWarnings("DoNotCallSuggester")
 public class ResourceExceptions {
 
+  /** NotFound . */
   public static final class NotFound extends ResourceException {
     public NotFound(String message) {
       super(message);
@@ -14,6 +17,7 @@ public class ResourceExceptions {
     }
   }
 
+  /** BadSearchParameters . */
   public static final class BadSearchParameters extends ResourceException {
     public BadSearchParameters(String message) {
       super(message);
@@ -24,6 +28,7 @@ public class ResourceExceptions {
     }
   }
 
+  /** ExpectationFailed . */
   public static final class ExpectationFailed extends ResourceException {
     public ExpectationFailed(String message) {
       super(message);
@@ -39,6 +44,7 @@ public class ResourceExceptions {
     }
   }
 
+  /** ResourceException . */
   static class ResourceException extends RuntimeException {
     ResourceException(String message) {
       super(message);
