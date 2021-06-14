@@ -123,9 +123,9 @@
         </executions>
       </plugin>
       <!--
-        Needed by health-apis-datamart-synthetic-records to
-        access entities and populate the database.
-      -->
+              Needed by health-apis-datamart-synthetic-records to
+              access entities and populate the database.
+            -->
       <plugin>
         <artifactId>maven-jar-plugin</artifactId>
         <executions>

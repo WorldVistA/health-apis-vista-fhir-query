@@ -27,7 +27,6 @@ public class ClientKeyProtectedEndpointConfig {
     var registration = new FilterRegistrationBean<ClientKeyProtectedEndpointFilter>();
 
     registration.setOrder(1);
-
     List<String> clientKeys;
 
     if (isBlank(clientKeysCsv) || "disabled".equals(clientKeysCsv)) {
@@ -50,7 +49,8 @@ public class ClientKeyProtectedEndpointConfig {
             .unauthorizedResponse(unauthorizedResponse())
             .build());
 
-    registration.addUrlPatterns("/internal/*", PathRewriteConfig.leadingPath() + "internal/*");
+    registration.addUrlPatterns(
+        "/internal/raw/*", PathRewriteConfig.leadingPath() + "/internal/raw/*");
 
     return registration;
   }
