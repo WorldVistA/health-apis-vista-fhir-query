@@ -9,11 +9,7 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import gov.va.api.health.vistafhirquery.service.config.VistaApiConfig;
-import gov.va.api.lighthouse.charon.api.RpcDetails;
-import gov.va.api.lighthouse.charon.api.RpcInvocationResult;
-import gov.va.api.lighthouse.charon.api.RpcRequest;
-import gov.va.api.lighthouse.charon.api.RpcResponse;
-import gov.va.api.lighthouse.charon.api.RpcVistaTargets;
+import gov.va.api.lighthouse.charon.api.*;
 import gov.va.api.lighthouse.charon.models.TypeSafeRpcRequest;
 import java.util.List;
 import java.util.Optional;
@@ -27,16 +23,16 @@ import org.springframework.web.client.RestTemplate;
 public class RestVistaApiClientTest {
   RestTemplate rt = mock(RestTemplate.class);
 
-  VistaApiConfig config =
-      VistaApiConfig.builder()
-          .url("http://fugazi.com/")
-          .accessCode("ac")
-          .verifyCode("vc")
-          .clientKey("ck")
-          .build();
+  VistaApiConfig config = VistaApiConfig.builder().url("http://fugazi.com/").build();
+
+  RpcPrincipalLookup lookup = mock(RpcPrincipalLookup.class);
 
   private RestVistaApiClient client() {
-    return RestVistaApiClient.builder().config(config).restTemplate(rt).build();
+    return RestVistaApiClient.builder()
+        .rpcPrincipalLookup(lookup)
+        .config(config)
+        .restTemplate(rt)
+        .build();
   }
 
   void mockVistalink200Response() {

@@ -1,6 +1,8 @@
 package gov.va.api.health.vistafhirquery.service.controller;
 
 import gov.va.api.health.vistafhirquery.service.config.VistaApiConfig;
+import gov.va.api.lighthouse.charon.api.RpcPrincipal;
+import gov.va.api.lighthouse.charon.api.RpcPrincipalLookup;
 import gov.va.api.lighthouse.charon.api.RpcRequest;
 import gov.va.api.lighthouse.charon.api.RpcResponse;
 import gov.va.api.lighthouse.charon.api.RpcVistaTargets;
@@ -26,6 +28,8 @@ public class RestVistaApiClient implements VistalinkApiClient {
   private RestTemplate restTemplate;
 
   private VistaApiConfig config;
+
+  private RpcPrincipalLookup rpcPrincipalLookup;
 
   @SneakyThrows
   private RequestEntity<RpcRequest> buildRequestEntity(RpcRequest body) {
@@ -54,8 +58,9 @@ public class RestVistaApiClient implements VistalinkApiClient {
       RpcVistaTargets target, TypeSafeRpcRequest rpcRequestDetails) {
     RpcRequest rpcRequest =
         RpcRequest.builder()
-            .principal(config().defaultPrincipal())
-            .siteSpecificPrincipals(config().siteSpecificPrincipals())
+            .principal(RpcPrincipal.builder().accessCode("not-used").verifyCode("not-used").build())
+            .siteSpecificPrincipals(
+                rpcPrincipalLookup.findByName(rpcRequestDetails.asDetails().name()))
             .target(target)
             .rpc(rpcRequestDetails.asDetails())
             .build();
