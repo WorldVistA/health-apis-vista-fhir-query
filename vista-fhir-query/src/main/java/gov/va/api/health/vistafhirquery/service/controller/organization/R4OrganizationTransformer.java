@@ -4,8 +4,6 @@ import static gov.va.api.health.vistafhirquery.service.controller.R4Transformers
 import static gov.va.api.health.vistafhirquery.service.controller.R4Transformers.asCodeableConcept;
 import static gov.va.api.health.vistafhirquery.service.controller.R4Transformers.emptyToNull;
 import static gov.va.api.health.vistafhirquery.service.controller.R4Transformers.isBlank;
-import static gov.va.api.health.vistafhirquery.service.controller.R4Transformers.providerCoordinateStringFrom;
-import static gov.va.api.health.vistafhirquery.service.controller.organization.OrganizationCoordinates.insuranceCompany;
 import static java.util.Collections.emptyList;
 
 import gov.va.api.health.r4.api.datatypes.Address;
@@ -16,8 +14,10 @@ import gov.va.api.health.r4.api.datatypes.Identifier;
 import gov.va.api.health.r4.api.elements.Extension;
 import gov.va.api.health.r4.api.elements.Reference;
 import gov.va.api.health.r4.api.resources.Organization;
+import gov.va.api.health.vistafhirquery.service.controller.RecordCoordinates;
 import gov.va.api.lighthouse.charon.models.lhslighthouserpcgateway.InsuranceCompany;
 import gov.va.api.lighthouse.charon.models.lhslighthouserpcgateway.LhsLighthouseRpcGatewayResponse;
+import gov.va.api.lighthouse.charon.models.lhslighthouserpcgateway.Payer;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -31,10 +31,15 @@ import lombok.NonNull;
 
 @Builder
 public class R4OrganizationTransformer {
-  static final Map<String, Boolean> YES_NO = Map.of("1", true, "0", false);
+
+  // The following list can be generated using:
+  // grep InsuranceCompany R4OrganizationTransformer.java \
+  // | sed 's/.*\(InsuranceCompany\.[A-Z0-9_]\+\).*/\1,/' \
+  // | grep -vE '(import|FILE_NUMBER)' \
+  // | sort -u
 
   /** The insurance company fields needed by the transformer. */
-  public static List<String> REQUIRED_FIELDS =
+  public static final List<String> REQUIRED_FIELDS =
       List.of(
           InsuranceCompany.ALLOW_MULTIPLE_BEDSECTIONS,
           InsuranceCompany.AMBULATORY_SURG_REV_CODE,
@@ -60,6 +65,8 @@ public class R4OrganizationTransformer {
           InsuranceCompany.CLAIMS_DENTAL_STREET_ADDR_1,
           InsuranceCompany.CLAIMS_DENTAL_STREET_ADDR_2,
           InsuranceCompany.CLAIMS_INPT_COMPANY_NAME,
+          InsuranceCompany.CLAIMS_INPT_FAX,
+          InsuranceCompany.CLAIMS_INPT_PHONE_NUMBER,
           InsuranceCompany.CLAIMS_INPT_PROCESS_CITY,
           InsuranceCompany.CLAIMS_INPT_PROCESS_STATE,
           InsuranceCompany.CLAIMS_INPT_PROCESS_ZIP,
@@ -84,7 +91,6 @@ public class R4OrganizationTransformer {
           InsuranceCompany.CLAIMS_RX_STREET_ADDRESS_2,
           InsuranceCompany.CLAIMS_RX_STREET_ADDRESS_3,
           InsuranceCompany.CLAIMS_RX_ZIP,
-          InsuranceCompany.FILE_NUMBER,
           InsuranceCompany.FILING_TIME_FRAME,
           InsuranceCompany.INACTIVE,
           InsuranceCompany.INQUIRY_ADDRESS_CITY,
@@ -106,6 +112,8 @@ public class R4OrganizationTransformer {
           InsuranceCompany.STREET_ADDRESS_LINE_2_,
           InsuranceCompany.STREET_ADDRESS_LINE_3_,
           InsuranceCompany.ZIP_CODE);
+
+  static final Map<String, Boolean> YES_NO = Map.of("1", true, "0", false);
 
   @NonNull Map.Entry<String, LhsLighthouseRpcGatewayResponse.Results> rpcResults;
 
@@ -270,8 +278,8 @@ public class R4OrganizationTransformer {
         .address(
             address(
                 streetAddressLine1, streetAddressLine2, streetAddressLine3, city, state, zipCode))
-        .telecom(contactTelecom(phone, fax))
-        .extension(companyNameExtension(companyName))
+        .telecom(emptyToNull(contactTelecom(phone, fax)))
+        .extension(emptyToNull(companyNameExtension(companyName)))
         .purpose(purposeOrNull(purpose))
         .build();
   }
@@ -293,21 +301,21 @@ public class R4OrganizationTransformer {
   }
 
   private List<Organization.Contact> contacts(LhsLighthouseRpcGatewayResponse.FilemanEntry entry) {
-    return List.of(
-        appealsContact(entry),
-        billingContact(entry),
-        claimsDentalContact(entry),
-        claimsInptContact(entry),
-        claimsOptContact(entry),
-        claimsRxContact(entry),
-        inquiryContact(entry),
-        precertificationContact(entry));
+    return Stream.of(
+            appealsContact(entry),
+            billingContact(entry),
+            claimsDentalContact(entry),
+            claimsInptContact(entry),
+            claimsOptContact(entry),
+            claimsRxContact(entry),
+            inquiryContact(entry),
+            precertificationContact(entry))
+        .filter(Objects::nonNull)
+        .collect(Collectors.toList());
   }
 
   private List<Extension> extensions(LhsLighthouseRpcGatewayResponse.FilemanEntry entry) {
-
     ExtensionFactory extensions = ExtensionFactory.of(entry, YES_NO);
-
     return Stream.of(
             extensions.ofYesNoBoolean(
                 InsuranceCompany.ALLOW_MULTIPLE_BEDSECTIONS,
@@ -371,8 +379,8 @@ public class R4OrganizationTransformer {
                 "urn:oid:2.16.840.1.113883.3.8901.3.36.38009",
                 "http://va.gov/fhir/StructureDefinition/organization-electronicInsuranceType"),
             extensions.ofReference(
-                InsuranceCompany.PAYER,
                 "Organization",
+                payerId(entry),
                 "http://hl7.org/fhir/us/davinci-pdex-plan-net/StructureDefinition/via-intermediary"),
             extensions.ofCodeableConcept(
                 InsuranceCompany.PERF_PROV_SECOND_ID_TYPE_1500,
@@ -462,6 +470,19 @@ public class R4OrganizationTransformer {
             .build());
   }
 
+  private String payerId(LhsLighthouseRpcGatewayResponse.FilemanEntry entry) {
+    var value = entry.internal(InsuranceCompany.PAYER);
+    if (value.isEmpty()) {
+      return null;
+    }
+    return RecordCoordinates.builder()
+        .site(rpcResults.getKey())
+        .file(Payer.FILE_NUMBER)
+        .ien(value.get())
+        .build()
+        .toString();
+  }
+
   private Organization.Contact precertificationContact(
       LhsLighthouseRpcGatewayResponse.FilemanEntry entry) {
     return contact(
@@ -504,10 +525,14 @@ public class R4OrganizationTransformer {
     }
     return Organization.builder()
         .id(
-            providerCoordinateStringFrom(
-                rpcResults.getKey(), insuranceCompany(entry.ien()).toString()))
+            RecordCoordinates.builder()
+                .site(rpcResults.getKey())
+                .file(InsuranceCompany.FILE_NUMBER)
+                .ien(entry.ien())
+                .build()
+                .toString())
         .extension(extensions(entry))
-        .identifier(identifiers(entry))
+        .identifier(emptyToNull(identifiers(entry)))
         .active(entry.internal(InsuranceCompany.INACTIVE, YES_NO).map(value -> !value).orElse(null))
         .name(entry.internal(InsuranceCompany.NAME).orElse(null))
         .type(insuranceCompanyType())

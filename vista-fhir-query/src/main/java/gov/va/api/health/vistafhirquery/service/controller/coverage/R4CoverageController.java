@@ -1,5 +1,6 @@
 package gov.va.api.health.vistafhirquery.service.controller.coverage;
 
+import static gov.va.api.health.vistafhirquery.service.controller.R4Controllers.dieOnError;
 import static gov.va.api.health.vistafhirquery.service.controller.R4Controllers.verifyAndGetResult;
 import static gov.va.api.lighthouse.charon.models.lhslighthouserpcgateway.LhsLighthouseRpcGateway.allFieldsOfSubfile;
 import static java.util.stream.Collectors.toList;
@@ -90,6 +91,8 @@ public class R4CoverageController implements R4CoverageApi {
     Map<String, ZoneId> vistaZoneIds = collectTimezones(rpcResponse);
     LhsLighthouseRpcGatewayResponse getsManifestResults =
         LhsLighthouseRpcGatewayGetsManifest.create().fromResults(rpcResponse.results());
+    dieOnError(getsManifestResults);
+
     List<Coverage> resources =
         transformation(vistaZoneIds, coordinates.icn()).toResource().apply(getsManifestResults);
     return verifyAndGetResult(resources, id);

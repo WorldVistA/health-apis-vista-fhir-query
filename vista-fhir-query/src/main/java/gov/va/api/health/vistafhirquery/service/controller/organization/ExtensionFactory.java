@@ -1,6 +1,7 @@
 package gov.va.api.health.vistafhirquery.service.controller.organization;
 
 import static java.util.Collections.singletonList;
+import static org.apache.commons.lang3.StringUtils.isAnyBlank;
 
 import gov.va.api.health.r4.api.datatypes.CodeableConcept;
 import gov.va.api.health.r4.api.datatypes.Coding;
@@ -48,17 +49,13 @@ class ExtensionFactory {
         .build();
   }
 
-  public Extension ofReference(String fieldNumber, String resource, String url) {
-    var value = entry.internal(fieldNumber);
-    if (value.isEmpty()) {
+  public Extension ofReference(String resource, String id, String url) {
+    if (isAnyBlank(resource, id, url)) {
       return null;
     }
     return Extension.builder()
         .url(url)
-        .valueReference(
-            Reference.builder()
-                .reference(resource + "/" + OrganizationCoordinates.payer(value.get()).toString())
-                .build())
+        .valueReference(Reference.builder().reference(resource + "/" + id).build())
         .build();
   }
 

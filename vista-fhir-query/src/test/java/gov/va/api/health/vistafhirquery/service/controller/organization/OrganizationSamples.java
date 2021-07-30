@@ -13,7 +13,8 @@ import gov.va.api.health.r4.api.datatypes.Quantity;
 import gov.va.api.health.r4.api.elements.Extension;
 import gov.va.api.health.r4.api.elements.Reference;
 import gov.va.api.health.r4.api.resources.Organization;
-import gov.va.api.health.vistafhirquery.service.controller.ProviderTypeCoordinates;
+import gov.va.api.health.vistafhirquery.service.controller.RecordCoordinates;
+import gov.va.api.lighthouse.charon.models.lhslighthouserpcgateway.InsuranceCompany;
 import gov.va.api.lighthouse.charon.models.lhslighthouserpcgateway.LhsLighthouseRpcGatewayResponse;
 import java.util.Collections;
 import java.util.HashMap;
@@ -595,7 +596,7 @@ public class OrganizationSamples {
           precertificationContact());
     }
 
-    private List<Extension> extensions() {
+    private List<Extension> extensions(String station) {
       return List.of(
           Extension.builder()
               .valueBoolean(Boolean.TRUE)
@@ -736,7 +737,12 @@ public class OrganizationSamples {
                   Reference.builder()
                       .reference(
                           "Organization/"
-                              + OrganizationCoordinates.payer("SHANK PAYER: IN").toString())
+                              + RecordCoordinates.builder()
+                                  .site(station)
+                                  .file("365.12")
+                                  .ien("SHANK PAYER: IN")
+                                  .build()
+                                  .toString())
                       .build())
               .build(),
           Extension.builder()
@@ -881,9 +887,10 @@ public class OrganizationSamples {
     Organization organization(String station, String ien) {
       return Organization.builder()
           .id(
-              ProviderTypeCoordinates.builder()
-                  .siteId(station)
-                  .recordId(OrganizationCoordinates.insuranceCompany(ien).toString())
+              RecordCoordinates.builder()
+                  .site(station)
+                  .file(InsuranceCompany.FILE_NUMBER)
+                  .ien(ien)
                   .build()
                   .toString())
           .identifier(identifiers())
@@ -893,7 +900,7 @@ public class OrganizationSamples {
           .active(Boolean.TRUE)
           .telecom(telecom())
           .contact(contacts())
-          .extension(extensions())
+          .extension(extensions(station))
           .build();
     }
 
