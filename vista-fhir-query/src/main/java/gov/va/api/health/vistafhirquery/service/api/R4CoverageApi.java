@@ -80,7 +80,6 @@ public interface R4CoverageApi {
               schema = @Schema(implementation = OperationOutcome.class)))
   Coverage.Bundle coverageSearch(
       @Parameter(hidden = true) HttpServletRequest request,
-      @Parameter(hidden = true) String coverageHack,
       @Parameter(
               in = ParameterIn.QUERY,
               name = "patient",
@@ -88,6 +87,11 @@ public interface R4CoverageApi {
                   "The patient's Integration Control Number (ICN)"
                       + " assigned by the Master Patient Index (MPI).")
           String icn,
+      @Parameter(
+              in = ParameterIn.QUERY,
+              name = "page",
+              description = "The page number to be returned.")
+          Integer page,
       @Parameter(
               in = ParameterIn.QUERY,
               name = "_count",

@@ -19,7 +19,7 @@ public class RawIT {
   private static List<String> goodRequest() {
     TestIds testIds = VistaFhirQueryResourceVerifier.ids();
     return List.of(
-        "/internal/raw/Coverage?icn=9999998&site=673",
+        "/internal/raw/Coverage?icn=" + testIds.patient() + "&site=673",
         "/internal/raw/Organization?id=" + testIds.organization());
   }
 
