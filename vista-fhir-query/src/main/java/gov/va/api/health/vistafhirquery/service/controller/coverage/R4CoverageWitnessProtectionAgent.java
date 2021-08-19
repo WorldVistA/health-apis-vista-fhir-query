@@ -29,7 +29,8 @@ public class R4CoverageWitnessProtectionAgent implements WitnessProtectionAgent<
                     c -> {
                       int indexOfId = c.value().lastIndexOf('/') + 1;
                       if (c.value().length() <= indexOfId) {
-                        throw new IllegalArgumentException("ID is malformed (appears to end with a /)");
+                        throw new IllegalArgumentException(
+                            "ID is malformed (appears to end with a /)");
                       }
                       return ProtectedReference.builder()
                           .type("InsurancePlan")
