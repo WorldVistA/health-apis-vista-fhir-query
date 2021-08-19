@@ -26,12 +26,17 @@ public class R4CoverageWitnessProtectionAgent implements WitnessProtectionAgent<
                 .filter(Objects::nonNull),
             resource.coverageClass().stream()
                 .map(
-                    c ->
-                        ProtectedReference.builder()
-                            .type("InsurancePlan")
-                            .id(c.value())
-                            .onUpdate(c::value)
-                            .build()));
+                    c -> {
+                      int indexOfId = c.value().lastIndexOf('/') + 1;
+                      if (c.value().length() <= indexOfId) {
+                        throw new IllegalArgumentException("ID is malformed (appears to end with a /)");
+                      }
+                      return ProtectedReference.builder()
+                          .type("InsurancePlan")
+                          .id(c.value().substring(indexOfId))
+                          .onUpdate(i -> c.value(c.value().substring(0, indexOfId) + i))
+                          .build();
+                    }));
     return Stream.concat(
         Stream.of(
             protectedReferenceFactory.forResource(resource, resource::id),
