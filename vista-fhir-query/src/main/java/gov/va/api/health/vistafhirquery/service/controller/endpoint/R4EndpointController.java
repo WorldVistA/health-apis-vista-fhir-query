@@ -7,11 +7,11 @@ import gov.va.api.health.r4.api.bundle.AbstractBundle;
 import gov.va.api.health.r4.api.bundle.AbstractEntry;
 import gov.va.api.health.r4.api.bundle.BundleLink;
 import gov.va.api.health.r4.api.resources.Endpoint;
+import gov.va.api.health.r4.api.resources.Endpoint.EndpointStatus;
 import gov.va.api.health.vistafhirquery.service.api.R4EndpointApi;
 import gov.va.api.health.vistafhirquery.service.config.LinkProperties;
 import gov.va.api.lighthouse.charon.api.RpcPrincipalLookup;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 import lombok.AllArgsConstructor;
 import lombok.NonNull;
@@ -27,8 +27,6 @@ import org.springframework.web.bind.annotation.RestController;
     produces = {"application/json", "application/fhir+json"})
 @AllArgsConstructor(onConstructor_ = {@Autowired, @NonNull})
 public class R4EndpointController implements R4EndpointApi {
-  private static final Map<String, Endpoint.EndpointStatus> statusLookup =
-      Map.of("active", Endpoint.EndpointStatus.active);
 
   private final LinkProperties linkProperties;
 
@@ -39,7 +37,7 @@ public class R4EndpointController implements R4EndpointApi {
   @GetMapping
   public Endpoint.Bundle endpointSearch(
       @RequestParam(value = "status", required = false) String status) {
-    if (isNotSupportedStatus(status)) {
+    if (!isSupportedStatus(status)) {
       return toBundle(emptyList());
     }
     Set<String> stations = stations("LHS LIGHTHOUSE RPC GATEWAY");
@@ -65,8 +63,8 @@ public class R4EndpointController implements R4EndpointApi {
     return toBundle(endpoints);
   }
 
-  private boolean isNotSupportedStatus(String status) {
-    return status != null && !statusLookup.containsKey(status);
+  private boolean isSupportedStatus(String status) {
+    return status == null || EndpointStatus.active.toString().equals(status);
   }
 
   private Set<String> stations(String rpcName) {
