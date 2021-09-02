@@ -22,7 +22,10 @@ public class MockServices {
   private final List<String> supportedQueries = new ArrayList<>();
 
   private final List<MockService> supportedMocks =
-      List.of(LhsLighthouseRpcGatewayMocks.using(PORT), VprGetPatientDataMocks.using(PORT));
+      List.of(
+          LhsLighthouseRpcGatewayMocksV0.using(PORT),
+          LhsLighthouseRpcGatewayMocksV1.using(PORT),
+          VprGetPatientDataMocks.using(PORT));
 
   private MockServer mockServer;
 

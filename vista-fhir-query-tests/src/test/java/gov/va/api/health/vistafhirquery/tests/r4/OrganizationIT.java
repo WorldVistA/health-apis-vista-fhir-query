@@ -15,7 +15,9 @@ import org.junit.jupiter.api.Test;
 @Slf4j
 public class OrganizationIT {
   private final TestIds testIds = VistaFhirQueryResourceVerifier.ids();
-  @Delegate private final ResourceVerifier verifier = VistaFhirQueryResourceVerifier.r4();
+
+  @Delegate
+  private final ResourceVerifier verifier = VistaFhirQueryResourceVerifier.r4WithoutSite();
 
   @Test
   void read() {

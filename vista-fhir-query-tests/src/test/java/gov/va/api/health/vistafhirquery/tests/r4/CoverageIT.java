@@ -14,7 +14,8 @@ import org.junit.jupiter.api.Test;
 public class CoverageIT {
   private final TestIds testIds = VistaFhirQueryResourceVerifier.ids();
 
-  @Delegate private final ResourceVerifier verifier = VistaFhirQueryResourceVerifier.r4();
+  @Delegate
+  private final ResourceVerifier verifier = VistaFhirQueryResourceVerifier.r4ForSite("673");
 
   @Test
   void read() {

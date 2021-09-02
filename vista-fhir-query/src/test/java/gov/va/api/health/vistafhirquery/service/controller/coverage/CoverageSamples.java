@@ -7,8 +7,10 @@ import gov.va.api.health.r4.api.datatypes.CodeableConcept;
 import gov.va.api.health.r4.api.datatypes.Coding;
 import gov.va.api.health.r4.api.datatypes.Period;
 import gov.va.api.health.r4.api.elements.Extension;
+import gov.va.api.health.r4.api.elements.Meta;
 import gov.va.api.health.r4.api.elements.Reference;
 import gov.va.api.health.r4.api.resources.Coverage;
+import gov.va.api.health.r4.api.resources.Coverage.Status;
 import gov.va.api.health.vistafhirquery.service.controller.PatientTypeCoordinates;
 import gov.va.api.health.vistafhirquery.service.controller.RecordCoordinates;
 import gov.va.api.lighthouse.charon.models.lhslighthouserpcgateway.GroupInsurancePlan;
@@ -25,42 +27,6 @@ import lombok.experimental.UtilityClass;
 
 @UtilityClass
 public class CoverageSamples {
-
-  @NoArgsConstructor(staticName = "create")
-  public static class VistaLhsLighthouseRpcGateway {
-    private Map<String, LhsLighthouseRpcGatewayResponse.Values> fields() {
-      Map<String, LhsLighthouseRpcGatewayResponse.Values> fields = new HashMap<>();
-      fields.put("#.01", LhsLighthouseRpcGatewayResponse.Values.of("BCBS OF FL", "4"));
-      fields.put("#.18", LhsLighthouseRpcGatewayResponse.Values.of("BCBS OF FL", "87"));
-      fields.put("#.2", LhsLighthouseRpcGatewayResponse.Values.of("PRIMARY", "1"));
-      fields.put("#2.01", LhsLighthouseRpcGatewayResponse.Values.of("0", "0"));
-      fields.put("#2.1", LhsLighthouseRpcGatewayResponse.Values.of("3", "3"));
-      fields.put("#3", LhsLighthouseRpcGatewayResponse.Values.of("JAN 01, 2025", "3250101"));
-      fields.put("#3.04", LhsLighthouseRpcGatewayResponse.Values.of("1", "1"));
-      fields.put("#4.03", LhsLighthouseRpcGatewayResponse.Values.of("SPOUSE", "01"));
-      fields.put("#4.06", LhsLighthouseRpcGatewayResponse.Values.of("67890", "67890"));
-      fields.put("#5.01", LhsLighthouseRpcGatewayResponse.Values.of("13579", "13579"));
-      fields.put("#7.02", LhsLighthouseRpcGatewayResponse.Values.of("R50797108", "R50797108"));
-      fields.put("#8", LhsLighthouseRpcGatewayResponse.Values.of("JAN 12, 1992", "2920112"));
-      return Map.copyOf(fields);
-    }
-
-    LhsLighthouseRpcGatewayResponse.Results getsManifestResults() {
-      return getsManifestResults("1,8,");
-    }
-
-    LhsLighthouseRpcGatewayResponse.Results getsManifestResults(String id) {
-      return LhsLighthouseRpcGatewayResponse.Results.builder()
-          .results(
-              List.of(
-                  LhsLighthouseRpcGatewayResponse.FilemanEntry.builder()
-                      .file("2.312")
-                      .ien(id)
-                      .fields(fields())
-                      .build()))
-          .build();
-    }
-  }
 
   @NoArgsConstructor(staticName = "create")
   public static class R4 {
@@ -128,8 +94,9 @@ public class CoverageSamples {
                   .recordId(ien)
                   .build()
                   .toString())
+          .meta(Meta.builder().source(station).build())
           .extension(extensions())
-          .status(Coverage.Status.active)
+          .status(Status.active)
           .subscriberId("R50797108")
           .beneficiary(Reference.builder().reference("Patient/" + patient).build())
           .relationship(relationship())
@@ -175,6 +142,42 @@ public class CoverageSamples {
                       .system("http://terminology.hl7.org/CodeSystem/subscriber-relationship")
                       .code("spouse")
                       .display("Spouse")
+                      .build()))
+          .build();
+    }
+  }
+
+  @NoArgsConstructor(staticName = "create")
+  public static class VistaLhsLighthouseRpcGateway {
+    private Map<String, LhsLighthouseRpcGatewayResponse.Values> fields() {
+      Map<String, LhsLighthouseRpcGatewayResponse.Values> fields = new HashMap<>();
+      fields.put("#.01", LhsLighthouseRpcGatewayResponse.Values.of("BCBS OF FL", "4"));
+      fields.put("#.18", LhsLighthouseRpcGatewayResponse.Values.of("BCBS OF FL", "87"));
+      fields.put("#.2", LhsLighthouseRpcGatewayResponse.Values.of("PRIMARY", "1"));
+      fields.put("#2.01", LhsLighthouseRpcGatewayResponse.Values.of("0", "0"));
+      fields.put("#2.1", LhsLighthouseRpcGatewayResponse.Values.of("3", "3"));
+      fields.put("#3", LhsLighthouseRpcGatewayResponse.Values.of("JAN 01, 2025", "3250101"));
+      fields.put("#3.04", LhsLighthouseRpcGatewayResponse.Values.of("1", "1"));
+      fields.put("#4.03", LhsLighthouseRpcGatewayResponse.Values.of("SPOUSE", "01"));
+      fields.put("#4.06", LhsLighthouseRpcGatewayResponse.Values.of("67890", "67890"));
+      fields.put("#5.01", LhsLighthouseRpcGatewayResponse.Values.of("13579", "13579"));
+      fields.put("#7.02", LhsLighthouseRpcGatewayResponse.Values.of("R50797108", "R50797108"));
+      fields.put("#8", LhsLighthouseRpcGatewayResponse.Values.of("JAN 12, 1992", "2920112"));
+      return Map.copyOf(fields);
+    }
+
+    LhsLighthouseRpcGatewayResponse.Results getsManifestResults() {
+      return getsManifestResults("1,8,");
+    }
+
+    LhsLighthouseRpcGatewayResponse.Results getsManifestResults(String id) {
+      return LhsLighthouseRpcGatewayResponse.Results.builder()
+          .results(
+              List.of(
+                  LhsLighthouseRpcGatewayResponse.FilemanEntry.builder()
+                      .file("2.312")
+                      .ien(id)
+                      .fields(fields())
                       .build()))
           .build();
     }

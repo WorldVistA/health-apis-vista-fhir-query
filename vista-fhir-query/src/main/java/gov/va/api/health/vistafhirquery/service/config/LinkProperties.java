@@ -1,5 +1,7 @@
 package gov.va.api.health.vistafhirquery.service.config;
 
+import static org.apache.commons.lang3.StringUtils.isBlank;
+
 import gov.va.api.health.r4.api.resources.Resource;
 import java.util.Map;
 import javax.annotation.PostConstruct;
@@ -58,6 +60,8 @@ public class LinkProperties {
   @Accessors(fluent = true)
   public static class Links {
 
+    private static final String SITE_PLACEHOLDER = "{site}";
+
     @Getter private final String baseUrl;
     private final Map<String, String> urlForResource;
 
@@ -66,16 +70,55 @@ public class LinkProperties {
       urlForResource = publicR4Link;
     }
 
-    public String readUrl(Resource resource) {
-      return readUrl(resource.getClass().getSimpleName(), resource.id());
+    /**
+     * Create a read link URL for the resource. If .meta.source, a site specific URL will be used.
+     */
+    public String readUrl(@NonNull Resource resource) {
+      String site = siteForResource(resource);
+      return isBlank(site)
+          ? readUrlWithoutSite(resource.getClass().getSimpleName(), resource.id())
+          : readUrl(site, resource.getClass().getSimpleName(), resource.id());
     }
 
-    public String readUrl(String resource, String id) {
-      return resourceUrl(resource) + "/" + id;
+    public String readUrl(@NonNull String site, @NonNull String resource, @NonNull String id) {
+      return resourceUrl(site, resource) + "/" + id;
     }
 
-    public String resourceUrl(String resource) {
-      return urlForResource.getOrDefault(resource, baseUrl()) + "/" + resource;
+    public String readUrlWithoutSite(@NonNull String resource, @NonNull String id) {
+      return resourceUrlWithoutSite(resource) + "/" + id;
+    }
+
+    /**
+     * Get the resource URL replacing, {site} with the provided site. Configured URLs without the
+     * site placeholder are allowed, in which case substitution is ignored.
+     */
+    public String resourceUrl(@NonNull String site, @NonNull String resource) {
+      return urlForResource.getOrDefault(resource, baseUrl()).replace(SITE_PLACEHOLDER, site)
+          + "/"
+          + resource;
+    }
+
+    /**
+     * Get the resource URL with no site information. URL configuration is verified to not contain
+     * the site placeholder.
+     */
+    public String resourceUrlWithoutSite(@NonNull String resource) {
+      String url = urlForResource.getOrDefault(resource, baseUrl());
+      if (url.contains(SITE_PLACEHOLDER)) {
+        throw new UrlOrPathConfigurationException(
+            "URL contains site placeholder, but not site is available: " + url);
+      }
+      return url + "/" + resource;
+    }
+
+    String siteForResource(@NonNull Resource resource) {
+      return resource.meta() == null ? null : resource.meta().source();
+    }
+  }
+
+  public static class UrlOrPathConfigurationException extends IllegalStateException {
+    public UrlOrPathConfigurationException(String message) {
+      super(message);
     }
   }
 }

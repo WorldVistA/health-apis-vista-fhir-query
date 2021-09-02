@@ -22,6 +22,11 @@
     </dependency>
     <dependency>
       <groupId>gov.va.api.lighthouse</groupId>
+      <artifactId>charon-api-v1</artifactId>
+      <version>${charon.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>gov.va.api.lighthouse</groupId>
       <artifactId>charon-models</artifactId>
       <version>${charon.version}</version>
     </dependency>

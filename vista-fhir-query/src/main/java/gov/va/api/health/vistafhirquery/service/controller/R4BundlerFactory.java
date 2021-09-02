@@ -43,13 +43,33 @@ public class R4BundlerFactory {
     private final R4BundlerFactory fromFactory;
     private final R4Transformation<V, R> transformation;
 
+    public R4BundlerPart2<V, R> site(@NonNull String site) {
+      return R4BundlerPart2.<V, R>builder().part1(this).site(site).build();
+    }
+
+    public R4BundlerPart2<V, R> withoutSite() {
+      return R4BundlerPart2.<V, R>builder().part1(this).site(null).build();
+    }
+  }
+
+  /**
+   * These builder parts are used to slowly infer the generics types based on the arguments vs.
+   * specifying the types and requires arguments that match.
+   */
+  @Builder
+  public static class R4BundlerPart2<V extends TypeSafeRpcResponse, R extends Resource> {
+
+    private final R4BundlerPart1<V, R> part1;
+    private final String site;
+
     /** Create the next phrase after configuring link properties and alternate patient ids. */
     public <E extends AbstractEntry<R>, B extends AbstractBundle<E>>
         R4BundlerBuilder<V, R, E, B> bundling(R4Bundling<R, E, B> bundling) {
       return R4Bundler.<V, R, E, B>builder()
-          .linkProperties(fromFactory.linkProperties())
-          .alternatePatientIds(fromFactory.alternatePatientIds())
-          .transformation(transformation)
+          .linkProperties(part1.fromFactory.linkProperties())
+          .alternatePatientIds(part1.fromFactory.alternatePatientIds())
+          .transformation(part1.transformation)
+          .site(site)
           .bundling(bundling);
     }
   }

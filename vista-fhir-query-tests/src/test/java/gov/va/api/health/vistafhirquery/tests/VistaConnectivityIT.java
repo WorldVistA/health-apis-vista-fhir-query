@@ -65,16 +65,17 @@ public class VistaConnectivityIT {
   @MethodSource
   void connected(IcnAtSites icnAtSites) {
     assumeEnvironmentNotIn(Environment.LOCAL, Environment.STAGING, Environment.PROD);
-    var sd = SystemDefinitions.systemDefinition().r4();
+    var sd = SystemDefinitions.systemDefinition().basePath();
     ExpectedResponse bundleResponse =
         ExpectedResponse.of(
             request(sd)
-                .request(Method.GET, sd.apiPath() + "Observation?patient={icn}", icnAtSites.icn()));
+                .request(
+                    Method.GET, sd.apiPath() + "/r4/Observation?patient={icn}", icnAtSites.icn()));
     var bundle = bundleResponse.expect(200).expectValid(Observation.Bundle.class);
     assertThat(bundle.total()).isGreaterThan(0);
     String id = bundle.entry().get(0).resource().id();
     var observation =
-        ExpectedResponse.of(request(sd).request(Method.GET, sd.apiPath() + "Observation/" + id))
+        ExpectedResponse.of(request(sd).request(Method.GET, sd.apiPath() + "/r4/Observation/" + id))
             .expect(200)
             .expectValid(Observation.class);
     assertThat(observation.id()).isEqualTo(id);

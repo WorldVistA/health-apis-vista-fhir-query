@@ -4,8 +4,10 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 
 import gov.va.api.health.ids.api.ResourceIdentity;
+import gov.va.api.health.r4.api.elements.Meta;
 import gov.va.api.health.r4.api.elements.Reference;
 import gov.va.api.health.r4.api.resources.Coverage;
+import gov.va.api.health.r4.api.resources.Coverage.CoverageClass;
 import gov.va.api.health.vistafhirquery.service.config.LinkProperties;
 import gov.va.api.health.vistafhirquery.service.controller.witnessprotection.ProtectedReferenceFactory;
 import java.util.List;
@@ -25,6 +27,7 @@ public class R4CoverageWitnessProtectionAgentTest {
     var coverage =
         Coverage.builder()
             .id("cov1")
+            .meta(Meta.builder().source("123").build())
             .beneficiary(Reference.builder().reference("Patient/p1").build())
             .payor(
                 List.of(
@@ -32,9 +35,9 @@ public class R4CoverageWitnessProtectionAgentTest {
                     Reference.builder().reference("Organization/o2").build()))
             .coverageClass(
                 List.of(
-                    Coverage.CoverageClass.builder().value("gp1").build(),
-                    Coverage.CoverageClass.builder().value("InsurancePlan/gp2").build(),
-                    Coverage.CoverageClass.builder().value("Prefix1/Prefix2/gp3").build()))
+                    CoverageClass.builder().value("gp1").build(),
+                    CoverageClass.builder().value("InsurancePlan/gp2").build(),
+                    CoverageClass.builder().value("Prefix1/Prefix2/gp3").build()))
             .build();
     var wpa = new R4CoverageWitnessProtectionAgent(new ProtectedReferenceFactory(linkProperties));
     // By transforming to resource identity, we can test the advice gets all the references correct
@@ -81,13 +84,13 @@ public class R4CoverageWitnessProtectionAgentTest {
     var coverage =
         Coverage.builder()
             .id("cov1")
+            .meta(Meta.builder().source("123").build())
             .beneficiary(Reference.builder().reference("Patient/p1").build())
             .payor(
                 List.of(
                     Reference.builder().reference("Organization/o1").build(),
                     Reference.builder().reference("Organization/o2").build()))
-            .coverageClass(
-                List.of(Coverage.CoverageClass.builder().value("InsurancePlan/").build()))
+            .coverageClass(List.of(CoverageClass.builder().value("InsurancePlan/").build()))
             .build();
     var wpa = new R4CoverageWitnessProtectionAgent(new ProtectedReferenceFactory(linkProperties));
     assertThatExceptionOfType(IllegalArgumentException.class)

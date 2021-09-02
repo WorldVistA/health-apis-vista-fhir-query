@@ -9,8 +9,10 @@ import gov.va.api.health.r4.api.datatypes.CodeableConcept;
 import gov.va.api.health.r4.api.datatypes.Coding;
 import gov.va.api.health.r4.api.datatypes.Period;
 import gov.va.api.health.r4.api.elements.Extension;
+import gov.va.api.health.r4.api.elements.Meta;
 import gov.va.api.health.r4.api.elements.Reference;
 import gov.va.api.health.r4.api.resources.Coverage;
+import gov.va.api.health.r4.api.resources.Coverage.Status;
 import gov.va.api.health.vistafhirquery.service.controller.RecordCoordinates;
 import gov.va.api.lighthouse.charon.models.FilemanDate;
 import gov.va.api.lighthouse.charon.models.lhslighthouserpcgateway.GroupInsurancePlan;
@@ -174,8 +176,9 @@ public class R4CoverageTransformer {
     }
     return Coverage.builder()
         .id(patientCoordinateStringFrom(patientIcn, site(), entry.ien()))
+        .meta(Meta.builder().source(site()).build())
         .extension(extensions(entry))
-        .status(Coverage.Status.active)
+        .status(Status.active)
         .subscriberId(entry.external(InsuranceType.SUBSCRIBER_ID).orElse(null))
         .beneficiary(toReference("Patient", patientIcn, null))
         .relationship(relationship(entry))

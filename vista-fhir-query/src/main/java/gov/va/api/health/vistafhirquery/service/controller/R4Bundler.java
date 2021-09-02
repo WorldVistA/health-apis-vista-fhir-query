@@ -2,6 +2,7 @@ package gov.va.api.health.vistafhirquery.service.controller;
 
 import static java.lang.String.join;
 import static java.util.stream.Collectors.joining;
+import static org.apache.commons.lang3.StringUtils.isBlank;
 
 import gov.va.api.health.r4.api.bundle.AbstractBundle;
 import gov.va.api.health.r4.api.bundle.AbstractEntry;
@@ -41,6 +42,8 @@ public class R4Bundler<
 
   /** The bundling configuration that will be used to create the actual bundle. */
   private final R4Bundling<ResourceT, EntryT, BundleT> bundling;
+
+  private final String site;
 
   @Override
   public BundleT apply(RpcResponseT rpcResult) {
@@ -93,10 +96,14 @@ public class R4Bundler<
   /** Create R4 BundleLinks. */
   private List<BundleLink> toLinks() {
     List<BundleLink> links = new ArrayList<>(5);
+    String url =
+        isBlank(site)
+            ? linkProperties.r4().resourceUrlWithoutSite(resourceType)
+            : linkProperties.r4().resourceUrl(site, resourceType);
     links.add(
         BundleLink.builder()
             .relation(BundleLink.LinkRelation.self)
-            .url(linkProperties.r4().resourceUrl(resourceType) + "?" + request())
+            .url(url + "?" + request())
             .build());
     return links;
   }

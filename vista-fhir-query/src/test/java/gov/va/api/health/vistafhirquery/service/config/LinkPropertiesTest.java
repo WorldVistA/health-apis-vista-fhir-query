@@ -1,13 +1,16 @@
 package gov.va.api.health.vistafhirquery.service.config;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.junit.jupiter.params.provider.Arguments.arguments;
 
+import gov.va.api.health.r4.api.elements.Meta;
 import gov.va.api.health.r4.api.resources.Condition;
 import gov.va.api.health.r4.api.resources.Immunization;
 import gov.va.api.health.r4.api.resources.Patient;
 import gov.va.api.health.r4.api.resources.Resource;
 import gov.va.api.health.vistafhirquery.service.config.LinkProperties.Links;
+import gov.va.api.health.vistafhirquery.service.config.LinkProperties.UrlOrPathConfigurationException;
 import java.util.Map;
 import java.util.stream.Stream;
 import org.junit.jupiter.api.Test;
@@ -22,18 +25,15 @@ class LinkPropertiesTest {
         arguments(Patient.builder().id("p1").build(), "http://custom.com/foo/Patient/p1"),
         arguments(
             Immunization.builder().id("i1").build(), "http://also-custom.com/bar/Immunization/i1"),
-        arguments(Condition.builder().id("c1").build(), "http://default.com/r4/Condition/c1"));
+        arguments(
+            Condition.builder().id("c1").meta(Meta.builder().source("123").build()).build(),
+            "http://default.com/site/123/r4/Condition/c1"));
   }
 
-  @Test
-  void customR4UrlDefaultsToEmpty() {
-    assertThat(LinkProperties.builder().build().getCustomR4UrlAndPath()).isEmpty();
-  }
-
-  Links links() {
+  Links _links() {
     return LinkProperties.builder()
         .publicUrl("http://default.com")
-        .publicR4BasePath("r4")
+        .publicR4BasePath("site/{site}/r4")
         .customR4UrlAndPath(
             Map.of(
                 "Patient", "http://custom.com/foo",
@@ -42,9 +42,20 @@ class LinkPropertiesTest {
         .r4();
   }
 
+  @Test
+  void customR4UrlDefaultsToEmpty() {
+    assertThat(LinkProperties.builder().build().getCustomR4UrlAndPath()).isEmpty();
+  }
+
   @ParameterizedTest
   @MethodSource
   void resourceUrl(Resource resource, String expectedUrl) {
-    assertThat(links().readUrl(resource)).isEqualTo(expectedUrl);
+    assertThat(_links().readUrl(resource)).isEqualTo(expectedUrl);
+  }
+
+  @Test
+  void resourceUrlWithoutSiteThrowsExceptionIfUrlHasPlaceholder() {
+    assertThatExceptionOfType(UrlOrPathConfigurationException.class)
+        .isThrownBy(() -> _links().resourceUrlWithoutSite("Coverage"));
   }
 }

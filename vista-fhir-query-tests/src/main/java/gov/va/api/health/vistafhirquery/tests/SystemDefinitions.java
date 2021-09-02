@@ -64,8 +64,8 @@ public final class SystemDefinitions {
   private static SystemDefinition lab() {
     String url = "https://blue.lab.lighthouse.va.gov";
     return SystemDefinition.builder()
-        .internal(serviceDefinition("internal", url, 443, null, "/vista-fhir-query/"))
-        .r4(serviceDefinition("r4", url, 443, magicAccessToken(), "/vista-fhir-query/r4"))
+        .internal(serviceDefinition("internal", url, 443, null, "/vista-fhir-query"))
+        .basePath(serviceDefinition("r4", url, 443, magicAccessToken(), "/vista-fhir-query"))
         .publicIds(idsForSyntheticEnvironment())
         .clientKey(clientKey())
         .build();
@@ -100,8 +100,8 @@ public final class SystemDefinitions {
   private static SystemDefinition local() {
     String url = "http://localhost";
     return SystemDefinition.builder()
-        .internal(serviceDefinition("internal", url, 8095, null, "/"))
-        .r4(serviceDefinition("r4", url, 8095, null, "/r4"))
+        .internal(serviceDefinition("internal", url, 8095, null, "/vista-fhir-query"))
+        .basePath(serviceDefinition("r4", url, 8095, null, "/vista-fhir-query"))
         .publicIds(idsForLocalEnvironment())
         .clientKey(Optional.of(System.getProperty("client-key", "~shanktopus~")))
         .build();
@@ -110,8 +110,8 @@ public final class SystemDefinitions {
   private static SystemDefinition production() {
     String url = "https://blue.production.lighthouse.va.gov";
     return SystemDefinition.builder()
-        .internal(serviceDefinition("internal", url, 443, null, "/vista-fhir-query/"))
-        .r4(serviceDefinition("r4", url, 443, magicAccessToken(), "/vista-fhir-query/r4"))
+        .internal(serviceDefinition("internal", url, 443, null, "/vista-fhir-query"))
+        .basePath(serviceDefinition("r4", url, 443, magicAccessToken(), "/vista-fhir-query"))
         .publicIds(idsForProductionEnvironment())
         .clientKey(clientKey())
         .build();
@@ -120,8 +120,8 @@ public final class SystemDefinitions {
   private static SystemDefinition qa() {
     String url = "https://blue.qa.lighthouse.va.gov";
     return SystemDefinition.builder()
-        .internal(serviceDefinition("internal", url, 443, null, "/vista-fhir-query/"))
-        .r4(serviceDefinition("r4", url, 443, magicAccessToken(), "/vista-fhir-query/r4"))
+        .internal(serviceDefinition("internal", url, 443, null, "/vista-fhir-query"))
+        .basePath(serviceDefinition("r4", url, 443, magicAccessToken(), "/vista-fhir-query"))
         .publicIds(idsForSyntheticEnvironment())
         .clientKey(clientKey())
         .build();
@@ -142,8 +142,8 @@ public final class SystemDefinitions {
   private static SystemDefinition staging() {
     String url = "https://blue.staging.lighthouse.va.gov";
     return SystemDefinition.builder()
-        .internal(serviceDefinition("internal", url, 443, null, "/vista-fhir-query/"))
-        .r4(serviceDefinition("r4", url, 443, magicAccessToken(), "/vista-fhir-query/r4"))
+        .internal(serviceDefinition("internal", url, 443, null, "/vista-fhir-query"))
+        .basePath(serviceDefinition("r4", url, 443, magicAccessToken(), "/vista-fhir-query"))
         .publicIds(idsForProductionEnvironment())
         .clientKey(clientKey())
         .build();
@@ -153,7 +153,7 @@ public final class SystemDefinitions {
     String url = "https://blue.staging-lab.lighthouse.va.gov";
     return SystemDefinition.builder()
         .internal(serviceDefinition("internal", url, 443, null, "/vista-fhir-query/"))
-        .r4(serviceDefinition("r4", url, 443, magicAccessToken(), "/vista-fhir-query/r4"))
+        .basePath(serviceDefinition("r4", url, 443, magicAccessToken(), "/vista-fhir-query"))
         .publicIds(idsForSyntheticEnvironment())
         .clientKey(clientKey())
         .build();

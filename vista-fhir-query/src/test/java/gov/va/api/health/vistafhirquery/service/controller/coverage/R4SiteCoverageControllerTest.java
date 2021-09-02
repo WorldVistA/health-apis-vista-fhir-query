@@ -1,40 +1,38 @@
 package gov.va.api.health.vistafhirquery.service.controller.coverage;
 
+import static gov.va.api.health.vistafhirquery.service.charonclient.CharonTestSupport.answerFor;
+import static gov.va.api.health.vistafhirquery.service.charonclient.CharonTestSupport.requestCaptor;
 import static gov.va.api.health.vistafhirquery.service.controller.MockRequests.json;
 import static gov.va.api.health.vistafhirquery.service.controller.MockRequests.requestFromUri;
 import static gov.va.api.health.vistafhirquery.service.controller.coverage.CoverageSamples.R4.link;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
 
 import gov.va.api.health.r4.api.bundle.BundleLink;
+import gov.va.api.health.vistafhirquery.service.charonclient.CharonClient;
 import gov.va.api.health.vistafhirquery.service.config.LinkProperties;
 import gov.va.api.health.vistafhirquery.service.controller.PatientTypeCoordinates;
 import gov.va.api.health.vistafhirquery.service.controller.R4BundlerFactory;
-import gov.va.api.health.vistafhirquery.service.controller.VistalinkApiClient;
 import gov.va.api.health.vistafhirquery.service.controller.witnessprotection.AlternatePatientIds;
 import gov.va.api.health.vistafhirquery.service.controller.witnessprotection.WitnessProtection;
-import gov.va.api.lighthouse.charon.api.RpcInvocationResult;
-import gov.va.api.lighthouse.charon.api.RpcResponse;
+import gov.va.api.lighthouse.charon.api.v1.RpcInvocationResultV1;
 import gov.va.api.lighthouse.charon.models.lhslighthouserpcgateway.LhsLighthouseRpcGatewayCoverageSearch;
 import gov.va.api.lighthouse.charon.models.lhslighthouserpcgateway.LhsLighthouseRpcGatewayGetsManifest;
 import gov.va.api.lighthouse.charon.models.lhslighthouserpcgateway.LhsLighthouseRpcGatewayResponse;
 import java.util.List;
-import java.util.Optional;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 @ExtendWith(MockitoExtension.class)
-public class R4CoverageControllerTest {
-  @Mock VistalinkApiClient vlClient;
+public class R4SiteCoverageControllerTest {
+  @Mock CharonClient charon;
 
   @Mock WitnessProtection witnessProtection;
 
-  private R4CoverageController controller() {
-    return R4CoverageController.builder()
+  private R4SiteCoverageController _controller() {
+    return R4SiteCoverageController.builder()
         .bundlerFactory(
             R4BundlerFactory.builder()
                 .linkProperties(
@@ -42,12 +40,20 @@ public class R4CoverageControllerTest {
                         .defaultPageSize(15)
                         .maxPageSize(100)
                         .publicUrl("http://fugazi.com")
-                        .publicR4BasePath("r4")
+                        .publicR4BasePath("site/{site}/r4")
                         .build())
                 .alternatePatientIds(new AlternatePatientIds.DisabledAlternatePatientIds())
                 .build())
-        .vistalinkApiClient(vlClient)
+        .charon(charon)
         .witnessProtection(witnessProtection)
+        .build();
+  }
+
+  private RpcInvocationResultV1 _invocationResult(Object value) {
+    return RpcInvocationResultV1.builder()
+        .vista("123")
+        .timezone("UTC")
+        .response(json(value))
         .build();
   }
 
@@ -55,75 +61,65 @@ public class R4CoverageControllerTest {
   void read() {
     var samples = CoverageSamples.VistaLhsLighthouseRpcGateway.create();
     var results = samples.getsManifestResults("ip1");
-    when(vlClient.requestForVistaSite(
-            eq("123"), any(LhsLighthouseRpcGatewayGetsManifest.Request.class)))
-        .thenReturn(
-            RpcResponse.builder()
-                .status(RpcResponse.Status.OK)
-                .results(
-                    List.of(
-                        RpcInvocationResult.builder().vista("123").response(json(results)).build()))
-                .build());
+    var captor = requestCaptor(LhsLighthouseRpcGatewayGetsManifest.Request.class);
+    var answer =
+        answerFor(captor).value(results).invocationResult(_invocationResult(results)).build();
+
+    when(charon.request(captor.capture())).thenAnswer(answer);
     when(witnessProtection.toPatientTypeCoordinates("pubCover1"))
         .thenReturn(
             PatientTypeCoordinates.builder().icn("p1").siteId("123").recordId("ip1").build());
-    var actual = controller().coverageRead("pubCover1");
+
+    var actual = _controller().coverageRead("123", "pubCover1");
     var expected = CoverageSamples.R4.create().coverage("123", "ip1", "p1");
     assertThat(json(actual)).isEqualTo(json(expected));
+    var request = captor.getValue();
+    assertThat(request.vista()).isEqualTo("123");
   }
 
   @Test
   void searchByPatientWithResults() {
-    var request = requestFromUri("?_count=10&patient=p1");
+    var httpRequest = requestFromUri("?_count=10&patient=p1");
     var results = CoverageSamples.VistaLhsLighthouseRpcGateway.create().getsManifestResults();
-    when(vlClient.requestForPatient(
-            eq("p1"), any(LhsLighthouseRpcGatewayCoverageSearch.Request.class)))
-        .thenReturn(
-            RpcResponse.builder()
-                .status(RpcResponse.Status.OK)
-                .results(
-                    List.of(
-                        RpcInvocationResult.builder().vista("888").response(json(results)).build(),
-                        RpcInvocationResult.builder()
-                            .vista("666")
-                            .error(Optional.of("I'm a failed response who'll get ignored."))
-                            .build()))
-                .build());
-    var actual = controller().coverageSearch(request, "p1", 1, 10);
+    var captor = requestCaptor(LhsLighthouseRpcGatewayCoverageSearch.Request.class);
+    var answer =
+        answerFor(captor).value(results).invocationResult(_invocationResult(results)).build();
+
+    when(charon.request(captor.capture())).thenAnswer(answer);
+
+    var actual = _controller().coverageSearch(httpRequest, "123", "p1", 1, 10);
     var expected =
         CoverageSamples.R4.asBundle(
-            "http://fugazi.com/r4",
-            List.of(CoverageSamples.R4.create().coverage("888", "1,8,", "p1")),
+            "http://fugazi.com/site/123/r4",
+            List.of(CoverageSamples.R4.create().coverage("123", "1,8,", "p1")),
             1,
             link(
                 BundleLink.LinkRelation.self,
-                "http://fugazi.com/r4/Coverage",
+                "http://fugazi.com/site/123/r4/Coverage",
                 "_count=10&patient=p1"));
     assertThat(json(actual)).isEqualTo(json(expected));
   }
 
   @Test
   void searchByPatientWithoutResults() {
-    var request = requestFromUri("?page=1&_count=10&patient=p1");
+    var httpRequest = requestFromUri("?page=1&_count=10&patient=p1");
     var results = LhsLighthouseRpcGatewayResponse.Results.builder().build();
-    when(vlClient.requestForPatient(
-            eq("p1"), any(LhsLighthouseRpcGatewayCoverageSearch.Request.class)))
-        .thenReturn(
-            RpcResponse.builder()
-                .status(RpcResponse.Status.OK)
-                .results(
-                    List.of(
-                        RpcInvocationResult.builder().vista("888").response(json(results)).build()))
-                .build());
-    var actual = controller().coverageSearch(request, "p1", 1, 10);
+    var captor = requestCaptor(LhsLighthouseRpcGatewayCoverageSearch.Request.class);
+    var answer =
+        answerFor(captor).value(results).invocationResult(_invocationResult(results)).build();
+
+    when(charon.request(captor.capture())).thenAnswer(answer);
+
+    var actual = _controller().coverageSearch(httpRequest, "123", "p1", 1, 10);
+
     var expected =
         CoverageSamples.R4.asBundle(
-            "http://fugazi.com/r4",
+            "http://fugazi.com/site/123/r4",
             List.of(),
             0,
             link(
                 BundleLink.LinkRelation.self,
-                "http://fugazi.com/r4/Coverage",
+                "http://fugazi.com/site/123/r4/Coverage",
                 "page=1&_count=10&patient=p1"));
     assertThat(json(actual)).isEqualTo(json(expected));
   }

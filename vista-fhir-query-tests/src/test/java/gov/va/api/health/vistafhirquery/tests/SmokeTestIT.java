@@ -7,15 +7,12 @@ import static org.hamcrest.CoreMatchers.equalTo;
 import gov.va.api.health.fhir.testsupport.ResourceVerifier;
 import gov.va.api.health.r4.api.resources.Observation;
 import gov.va.api.health.sentinel.Environment;
-import lombok.experimental.Delegate;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.Test;
 
 @Slf4j
 public class SmokeTestIT {
   private final TestIds testIds = VistaFhirQueryResourceVerifier.ids();
-
-  @Delegate private final ResourceVerifier verifier = VistaFhirQueryResourceVerifier.r4();
 
   @Test
   void healthCheckIsUnprotected() {
@@ -29,6 +26,9 @@ public class SmokeTestIT {
   @Test
   void read() {
     assumeEnvironmentNotIn(Environment.STAGING);
-    verify(test(200, Observation.Bundle.class, "Observation?patient={patient}", testIds.patient()));
+    ResourceVerifier verifier = VistaFhirQueryResourceVerifier.r4WithoutSite();
+    verifier.verify(
+        verifier.test(
+            200, Observation.Bundle.class, "Observation?patient={patient}", testIds.patient()));
   }
 }

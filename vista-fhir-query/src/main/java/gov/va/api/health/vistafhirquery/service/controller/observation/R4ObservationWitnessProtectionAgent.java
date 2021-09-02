@@ -21,6 +21,6 @@ public class R4ObservationWitnessProtectionAgent implements WitnessProtectionAge
   public Stream<ProtectedReference> referencesOf(Observation resource) {
     return Stream.of(
         protectedReferenceFactory.forResource(resource, resource::id),
-        protectedReferenceFactory.forReference(resource.subject()).orElse(null));
+        protectedReferenceFactory.forReferenceWithoutSite(resource.subject()).orElse(null));
   }
 }

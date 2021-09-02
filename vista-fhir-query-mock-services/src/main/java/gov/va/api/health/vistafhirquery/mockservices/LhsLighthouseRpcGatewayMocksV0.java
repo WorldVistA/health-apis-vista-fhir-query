@@ -27,7 +27,7 @@ import org.mockserver.model.HttpResponse;
 @Data
 @RequiredArgsConstructor(staticName = "using")
 @Slf4j
-public class LhsLighthouseRpcGatewayMocks implements MockService {
+public class LhsLighthouseRpcGatewayMocksV0 implements MockService {
   private final int port;
 
   private List<String> supportedQueries = new ArrayList<>();

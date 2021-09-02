@@ -27,11 +27,22 @@ public class ProtectedReferenceFactory {
    * Create a new instance from an R4 reference if possible. See {@link #forUri(String,
    * Consumer,NewReferenceValueStrategy)}.
    */
-  public Optional<ProtectedReference> forReference(Reference reference) {
+  public Optional<ProtectedReference> forReference(String site, Reference reference) {
     if (reference == null) {
       return Optional.empty();
     }
-    return forUri(reference.reference(), reference::reference, replaceWithFullUrl());
+    return forUri(reference.reference(), reference::reference, replaceWithFullUrl(site));
+  }
+
+  /**
+   * Create a new instance from an R4 reference if possible. See {@link #forUri(String,
+   * Consumer,NewReferenceValueStrategy)}.
+   */
+  public Optional<ProtectedReference> forReferenceWithoutSite(Reference reference) {
+    if (reference == null) {
+      return Optional.empty();
+    }
+    return forUri(reference.reference(), reference::reference, replaceWithFullUrlWithoutSite());
   }
 
   /**
@@ -103,8 +114,19 @@ public class ProtectedReferenceFactory {
    * configured paging links. E.g., /whatever/Foo/1234 becomes
    * https://awesome.com/services/fhir/v0/r4/Foo/ABCD.
    */
-  public NewReferenceValueStrategy replaceWithFullUrl() {
-    return update -> linkProperties.r4().readUrl(update.resourceType(), update.newResourceId());
+  public NewReferenceValueStrategy replaceWithFullUrl(String site) {
+    return update ->
+        linkProperties.r4().readUrl(site, update.resourceType(), update.newResourceId());
+  }
+
+  /**
+   * Return a strategy that will replace the entire reference value with the full URL using
+   * configured paging links. E.g., /whatever/Foo/1234 becomes
+   * https://awesome.com/services/fhir/v0/r4/Foo/ABCD.
+   */
+  public NewReferenceValueStrategy replaceWithFullUrlWithoutSite() {
+    return update ->
+        linkProperties.r4().readUrlWithoutSite(update.resourceType(), update.newResourceId());
   }
 
   /** NewReferenceValueStrategy. */

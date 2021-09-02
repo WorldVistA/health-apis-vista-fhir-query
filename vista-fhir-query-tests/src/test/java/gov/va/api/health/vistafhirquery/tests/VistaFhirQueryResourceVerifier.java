@@ -5,18 +5,27 @@ import lombok.experimental.UtilityClass;
 
 @UtilityClass
 public class VistaFhirQueryResourceVerifier {
-
   public static TestIds ids() {
     return SystemDefinitions.systemDefinition().publicIds();
   }
 
-  public static ResourceVerifier r4() {
+  public static ResourceVerifier r4ForSite(String site) {
     return ResourceVerifier.builder()
-        .apiPath(SystemDefinitions.systemDefinition().r4().apiPath())
+        .apiPath(
+            SystemDefinitions.systemDefinition().basePath().apiPath() + "site/" + site + "/r4/")
         .bundleClass(gov.va.api.health.r4.api.bundle.AbstractBundle.class)
-        .testClient(TestClients.r4())
+        .testClient(TestClients.basePath())
         .operationOutcomeClass(gov.va.api.health.r4.api.resources.OperationOutcome.class)
-        // Until paging is implemented, only vista is enforcing our maximum amount
+        .maxCount(9999)
+        .build();
+  }
+
+  public static ResourceVerifier r4WithoutSite() {
+    return ResourceVerifier.builder()
+        .apiPath(SystemDefinitions.systemDefinition().basePath().apiPath() + "r4/")
+        .bundleClass(gov.va.api.health.r4.api.bundle.AbstractBundle.class)
+        .testClient(TestClients.basePath())
+        .operationOutcomeClass(gov.va.api.health.r4.api.resources.OperationOutcome.class)
         .maxCount(9999)
         .build();
   }

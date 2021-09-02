@@ -16,7 +16,8 @@ import org.junit.jupiter.api.Test;
 public class ObservationIT {
   private final TestIds testIds = VistaFhirQueryResourceVerifier.ids();
 
-  @Delegate private final ResourceVerifier verifier = VistaFhirQueryResourceVerifier.r4();
+  @Delegate
+  private final ResourceVerifier verifier = VistaFhirQueryResourceVerifier.r4WithoutSite();
 
   @Test
   void read() {

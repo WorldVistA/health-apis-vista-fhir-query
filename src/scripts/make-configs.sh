@@ -148,8 +148,12 @@ EOF
   configValue vista-fhir-query $PROFILE vista-fhir-query.rpc-principals.file "config\/principals-$PROFILE.json"
   configValue vista-fhir-query $PROFILE vista-fhir-query.internal.client-keys "disabled"
   configValue vista-fhir-query $PROFILE vista-fhir-query.public-url "http://localhost:8095"
-  configValue vista-fhir-query $PROFILE vista-fhir-query.public-r4-base-path "r4"
+  configValue vista-fhir-query $PROFILE vista-fhir-query.public-r4-base-path "site/{site}/r4"
+  addValue    vista-fhir-query $PROFILE vista-fhir-query.custom-r4-url-and-path.Endpoint "http://localhost:8095/r4"
+  addValue    vista-fhir-query $PROFILE vista-fhir-query.custom-r4-url-and-path.Observation "http://localhost:8095/r4"
+  addValue    vista-fhir-query $PROFILE vista-fhir-query.custom-r4-url-and-path.Organization "http://localhost:8095/r4"
   addValue    vista-fhir-query $PROFILE vista-fhir-query.custom-r4-url-and-path.Patient "http://localhost:8090/data-query/r4"
+
   configValue vista-fhir-query $PROFILE vista-fhir-query.public-web-exception-key "$WEB_EXCEPTION_KEY"
   configValue vista-fhir-query $PROFILE ids-client.patient-icn.id-pattern "[0-9]+(V[0-9]{6})?"
   configValue vista-fhir-query $PROFILE ids-client.encoded-ids.encoding-key "fhir-query"

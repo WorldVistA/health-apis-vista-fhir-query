@@ -80,7 +80,7 @@ public class R4EndpointController implements R4EndpointApi {
             List.of(
                 BundleLink.builder()
                     .relation(BundleLink.LinkRelation.self)
-                    .url(linkProperties.r4().resourceUrl("Endpoint"))
+                    .url(linkProperties.r4().resourceUrlWithoutSite("Endpoint"))
                     .build()))
         .entry(entries)
         .build();

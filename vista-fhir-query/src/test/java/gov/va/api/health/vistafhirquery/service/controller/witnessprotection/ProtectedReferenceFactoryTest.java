@@ -27,9 +27,21 @@ class ProtectedReferenceFactoryTest {
 
   @Test
   void forReference() {
-    assertThat(prf().forReference((Reference) null)).isEmpty();
+    assertThat(prf().forReference("123", (Reference) null)).isEmpty();
     Reference ref = Reference.builder().reference("Patient/p1").build();
-    Optional<ProtectedReference> actual = prf().forReference(ref);
+    Optional<ProtectedReference> actual = prf().forReference("123", ref);
+    assertThat(actual).isNotEmpty();
+    assertThat(actual.get().type()).isEqualTo("Patient");
+    assertThat(actual.get().id()).isEqualTo("p1");
+    actual.get().onUpdate().accept("newton");
+    assertThat(ref.reference()).isEqualTo("http://awesome.com/fuego/r4/Patient/newton");
+  }
+
+  @Test
+  void forReferenceWithoutSite() {
+    assertThat(prf().forReferenceWithoutSite((Reference) null)).isEmpty();
+    Reference ref = Reference.builder().reference("Patient/p1").build();
+    Optional<ProtectedReference> actual = prf().forReferenceWithoutSite(ref);
     assertThat(actual).isNotEmpty();
     assertThat(actual.get().type()).isEqualTo("Patient");
     assertThat(actual.get().id()).isEqualTo("p1");

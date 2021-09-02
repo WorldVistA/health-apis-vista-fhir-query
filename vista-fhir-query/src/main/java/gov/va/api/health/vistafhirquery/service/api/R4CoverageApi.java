@@ -20,7 +20,7 @@ public interface R4CoverageApi {
       description = "http://hl7.org/fhir/us/carin/StructureDefinition/carin-bb-coverage",
       tags = {"Coverage"})
   @GET
-  @Path("Coverage/{id}")
+  @Path("/site/{site}/Coverage/{id}")
   @ApiResponse(
       responseCode = "200",
       description = "Record found",
@@ -45,6 +45,12 @@ public interface R4CoverageApi {
   Coverage coverageRead(
       @Parameter(
               in = ParameterIn.PATH,
+              name = "site",
+              required = true,
+              description = "The id of the site where this resource can be found.")
+          String site,
+      @Parameter(
+              in = ParameterIn.PATH,
               name = "id",
               required = true,
               description =
@@ -56,7 +62,7 @@ public interface R4CoverageApi {
       description = "http://hl7.org/fhir/us/carin/StructureDefinition/carin-bb-coverage",
       tags = {"Coverage"})
   @GET
-  @Path("Coverage")
+  @Path("/site/{site}/Coverage")
   @ApiResponse(
       responseCode = "200",
       description = "Record found",
@@ -80,6 +86,12 @@ public interface R4CoverageApi {
               schema = @Schema(implementation = OperationOutcome.class)))
   Coverage.Bundle coverageSearch(
       @Parameter(hidden = true) HttpServletRequest request,
+      @Parameter(
+              in = ParameterIn.PATH,
+              name = "site",
+              required = true,
+              description = "The id of the site where this resource can be found.")
+          String site,
       @Parameter(
               in = ParameterIn.QUERY,
               name = "patient",

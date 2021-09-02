@@ -13,22 +13,24 @@ import org.junit.jupiter.params.provider.ValueSource;
 @Slf4j
 public class EndpointIT {
 
-  private final String apiPath = SystemDefinitions.systemDefinition().r4().apiPath();
+  private final String apiPath = SystemDefinitions.systemDefinition().basePath().apiPath();
 
   @ParameterizedTest
-  @ValueSource(strings = {"Endpoint", "Endpoint?status=active"})
+  @ValueSource(strings = {"r4/Endpoint", "r4/Endpoint?status=active"})
   void search(String query) {
     var requestPath = apiPath + query;
     log.info("Verify {} is Bundle (200)", requestPath);
-    var bundle = TestClients.r4().get(requestPath).expect(200).expectValid(Endpoint.Bundle.class);
+    var bundle =
+        TestClients.basePath().get(requestPath).expect(200).expectValid(Endpoint.Bundle.class);
     assertThat(bundle.total()).isGreaterThan(0);
   }
 
   @Test
   void searchWithBadStatus() {
-    var requestPath = apiPath + "Endpoint?status=INVALID";
+    var requestPath = apiPath + "r4/Endpoint?status=INVALID";
     log.info("Verify {} is Bundle (200)", requestPath);
-    var bundle = TestClients.r4().get(requestPath).expect(200).expectValid(Endpoint.Bundle.class);
+    var bundle =
+        TestClients.basePath().get(requestPath).expect(200).expectValid(Endpoint.Bundle.class);
     assertThat(bundle.total()).isEqualTo(0);
   }
 }

@@ -22,7 +22,11 @@ public class R4CoverageWitnessProtectionAgent implements WitnessProtectionAgent<
     Stream<ProtectedReference> referenceGroups =
         Stream.concat(
             resource.payor().stream()
-                .map(p -> protectedReferenceFactory.forReference(p).orElse(null))
+                .map(
+                    p ->
+                        protectedReferenceFactory
+                            .forReference(resource.meta().source(), p)
+                            .orElse(null))
                 .filter(Objects::nonNull),
             resource.coverageClass().stream()
                 .map(
@@ -41,7 +45,7 @@ public class R4CoverageWitnessProtectionAgent implements WitnessProtectionAgent<
     return Stream.concat(
         Stream.of(
             protectedReferenceFactory.forResource(resource, resource::id),
-            protectedReferenceFactory.forReference(resource.beneficiary()).orElse(null)),
+            protectedReferenceFactory.forReferenceWithoutSite(resource.beneficiary()).orElse(null)),
         referenceGroups);
   }
 }

@@ -198,6 +198,7 @@ public class R4ObservationController {
       toBundle(String patient, HttpServletRequest request) {
     return bundlerFactory
         .forTransformation(transformation(patient, request.getParameter("code")))
+        .withoutSite()
         .bundling(
             R4Bundling.newBundle(Observation.Bundle::new).newEntry(Observation.Entry::new).build())
         .resourceType("Observation")
