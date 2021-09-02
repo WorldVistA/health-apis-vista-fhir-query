@@ -66,6 +66,7 @@ public class VistaConnectivityIT {
   void connected(IcnAtSites icnAtSites) {
     assumeEnvironmentNotIn(Environment.LOCAL, Environment.STAGING, Environment.PROD);
     var sd = SystemDefinitions.systemDefinition().basePath();
+    log.info("Testing connectivity with {}:{} with path {}", sd.url(), sd.port(), sd.apiPath());
     ExpectedResponse bundleResponse =
         ExpectedResponse.of(
             request(sd)
@@ -89,7 +90,9 @@ public class VistaConnectivityIT {
             .relaxedHTTPSValidation()
             .headers(Map.of("Authorization", "Bearer " + token))
             .contentType("application/json")
-            .accept("application/json");
+            .accept("application/json")
+            .log()
+            .uri();
     return request;
   }
 }
