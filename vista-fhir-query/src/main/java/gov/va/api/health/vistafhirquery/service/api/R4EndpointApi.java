@@ -9,6 +9,8 @@ import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import javax.servlet.http.HttpServletRequest;
+import javax.ws.rs.DefaultValue;
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
 
@@ -70,10 +72,20 @@ public interface R4EndpointApi {
         })
   })
   Endpoint.Bundle endpointSearch(
+      @Parameter(hidden = true) HttpServletRequest request,
       @Parameter(
               in = ParameterIn.QUERY,
               name = "status",
               description = "The status of the endpoint.",
               example = "active")
-          String status);
+          String status,
+      @Parameter(
+              in = ParameterIn.QUERY,
+              name = "_count",
+              description =
+                  "The number of resources that should be returned in a single page. "
+                      + "The maximum count size is 100.",
+              example = "100")
+          @DefaultValue("100")
+          int count);
 }

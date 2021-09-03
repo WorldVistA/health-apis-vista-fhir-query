@@ -87,7 +87,8 @@ public class EndpointSamples {
                   .map(
                       resource ->
                           Endpoint.Entry.builder()
-                              .fullUrl(resource.address())
+                              .fullUrl(
+                                  linkProperties().getPublicUrl() + "/r4/Endpoint/" + resource.id())
                               .resource(resource)
                               .search(
                                   AbstractEntry.Search.builder()
@@ -128,7 +129,7 @@ public class EndpointSamples {
                       .text("Any")
                       .build()))
           .payloadMimeType(List.of("application/json", "application/fhir+json"))
-          .address("http://fake.com/" + site + "/r4")
+          .address(linkProperties().getPublicUrl() + "/" + site + "/r4")
           .build();
     }
   }

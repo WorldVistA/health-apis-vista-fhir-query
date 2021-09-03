@@ -1,18 +1,19 @@
 package gov.va.api.health.vistafhirquery.service.controller.endpoint;
 
-import static java.util.Collections.emptyList;
+import static java.util.Collections.emptySet;
 import static java.util.stream.Collectors.toList;
 
-import gov.va.api.health.r4.api.bundle.AbstractBundle;
-import gov.va.api.health.r4.api.bundle.AbstractEntry;
-import gov.va.api.health.r4.api.bundle.BundleLink;
 import gov.va.api.health.r4.api.resources.Endpoint;
 import gov.va.api.health.r4.api.resources.Endpoint.EndpointStatus;
 import gov.va.api.health.vistafhirquery.service.api.R4EndpointApi;
 import gov.va.api.health.vistafhirquery.service.config.LinkProperties;
+import gov.va.api.health.vistafhirquery.service.controller.R4Bundler;
+import gov.va.api.health.vistafhirquery.service.controller.R4BundlerFactory;
+import gov.va.api.health.vistafhirquery.service.controller.R4Bundling;
+import gov.va.api.health.vistafhirquery.service.controller.R4Transformation;
 import gov.va.api.lighthouse.charon.api.RpcPrincipalLookup;
-import java.util.List;
 import java.util.Set;
+import javax.servlet.http.HttpServletRequest;
 import lombok.AllArgsConstructor;
 import lombok.NonNull;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -28,6 +29,8 @@ import org.springframework.web.bind.annotation.RestController;
 @AllArgsConstructor(onConstructor_ = {@Autowired, @NonNull})
 public class R4EndpointController implements R4EndpointApi {
 
+  private final R4BundlerFactory bundlerFactory;
+
   private final LinkProperties linkProperties;
 
   private RpcPrincipalLookup rpcPrincipalLookup;
@@ -36,31 +39,14 @@ public class R4EndpointController implements R4EndpointApi {
   @Override
   @GetMapping
   public Endpoint.Bundle endpointSearch(
-      @RequestParam(value = "status", required = false) String status) {
+      HttpServletRequest request,
+      @RequestParam(value = "status", required = false) String status,
+      @RequestParam(value = "_count", required = false, defaultValue = "100") int count) {
     if (!isSupportedStatus(status)) {
-      return toBundle(emptyList());
+      return toBundle(request).apply(emptySet());
     }
     Set<String> stations = stations("LHS LIGHTHOUSE RPC GATEWAY");
-    List<Endpoint.Entry> endpoints =
-        stations.stream()
-            .sorted()
-            .map(
-                site ->
-                    Endpoint.Entry.builder()
-                        .fullUrl(linkProperties.getPublicUrl() + "/" + site + "/r4")
-                        .resource(
-                            R4EndpointTransformer.builder()
-                                .site(site)
-                                .linkProperties(linkProperties)
-                                .build()
-                                .toFhir())
-                        .search(
-                            AbstractEntry.Search.builder()
-                                .mode(AbstractEntry.SearchMode.match)
-                                .build())
-                        .build())
-            .collect(toList());
-    return toBundle(endpoints);
+    return toBundle(request).apply(stations);
   }
 
   private boolean isSupportedStatus(String status) {
@@ -71,18 +57,30 @@ public class R4EndpointController implements R4EndpointApi {
     return rpcPrincipalLookup.findByName(rpcName).keySet();
   }
 
-  private Endpoint.Bundle toBundle(List<Endpoint.Entry> entries) {
-    return Endpoint.Bundle.builder()
-        .resourceType("Bundle")
-        .type(AbstractBundle.BundleType.searchset)
-        .total(entries.size())
-        .link(
-            List.of(
-                BundleLink.builder()
-                    .relation(BundleLink.LinkRelation.self)
-                    .url(linkProperties.r4().resourceUrlWithoutSite("Endpoint"))
-                    .build()))
-        .entry(entries)
+  private R4Bundler<Set<String>, Endpoint, Endpoint.Entry, Endpoint.Bundle> toBundle(
+      HttpServletRequest request) {
+    return bundlerFactory
+        .forTransformation(transformation())
+        .withoutSite()
+        .bundling(R4Bundling.newBundle(Endpoint.Bundle::new).newEntry(Endpoint.Entry::new).build())
+        .resourceType("Endpoint")
+        .request(request)
+        .build();
+  }
+
+  private R4Transformation<Set<String>, Endpoint> transformation() {
+    return R4Transformation.<Set<String>, Endpoint>builder()
+        .toResource(
+            station ->
+                station.stream()
+                    .map(
+                        rpcResults ->
+                            R4EndpointTransformer.builder()
+                                .site(rpcResults)
+                                .linkProperties(linkProperties)
+                                .build()
+                                .toFhir())
+                    .collect(toList()))
         .build();
   }
 }

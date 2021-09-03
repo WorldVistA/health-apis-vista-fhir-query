@@ -1,10 +1,13 @@
 package gov.va.api.health.vistafhirquery.service.controller.endpoint;
 
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 
 import gov.va.api.health.r4.api.resources.Endpoint;
 import java.util.List;
+import javax.servlet.http.HttpServletRequest;
 import lombok.SneakyThrows;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -25,7 +28,7 @@ public class R4EndpointResponseIncludesIcnHeaderAdviceTest {
   @Test
   @SneakyThrows
   void endpointResourceIsPatientAgnostic() {
-    when(controller.endpointSearch(null))
+    when(controller.endpointSearch(any(HttpServletRequest.class), eq(null), eq(15)))
         .thenReturn(
             Endpoint.Bundle.builder()
                 .entry(
@@ -35,7 +38,7 @@ public class R4EndpointResponseIncludesIcnHeaderAdviceTest {
                             .build()))
                 .build());
     mockMvc
-        .perform(get("/r4/Endpoint"))
+        .perform(get("/r4/Endpoint?_count=15"))
         .andExpect(MockMvcResultMatchers.header().string("X-VA-INCLUDES-ICN", "NONE"));
   }
 

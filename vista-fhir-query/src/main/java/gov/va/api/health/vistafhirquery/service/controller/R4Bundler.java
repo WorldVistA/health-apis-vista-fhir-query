@@ -10,7 +10,6 @@ import gov.va.api.health.r4.api.bundle.BundleLink;
 import gov.va.api.health.r4.api.resources.Resource;
 import gov.va.api.health.vistafhirquery.service.config.LinkProperties;
 import gov.va.api.health.vistafhirquery.service.controller.witnessprotection.AlternatePatientIds;
-import gov.va.api.lighthouse.charon.models.TypeSafeRpcResponse;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Function;
@@ -24,7 +23,7 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 @Builder
 public class R4Bundler<
-        RpcResponseT extends TypeSafeRpcResponse,
+        RpcResponseT,
         ResourceT extends Resource,
         EntryT extends AbstractEntry<ResourceT>,
         BundleT extends AbstractBundle<EntryT>>
@@ -100,11 +99,11 @@ public class R4Bundler<
         isBlank(site)
             ? linkProperties.r4().resourceUrlWithoutSite(resourceType)
             : linkProperties.r4().resourceUrl(site, resourceType);
-    links.add(
-        BundleLink.builder()
-            .relation(BundleLink.LinkRelation.self)
-            .url(url + "?" + request())
-            .build());
+    String query = "";
+    if (!isBlank(request())) {
+      query = "?" + request();
+    }
+    links.add(BundleLink.builder().relation(BundleLink.LinkRelation.self).url(url + query).build());
     return links;
   }
 }

@@ -6,7 +6,6 @@ import gov.va.api.health.r4.api.resources.Resource;
 import gov.va.api.health.vistafhirquery.service.config.LinkProperties;
 import gov.va.api.health.vistafhirquery.service.controller.R4Bundler.R4BundlerBuilder;
 import gov.va.api.health.vistafhirquery.service.controller.witnessprotection.AlternatePatientIds;
-import gov.va.api.lighthouse.charon.models.TypeSafeRpcResponse;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -24,7 +23,7 @@ public class R4BundlerFactory {
   @Getter @NonNull private final AlternatePatientIds alternatePatientIds;
 
   /** Create a new instance for the given transformation. */
-  public <RpcResponseT extends TypeSafeRpcResponse, ResourceT extends Resource>
+  public <RpcResponseT, ResourceT extends Resource>
       R4BundlerPart1<RpcResponseT, ResourceT> forTransformation(
           R4Transformation<RpcResponseT, ResourceT> transformation) {
     return R4BundlerPart1.<RpcResponseT, ResourceT>builder()
@@ -38,7 +37,7 @@ public class R4BundlerFactory {
    * specifying the types and requires arguments that match.
    */
   @Builder
-  public static class R4BundlerPart1<V extends TypeSafeRpcResponse, R extends Resource> {
+  public static class R4BundlerPart1<V, R extends Resource> {
 
     private final R4BundlerFactory fromFactory;
     private final R4Transformation<V, R> transformation;
@@ -57,7 +56,7 @@ public class R4BundlerFactory {
    * specifying the types and requires arguments that match.
    */
   @Builder
-  public static class R4BundlerPart2<V extends TypeSafeRpcResponse, R extends Resource> {
+  public static class R4BundlerPart2<V, R extends Resource> {
 
     private final R4BundlerPart1<V, R> part1;
     private final String site;
