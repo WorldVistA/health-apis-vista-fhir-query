@@ -19,7 +19,6 @@ public class R4EndpointTransformer {
   Endpoint toFhir() {
     return Endpoint.builder()
         .id(site)
-        .name(site)
         .status(EndpointStatus.active)
         .connectionType(
             Coding.builder()

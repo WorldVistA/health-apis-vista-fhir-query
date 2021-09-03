@@ -107,7 +107,6 @@ public class EndpointSamples {
       return Endpoint.builder()
           .resourceType("Endpoint")
           .id(site)
-          .name(site)
           .status(Endpoint.EndpointStatus.active)
           .connectionType(
               Coding.builder()
