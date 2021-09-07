@@ -8,7 +8,9 @@ import gov.va.api.health.r4.api.resources.Observation;
 import gov.va.api.health.sentinel.Environment;
 import gov.va.api.health.sentinel.ExpectedResponse;
 import gov.va.api.health.vistafhirquery.tests.TestIds.IcnAtSites;
+import gov.va.api.lighthouse.testclients.OauthClient;
 import gov.va.api.lighthouse.testclients.PropertiesLoader;
+import gov.va.api.lighthouse.testclients.RetryingOauthClient;
 import gov.va.api.lighthouse.testclients.selenium.WebDriverConfiguration;
 import gov.va.api.lighthouse.testclients.ssoi.SsoiOauthClient;
 import gov.va.api.lighthouse.testclients.ssoi.SsoiRequestConfiguration;
@@ -44,17 +46,18 @@ public class VistaConnectivityIT {
     log.info("Acquired authorization token.");
   }
 
+  @SuppressWarnings("unused")
   static Stream<Arguments> connected() {
     return SystemDefinitions.systemDefinition().publicIds().patientSites().stream()
         .map(Arguments::of);
   }
 
-  private static Optional<SsoiOauthClient> tryToBuildSsoiClient() {
+  private static Optional<OauthClient> tryToBuildSsoiClient() {
     var propertiesLoader = PropertiesLoader.usingSystemProperties();
     try {
       var webDriverConfig = WebDriverConfiguration.fromProperties(propertiesLoader);
       var ssoiConfig = SsoiRequestConfiguration.fromProperties(propertiesLoader);
-      return Optional.of(SsoiOauthClient.of(ssoiConfig, webDriverConfig));
+      return Optional.of(RetryingOauthClient.of(SsoiOauthClient.of(ssoiConfig, webDriverConfig)));
     } catch (IllegalArgumentException e) {
       log.error("Failed to create oauth client: " + e.getMessage());
       return Optional.empty();
@@ -83,16 +86,14 @@ public class VistaConnectivityIT {
   }
 
   private RequestSpecification request(gov.va.api.health.sentinel.ServiceDefinition sd) {
-    RequestSpecification request =
-        RestAssured.given()
-            .baseUri(sd.url())
-            .port(sd.port())
-            .relaxedHTTPSValidation()
-            .headers(Map.of("Authorization", "Bearer " + token))
-            .contentType("application/json")
-            .accept("application/json")
-            .log()
-            .uri();
-    return request;
+    return RestAssured.given()
+        .baseUri(sd.url())
+        .port(sd.port())
+        .relaxedHTTPSValidation()
+        .headers(Map.of("Authorization", "Bearer " + token))
+        .contentType("application/json")
+        .accept("application/json")
+        .log()
+        .uri();
   }
 }
