@@ -26,7 +26,7 @@ public class ObservationIT {
     verifyAll(
         test(200, Observation.class, path, testIds.observationVitalSign()),
         test(200, Observation.class, path, testIds.observationLaboratory()),
-        test(404, OperationOutcome.class, path, "I2-404"));
+        test(404, OperationOutcome.class, path, "I3-404"));
   }
 
   @Test

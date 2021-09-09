@@ -25,6 +25,6 @@ public class OrganizationIT {
     var path = "Organization/{id}";
     verifyAll(
         test(200, Organization.class, path, testIds.organization()),
-        test(404, OperationOutcome.class, path, "I2-404"));
+        test(404, OperationOutcome.class, path, "I3-404"));
   }
 }

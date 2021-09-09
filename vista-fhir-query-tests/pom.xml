@@ -128,7 +128,7 @@
                 <argument>-Dvista-fhir-query.rpc-principals.file=${project.basedir}/src/test/resources/principals.json</argument>
                 <argument>-Dvista-fhir-query.internal.client-keys=~shanktopus~</argument>
                 <argument>-Dvista-fhir-query.public-web-exception-key=-shanktopus-for-the-win-</argument>
-                <argument>-Dids-client.encoded-ids.i2-enabled=true</argument>
+                <argument>-Dids-client.encoded-ids.i2-enabled=false</argument>
                 <argument>-Dids-client.encoded-ids.i3-enabled=true</argument>
                 <argument>-Dids-client.encoded-ids.encoding-key=fhir-query</argument>
                 <argument>-Dids-client.patient-icn.id-pattern=[0-9]+(V[0-9]{6})?</argument>
