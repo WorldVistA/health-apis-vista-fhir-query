@@ -1,5 +1,6 @@
 package gov.va.api.health.vistafhirquery.service.controller.witnessprotection;
 
+import static java.util.Collections.emptyList;
 import static java.util.function.Function.identity;
 import static java.util.stream.Collectors.joining;
 import static java.util.stream.Collectors.toMap;
@@ -8,9 +9,11 @@ import static java.util.stream.Stream.concat;
 import gov.va.api.health.ids.api.IdentityService;
 import gov.va.api.health.ids.api.IdentitySubstitution;
 import gov.va.api.health.ids.api.ResourceIdentity;
+import gov.va.api.health.ids.client.IdEncoder;
 import gov.va.api.health.r4.api.bundle.AbstractBundle;
 import gov.va.api.health.r4.api.bundle.AbstractEntry;
 import gov.va.api.health.r4.api.resources.Resource;
+import gov.va.api.health.vistafhirquery.service.controller.ResourceExceptions;
 import gov.va.api.health.vistafhirquery.service.controller.ResourceExceptions.NotFound;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
@@ -20,6 +23,7 @@ import java.util.Optional;
 import java.util.stream.Stream;
 import lombok.Builder;
 import lombok.NonNull;
+import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.MethodParameter;
@@ -39,7 +43,6 @@ import org.springframework.web.servlet.mvc.method.annotation.ResponseBodyAdvice;
 @ControllerAdvice
 public class WitnessProtectionAdvice extends IdentitySubstitution<ProtectedReference>
     implements ResponseBodyAdvice<Object>, WitnessProtection {
-
   private final ProtectedReferenceFactory protectedReferenceFactory;
 
   private final AlternatePatientIds alternatePatientIds;
@@ -89,6 +92,22 @@ public class WitnessProtectionAdvice extends IdentitySubstitution<ProtectedRefer
     return protect(body);
   }
 
+  @Override
+  @SneakyThrows
+  public <R extends Resource> String privateIdForResourceOrDie(
+      @NonNull String publicId, Class<R> resourceType) {
+    var resourceIdentity =
+        safeLookup(publicId).stream()
+            .findFirst()
+            .orElseThrow(() -> NotFound.because("Failed to lookup id: %s", publicId));
+    var expectedResourceType = protectedReferenceFactory.resourceTypeFor(resourceType);
+    if (!expectedResourceType.equals(resourceIdentity.resource())) {
+      throw ResourceExceptions.ExpectationFailed.because(
+          "Expected id %s to be of type: %s", publicId, expectedResourceType);
+    }
+    return resourceIdentity.identifier();
+  }
+
   <T> T protect(T body) {
     if (body instanceof AbstractBundle<?>) {
       protectBundle((AbstractBundle<?>) body);
@@ -126,7 +145,6 @@ public class WitnessProtectionAdvice extends IdentitySubstitution<ProtectedRefer
       log.warn("Witness protection agent not found for {}", resource.getClass());
       return;
     }
-
     Operations<Resource, ProtectedReference> operations =
         Operations.<Resource, ProtectedReference>builder()
             .toReferences(
@@ -159,6 +177,14 @@ public class WitnessProtectionAdvice extends IdentitySubstitution<ProtectedRefer
             .build();
     referenceWithPublicId.onUpdate().accept(publicId);
     return referenceWithPublicId;
+  }
+
+  private List<ResourceIdentity> safeLookup(String publicId) {
+    try {
+      return identityService.lookup(publicId);
+    } catch (IdEncoder.BadId e) {
+      return emptyList();
+    }
   }
 
   @Override

@@ -20,7 +20,6 @@ import org.springframework.stereotype.Component;
 @Component
 @AllArgsConstructor(onConstructor_ = @Autowired)
 public class ProtectedReferenceFactory {
-
   private final LinkProperties linkProperties;
 
   /**
@@ -52,7 +51,7 @@ public class ProtectedReferenceFactory {
   public ProtectedReference forResource(
       @NonNull Resource resource, @NonNull Consumer<String> onUpdate) {
     return ProtectedReference.builder()
-        .type(resource.getClass().getSimpleName())
+        .type(resourceTypeFor(resource.getClass()))
         .id(resource.id())
         .onUpdate(onUpdate)
         .build();
@@ -129,6 +128,10 @@ public class ProtectedReferenceFactory {
         linkProperties.r4().readUrlWithoutSite(update.resourceType(), update.newResourceId());
   }
 
+  public <R extends Resource> String resourceTypeFor(Class<R> resourceClass) {
+    return resourceClass.getSimpleName();
+  }
+
   /** NewReferenceValueStrategy. */
   public interface NewReferenceValueStrategy extends Function<ReferenceUpdate, String> {}
 
@@ -136,8 +139,11 @@ public class ProtectedReferenceFactory {
   @Builder
   public static class ReferenceUpdate {
     private final String[] uriParts;
+
     @Getter private final String resourceType;
+
     @Getter private final String oldResourceId;
+
     @Getter private final String newResourceId;
 
     public String[] uriParts() {

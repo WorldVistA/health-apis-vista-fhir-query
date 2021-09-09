@@ -9,6 +9,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.when;
 
 import gov.va.api.health.r4.api.bundle.BundleLink;
+import gov.va.api.health.r4.api.resources.Coverage;
 import gov.va.api.health.vistafhirquery.service.charonclient.CharonClient;
 import gov.va.api.health.vistafhirquery.service.config.LinkProperties;
 import gov.va.api.health.vistafhirquery.service.controller.PatientTypeCoordinates;
@@ -64,12 +65,15 @@ public class R4SiteCoverageControllerTest {
     var captor = requestCaptor(LhsLighthouseRpcGatewayGetsManifest.Request.class);
     var answer =
         answerFor(captor).value(results).invocationResult(_invocationResult(results)).build();
-
     when(charon.request(captor.capture())).thenAnswer(answer);
-    when(witnessProtection.toPatientTypeCoordinates("pubCover1"))
+    when(witnessProtection.privateIdForResourceOrDie("pubCover1", Coverage.class))
         .thenReturn(
-            PatientTypeCoordinates.builder().icn("p1").siteId("123").recordId("ip1").build());
-
+            PatientTypeCoordinates.builder()
+                .icn("p1")
+                .siteId("123")
+                .recordId("ip1")
+                .build()
+                .toString());
     var actual = _controller().coverageRead("123", "pubCover1");
     var expected = CoverageSamples.R4.create().coverage("123", "ip1", "p1");
     assertThat(json(actual)).isEqualTo(json(expected));
@@ -84,9 +88,7 @@ public class R4SiteCoverageControllerTest {
     var captor = requestCaptor(LhsLighthouseRpcGatewayCoverageSearch.Request.class);
     var answer =
         answerFor(captor).value(results).invocationResult(_invocationResult(results)).build();
-
     when(charon.request(captor.capture())).thenAnswer(answer);
-
     var actual = _controller().coverageSearch(httpRequest, "123", "p1", 1, 10);
     var expected =
         CoverageSamples.R4.asBundle(
@@ -107,11 +109,8 @@ public class R4SiteCoverageControllerTest {
     var captor = requestCaptor(LhsLighthouseRpcGatewayCoverageSearch.Request.class);
     var answer =
         answerFor(captor).value(results).invocationResult(_invocationResult(results)).build();
-
     when(charon.request(captor.capture())).thenAnswer(answer);
-
     var actual = _controller().coverageSearch(httpRequest, "123", "p1", 1, 10);
-
     var expected =
         CoverageSamples.R4.asBundle(
             "http://fugazi.com/site/123/r4",

@@ -58,13 +58,13 @@ public class R4SiteCoverageController implements R4CoverageApi {
   @GetMapping(value = "/site/{site}/r4/Coverage/{publicId}")
   public Coverage coverageRead(
       @PathVariable(value = "site") String site, @PathVariable(value = "publicId") String id) {
-
-    var coordinates = witnessProtection.toPatientTypeCoordinates(id);
+    var coordinates =
+        PatientTypeCoordinates.fromString(
+            witnessProtection.privateIdForResourceOrDie(id, Coverage.class));
     var request = lighthouseRpcGatewayRequest(site, manifestRequest(coordinates));
     var response = charon.request(request);
     var lhsResponse = lighthouseRpcGatewayResponse(response);
     dieOnError(lhsResponse);
-
     var resources =
         transformation(response.timezoneAsZoneId(), coordinates.icn())
             .toResource()
@@ -81,10 +81,8 @@ public class R4SiteCoverageController implements R4CoverageApi {
       @RequestParam(value = "patient") String patientIcn,
       @RequestParam(value = "page", required = false) Integer page,
       @RequestParam(value = "_count", required = false) Integer count) {
-
     var request = lighthouseRpcGatewayRequest(site, coverageByPatientIcn(patientIcn));
     var response = charon.request(request);
-
     return toBundle(httpRequest, response).apply(lighthouseRpcGatewayResponse(response));
   }
 

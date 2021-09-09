@@ -4,6 +4,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 
 import gov.va.api.health.ids.client.IdEncoder.BadId;
+import gov.va.api.health.r4.api.resources.Resource;
 import gov.va.api.health.vistafhirquery.service.controller.PatientTypeCoordinates;
 import gov.va.api.health.vistafhirquery.service.controller.RecordCoordinates;
 import gov.va.api.health.vistafhirquery.service.controller.ResourceExceptions.NotFound;
@@ -32,12 +33,24 @@ class WitnessProtectionTest {
 
   static class BadIdWP implements WitnessProtection {
     @Override
+    public <R extends Resource> String privateIdForResourceOrDie(
+        String publicId, Class<R> resourceType) {
+      return toPrivateId(publicId);
+    }
+
+    @Override
     public String toPrivateId(String publicId) {
       throw new BadId("fugazi");
     }
   }
 
   static class FugaziWP implements WitnessProtection {
+    @Override
+    public <R extends Resource> String privateIdForResourceOrDie(
+        String publicId, Class<R> resourceType) {
+      return toPrivateId(publicId);
+    }
+
     @Override
     public String toPrivateId(String publicId) {
       return publicId.replace("fugazi:", "");

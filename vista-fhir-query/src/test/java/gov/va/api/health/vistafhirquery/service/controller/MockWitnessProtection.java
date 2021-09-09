@@ -1,5 +1,6 @@
 package gov.va.api.health.vistafhirquery.service.controller;
 
+import gov.va.api.health.r4.api.resources.Resource;
 import gov.va.api.health.vistafhirquery.service.controller.witnessprotection.WitnessProtection;
 import java.util.HashMap;
 import java.util.Map;
@@ -12,6 +13,12 @@ public class MockWitnessProtection implements WitnessProtection {
   public MockWitnessProtection add(String publicId, String privateId) {
     publicToPrivateId().put(publicId, privateId);
     return this;
+  }
+
+  @Override
+  public <R extends Resource> String privateIdForResourceOrDie(
+      String publicId, Class<R> resourceType) {
+    return toPrivateId(publicId);
   }
 
   @Override

@@ -1,6 +1,7 @@
 package gov.va.api.health.vistafhirquery.service.controller.witnessprotection;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 
@@ -12,6 +13,7 @@ import gov.va.api.health.r4.api.bundle.AbstractEntry;
 import gov.va.api.health.r4.api.elements.Meta;
 import gov.va.api.health.r4.api.resources.Resource;
 import gov.va.api.health.vistafhirquery.service.config.LinkProperties;
+import gov.va.api.health.vistafhirquery.service.controller.ResourceExceptions;
 import java.util.List;
 import java.util.stream.Stream;
 import lombok.AllArgsConstructor;
@@ -24,7 +26,6 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 @ExtendWith(MockitoExtension.class)
 class WitnessProtectionAdviceTest {
-
   @Mock IdentityService identityService;
 
   @Test
@@ -38,7 +39,6 @@ class WitnessProtectionAdviceTest {
     FugaziEntry ef21 = new FugaziEntry(f21);
     FugaziEntry ef22 = new FugaziEntry(f22);
     FugaziBundle bundle = new FugaziBundle(List.of(ef11, ef12, ef21, ef22));
-
     when(identityService.register(any()))
         .thenReturn(
             List.of(
@@ -46,7 +46,6 @@ class WitnessProtectionAdviceTest {
                 registration("FugaziOne", "f12"),
                 registration("FugaziTwo", "f21"),
                 registration("FugaziTwo", "f22")));
-
     wp().protect(bundle);
     assertThat(f11.id()).isEqualTo("public-f11");
     assertThat(ef11.fullUrl()).isEqualTo("http://fugazi.com/fugazi/FugaziOne/public-f11");
@@ -64,6 +63,21 @@ class WitnessProtectionAdviceTest {
         .resource(resource)
         .identifier("private-" + baseId)
         .build();
+  }
+
+  @Test
+  void invalidResourceThrows() {
+    ProtectedReferenceFactory prf = new ProtectedReferenceFactory(linkProperties());
+    var wpa =
+        WitnessProtectionAdvice.builder()
+            .identityService(identityService)
+            .availableAgents(List.of())
+            .alternatePatientIds(new AlternatePatientIds.DisabledAlternatePatientIds())
+            .protectedReferenceFactory(prf)
+            .build();
+    when(identityService.lookup("public-1")).thenReturn(List.of(identity("FugaziOne", "1")));
+    assertThatExceptionOfType(ResourceExceptions.ExpectationFailed.class)
+        .isThrownBy(() -> wpa.privateIdForResourceOrDie("public-1", FugaziTwo.class));
   }
 
   private LinkProperties linkProperties() {
@@ -88,7 +102,6 @@ class WitnessProtectionAdviceTest {
     var f1 = FugaziOne.builder().id("private-f1").build();
     wp().protect(f1);
     assertThat(f1.id()).isEqualTo("public-f1");
-
     when(identityService.register(any())).thenReturn(List.of(registration("FugaziTwo", "f2")));
     var f2 = FugaziTwo.builder().id("private-f2").build();
     wp().protect(f2);
@@ -124,6 +137,20 @@ class WitnessProtectionAdviceTest {
     assertThat(f1.id()).isEqualTo("private-f1");
   }
 
+  @Test
+  void validResourceReturnsPrivateId() {
+    ProtectedReferenceFactory prf = new ProtectedReferenceFactory(linkProperties());
+    var wpa =
+        WitnessProtectionAdvice.builder()
+            .identityService(identityService)
+            .availableAgents(List.of())
+            .alternatePatientIds(new AlternatePatientIds.DisabledAlternatePatientIds())
+            .protectedReferenceFactory(prf)
+            .build();
+    when(identityService.lookup("public-1")).thenReturn(List.of(identity("FugaziOne", "1")));
+    assertThat(wpa.privateIdForResourceOrDie("public-1", FugaziOne.class)).isEqualTo("private-1");
+  }
+
   private WitnessProtectionAdvice wp() {
     ProtectedReferenceFactory prf = new ProtectedReferenceFactory(linkProperties());
     return WitnessProtectionAdvice.builder()
@@ -151,14 +178,16 @@ class WitnessProtectionAdviceTest {
   @Builder
   static class FugaziOne implements Resource {
     String id;
+
     String implicitRules;
+
     String language;
+
     Meta meta;
   }
 
   @AllArgsConstructor(staticName = "of")
   static class FugaziOneAgent implements WitnessProtectionAgent<FugaziOne> {
-
     ProtectedReferenceFactory prf;
 
     @Override
@@ -171,14 +200,16 @@ class WitnessProtectionAdviceTest {
   @Builder
   static class FugaziTwo implements Resource {
     String id;
+
     String implicitRules;
+
     String language;
+
     Meta meta;
   }
 
   @AllArgsConstructor(staticName = "of")
   static class FugaziTwoAgent implements WitnessProtectionAgent<FugaziTwo> {
-
     ProtectedReferenceFactory prf;
 
     @Override

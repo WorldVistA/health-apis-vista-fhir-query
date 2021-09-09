@@ -1,6 +1,7 @@
 package gov.va.api.health.vistafhirquery.service.controller.witnessprotection;
 
 import gov.va.api.health.ids.client.IdEncoder;
+import gov.va.api.health.r4.api.resources.Resource;
 import gov.va.api.health.vistafhirquery.service.controller.PatientTypeCoordinates;
 import gov.va.api.health.vistafhirquery.service.controller.RecordCoordinates;
 import gov.va.api.health.vistafhirquery.service.controller.ResourceExceptions;
@@ -19,6 +20,8 @@ public interface WitnessProtection {
       throw ResourceExceptions.NotFound.because("Unsupported id %s", publicId);
     }
   }
+
+  <R extends Resource> String privateIdForResourceOrDie(String publicId, Class<R> resourceType);
 
   /** Try to parse patient type coordinates given a public id. */
   default PatientTypeCoordinates toPatientTypeCoordinates(String publicId) {
