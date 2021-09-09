@@ -17,7 +17,7 @@ public class OrganizationIT {
   private final TestIds testIds = VistaFhirQueryResourceVerifier.ids();
 
   @Delegate
-  private final ResourceVerifier verifier = VistaFhirQueryResourceVerifier.r4WithoutSite();
+  private final ResourceVerifier verifier = VistaFhirQueryResourceVerifier.r4ForSite("673");
 
   @Test
   void read() {

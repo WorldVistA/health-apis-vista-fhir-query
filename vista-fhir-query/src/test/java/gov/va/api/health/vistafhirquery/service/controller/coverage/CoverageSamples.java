@@ -170,7 +170,7 @@ public class CoverageSamples {
       return getsManifestResults("1,8,");
     }
 
-    LhsLighthouseRpcGatewayResponse.Results getsManifestResults(String id) {
+    public LhsLighthouseRpcGatewayResponse.Results getsManifestResults(String id) {
       return LhsLighthouseRpcGatewayResponse.Results.builder()
           .results(
               List.of(

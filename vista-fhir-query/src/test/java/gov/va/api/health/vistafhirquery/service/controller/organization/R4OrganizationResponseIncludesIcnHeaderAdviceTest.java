@@ -16,17 +16,17 @@ import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
 @ExtendWith(MockitoExtension.class)
 public class R4OrganizationResponseIncludesIcnHeaderAdviceTest {
-  @Mock R4OrganizationController controller;
+  @Mock R4SiteOrganizationController controller;
 
   private MockMvc mockMvc;
 
   @Test
   @SneakyThrows
   void organizationResourceIsPatientAgnostic() {
-    when(controller.organizationRead("o1"))
+    when(controller.organizationRead("123", "o1"))
         .thenReturn(Organization.builder().id("123").active(false).build());
     mockMvc
-        .perform(get("/r4/Organization/o1"))
+        .perform(get("/site/123/r4/Organization/o1"))
         .andExpect(MockMvcResultMatchers.header().string("X-VA-INCLUDES-ICN", "NONE"));
   }
 

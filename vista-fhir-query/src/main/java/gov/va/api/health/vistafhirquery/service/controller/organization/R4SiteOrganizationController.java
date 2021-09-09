@@ -1,20 +1,20 @@
 package gov.va.api.health.vistafhirquery.service.controller.organization;
 
+import static gov.va.api.health.vistafhirquery.service.charonclient.CharonRequests.lighthouseRpcGatewayRequest;
+import static gov.va.api.health.vistafhirquery.service.charonclient.CharonRequests.lighthouseRpcGatewayResponse;
 import static gov.va.api.health.vistafhirquery.service.controller.R4Controllers.dieOnError;
 import static gov.va.api.health.vistafhirquery.service.controller.R4Controllers.verifyAndGetResult;
 import static java.util.stream.Collectors.toList;
 
 import gov.va.api.health.r4.api.resources.Organization;
 import gov.va.api.health.vistafhirquery.service.api.R4OrganizationApi;
+import gov.va.api.health.vistafhirquery.service.charonclient.CharonClient;
 import gov.va.api.health.vistafhirquery.service.controller.R4Transformation;
 import gov.va.api.health.vistafhirquery.service.controller.RecordCoordinates;
 import gov.va.api.health.vistafhirquery.service.controller.ResourceExceptions.NotFound;
-import gov.va.api.health.vistafhirquery.service.controller.VistalinkApiClient;
 import gov.va.api.health.vistafhirquery.service.controller.witnessprotection.WitnessProtection;
-import gov.va.api.lighthouse.charon.api.RpcResponse;
 import gov.va.api.lighthouse.charon.models.lhslighthouserpcgateway.InsuranceCompany;
 import gov.va.api.lighthouse.charon.models.lhslighthouserpcgateway.LhsLighthouseRpcGatewayGetsManifest;
-import gov.va.api.lighthouse.charon.models.lhslighthouserpcgateway.LhsLighthouseRpcGatewayGetsManifest.Request;
 import gov.va.api.lighthouse.charon.models.lhslighthouserpcgateway.LhsLighthouseRpcGatewayGetsManifest.Request.GetsManifestFlags;
 import gov.va.api.lighthouse.charon.models.lhslighthouserpcgateway.LhsLighthouseRpcGatewayResponse;
 import java.util.List;
@@ -33,30 +33,27 @@ import org.springframework.web.bind.annotation.RestController;
 @Builder
 @Validated
 @RestController
-@RequestMapping(
-    value = "/r4/Organization",
-    produces = {"application/json", "application/fhir+json"})
+@RequestMapping(produces = {"application/json", "application/fhir+json"})
 @AllArgsConstructor(onConstructor_ = {@Autowired, @NonNull})
 @Slf4j
-public class R4OrganizationController implements R4OrganizationApi {
+public class R4SiteOrganizationController implements R4OrganizationApi {
   private final WitnessProtection witnessProtection;
 
-  private final VistalinkApiClient vistalinkApiClient;
+  private final CharonClient charon;
 
   /** Create A request based off of record coordinates. */
-  public static Request createRequest(RecordCoordinates coordinates) {
-    Request rpcRequest =
-        Request.builder()
-            .file(InsuranceCompany.FILE_NUMBER)
-            .iens(coordinates.ien())
-            .fields(R4OrganizationTransformer.REQUIRED_FIELDS)
-            .flags(
-                List.of(
-                    GetsManifestFlags.OMIT_NULL_VALUES,
-                    GetsManifestFlags.RETURN_INTERNAL_VALUES,
-                    GetsManifestFlags.RETURN_EXTERNAL_VALUES))
-            .build();
-    return rpcRequest;
+  public static LhsLighthouseRpcGatewayGetsManifest.Request manifestRequest(
+      RecordCoordinates coordinates) {
+    return LhsLighthouseRpcGatewayGetsManifest.Request.builder()
+        .file(InsuranceCompany.FILE_NUMBER)
+        .iens(coordinates.ien())
+        .fields(R4OrganizationTransformer.REQUIRED_FIELDS)
+        .flags(
+            List.of(
+                GetsManifestFlags.OMIT_NULL_VALUES,
+                GetsManifestFlags.RETURN_INTERNAL_VALUES,
+                GetsManifestFlags.RETURN_EXTERNAL_VALUES))
+        .build();
   }
 
   private void insuranceFileOrDie(String id, RecordCoordinates recordCoordinates) {
@@ -66,24 +63,23 @@ public class R4OrganizationController implements R4OrganizationApi {
   }
 
   @Override
-  @GetMapping(value = "/{publicId}")
+  @GetMapping(value = "/site/{site}/r4/Organization/{publicId}")
   @SneakyThrows
-  public Organization organizationRead(@PathVariable(value = "publicId") String id) {
-    RecordCoordinates coordinates = witnessProtection.toRecordCoordinates(id);
+  public Organization organizationRead(
+      @PathVariable(value = "site") String site, @PathVariable(value = "publicId") String id) {
+    var coordinates = witnessProtection.toRecordCoordinates(id);
     insuranceFileOrDie(id, coordinates);
     log.info(
         "Looking for record {} in file {} at site {}",
         coordinates.ien(),
         coordinates.file(),
         coordinates.site());
-    Request rpcRequest = createRequest(coordinates);
-    RpcResponse rpcResponse =
-        vistalinkApiClient.requestForVistaSite(coordinates.site(), rpcRequest);
-    LhsLighthouseRpcGatewayResponse getsManifestResults =
-        LhsLighthouseRpcGatewayGetsManifest.create().fromResults(rpcResponse.results());
-    dieOnError(getsManifestResults);
-    log.info("{}", getsManifestResults);
-    List<Organization> resources = transformation().toResource().apply(getsManifestResults);
+    var request = lighthouseRpcGatewayRequest(site, manifestRequest(coordinates));
+    var response = charon.request(request);
+    var lhsResponse = lighthouseRpcGatewayResponse(response);
+    dieOnError(lhsResponse);
+
+    var resources = transformation().toResource().apply(lhsResponse);
     return verifyAndGetResult(resources, id);
   }
 

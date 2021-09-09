@@ -19,7 +19,7 @@ public interface R4OrganizationApi {
           "https://build.fhir.org/ig/HL7/US-Core-R4/StructureDefinition-us-core-organization.html",
       tags = {"Organization"})
   @GET
-  @Path("Organization/{id}")
+  @Path("/site/{site}/Organization/{id}")
   @ApiResponses({
     @ApiResponse(
         responseCode = "200",
@@ -68,6 +68,12 @@ public interface R4OrganizationApi {
         })
   })
   Organization organizationRead(
+      @Parameter(
+              in = ParameterIn.PATH,
+              name = "site",
+              required = true,
+              description = "The id of the site where this resource can be found.")
+          String site,
       @Parameter(
               in = ParameterIn.PATH,
               name = "id",

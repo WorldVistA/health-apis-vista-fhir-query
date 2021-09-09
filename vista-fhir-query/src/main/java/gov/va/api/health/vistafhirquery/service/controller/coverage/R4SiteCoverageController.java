@@ -50,7 +50,7 @@ public class R4SiteCoverageController implements R4CoverageApi {
 
   private final WitnessProtection witnessProtection;
 
-  private Request coverageByPatientIcn(String patientIcn) {
+  public static Request coverageByPatientIcn(String patientIcn) {
     return Request.builder().id(Request.PatientId.forIcn(patientIcn)).build();
   }
 
