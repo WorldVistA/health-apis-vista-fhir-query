@@ -26,4 +26,12 @@
   </Or>
     <Bug pattern="PATH_TRAVERSAL_IN"/>
   </Match>
+  <!--
+  The "Location" header is set at runtime by the application based on the vista site and new id of the created
+  resource.
+  -->
+  <Match>
+    <Class name="gov.va.api.health.vistafhirquery.service.controller.coverage.R4SiteCoverageController"/>
+    <Bug pattern="UNVALIDATED_REDIRECT"/>
+  </Match>
 </FindBugsFilter>

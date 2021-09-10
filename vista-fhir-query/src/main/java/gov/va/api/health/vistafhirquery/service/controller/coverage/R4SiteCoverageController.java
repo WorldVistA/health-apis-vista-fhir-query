@@ -27,6 +27,7 @@ import gov.va.api.lighthouse.charon.models.lhslighthouserpcgateway.LhsLighthouse
 import java.time.ZoneId;
 import java.util.List;
 import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.NonNull;
@@ -34,6 +35,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
@@ -52,6 +55,16 @@ public class R4SiteCoverageController implements R4CoverageApi {
 
   public static Request coverageByPatientIcn(String patientIcn) {
     return Request.builder().id(Request.PatientId.forIcn(patientIcn)).build();
+  }
+
+  @Override
+  @PostMapping(value = "/site/{site}/r4/Coverage")
+  public void coverageCreate(
+      HttpServletResponse response,
+      @PathVariable(value = "site") String site,
+      @RequestBody Coverage body) {
+    var newResourceUrl = "/site/" + site + "/r4/Coverage/{new-resource-id}";
+    response.addHeader("Location", newResourceUrl);
   }
 
   @Override
