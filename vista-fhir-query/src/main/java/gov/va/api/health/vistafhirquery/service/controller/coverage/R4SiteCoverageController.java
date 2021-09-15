@@ -24,6 +24,7 @@ import gov.va.api.lighthouse.charon.models.lhslighthouserpcgateway.LhsLighthouse
 import gov.va.api.lighthouse.charon.models.lhslighthouserpcgateway.LhsLighthouseRpcGatewayGetsManifest.Request.GetsManifestFlags;
 import gov.va.api.lighthouse.charon.models.lhslighthouserpcgateway.LhsLighthouseRpcGatewayResponse;
 import gov.va.api.lighthouse.charon.models.lhslighthouserpcgateway.LhsLighthouseRpcGatewayResponse.Results;
+import gov.va.api.lighthouse.charon.models.lhslighthouserpcgateway.PatientId;
 import java.time.ZoneId;
 import java.util.List;
 import javax.servlet.http.HttpServletRequest;
@@ -54,7 +55,7 @@ public class R4SiteCoverageController implements R4CoverageApi {
   private final WitnessProtection witnessProtection;
 
   public static Request coverageByPatientIcn(String patientIcn) {
-    return Request.builder().id(Request.PatientId.forIcn(patientIcn)).build();
+    return Request.builder().id(PatientId.forIcn(patientIcn)).build();
   }
 
   @Override
