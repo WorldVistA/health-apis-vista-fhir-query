@@ -11,10 +11,16 @@
   <version>1.0.64-SNAPSHOT</version>
   <packaging>jar</packaging>
   <properties>
+    <fhir-resources.version>8.0.11</fhir-resources.version>
     <mockserver.version>5.11.2</mockserver.version>
     <charon.version>4.0.30</charon.version>
   </properties>
   <dependencies>
+    <dependency>
+      <groupId>gov.va.api.health</groupId>
+      <artifactId>us-core-r4</artifactId>
+      <version>${fhir-resources.version}</version>
+    </dependency>
     <dependency>
       <groupId>gov.va.api.lighthouse</groupId>
       <artifactId>charon-api</artifactId>

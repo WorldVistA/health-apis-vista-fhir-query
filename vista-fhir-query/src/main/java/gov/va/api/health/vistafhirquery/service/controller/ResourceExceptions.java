@@ -6,22 +6,6 @@ import com.google.errorprone.annotations.FormatMethod;
 @SuppressWarnings("DoNotCallSuggester")
 public class ResourceExceptions {
 
-  /** NotFound . */
-  public static final class NotFound extends ResourceException {
-    public NotFound(String message) {
-      super(message);
-    }
-
-    public static NotFound because(String message) {
-      return new NotFound(message);
-    }
-
-    @FormatMethod
-    public static NotFound because(String message, Object... values) {
-      return because(String.format(message, values));
-    }
-  }
-
   /** BadSearchParameters . */
   public static final class BadSearchParameters extends ResourceException {
     public BadSearchParameters(String message) {
@@ -45,6 +29,22 @@ public class ResourceExceptions {
 
     @FormatMethod
     public static ExpectationFailed because(String message, Object... values) {
+      return because(String.format(message, values));
+    }
+  }
+
+  /** NotFound . */
+  public static final class NotFound extends ResourceException {
+    public NotFound(String message) {
+      super(message);
+    }
+
+    public static NotFound because(String message) {
+      return new NotFound(message);
+    }
+
+    @FormatMethod
+    public static NotFound because(String message, Object... values) {
       return because(String.format(message, values));
     }
   }

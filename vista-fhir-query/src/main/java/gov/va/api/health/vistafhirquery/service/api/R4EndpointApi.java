@@ -75,17 +75,25 @@ public interface R4EndpointApi {
       @Parameter(hidden = true) HttpServletRequest request,
       @Parameter(
               in = ParameterIn.QUERY,
-              name = "status",
-              description = "The status of the endpoint.",
-              example = "active")
-          String status,
-      @Parameter(
-              in = ParameterIn.QUERY,
               name = "_count",
               description =
                   "The number of resources that should be returned in a single page. "
                       + "The maximum count size is 100.",
               example = "100")
           @DefaultValue("100")
-          int count);
+          int count,
+      @Parameter(
+              in = ParameterIn.QUERY,
+              name = "patient",
+              description =
+                  "The patient's Integration Control Number (ICN)"
+                      + " assigned by the Master Patient Index (MPI).",
+              example = "1011537977V693883")
+          String patient,
+      @Parameter(
+              in = ParameterIn.QUERY,
+              name = "status",
+              description = "The availability of the endpoint for use.",
+              example = "active")
+          String status);
 }

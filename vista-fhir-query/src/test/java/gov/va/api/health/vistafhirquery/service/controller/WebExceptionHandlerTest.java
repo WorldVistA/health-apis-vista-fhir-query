@@ -13,6 +13,7 @@ import com.fasterxml.jackson.databind.exc.MismatchedInputException;
 import com.google.common.collect.ImmutableMap;
 import gov.va.api.health.r4.api.elements.Narrative;
 import gov.va.api.health.r4.api.resources.OperationOutcome;
+import gov.va.api.health.vistafhirquery.service.mpifhirqueryclient.MpiFhirQueryClientExceptions;
 import java.util.List;
 import java.util.Set;
 import javax.servlet.http.HttpServletRequest;
@@ -61,6 +62,17 @@ public class WebExceptionHandlerTest {
     OperationOutcome outcome =
         new WebExceptionHandler("")
             .handleInternalServerError(internalServerError, mock(HttpServletRequest.class));
+    assertThat(outcome.id(null).extension(null))
+        .isEqualTo(operationOutcome("internal-server-error"));
+  }
+
+  @Test
+  void mfqRequestFailed() {
+    MpiFhirQueryClientExceptions.MpiFhirQueryRequestFailed mfqRequestFailed =
+        MpiFhirQueryClientExceptions.MpiFhirQueryRequestFailed.because("rip");
+    OperationOutcome outcome =
+        new WebExceptionHandler("")
+            .mpiFhirQueryRequestFailed(mfqRequestFailed, mock(HttpServletRequest.class));
     assertThat(outcome.id(null).extension(null))
         .isEqualTo(operationOutcome("internal-server-error"));
   }

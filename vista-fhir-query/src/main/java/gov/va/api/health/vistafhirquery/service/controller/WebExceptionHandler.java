@@ -16,6 +16,7 @@ import gov.va.api.health.autoconfig.encryption.BasicEncryption;
 import gov.va.api.health.r4.api.elements.Extension;
 import gov.va.api.health.r4.api.elements.Narrative;
 import gov.va.api.health.r4.api.resources.OperationOutcome;
+import gov.va.api.health.vistafhirquery.service.mpifhirqueryclient.MpiFhirQueryClientExceptions.MpiFhirQueryRequestFailed;
 import java.lang.reflect.UndeclaredThrowableException;
 import java.time.Instant;
 import java.util.ArrayList;
@@ -249,6 +250,13 @@ public final class WebExceptionHandler {
             .map(v -> v.getPropertyPath() + " " + v.getMessage())
             .collect(toList());
     return responseFor("structure", e, request, diagnostics, true);
+  }
+
+  @ExceptionHandler(MpiFhirQueryRequestFailed.class)
+  @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
+  OperationOutcome mpiFhirQueryRequestFailed(
+      MpiFhirQueryRequestFailed e, HttpServletRequest request) {
+    return responseFor("internal-server-error", e, request, emptyList(), true);
   }
 
   @SneakyThrows

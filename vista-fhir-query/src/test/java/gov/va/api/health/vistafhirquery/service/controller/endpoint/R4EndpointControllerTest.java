@@ -5,18 +5,28 @@ import static gov.va.api.health.vistafhirquery.service.controller.MockRequests.r
 import static gov.va.api.health.vistafhirquery.service.controller.endpoint.EndpointSamples.R4.link;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
+import static org.mockito.Mockito.when;
 
 import gov.va.api.health.r4.api.bundle.BundleLink;
 import gov.va.api.health.vistafhirquery.service.config.LinkProperties;
 import gov.va.api.health.vistafhirquery.service.controller.R4BundlerFactory;
 import gov.va.api.health.vistafhirquery.service.controller.ResourceExceptions;
 import gov.va.api.health.vistafhirquery.service.controller.witnessprotection.AlternatePatientIds;
+import gov.va.api.health.vistafhirquery.service.mpifhirqueryclient.MpiFhirQueryClient;
 import java.util.List;
+import java.util.Set;
+import lombok.SneakyThrows;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
 
+@ExtendWith(MockitoExtension.class)
 public class R4EndpointControllerTest {
+  @Mock private MpiFhirQueryClient mpiFhirQueryClient;
+
   private R4EndpointController controller() {
     var bundlerFactory =
         R4BundlerFactory.builder()
@@ -30,13 +40,16 @@ public class R4EndpointControllerTest {
             .alternatePatientIds(new AlternatePatientIds.DisabledAlternatePatientIds())
             .build();
     return new R4EndpointController(
-        bundlerFactory, EndpointSamples.linkProperties(), EndpointSamples.rpcPrincipalLookup());
+        bundlerFactory,
+        EndpointSamples.linkProperties(),
+        EndpointSamples.rpcPrincipalLookup(),
+        mpiFhirQueryClient);
   }
 
   @Test
   void endpointSearch() {
     var request = requestFromUri("");
-    var actual = controller().endpointSearch(request, null, 10);
+    var actual = controller().endpointSearch(request, 10, null, null);
     var expected =
         EndpointSamples.R4.asBundle(
             "http://fake.com",
@@ -50,16 +63,77 @@ public class R4EndpointControllerTest {
   }
 
   @Test
+  @SneakyThrows
+  void endpointSearchByPatient() {
+    var request = requestFromUri("");
+    when(mpiFhirQueryClient.stationIdsForPatient("1337"))
+        .thenReturn(Set.of("101", "104", "105", "106"));
+    var actual = controller().endpointSearch(request, 10, "1337", null);
+    var expected =
+        EndpointSamples.R4.asBundle(
+            "http://fake.com",
+            List.of(
+                EndpointSamples.R4.create().endpoint("101"),
+                EndpointSamples.R4.create().endpoint("104")),
+            2,
+            link(BundleLink.LinkRelation.self, "http://fake.com/r4/Endpoint"));
+    assertThat(json(actual)).isEqualTo(json(expected));
+  }
+
+  @Test
+  @SneakyThrows
+  void endpointSearchByPatientAndStatus() {
+    var request = requestFromUri("");
+    when(mpiFhirQueryClient.stationIdsForPatient("1337")).thenReturn(Set.of("101", "105", "106"));
+    var actual = controller().endpointSearch(request, 10, "1337", "active");
+    var expected =
+        EndpointSamples.R4.asBundle(
+            "http://fake.com",
+            List.of(EndpointSamples.R4.create().endpoint("101")),
+            1,
+            link(BundleLink.LinkRelation.self, "http://fake.com/r4/Endpoint"));
+    assertThat(json(actual)).isEqualTo(json(expected));
+  }
+
+  @Test
+  @SneakyThrows
+  void endpointSearchByPatientAtUnknownSites() {
+    var request = requestFromUri("");
+    when(mpiFhirQueryClient.stationIdsForPatient("1337")).thenReturn(Set.of("222", "333", "444"));
+    var actual = controller().endpointSearch(request, 10, "1337", "active");
+    var expected =
+        EndpointSamples.R4.asBundle(
+            "http://fake.com",
+            List.of(),
+            0,
+            link(BundleLink.LinkRelation.self, "http://fake.com/r4/Endpoint"));
+    assertThat(json(actual)).isEqualTo(json(expected));
+  }
+
+  @Test
   void endpointSearchCountThrowsException() {
     var request = requestFromUri("?_count=-1");
     assertThatExceptionOfType(ResourceExceptions.BadSearchParameters.class)
-        .isThrownBy(() -> controller().endpointSearch(request, null, -1));
+        .isThrownBy(() -> controller().endpointSearch(request, -1, null, null));
   }
 
   @Test
   void endpointSearchWithBadStatus() {
     var request = requestFromUri("?status=NONE");
-    var actual = controller().endpointSearch(request, "NONE", 10);
+    var actual = controller().endpointSearch(request, 10, null, "NONE");
+    var expected =
+        EndpointSamples.R4.asBundle(
+            "http://fake.com",
+            List.of(),
+            0,
+            link(BundleLink.LinkRelation.self, "http://fake.com/r4/Endpoint?status=NONE"));
+    assertThat(json(actual)).isEqualTo(json(expected));
+  }
+
+  @Test
+  void endpointSearchWithPatientAndBadStatus() {
+    var request = requestFromUri("?status=NONE");
+    var actual = controller().endpointSearch(request, 10, "1337", "NONE");
     var expected =
         EndpointSamples.R4.asBundle(
             "http://fake.com",
@@ -73,7 +147,7 @@ public class R4EndpointControllerTest {
   @ValueSource(strings = {"?status=active", "?status=active&_count=10"})
   void endpointSearchWithValidStatus(String query) {
     var request = requestFromUri(query);
-    var actual = controller().endpointSearch(request, "active", 10);
+    var actual = controller().endpointSearch(request, 10, null, "active");
     var expected =
         EndpointSamples.R4.asBundle(
             "http://fake.com",

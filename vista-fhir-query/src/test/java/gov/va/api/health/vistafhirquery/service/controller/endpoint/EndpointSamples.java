@@ -75,7 +75,7 @@ public class EndpointSamples {
 
   @NoArgsConstructor(staticName = "create")
   public static class R4 {
-    static Endpoint.Bundle asBundle(
+    public static Endpoint.Bundle asBundle(
         String baseUrl, Collection<Endpoint> resources, int totalRecords, BundleLink... links) {
       return Endpoint.Bundle.builder()
           .resourceType("Bundle")
@@ -99,11 +99,11 @@ public class EndpointSamples {
           .build();
     }
 
-    static BundleLink link(BundleLink.LinkRelation rel, String base) {
+    public static BundleLink link(BundleLink.LinkRelation rel, String base) {
       return BundleLink.builder().relation(rel).url(base).build();
     }
 
-    Endpoint endpoint(String site) {
+    public Endpoint endpoint(String site) {
       return Endpoint.builder()
           .resourceType("Endpoint")
           .id(site)

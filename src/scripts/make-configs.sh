@@ -183,6 +183,8 @@ EOF
   configValue vista-fhir-query $PROFILE metadata.security.revocation-endpoint http://fake.com/revoke
   configValue vista-fhir-query $PROFILE metadata.statement-type patient
 
+  configValue vista-fhir-query $PROFILE vista-fhir-query.mfq-base-url "http://localhost:8040"
+
   checkForUnsetValues vista-fhir-query $PROFILE
 }
 

@@ -19,11 +19,11 @@
   preventing user input from affecting application behavior.
    -->
   <Match>
-  <Or>
-    <Class name="gov.va.api.health.vistafhirquery.service.config.VistaApiConfig"/>
-    <Class name="gov.va.api.health.vistafhirquery.service.config.RpcPrincipalConfig"/>
-    <Class name="gov.va.api.health.vistafhirquery.service.config.RpcPrincipalV1Config"/>
-  </Or>
+    <Or>
+      <Class name="gov.va.api.health.vistafhirquery.service.config.VistaApiConfig"/>
+      <Class name="gov.va.api.health.vistafhirquery.service.config.RpcPrincipalConfig"/>
+      <Class name="gov.va.api.health.vistafhirquery.service.config.RpcPrincipalV1Config"/>
+    </Or>
     <Bug pattern="PATH_TRAVERSAL_IN"/>
   </Match>
   <!--
