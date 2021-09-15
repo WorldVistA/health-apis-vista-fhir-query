@@ -14,6 +14,7 @@ import gov.va.api.health.r4.api.datatypes.Identifier;
 import gov.va.api.health.r4.api.elements.Extension;
 import gov.va.api.health.r4.api.elements.Reference;
 import gov.va.api.health.r4.api.resources.Organization;
+import gov.va.api.health.vistafhirquery.service.controller.ExtensionFactory;
 import gov.va.api.health.vistafhirquery.service.controller.RecordCoordinates;
 import gov.va.api.lighthouse.charon.models.lhslighthouserpcgateway.InsuranceCompany;
 import gov.va.api.lighthouse.charon.models.lhslighthouserpcgateway.LhsLighthouseRpcGatewayResponse;

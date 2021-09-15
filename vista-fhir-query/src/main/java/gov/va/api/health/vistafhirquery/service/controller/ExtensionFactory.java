@@ -1,4 +1,4 @@
-package gov.va.api.health.vistafhirquery.service.controller.organization;
+package gov.va.api.health.vistafhirquery.service.controller;
 
 import static java.util.Collections.singletonList;
 import static org.apache.commons.lang3.StringUtils.isAnyBlank;
@@ -14,11 +14,12 @@ import java.util.Map;
 import lombok.AllArgsConstructor;
 
 @AllArgsConstructor(staticName = "of")
-class ExtensionFactory {
+public class ExtensionFactory {
   LhsLighthouseRpcGatewayResponse.FilemanEntry entry;
 
   Map<String, Boolean> yesNo;
 
+  /** Creates a valueCodeableConcept extension. */
   public Extension ofCodeableConcept(String fieldNumber, String system, String url) {
     var value = entry.internal(fieldNumber);
     if (value.isEmpty()) {
@@ -33,6 +34,7 @@ class ExtensionFactory {
         .build();
   }
 
+  /** Creates a valueQuantity extension. */
   public Extension ofQuantity(String fieldNumber, String unit, String system) {
     var value = entry.internal(fieldNumber);
     if (value.isEmpty()) {
@@ -49,6 +51,7 @@ class ExtensionFactory {
         .build();
   }
 
+  /** Creates a valueReference extension. */
   public Extension ofReference(String resource, String id, String url) {
     if (isAnyBlank(resource, id, url)) {
       return null;
@@ -59,6 +62,7 @@ class ExtensionFactory {
         .build();
   }
 
+  /** Creates a valueString extension. */
   public Extension ofString(String fieldNumber, String url) {
     var value = entry.internal(fieldNumber);
     if (value.isEmpty()) {
@@ -67,6 +71,7 @@ class ExtensionFactory {
     return Extension.builder().url(url).valueString(value.get()).build();
   }
 
+  /** Creates a valueBoolean extension. */
   public Extension ofYesNoBoolean(String fieldNumber, String url) {
     var value = entry.internal(fieldNumber, yesNo);
     if (value.isEmpty()) {
