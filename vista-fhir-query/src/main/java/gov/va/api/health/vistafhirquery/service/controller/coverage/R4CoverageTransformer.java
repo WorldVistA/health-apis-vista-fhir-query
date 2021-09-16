@@ -7,6 +7,7 @@ import static gov.va.api.health.vistafhirquery.service.controller.R4Transformers
 
 import gov.va.api.health.r4.api.datatypes.CodeableConcept;
 import gov.va.api.health.r4.api.datatypes.Coding;
+import gov.va.api.health.r4.api.datatypes.Identifier;
 import gov.va.api.health.r4.api.datatypes.Period;
 import gov.va.api.health.r4.api.elements.Extension;
 import gov.va.api.health.r4.api.elements.Meta;
@@ -28,6 +29,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.stream.Stream;
 import lombok.Builder;
 import lombok.NonNull;
@@ -49,6 +51,12 @@ public class R4CoverageTransformer {
       default -> throw new UnexpectedVistaValue(
           InsuranceType.STOP_POLICY_FROM_BILLING, value, "Expected 0 or 1");
     };
+  }
+
+  private Reference beneficiary(String patientIcn, Optional<String> memberId) {
+    var reference = toReference("Patient", patientIcn, null);
+    memberId.ifPresent(m -> reference.identifier(memberId(m)));
+    return reference;
   }
 
   private List<Coverage.CoverageClass> classes(FilemanEntry entry) {
@@ -108,6 +116,22 @@ public class R4CoverageTransformer {
     return extensions.isEmpty() ? null : extensions;
   }
 
+  private Identifier memberId(String memberId) {
+    return Identifier.builder()
+        .type(
+            CodeableConcept.builder()
+                .coding(
+                    List.of(
+                        Coding.builder()
+                            .system("http://terminology.hl7.org/CodeSystem/v2-0203")
+                            .code("MB")
+                            .display("Member Number")
+                            .build()))
+                .build())
+        .value(memberId)
+        .build();
+  }
+
   private Integer order(FilemanEntry entry) {
     return entry.internal(InsuranceType.COORDINATION_OF_BENEFITS, Integer::valueOf).orElse(null);
   }
@@ -144,26 +168,15 @@ public class R4CoverageTransformer {
   @SuppressWarnings("UnnecessaryParentheses")
   CodeableConcept relationship(LhsLighthouseRpcGatewayResponse.FilemanEntry entry) {
     return entry
-        .internal(InsuranceType.PT_RELATIONSHIP_HIPAA, this::relationshipCoding)
-        .map(coding -> CodeableConcept.builder().coding(List.of(coding)).build())
-        .orElse(null);
-  }
-
-  @SuppressWarnings("UnnecessaryParentheses")
-  private Coding relationshipCoding(String internalValue) {
-    var coding =
-        Coding.builder().system("http://terminology.hl7.org/CodeSystem/subscriber-relationship");
-    return switch (internalValue) {
-      case "01" -> coding.code("spouse").display("Spouse").build();
-      case "18" -> coding.code("self").display("Self").build();
-      case "19" -> coding.code("child").display("Child").build();
-      case "32", "33" -> coding.code("parent").display("Parent").build();
-      case "41" -> coding.code("injured").display("Injured Party").build();
-      case "53" -> coding.code("common").display("Common Law Spouse").build();
-      case "G8" -> coding.code("other").display("Other").build();
-      default -> throw new UnexpectedVistaValue(
-          InsuranceType.PT_RELATIONSHIP_HIPAA, internalValue, "Unknown relation coding");
-    };
+        .internal(InsuranceType.PT_RELATIONSHIP_HIPAA)
+        .flatMap(SubscriberToBeneficiaryRelationship::forCode)
+        .map(r -> CodeableConcept.builder().coding(List.of(r.asCoding())).build())
+        .orElseThrow(
+            () ->
+                new UnexpectedVistaValue(
+                    InsuranceType.PT_RELATIONSHIP_HIPAA,
+                    entry,
+                    "Could not map value to a fhir relationship."));
   }
 
   private String site() {
@@ -180,7 +193,7 @@ public class R4CoverageTransformer {
         .extension(extensions(entry))
         .status(Status.active)
         .subscriberId(entry.external(InsuranceType.SUBSCRIBER_ID).orElse(null))
-        .beneficiary(toReference("Patient", patientIcn, null))
+        .beneficiary(beneficiary(patientIcn, entry.external(InsuranceType.PATIENT_ID)))
         .relationship(relationship(entry))
         .period(period(entry))
         .payor(payors(entry))

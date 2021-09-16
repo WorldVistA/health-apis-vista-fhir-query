@@ -5,6 +5,7 @@ import gov.va.api.health.r4.api.bundle.AbstractEntry;
 import gov.va.api.health.r4.api.bundle.BundleLink;
 import gov.va.api.health.r4.api.datatypes.CodeableConcept;
 import gov.va.api.health.r4.api.datatypes.Coding;
+import gov.va.api.health.r4.api.datatypes.Identifier;
 import gov.va.api.health.r4.api.datatypes.Period;
 import gov.va.api.health.r4.api.elements.Extension;
 import gov.va.api.health.r4.api.elements.Meta;
@@ -15,22 +16,23 @@ import gov.va.api.health.vistafhirquery.service.controller.PatientTypeCoordinate
 import gov.va.api.health.vistafhirquery.service.controller.RecordCoordinates;
 import gov.va.api.lighthouse.charon.models.lhslighthouserpcgateway.GroupInsurancePlan;
 import gov.va.api.lighthouse.charon.models.lhslighthouserpcgateway.InsuranceCompany;
+import gov.va.api.lighthouse.charon.models.lhslighthouserpcgateway.InsuranceType;
+import gov.va.api.lighthouse.charon.models.lhslighthouserpcgateway.LhsLighthouseRpcGatewayCoverageWrite.WriteableFilemanValue;
 import gov.va.api.lighthouse.charon.models.lhslighthouserpcgateway.LhsLighthouseRpcGatewayResponse;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.stream.Collectors;
 import lombok.NoArgsConstructor;
 import lombok.experimental.UtilityClass;
 
 @UtilityClass
 public class CoverageSamples {
-
   @NoArgsConstructor(staticName = "create")
   public static class R4 {
-
     static Coverage.Bundle asBundle(
         String baseUrl, Collection<Coverage> resources, int totalRecords, BundleLink... links) {
       return Coverage.Bundle.builder()
@@ -56,6 +58,26 @@ public class CoverageSamples {
 
     static BundleLink link(BundleLink.LinkRelation rel, String base, String query) {
       return BundleLink.builder().relation(rel).url(base + "?" + query).build();
+    }
+
+    private Reference beneficiary(String patient) {
+      return Reference.builder()
+          .reference("Patient/" + patient)
+          .identifier(
+              Identifier.builder()
+                  .type(
+                      CodeableConcept.builder()
+                          .coding(
+                              List.of(
+                                  Coding.builder()
+                                      .system("http://terminology.hl7.org/CodeSystem/v2-0203")
+                                      .code("MB")
+                                      .display("Member Number")
+                                      .build()))
+                          .build())
+                  .value("13579")
+                  .build())
+          .build();
     }
 
     private List<Coverage.CoverageClass> classes(String station, String patient) {
@@ -98,7 +120,7 @@ public class CoverageSamples {
           .extension(extensions())
           .status(Status.active)
           .subscriberId("R50797108")
-          .beneficiary(Reference.builder().reference("Patient/" + patient).build())
+          .beneficiary(beneficiary(patient))
           .relationship(relationship())
           .period(period())
           .payor(
@@ -149,20 +171,53 @@ public class CoverageSamples {
 
   @NoArgsConstructor(staticName = "create")
   public static class VistaLhsLighthouseRpcGateway {
+    public Set<WriteableFilemanValue> createApiInput() {
+      return Set.of(
+          pointerTo(InsuranceCompany.FILE_NUMBER, "4"),
+          pointerTo(GroupInsurancePlan.FILE_NUMBER, "87"),
+          insuranceValue(InsuranceType.COORDINATION_OF_BENEFITS, "PRIMARY"),
+          insuranceValue(InsuranceType.INSURANCE_EXPIRATION_DATE, "01-01-2025"),
+          insuranceValue(InsuranceType.PT_RELATIONSHIP_HIPAA, "SPOUSE"),
+          insuranceValue(InsuranceType.PHARMACY_PERSON_CODE, "67890"),
+          insuranceValue(InsuranceType.PATIENT_ID, "13579"),
+          insuranceValue(InsuranceType.SUBSCRIBER_ID, "R50797108"),
+          insuranceValue(InsuranceType.EFFECTIVE_DATE_OF_POLICY, "01-12-1992"),
+          insuranceValue(InsuranceType.STOP_POLICY_FROM_BILLING, "YES"));
+    }
+
     private Map<String, LhsLighthouseRpcGatewayResponse.Values> fields() {
       Map<String, LhsLighthouseRpcGatewayResponse.Values> fields = new HashMap<>();
-      fields.put("#.01", LhsLighthouseRpcGatewayResponse.Values.of("BCBS OF FL", "4"));
-      fields.put("#.18", LhsLighthouseRpcGatewayResponse.Values.of("BCBS OF FL", "87"));
-      fields.put("#.2", LhsLighthouseRpcGatewayResponse.Values.of("PRIMARY", "1"));
-      fields.put("#2.01", LhsLighthouseRpcGatewayResponse.Values.of("0", "0"));
-      fields.put("#2.1", LhsLighthouseRpcGatewayResponse.Values.of("3", "3"));
-      fields.put("#3", LhsLighthouseRpcGatewayResponse.Values.of("JAN 01, 2025", "3250101"));
-      fields.put("#3.04", LhsLighthouseRpcGatewayResponse.Values.of("1", "1"));
-      fields.put("#4.03", LhsLighthouseRpcGatewayResponse.Values.of("SPOUSE", "01"));
-      fields.put("#4.06", LhsLighthouseRpcGatewayResponse.Values.of("67890", "67890"));
-      fields.put("#5.01", LhsLighthouseRpcGatewayResponse.Values.of("13579", "13579"));
-      fields.put("#7.02", LhsLighthouseRpcGatewayResponse.Values.of("R50797108", "R50797108"));
-      fields.put("#8", LhsLighthouseRpcGatewayResponse.Values.of("JAN 12, 1992", "2920112"));
+      fields.put(
+          InsuranceType.INSURANCE_TYPE,
+          LhsLighthouseRpcGatewayResponse.Values.of("BCBS OF FL", "4"));
+      fields.put(
+          InsuranceType.GROUP_PLAN, LhsLighthouseRpcGatewayResponse.Values.of("BCBS OF FL", "87"));
+      fields.put(
+          InsuranceType.COORDINATION_OF_BENEFITS,
+          LhsLighthouseRpcGatewayResponse.Values.of("PRIMARY", "1"));
+      fields.put(
+          InsuranceType.SEND_BILL_TO_EMPLOYER, LhsLighthouseRpcGatewayResponse.Values.of("0", "0"));
+      fields.put(InsuranceType.ESGHP, LhsLighthouseRpcGatewayResponse.Values.of("3", "3"));
+      fields.put(
+          InsuranceType.INSURANCE_EXPIRATION_DATE,
+          LhsLighthouseRpcGatewayResponse.Values.of("JAN 01, 2025", "3250101"));
+      fields.put(
+          InsuranceType.STOP_POLICY_FROM_BILLING,
+          LhsLighthouseRpcGatewayResponse.Values.of("1", "1"));
+      fields.put(
+          InsuranceType.PT_RELATIONSHIP_HIPAA,
+          LhsLighthouseRpcGatewayResponse.Values.of("SPOUSE", "01"));
+      fields.put(
+          InsuranceType.PHARMACY_PERSON_CODE,
+          LhsLighthouseRpcGatewayResponse.Values.of("67890", "67890"));
+      fields.put(
+          InsuranceType.PATIENT_ID, LhsLighthouseRpcGatewayResponse.Values.of("13579", "13579"));
+      fields.put(
+          InsuranceType.SUBSCRIBER_ID,
+          LhsLighthouseRpcGatewayResponse.Values.of("R50797108", "R50797108"));
+      fields.put(
+          InsuranceType.EFFECTIVE_DATE_OF_POLICY,
+          LhsLighthouseRpcGatewayResponse.Values.of("JAN 12, 1992", "2920112"));
       return Map.copyOf(fields);
     }
 
@@ -180,6 +235,19 @@ public class CoverageSamples {
                       .fields(fields())
                       .build()))
           .build();
+    }
+
+    private WriteableFilemanValue insuranceValue(String field, String value) {
+      return WriteableFilemanValue.builder()
+          .file(InsuranceType.FILE_NUMBER)
+          .index(1)
+          .field(field)
+          .value(value)
+          .build();
+    }
+
+    private WriteableFilemanValue pointerTo(String file, String ien) {
+      return WriteableFilemanValue.builder().file(file).index(1).field("ien").value(ien).build();
     }
   }
 }

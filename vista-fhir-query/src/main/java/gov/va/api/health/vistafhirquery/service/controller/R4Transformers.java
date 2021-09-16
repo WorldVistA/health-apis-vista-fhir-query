@@ -128,6 +128,20 @@ public class R4Transformers {
         .toString();
   }
 
+  /** Given a reference, get the id and try to parse it as record coordinates. */
+  public static Optional<RecordCoordinates> recordCoordinatesForReference(
+      IsReference maybeReference) {
+    var refId = getReferenceId(maybeReference);
+    if (refId.isEmpty()) {
+      return Optional.empty();
+    }
+    try {
+      return Optional.ofNullable(RecordCoordinates.fromString(refId.get()));
+    } catch (IllegalArgumentException e) {
+      return Optional.empty();
+    }
+  }
+
   /** Creates a BigDecimal from a string if possible, otherwise returns null. */
   public static BigDecimal toBigDecimal(String string) {
     if (isBlank(string)) {

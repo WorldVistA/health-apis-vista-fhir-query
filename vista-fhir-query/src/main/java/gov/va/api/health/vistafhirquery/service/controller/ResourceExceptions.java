@@ -1,10 +1,26 @@
 package gov.va.api.health.vistafhirquery.service.controller;
 
+import static java.lang.String.format;
+
 import com.google.errorprone.annotations.FormatMethod;
 
 /** The because methods exist to add readability when throwing exceptions. */
 @SuppressWarnings("DoNotCallSuggester")
 public class ResourceExceptions {
+
+  public static final class BadPayload extends ResourceException {
+    public BadPayload(String message) {
+      super(message);
+    }
+
+    public static BadPayload because(String message) {
+      return new BadPayload(message);
+    }
+
+    public static BadPayload because(String vistaField, String reason) {
+      return because(format("Could not populate vista field %s: %s", vistaField, reason));
+    }
+  }
 
   /** BadSearchParameters . */
   public static final class BadSearchParameters extends ResourceException {
@@ -29,7 +45,7 @@ public class ResourceExceptions {
 
     @FormatMethod
     public static ExpectationFailed because(String message, Object... values) {
-      return because(String.format(message, values));
+      return because(format(message, values));
     }
   }
 
@@ -45,7 +61,7 @@ public class ResourceExceptions {
 
     @FormatMethod
     public static NotFound because(String message, Object... values) {
-      return because(String.format(message, values));
+      return because(format(message, values));
     }
   }
 

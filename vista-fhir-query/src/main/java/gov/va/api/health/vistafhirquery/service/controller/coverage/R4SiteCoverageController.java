@@ -6,6 +6,7 @@ import static gov.va.api.health.vistafhirquery.service.controller.R4Controllers.
 import static gov.va.api.health.vistafhirquery.service.controller.R4Controllers.verifyAndGetResult;
 import static java.util.stream.Collectors.toList;
 
+import gov.va.api.health.autoconfig.logging.Redact;
 import gov.va.api.health.r4.api.resources.Coverage;
 import gov.va.api.health.r4.api.resources.Coverage.Bundle;
 import gov.va.api.health.r4.api.resources.Coverage.Entry;
@@ -32,6 +33,7 @@ import javax.servlet.http.HttpServletResponse;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.NonNull;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -42,6 +44,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+@Slf4j
 @Builder
 @Validated
 @RestController
@@ -63,8 +66,11 @@ public class R4SiteCoverageController implements R4CoverageApi {
   public void coverageCreate(
       HttpServletResponse response,
       @PathVariable(value = "site") String site,
-      @RequestBody Coverage body) {
+      @Redact @RequestBody Coverage body) {
+    var transformed = R4CoverageToInsuranceTypeFileTransformer.builder().coverage(body).build();
+    log.info("Transformed Results: {}", transformed.toInsuranceTypeFile());
     var newResourceUrl = "/site/" + site + "/r4/Coverage/{new-resource-id}";
+    response.setStatus(201);
     response.addHeader("Location", newResourceUrl);
   }
 
