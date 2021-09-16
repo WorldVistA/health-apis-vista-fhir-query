@@ -1,9 +1,11 @@
 package gov.va.api.health.vistafhirquery.tests.r4;
 
+import static gov.va.api.health.sentinel.EnvironmentAssumptions.assumeEnvironmentNotIn;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.params.provider.Arguments.arguments;
 
 import gov.va.api.health.r4.api.resources.Endpoint;
+import gov.va.api.health.sentinel.Environment;
 import gov.va.api.health.vistafhirquery.tests.SystemDefinitions;
 import gov.va.api.health.vistafhirquery.tests.TestClients;
 import java.util.function.Predicate;
@@ -39,6 +41,7 @@ public class EndpointIT {
   @ParameterizedTest
   @MethodSource
   void search(String query, Predicate<Integer> bundleSizeCondition) {
+    assumeEnvironmentNotIn(Environment.STAGING, Environment.PROD);
     var requestPath = apiPath + query;
     log.info("Verify {} is Bundle (200)", requestPath);
     var bundle =
