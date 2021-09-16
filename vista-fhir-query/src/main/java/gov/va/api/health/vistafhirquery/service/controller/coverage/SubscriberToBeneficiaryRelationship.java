@@ -52,7 +52,7 @@ public enum SubscriberToBeneficiaryRelationship {
             .map(Map.Entry::getKey)
             .toList();
     /*
-     * From KBS team: "CodeableConcept won’t help figure out whether ‘parent’ means mother or
+     * From KBS team: "CodeableConcept won???t help figure out whether ???parent??? means mother or
      * father. I think it has to be the lossy one: 'G8' FOR OTHER RELATIONSHIP;"
      */
     if (matchedCodings.size() > 1) {
