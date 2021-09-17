@@ -64,6 +64,7 @@ public class LhsLighthouseRpcGatewayMocksV1 implements MockService {
                       case "2.312", "coverage" -> "/lhslighthouserpcgateway/"
                           + "response-coverage-search-by-patient.json";
                       case "36" -> "/lhslighthouserpcgateway/response-organization-read.json";
+                      case "355.3" -> "/lhslighthouserpcgateway/response-insurance-plan-read.json";
                       default -> null;
                     })
             .findFirst()

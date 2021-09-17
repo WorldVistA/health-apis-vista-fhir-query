@@ -18,6 +18,8 @@ import org.apache.commons.lang3.StringUtils;
 public final class TestIds {
   @NonNull String coverage;
 
+  @NonNull String insurancePlan;
+
   @NonNull String organization;
 
   @NonNull String observationVitalSign;

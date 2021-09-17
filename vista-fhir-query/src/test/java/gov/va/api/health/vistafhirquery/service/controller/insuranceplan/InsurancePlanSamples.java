@@ -6,6 +6,7 @@ import gov.va.api.health.r4.api.datatypes.Coding;
 import gov.va.api.health.r4.api.datatypes.Identifier;
 import gov.va.api.health.r4.api.datatypes.Quantity;
 import gov.va.api.health.r4.api.elements.Extension;
+import gov.va.api.health.r4.api.elements.Meta;
 import gov.va.api.health.r4.api.elements.Reference;
 import gov.va.api.health.r4.api.resources.InsurancePlan;
 import gov.va.api.health.vistafhirquery.service.controller.RecordCoordinates;
@@ -167,6 +168,7 @@ public class InsurancePlanSamples {
                   .ien(ien)
                   .build()
                   .toString())
+          .meta(Meta.builder().source(station).build())
           .extension(extensions())
           .identifier(identifiers())
           .name("BCBS OF SHANKSVILLE GROUP")

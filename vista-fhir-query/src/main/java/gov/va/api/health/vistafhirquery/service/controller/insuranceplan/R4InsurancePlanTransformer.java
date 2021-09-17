@@ -9,6 +9,7 @@ import gov.va.api.health.r4.api.datatypes.CodeableConcept;
 import gov.va.api.health.r4.api.datatypes.Coding;
 import gov.va.api.health.r4.api.datatypes.Identifier;
 import gov.va.api.health.r4.api.elements.Extension;
+import gov.va.api.health.r4.api.elements.Meta;
 import gov.va.api.health.r4.api.elements.Reference;
 import gov.va.api.health.r4.api.resources.InsurancePlan;
 import gov.va.api.health.r4.api.resources.InsurancePlan.Plan;
@@ -156,6 +157,7 @@ public class R4InsurancePlanTransformer {
                 .ien(entry.ien())
                 .build()
                 .toString())
+        .meta(Meta.builder().source(site()).build())
         .ownedBy(ownedBy(entry))
         .plan(plan(entry))
         .type(types(entry))

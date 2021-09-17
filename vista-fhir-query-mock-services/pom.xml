@@ -11,7 +11,7 @@
   <version>1.0.70-SNAPSHOT</version>
   <packaging>jar</packaging>
   <properties>
-    <fhir-resources.version>8.0.13</fhir-resources.version>
+    <fhir-resources.version>8.0.14</fhir-resources.version>
     <mockserver.version>5.11.2</mockserver.version>
     <charon.version>4.0.31</charon.version>
   </properties>

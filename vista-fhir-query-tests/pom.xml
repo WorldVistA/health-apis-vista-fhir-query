@@ -11,7 +11,7 @@
   <version>1.0.70-SNAPSHOT</version>
   <packaging>jar</packaging>
   <properties>
-    <fhir-resources.version>8.0.13</fhir-resources.version>
+    <fhir-resources.version>8.0.14</fhir-resources.version>
     <oauth-java.version>0.0.12</oauth-java.version>
     <sentinel.skipLaunch>false</sentinel.skipLaunch>
   </properties>
