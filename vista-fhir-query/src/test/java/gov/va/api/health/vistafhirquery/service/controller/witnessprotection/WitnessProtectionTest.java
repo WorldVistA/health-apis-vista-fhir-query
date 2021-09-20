@@ -42,6 +42,11 @@ class WitnessProtectionTest {
     public String toPrivateId(String publicId) {
       throw new BadId("fugazi");
     }
+
+    @Override
+    public <R extends Resource> String toPublicId(Class<R> resourceType, String privateId) {
+      return toPrivateId(privateId);
+    }
   }
 
   static class FugaziWP implements WitnessProtection {
@@ -54,6 +59,11 @@ class WitnessProtectionTest {
     @Override
     public String toPrivateId(String publicId) {
       return publicId.replace("fugazi:", "");
+    }
+
+    @Override
+    public <R extends Resource> String toPublicId(Class<R> resourceType, String privateId) {
+      return "fugazi:" + privateId;
     }
   }
 }

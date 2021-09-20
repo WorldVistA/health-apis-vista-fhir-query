@@ -7,7 +7,6 @@ import java.util.Map;
 import lombok.Getter;
 
 public class MockWitnessProtection implements WitnessProtection {
-
   @Getter private final Map<String, String> publicToPrivateId = new HashMap<>();
 
   public MockWitnessProtection add(String publicId, String privateId) {
@@ -24,5 +23,14 @@ public class MockWitnessProtection implements WitnessProtection {
   @Override
   public String toPrivateId(String publicId) {
     return publicToPrivateId().get(publicId);
+  }
+
+  @Override
+  public <R extends Resource> String toPublicId(Class<R> resourceType, String privateId) {
+    return publicToPrivateId().entrySet().stream()
+        .filter(e -> privateId.equals(e.getValue()))
+        .map(Map.Entry::getKey)
+        .findFirst()
+        .orElse(null);
   }
 }

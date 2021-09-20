@@ -236,6 +236,12 @@ public final class WebExceptionHandler {
     return responseFor("unauthorized", e, request, emptyList(), true);
   }
 
+  @ExceptionHandler({ResourceExceptions.BadRequestPayload.class})
+  @ResponseStatus(HttpStatus.UNPROCESSABLE_ENTITY)
+  OperationOutcome handleUnprocessableEntity(Exception e, HttpServletRequest request) {
+    return responseFor("structure", e, request, emptyList(), true);
+  }
+
   /**
    * For constraint violation exceptions, we want to add a little more information in the exception
    * to present what exactly is wrong. We will distill which properties are wrong and why, but we

@@ -116,6 +116,15 @@ class WitnessProtectionAdviceTest {
   }
 
   @Test
+  void toPublicIdReturnsPublicIdDuh() {
+    when(identityService.register(List.of(identity("FugaziOne", "f1"))))
+        .thenReturn(List.of(registration("ignored", "f1")));
+    assertThat(wp().toPublicId(FugaziOne.class, "private-f1")).isEqualTo("public-f1");
+    assertThatExceptionOfType(IllegalStateException.class)
+        .isThrownBy(() -> wp().toPublicId(FugaziOne.class, "unknown-f1"));
+  }
+
+  @Test
   void unknownResourceTypeIsNotModified() {
     ProtectedReferenceFactory prf = new ProtectedReferenceFactory(linkProperties());
     var f1 = FugaziOne.builder().id("private-f1").build();

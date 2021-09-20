@@ -4,6 +4,8 @@ import static gov.va.api.health.vistafhirquery.service.charonclient.CharonReques
 import static gov.va.api.health.vistafhirquery.service.charonclient.CharonRequests.lighthouseRpcGatewayResponse;
 import static gov.va.api.health.vistafhirquery.service.controller.R4Controllers.dieOnError;
 import static gov.va.api.health.vistafhirquery.service.controller.R4Controllers.verifyAndGetResult;
+import static gov.va.api.health.vistafhirquery.service.controller.R4Controllers.verifySiteSpecificVistaResponseOrDie;
+import static gov.va.api.health.vistafhirquery.service.controller.R4Transformers.getReferenceId;
 import static java.util.stream.Collectors.toList;
 
 import gov.va.api.health.autoconfig.logging.Redact;
@@ -18,9 +20,13 @@ import gov.va.api.health.vistafhirquery.service.controller.R4Bundler;
 import gov.va.api.health.vistafhirquery.service.controller.R4BundlerFactory;
 import gov.va.api.health.vistafhirquery.service.controller.R4Bundling;
 import gov.va.api.health.vistafhirquery.service.controller.R4Transformation;
+import gov.va.api.health.vistafhirquery.service.controller.ResourceExceptions.BadRequestPayload;
+import gov.va.api.health.vistafhirquery.service.controller.ResourceExceptions.ExpectationFailed;
 import gov.va.api.health.vistafhirquery.service.controller.witnessprotection.WitnessProtection;
 import gov.va.api.lighthouse.charon.models.lhslighthouserpcgateway.InsuranceType;
 import gov.va.api.lighthouse.charon.models.lhslighthouserpcgateway.LhsLighthouseRpcGatewayCoverageSearch.Request;
+import gov.va.api.lighthouse.charon.models.lhslighthouserpcgateway.LhsLighthouseRpcGatewayCoverageWrite;
+import gov.va.api.lighthouse.charon.models.lhslighthouserpcgateway.LhsLighthouseRpcGatewayCoverageWrite.Request.CoverageWriteApi;
 import gov.va.api.lighthouse.charon.models.lhslighthouserpcgateway.LhsLighthouseRpcGatewayGetsManifest;
 import gov.va.api.lighthouse.charon.models.lhslighthouserpcgateway.LhsLighthouseRpcGatewayGetsManifest.Request.GetsManifestFlags;
 import gov.va.api.lighthouse.charon.models.lhslighthouserpcgateway.LhsLighthouseRpcGatewayResponse;
@@ -33,7 +39,6 @@ import javax.servlet.http.HttpServletResponse;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.NonNull;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -44,7 +49,6 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-@Slf4j
 @Builder
 @Validated
 @RestController
@@ -62,14 +66,39 @@ public class R4SiteCoverageController implements R4CoverageApi {
   }
 
   @Override
-  @PostMapping(value = "/site/{site}/r4/Coverage")
+  @PostMapping(
+      value = "/site/{site}/r4/Coverage",
+      consumes = {"application/json", "application/fhir+json"})
   public void coverageCreate(
-      HttpServletResponse response,
+      @Redact HttpServletResponse response,
       @PathVariable(value = "site") String site,
       @Redact @RequestBody Coverage body) {
-    var transformed = R4CoverageToInsuranceTypeFileTransformer.builder().coverage(body).build();
-    log.info("Transformed Results: {}", transformed.toInsuranceTypeFile());
-    var newResourceUrl = "/site/" + site + "/r4/Coverage/{new-resource-id}";
+    var patientIcn =
+        getReferenceId(body.beneficiary())
+            .orElseThrow(() -> BadRequestPayload.because("Beneficiary reference not found."));
+    /*
+     * ToDo File 2.312 SOURCE OF INFORMATION field #1.09 is 22 for the WellHive interface.
+     *   https://vajira.max.gov/browse/API-10035
+     */
+    var charonRequest =
+        lighthouseRpcGatewayRequest(
+            site, coverageWriteDetails(CoverageWriteApi.CREATE, patientIcn, body));
+    var charonResponse = charon.request(charonRequest);
+    var lhsResponse = lighthouseRpcGatewayResponse(charonResponse);
+    verifySiteSpecificVistaResponseOrDie(site, lhsResponse);
+    var result = validateAndGetWriteRpcResult(lhsResponse.resultsByStation().get(site).results());
+    var newResourceId =
+        PatientTypeCoordinates.builder()
+            .siteId(site)
+            .icn(patientIcn)
+            .recordId(result.ien())
+            .build()
+            .toString();
+    var newResourceUrl =
+        bundlerFactory
+            .linkProperties()
+            .r4()
+            .readUrl(site, "Coverage", witnessProtection.toPublicId(Coverage.class, newResourceId));
     response.setStatus(201);
     response.addHeader("Location", newResourceUrl);
   }
@@ -104,6 +133,20 @@ public class R4SiteCoverageController implements R4CoverageApi {
     var request = lighthouseRpcGatewayRequest(site, coverageByPatientIcn(patientIcn));
     var response = charon.request(request);
     return toBundle(httpRequest, response).apply(lighthouseRpcGatewayResponse(response));
+  }
+
+  private LhsLighthouseRpcGatewayCoverageWrite.Request coverageWriteDetails(
+      CoverageWriteApi operation, String patient, Coverage body) {
+    var fieldsToWrite =
+        R4CoverageToInsuranceTypeFileTransformer.builder()
+            .coverage(body)
+            .build()
+            .toInsuranceTypeFile();
+    return LhsLighthouseRpcGatewayCoverageWrite.Request.builder()
+        .api(operation)
+        .patient(PatientId.forIcn(patient))
+        .fields(fieldsToWrite)
+        .build();
   }
 
   private LhsLighthouseRpcGatewayGetsManifest.Request manifestRequest(
@@ -158,5 +201,17 @@ public class R4SiteCoverageController implements R4CoverageApi {
                                 .toFhir())
                     .collect(toList()))
         .build();
+  }
+
+  private LhsLighthouseRpcGatewayResponse.FilemanEntry validateAndGetWriteRpcResult(
+      List<LhsLighthouseRpcGatewayResponse.FilemanEntry> results) {
+    if (results.size() != 1) {
+      throw ExpectationFailed.because("Unexpected number of results: " + results.size());
+    }
+    if (!"1".equals(results.get(0).status())) {
+      throw ExpectationFailed.because(
+          "Unexpected status code from results: " + results.get(0).status());
+    }
+    return results.get(0);
   }
 }

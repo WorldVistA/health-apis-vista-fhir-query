@@ -8,6 +8,7 @@ import static java.util.stream.Stream.concat;
 
 import gov.va.api.health.ids.api.IdentityService;
 import gov.va.api.health.ids.api.IdentitySubstitution;
+import gov.va.api.health.ids.api.Registration;
 import gov.va.api.health.ids.api.ResourceIdentity;
 import gov.va.api.health.ids.client.IdEncoder;
 import gov.va.api.health.r4.api.bundle.AbstractBundle;
@@ -201,5 +202,23 @@ public class WitnessProtectionAdvice extends IdentitySubstitution<ProtectedRefer
         .map(ResourceIdentity::identifier)
         .findFirst()
         .orElse(publicId);
+  }
+
+  @Override
+  public <R extends Resource> String toPublicId(Class<R> resourceType, String privateId) {
+    return identityService
+        .register(
+            List.of(
+                ProtectedReference.builder()
+                    .type(protectedReferenceFactory.resourceTypeFor(resourceType))
+                    .id(privateId)
+                    .build()
+                    .asResourceIdentity()
+                    .get()))
+        .stream()
+        .map(Registration::uuid)
+        .findFirst()
+        .orElseThrow(
+            () -> new IllegalStateException("Could not generate private id for resource."));
   }
 }

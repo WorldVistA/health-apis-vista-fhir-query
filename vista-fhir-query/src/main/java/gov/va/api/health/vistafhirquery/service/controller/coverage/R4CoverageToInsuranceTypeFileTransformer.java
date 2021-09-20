@@ -9,7 +9,7 @@ import gov.va.api.health.r4.api.elements.Extension;
 import gov.va.api.health.r4.api.elements.Reference;
 import gov.va.api.health.r4.api.resources.Coverage;
 import gov.va.api.health.r4.api.resources.Coverage.CoverageClass;
-import gov.va.api.health.vistafhirquery.service.controller.ResourceExceptions.BadPayload;
+import gov.va.api.health.vistafhirquery.service.controller.ResourceExceptions.BadRequestPayload;
 import gov.va.api.lighthouse.charon.models.lhslighthouserpcgateway.GroupInsurancePlan;
 import gov.va.api.lighthouse.charon.models.lhslighthouserpcgateway.InsuranceCompany;
 import gov.va.api.lighthouse.charon.models.lhslighthouserpcgateway.InsuranceType;
@@ -45,7 +45,7 @@ public class R4CoverageToInsuranceTypeFileTransformer {
   @SuppressWarnings("UnnecessaryParentheses")
   WriteableFilemanValue coordinationOfBenefits(Integer order) {
     if (isBlank(order)) {
-      throw BadPayload.because(InsuranceType.COORDINATION_OF_BENEFITS, "order is null");
+      throw BadRequestPayload.because(InsuranceType.COORDINATION_OF_BENEFITS, "order is null");
     }
     var priority =
         switch (order) {
@@ -59,7 +59,8 @@ public class R4CoverageToInsuranceTypeFileTransformer {
 
   WriteableFilemanValue effectiveDateOfPolicy(Period period) {
     if (isBlank(period) || isBlank(period.start())) {
-      throw BadPayload.because(InsuranceType.EFFECTIVE_DATE_OF_POLICY, "period start is null");
+      throw BadRequestPayload.because(
+          InsuranceType.EFFECTIVE_DATE_OF_POLICY, "period start is null");
     }
     var date = Instant.parse(period.start());
     return insuranceTypeCoordinates(
@@ -75,7 +76,7 @@ public class R4CoverageToInsuranceTypeFileTransformer {
 
   WriteableFilemanValue groupPlan(List<CoverageClass> coverageTypes) {
     if (isBlank(coverageTypes)) {
-      throw BadPayload.because(InsuranceType.GROUP_PLAN, "class is null");
+      throw BadRequestPayload.because(InsuranceType.GROUP_PLAN, "class is null");
     }
     // Group slice cardinality is 0..1
     return coverageTypes.stream()
@@ -93,7 +94,9 @@ public class R4CoverageToInsuranceTypeFileTransformer {
         .findFirst()
         .map(id -> pointer(GroupInsurancePlan.FILE_NUMBER, 1, id.ien()))
         .orElseThrow(
-            () -> BadPayload.because(InsuranceType.GROUP_PLAN, "class type 'group' not found"));
+            () ->
+                BadRequestPayload.because(
+                    InsuranceType.GROUP_PLAN, "class type 'group' not found"));
   }
 
   Optional<WriteableFilemanValue> insuranceExpirationDate(Period period) {
@@ -108,7 +111,7 @@ public class R4CoverageToInsuranceTypeFileTransformer {
 
   WriteableFilemanValue insuranceType(List<Reference> payors) {
     if (isBlank(payors)) {
-      throw BadPayload.because(InsuranceType.INSURANCE_TYPE, "payor is null");
+      throw BadRequestPayload.because(InsuranceType.INSURANCE_TYPE, "payor is null");
     }
     // Cardinality 1..* but vista expects a single pointer
     return IntStream.range(0, payors.size())
@@ -121,7 +124,8 @@ public class R4CoverageToInsuranceTypeFileTransformer {
             })
         .filter(Objects::nonNull)
         .findFirst()
-        .orElseThrow(() -> BadPayload.because(InsuranceType.INSURANCE_TYPE, "payor not found"));
+        .orElseThrow(
+            () -> BadRequestPayload.because(InsuranceType.INSURANCE_TYPE, "payor not found"));
   }
 
   private WriteableFilemanValue insuranceTypeCoordinates(
@@ -136,14 +140,14 @@ public class R4CoverageToInsuranceTypeFileTransformer {
 
   WriteableFilemanValue patientId(Reference beneficiary) {
     if (isBlank(beneficiary) || isBlank(beneficiary.identifier())) {
-      throw BadPayload.because(InsuranceType.PATIENT_ID, "beneficiary identifier is null");
+      throw BadRequestPayload.because(InsuranceType.PATIENT_ID, "beneficiary identifier is null");
     }
     var isMemberId =
         Optional.ofNullable(beneficiary.identifier().type()).map(CodeableConcept::coding).stream()
             .flatMap(Collection::stream)
             .anyMatch(coding -> "MB".equals(coding.code()));
     if (!isMemberId) {
-      throw BadPayload.because(InsuranceType.PATIENT_ID, "identifier of type MB not found");
+      throw BadRequestPayload.because(InsuranceType.PATIENT_ID, "identifier of type MB not found");
     }
     var memberId = beneficiary.identifier().value();
     return insuranceTypeCoordinates(InsuranceType.PATIENT_ID, 1, memberId);
@@ -151,10 +155,10 @@ public class R4CoverageToInsuranceTypeFileTransformer {
 
   WriteableFilemanValue patientRelationshipHipaa(CodeableConcept relationship) {
     if (isBlank(relationship) || isBlank(relationship.coding())) {
-      throw BadPayload.because(InsuranceType.PT_RELATIONSHIP_HIPAA, "relationship is null");
+      throw BadRequestPayload.because(InsuranceType.PT_RELATIONSHIP_HIPAA, "relationship is null");
     }
     if (relationship.coding().size() != 1) {
-      throw BadPayload.because(
+      throw BadRequestPayload.because(
           InsuranceType.PT_RELATIONSHIP_HIPAA,
           "Unexpected relationship code count: " + relationship.coding().size());
     }
@@ -167,7 +171,7 @@ public class R4CoverageToInsuranceTypeFileTransformer {
     var relCode =
         maybeCode.orElseThrow(
             () ->
-                BadPayload.because(
+                BadRequestPayload.because(
                     InsuranceType.PT_RELATIONSHIP_HIPAA,
                     "SubscriberToBeneficiary code not found."));
     return insuranceTypeCoordinates(InsuranceType.PT_RELATIONSHIP_HIPAA, 1, relCode.display());
@@ -191,7 +195,7 @@ public class R4CoverageToInsuranceTypeFileTransformer {
 
   WriteableFilemanValue stopPolicyFromBilling(Extension extension) {
     if (isBlank(extension) || isBlank(extension.valueBoolean())) {
-      throw BadPayload.because(InsuranceType.STOP_POLICY_FROM_BILLING, "extension is null");
+      throw BadRequestPayload.because(InsuranceType.STOP_POLICY_FROM_BILLING, "extension is null");
     }
     return insuranceTypeCoordinates(
         InsuranceType.STOP_POLICY_FROM_BILLING, 1, extension.valueBoolean() ? "YES" : "NO");
@@ -199,7 +203,7 @@ public class R4CoverageToInsuranceTypeFileTransformer {
 
   WriteableFilemanValue subscriberId(String subscriberId) {
     if (isBlank(subscriberId)) {
-      throw BadPayload.because(InsuranceType.SUBSCRIBER_ID, "subscriberId is null");
+      throw BadRequestPayload.because(InsuranceType.SUBSCRIBER_ID, "subscriberId is null");
     }
     return insuranceTypeCoordinates(InsuranceType.SUBSCRIBER_ID, 1, subscriberId);
   }
@@ -216,7 +220,7 @@ public class R4CoverageToInsuranceTypeFileTransformer {
         .ifPresentOrElse(
             fields::add,
             () -> {
-              throw BadPayload.because(
+              throw BadRequestPayload.because(
                   InsuranceType.STOP_POLICY_FROM_BILLING, "extension not found");
             });
     fields.add(patientRelationshipHipaa(coverage().relationship()));

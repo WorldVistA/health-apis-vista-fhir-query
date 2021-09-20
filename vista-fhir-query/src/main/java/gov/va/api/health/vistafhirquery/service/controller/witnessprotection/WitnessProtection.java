@@ -30,6 +30,8 @@ public interface WitnessProtection {
 
   String toPrivateId(String publicId);
 
+  <R extends Resource> String toPublicId(Class<R> resourceType, String privateId);
+
   /** Try to parse record coordinates given a public id. */
   default RecordCoordinates toRecordCoordinates(String publicId) {
     return decodePrivateId(publicId, RecordCoordinates::fromString);

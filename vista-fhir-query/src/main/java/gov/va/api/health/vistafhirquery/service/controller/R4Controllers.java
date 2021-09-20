@@ -1,5 +1,9 @@
 package gov.va.api.health.vistafhirquery.service.controller;
 
+import static java.lang.String.join;
+
+import gov.va.api.health.vistafhirquery.service.controller.ResourceExceptions.ExpectationFailed;
+import gov.va.api.health.vistafhirquery.service.controller.ResourceExceptions.NotFound;
 import gov.va.api.lighthouse.charon.models.lhslighthouserpcgateway.LhsLighthouseRpcGatewayResponse;
 import java.util.List;
 
@@ -16,15 +20,32 @@ public class R4Controllers {
   /** Verifies that a list of resources has only one result and returns that result. */
   public static <R> R verifyAndGetResult(List<R> resources, String publicId) {
     if (resources == null) {
-      throw ResourceExceptions.NotFound.because(publicId);
+      throw NotFound.because(publicId);
     }
     if (resources.size() > 1) {
-      throw ResourceExceptions.ExpectationFailed.because(
+      throw ExpectationFailed.because(
           "Too many results returned. Expected 1 but found %d.", resources.size());
     }
-    return resources.stream()
-        .findFirst()
-        .orElseThrow(() -> ResourceExceptions.NotFound.because(publicId));
+    return resources.stream().findFirst().orElseThrow(() -> NotFound.because(publicId));
+  }
+
+  /**
+   * Verifies that results from a site specific vista call only returns a single result for the
+   * requested site.
+   */
+  public static void verifySiteSpecificVistaResponseOrDie(
+      String site, LhsLighthouseRpcGatewayResponse response) {
+    dieOnError(response);
+    if (response.resultsByStation().size() != 1) {
+      throw ExpectationFailed.because(
+          "Unexpected number of vista results returned: Size(%d) Sites(%s)",
+          response.resultsByStation().size(), join(",", response.resultsByStation().keySet()));
+    }
+    if (response.resultsByStation().get(site) == null) {
+      throw ExpectationFailed.because(
+          "Vista results do not contain requested site: expected %s, got %s",
+          site, join(",", response.resultsByStation().keySet()));
+    }
   }
 
   /** Indicates a critical failure in server that the user cannot solve. */

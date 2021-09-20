@@ -185,6 +185,19 @@ public class CoverageSamples {
           insuranceValue(InsuranceType.STOP_POLICY_FROM_BILLING, "YES"));
     }
 
+    public LhsLighthouseRpcGatewayResponse.Results createCoverageResults(String id) {
+      return LhsLighthouseRpcGatewayResponse.Results.builder()
+          .results(
+              List.of(
+                  LhsLighthouseRpcGatewayResponse.FilemanEntry.builder()
+                      .file("2.312")
+                      .ien(id)
+                      .index("1")
+                      .status("1")
+                      .build()))
+          .build();
+    }
+
     private Map<String, LhsLighthouseRpcGatewayResponse.Values> fields() {
       Map<String, LhsLighthouseRpcGatewayResponse.Values> fields = new HashMap<>();
       fields.put(

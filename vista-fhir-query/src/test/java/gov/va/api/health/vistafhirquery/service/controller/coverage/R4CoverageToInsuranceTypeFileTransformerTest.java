@@ -11,7 +11,7 @@ import gov.va.api.health.r4.api.elements.Extension;
 import gov.va.api.health.r4.api.elements.Reference;
 import gov.va.api.health.r4.api.resources.Coverage;
 import gov.va.api.health.r4.api.resources.Coverage.CoverageClass;
-import gov.va.api.health.vistafhirquery.service.controller.ResourceExceptions.BadPayload;
+import gov.va.api.health.vistafhirquery.service.controller.ResourceExceptions.BadRequestPayload;
 import java.util.List;
 import org.assertj.core.api.ThrowableAssert.ThrowingCallable;
 import org.junit.jupiter.api.Test;
@@ -24,7 +24,7 @@ public class R4CoverageToInsuranceTypeFileTransformerTest {
   }
 
   void assertBadRequestBodyThrown(ThrowingCallable r) {
-    assertThatExceptionOfType(BadPayload.class).isThrownBy(r);
+    assertThatExceptionOfType(BadRequestPayload.class).isThrownBy(r);
   }
 
   @Test
@@ -41,7 +41,7 @@ public class R4CoverageToInsuranceTypeFileTransformerTest {
 
   @Test
   void empty() {
-    assertThatExceptionOfType(BadPayload.class)
+    assertThatExceptionOfType(BadRequestPayload.class)
         .isThrownBy(
             () ->
                 R4CoverageToInsuranceTypeFileTransformer.builder()

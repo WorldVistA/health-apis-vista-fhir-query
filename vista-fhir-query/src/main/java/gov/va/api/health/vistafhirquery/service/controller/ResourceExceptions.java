@@ -8,16 +8,16 @@ import com.google.errorprone.annotations.FormatMethod;
 @SuppressWarnings("DoNotCallSuggester")
 public class ResourceExceptions {
 
-  public static final class BadPayload extends ResourceException {
-    public BadPayload(String message) {
+  public static final class BadRequestPayload extends ResourceException {
+    public BadRequestPayload(String message) {
       super(message);
     }
 
-    public static BadPayload because(String message) {
-      return new BadPayload(message);
+    public static BadRequestPayload because(String message) {
+      return new BadRequestPayload(message);
     }
 
-    public static BadPayload because(String vistaField, String reason) {
+    public static BadRequestPayload because(String vistaField, String reason) {
       return because(format("Could not populate vista field %s: %s", vistaField, reason));
     }
   }

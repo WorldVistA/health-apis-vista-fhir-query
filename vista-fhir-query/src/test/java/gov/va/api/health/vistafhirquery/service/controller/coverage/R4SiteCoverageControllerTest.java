@@ -18,6 +18,8 @@ import gov.va.api.health.vistafhirquery.service.controller.witnessprotection.Alt
 import gov.va.api.health.vistafhirquery.service.controller.witnessprotection.WitnessProtection;
 import gov.va.api.lighthouse.charon.api.v1.RpcInvocationResultV1;
 import gov.va.api.lighthouse.charon.models.lhslighthouserpcgateway.LhsLighthouseRpcGatewayCoverageSearch;
+import gov.va.api.lighthouse.charon.models.lhslighthouserpcgateway.LhsLighthouseRpcGatewayCoverageWrite;
+import gov.va.api.lighthouse.charon.models.lhslighthouserpcgateway.LhsLighthouseRpcGatewayCoverageWrite.Request.CoverageWriteApi;
 import gov.va.api.lighthouse.charon.models.lhslighthouserpcgateway.LhsLighthouseRpcGatewayGetsManifest;
 import gov.va.api.lighthouse.charon.models.lhslighthouserpcgateway.LhsLighthouseRpcGatewayResponse;
 import java.util.List;
@@ -25,6 +27,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.mock.web.MockHttpServletResponse;
 
 @ExtendWith(MockitoExtension.class)
 public class R4SiteCoverageControllerTest {
@@ -56,6 +59,25 @@ public class R4SiteCoverageControllerTest {
         .timezone("UTC")
         .response(json(value))
         .build();
+  }
+
+  @Test
+  void create() {
+    var response = new MockHttpServletResponse();
+    var samples = CoverageSamples.VistaLhsLighthouseRpcGateway.create();
+    var results = samples.createCoverageResults("ip1");
+    var captor = requestCaptor(LhsLighthouseRpcGatewayCoverageWrite.Request.class);
+    var answer =
+        answerFor(captor).value(results).invocationResult(_invocationResult(results)).build();
+    when(charon.request(captor.capture())).thenAnswer(answer);
+    when(witnessProtection.toPublicId(Coverage.class, "p1+123+ip1")).thenReturn("public-ip1");
+    _controller()
+        .coverageCreate(
+            response, "123", CoverageSamples.R4.create().coverage("123", "not-used", "p1"));
+    assertThat(captor.getValue().rpcRequest().api()).isEqualTo(CoverageWriteApi.CREATE);
+    assertThat(response.getStatus()).isEqualTo(201);
+    assertThat(response.getHeader("Location"))
+        .isEqualTo("http://fugazi.com/site/123/r4/Coverage/public-ip1");
   }
 
   @Test
