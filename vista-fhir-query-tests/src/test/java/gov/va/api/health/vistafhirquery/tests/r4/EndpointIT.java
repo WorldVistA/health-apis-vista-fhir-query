@@ -11,6 +11,7 @@ import gov.va.api.health.vistafhirquery.tests.TestClients;
 import java.util.function.Predicate;
 import java.util.stream.Stream;
 import lombok.extern.slf4j.Slf4j;
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
@@ -36,6 +37,15 @@ public class EndpointIT {
         arguments("r4/Endpoint?patient=" + patient, notEmpty()),
         arguments("r4/Endpoint?status=ANYTHING_NOT_ACTIVE", empty()),
         arguments("r4/Endpoint?status=active&patient=" + patient, notEmpty()));
+  }
+
+  @Test
+  void read() {
+    assumeEnvironmentNotIn(Environment.STAGING, Environment.PROD);
+    var requestPath = apiPath + "r4/Endpoint/673";
+    log.info("Verify {} is Endpoint (200)", requestPath);
+    var endpoint = TestClients.basePath().get(requestPath).expect(200).expectValid(Endpoint.class);
+    assertThat(endpoint.id()).isEqualTo("673");
   }
 
   @ParameterizedTest

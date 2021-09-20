@@ -47,6 +47,19 @@ public class R4EndpointControllerTest {
   }
 
   @Test
+  void endpointReadKnownSite() {
+    var actual = controller().endpointRead("101");
+    var expected = EndpointSamples.R4.create().endpoint("101");
+    assertThat(json(actual)).isEqualTo(json(expected));
+  }
+
+  @Test
+  void endpointReadUnknownSiteIsNotFound() {
+    assertThatExceptionOfType(ResourceExceptions.NotFound.class)
+        .isThrownBy(() -> controller().endpointRead("987"));
+  }
+
+  @Test
   void endpointSearch() {
     var request = requestFromUri("");
     var actual = controller().endpointSearch(request, 10, null, null);

@@ -15,6 +15,73 @@ import javax.ws.rs.GET;
 import javax.ws.rs.Path;
 
 public interface R4EndpointApi {
+
+  @Operation(
+      summary = "Endpoint Read",
+      description = "https://hl7.org/fhir/R4/endpoint.html",
+      tags = {"Endpoint"})
+  @GET
+  @Path("Endpoint/{id}")
+  @ApiResponses({
+    @ApiResponse(
+        responseCode = "200",
+        description = "Record found",
+        content = {
+          @Content(
+              mediaType = "application/fhir+json",
+              schema = @Schema(implementation = Endpoint.class))
+        }),
+    @ApiResponse(
+        responseCode = "400",
+        description = "Bad request",
+        content = {
+          @Content(
+              mediaType = "application/fhir+json",
+              schema = @Schema(implementation = OperationOutcome.class))
+        }),
+    @ApiResponse(
+        responseCode = "401",
+        description = "Unauthorized",
+        content = {
+          @Content(
+              mediaType = "application/fhir+json",
+              schema = @Schema(implementation = OperationOutcome.class))
+        }),
+    @ApiResponse(
+        responseCode = "403",
+        description = "Forbidden",
+        content = {
+          @Content(
+              mediaType = "application/fhir+json",
+              schema = @Schema(implementation = OperationOutcome.class))
+        }),
+    @ApiResponse(
+        responseCode = "404",
+        description = "Not found",
+        content = {
+          @Content(
+              mediaType = "application/fhir+json",
+              schema = @Schema(implementation = OperationOutcome.class))
+        }),
+    @ApiResponse(
+        responseCode = "500",
+        description = "Server Error",
+        content = {
+          @Content(
+              mediaType = "application/fhir+json",
+              schema = @Schema(implementation = OperationOutcome.class))
+        })
+  })
+  Endpoint endpointRead(
+      @Parameter(
+              in = ParameterIn.PATH,
+              name = "id",
+              required = true,
+              description =
+                  "The logical id of the resource. Once assigned, this value never changes.",
+              example = "673")
+          String id);
+
   @Operation(
       summary = "Endpoint Search",
       description = "https://hl7.org/fhir/R4/endpoint.html",
