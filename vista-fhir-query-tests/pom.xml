@@ -8,10 +8,10 @@
     <relativePath/>
   </parent>
   <artifactId>vista-fhir-query-tests</artifactId>
-  <version>1.0.71-SNAPSHOT</version>
+  <version>1.0.71</version>
   <packaging>jar</packaging>
   <properties>
-    <fhir-resources.version>8.0.14</fhir-resources.version>
+    <fhir-resources.version>8.0.15</fhir-resources.version>
     <oauth-java.version>0.0.12</oauth-java.version>
     <sentinel.skipLaunch>false</sentinel.skipLaunch>
   </properties>

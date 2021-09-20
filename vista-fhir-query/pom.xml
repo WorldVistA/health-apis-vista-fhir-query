@@ -8,11 +8,11 @@
     <relativePath/>
   </parent>
   <artifactId>vista-fhir-query</artifactId>
-  <version>1.0.71-SNAPSHOT</version>
+  <version>1.0.71</version>
   <packaging>jar</packaging>
   <properties>
     <charon.version>4.0.31</charon.version>
-    <fhir-resources.version>8.0.14</fhir-resources.version>
+    <fhir-resources.version>8.0.15</fhir-resources.version>
     <jacoco.coverage>0.94</jacoco.coverage>
     <mssql-jdbc.version>9.2.1.jre15</mssql-jdbc.version>
     <swagger-maven-plugin.version>2.1.10</swagger-maven-plugin.version>
