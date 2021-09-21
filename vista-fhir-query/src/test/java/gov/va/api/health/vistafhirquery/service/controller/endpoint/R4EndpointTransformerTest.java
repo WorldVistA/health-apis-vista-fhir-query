@@ -14,6 +14,7 @@ public class R4EndpointTransformerTest {
                 .linkProperties(EndpointSamples.linkProperties())
                 .build()
                 .toFhir())
+        .usingRecursiveComparison()
         .isEqualTo(EndpointSamples.R4.create().endpoint("101"));
   }
 }

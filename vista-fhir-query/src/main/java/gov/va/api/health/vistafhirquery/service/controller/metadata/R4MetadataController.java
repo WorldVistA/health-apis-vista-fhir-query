@@ -67,7 +67,7 @@ class R4MetadataController {
   private Implementation implementation() {
     return Implementation.builder()
         .description(properties.getR4().getName())
-        .url(pageLinks.r4().baseUrl())
+        .url(pageLinks.getPublicUrl() + "/r4")
         .build();
   }
 

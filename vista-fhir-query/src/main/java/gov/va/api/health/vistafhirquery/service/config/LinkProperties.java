@@ -8,7 +8,6 @@ import javax.annotation.PostConstruct;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
-import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.NonNull;
 import lombok.experimental.Accessors;
@@ -62,12 +61,20 @@ public class LinkProperties {
 
     private static final String SITE_PLACEHOLDER = "{site}";
 
-    @Getter private final String baseUrl;
+    private final String baseUrl;
     private final Map<String, String> urlForResource;
 
     Links(String publicUrl, String publicBasePath, @NonNull Map<String, String> publicR4Link) {
       baseUrl = publicUrl + "/" + publicBasePath;
       urlForResource = publicR4Link;
+    }
+
+    public String baseUrl(@NonNull String site) {
+      return baseUrl.replace(SITE_PLACEHOLDER, site);
+    }
+
+    public String readUrl(@NonNull String site, @NonNull String resource, @NonNull String id) {
+      return resourceUrl(site, resource) + "/" + id;
     }
 
     /**
@@ -80,10 +87,6 @@ public class LinkProperties {
           : readUrl(site, resource.getClass().getSimpleName(), resource.id());
     }
 
-    public String readUrl(@NonNull String site, @NonNull String resource, @NonNull String id) {
-      return resourceUrl(site, resource) + "/" + id;
-    }
-
     public String readUrlWithoutSite(@NonNull String resource, @NonNull String id) {
       return resourceUrlWithoutSite(resource) + "/" + id;
     }
@@ -93,7 +96,7 @@ public class LinkProperties {
      * site placeholder are allowed, in which case substitution is ignored.
      */
     public String resourceUrl(@NonNull String site, @NonNull String resource) {
-      return urlForResource.getOrDefault(resource, baseUrl()).replace(SITE_PLACEHOLDER, site)
+      return urlForResource.getOrDefault(resource, baseUrl(site)).replace(SITE_PLACEHOLDER, site)
           + "/"
           + resource;
     }
@@ -103,7 +106,12 @@ public class LinkProperties {
      * the site placeholder.
      */
     public String resourceUrlWithoutSite(@NonNull String resource) {
-      String url = urlForResource.getOrDefault(resource, baseUrl());
+      /*
+       * Since we're asking for url without a site, we do not want to substitute the site
+       * placeholder and will use the raw baseUrl property. If a placeholder remains, either from
+       * the resource specific override or the base URL, we'll throw an exception.
+       */
+      String url = urlForResource.getOrDefault(resource, baseUrl);
       if (url.contains(SITE_PLACEHOLDER)) {
         throw new UrlOrPathConfigurationException(
             "URL contains site placeholder, but not site is available: " + url);

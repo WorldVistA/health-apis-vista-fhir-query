@@ -22,7 +22,7 @@ public class EndpointSamples {
   public static LinkProperties linkProperties() {
     return LinkProperties.builder()
         .publicUrl("http://fake.com")
-        .publicR4BasePath("r4")
+        .publicR4BasePath("site/{site}/r4")
         .defaultPageSize(10)
         .maxPageSize(100)
         .build();
@@ -128,7 +128,7 @@ public class EndpointSamples {
                       .text("Any")
                       .build()))
           .payloadMimeType(List.of("application/json", "application/fhir+json"))
-          .address(linkProperties().getPublicUrl() + "/" + site + "/r4")
+          .address(linkProperties().getPublicUrl() + "/site/" + site + "/r4")
           .build();
     }
   }
