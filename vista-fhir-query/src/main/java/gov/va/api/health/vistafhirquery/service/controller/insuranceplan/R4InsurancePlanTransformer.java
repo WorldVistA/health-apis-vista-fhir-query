@@ -183,11 +183,11 @@ public class R4InsurancePlanTransformer {
             type(
                 entry,
                 GroupInsurancePlan.PLAN_CATEGORY,
-                "2.16.840.1.113883.3.8901.3.1.355803.8014"),
+                "urn:oid:2.16.840.1.113883.3.8901.3.1.355803.8014"),
             type(
                 entry,
                 GroupInsurancePlan.ELECTRONIC_PLAN_TYPE,
-                "2.16.840.1.113883.3.8901.3.1.355803.8015"))
+                "urn:oid:2.16.840.1.113883.3.8901.3.1.355803.8015"))
         .filter(Objects::nonNull)
         .toList();
   }
