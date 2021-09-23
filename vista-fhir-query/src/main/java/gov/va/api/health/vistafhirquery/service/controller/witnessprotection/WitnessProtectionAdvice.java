@@ -6,8 +6,11 @@ import static java.util.stream.Collectors.joining;
 import static java.util.stream.Collectors.toMap;
 import static java.util.stream.Stream.concat;
 
+import gov.va.api.health.ids.api.IdTransformation;
 import gov.va.api.health.ids.api.IdentityService;
 import gov.va.api.health.ids.api.IdentitySubstitution;
+import gov.va.api.health.ids.api.PrivateToPublicIdTransformation;
+import gov.va.api.health.ids.api.PublicToPrivateIdTransformation;
 import gov.va.api.health.ids.api.Registration;
 import gov.va.api.health.ids.api.ResourceIdentity;
 import gov.va.api.health.ids.client.IdEncoder;
@@ -15,24 +18,29 @@ import gov.va.api.health.r4.api.bundle.AbstractBundle;
 import gov.va.api.health.r4.api.bundle.AbstractEntry;
 import gov.va.api.health.r4.api.resources.Resource;
 import gov.va.api.health.vistafhirquery.service.controller.ResourceExceptions;
+import gov.va.api.health.vistafhirquery.service.controller.ResourceExceptions.BadRequestPayload;
 import gov.va.api.health.vistafhirquery.service.controller.ResourceExceptions.NotFound;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.function.BiConsumer;
 import java.util.stream.Stream;
 import lombok.Builder;
 import lombok.NonNull;
 import lombok.SneakyThrows;
+import lombok.Value;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.MethodParameter;
+import org.springframework.http.HttpInputMessage;
 import org.springframework.http.MediaType;
 import org.springframework.http.converter.HttpMessageConverter;
 import org.springframework.http.server.ServerHttpRequest;
 import org.springframework.http.server.ServerHttpResponse;
 import org.springframework.web.bind.annotation.ControllerAdvice;
+import org.springframework.web.servlet.mvc.method.annotation.RequestBodyAdvice;
 import org.springframework.web.servlet.mvc.method.annotation.ResponseBodyAdvice;
 
 /**
@@ -43,7 +51,7 @@ import org.springframework.web.servlet.mvc.method.annotation.ResponseBodyAdvice;
 @Slf4j
 @ControllerAdvice
 public class WitnessProtectionAdvice extends IdentitySubstitution<ProtectedReference>
-    implements ResponseBodyAdvice<Object>, WitnessProtection {
+    implements RequestBodyAdvice, ResponseBodyAdvice<Object>, WitnessProtection {
   private final ProtectedReferenceFactory protectedReferenceFactory;
 
   private final AlternatePatientIds alternatePatientIds;
@@ -81,6 +89,39 @@ public class WitnessProtectionAdvice extends IdentitySubstitution<ProtectedRefer
     return ((ParameterizedType) agentInterface).getActualTypeArguments()[0];
   }
 
+  @Override
+  public Object afterBodyRead(
+      @org.springframework.lang.NonNull Object payload,
+      @org.springframework.lang.NonNull HttpInputMessage httpInputMessage,
+      @org.springframework.lang.NonNull MethodParameter methodParameter,
+      @org.springframework.lang.NonNull Type type,
+      @org.springframework.lang.NonNull Class<? extends HttpMessageConverter<?>> converterType) {
+    var identityOperations =
+        IdentityProcessor.builder()
+            .transformation(
+                PublicToPrivateIdTransformation.<ProtectedReference>builder()
+                    .publicIdOf(ProtectedReference::id)
+                    .updatePublicIdToPrivateId(ProtectedReference::updateId)
+                    .build())
+            .replace(
+                (resource, operations) -> {
+                  IdentityMapping identities = lookup(List.of(resource), operations.toReferences());
+                  identities.replacePublicIdsWithPrivateIds(List.of(resource), operations);
+                })
+            .build();
+    return process(payload, identityOperations);
+  }
+
+  @Override
+  public HttpInputMessage beforeBodyRead(
+      @org.springframework.lang.NonNull HttpInputMessage httpInputMessage,
+      @org.springframework.lang.NonNull MethodParameter methodParameter,
+      @org.springframework.lang.NonNull Type type,
+      @org.springframework.lang.NonNull Class<? extends HttpMessageConverter<?>> converterType) {
+    // Do Nothing
+    return httpInputMessage;
+  }
+
   @SuppressWarnings("NullableProblems")
   @Override
   public Object beforeBodyWrite(
@@ -90,7 +131,31 @@ public class WitnessProtectionAdvice extends IdentitySubstitution<ProtectedRefer
       Class<? extends HttpMessageConverter<?>> selectedConverterType,
       ServerHttpRequest request,
       ServerHttpResponse response) {
-    return protect(body);
+    var identityOperations =
+        IdentityProcessor.builder()
+            .transformation(
+                PrivateToPublicIdTransformation.<ProtectedReference>builder()
+                    .privateIdOf(ProtectedReference::id)
+                    .updatePrivateIdToPublicId(ProtectedReference::updateId)
+                    .build())
+            .replace(
+                (resource, operations) -> {
+                  IdentityMapping identities =
+                      register(List.of(resource), operations.toReferences());
+                  identities.replacePrivateIdsWithPublicIds(List.of(resource), operations);
+                })
+            .build();
+    return process(body, identityOperations);
+  }
+
+  @Override
+  public Object handleEmptyBody(
+      Object o,
+      @org.springframework.lang.NonNull HttpInputMessage httpInputMessage,
+      @org.springframework.lang.NonNull MethodParameter methodParameter,
+      @org.springframework.lang.NonNull Type type,
+      @org.springframework.lang.NonNull Class<? extends HttpMessageConverter<?>> converterType) {
+    throw BadRequestPayload.because("Request payload is empty.");
   }
 
   @Override
@@ -109,30 +174,34 @@ public class WitnessProtectionAdvice extends IdentitySubstitution<ProtectedRefer
     return resourceIdentity.identifier();
   }
 
-  <T> T protect(T body) {
+  <T> T process(T body, @NonNull IdentityProcessor identityProcessor) {
     if (body instanceof AbstractBundle<?>) {
-      protectBundle((AbstractBundle<?>) body);
+      processBundle((AbstractBundle<?>) body, identityProcessor);
     } else if (body instanceof Resource) {
-      protectResource((Resource) body);
+      processResource((Resource) body, identityProcessor);
     }
     return body;
   }
 
-  private void protectBundle(AbstractBundle<?> bundle) {
-    bundle.entry().forEach(this::protectEntry);
+  private void processBundle(
+      AbstractBundle<?> bundle, @NonNull IdentityProcessor identityProcessor) {
+    bundle.entry().forEach(e -> processEntry(e, identityProcessor));
   }
 
-  private void protectEntry(AbstractEntry<?> entry) {
+  private void processEntry(AbstractEntry<?> entry, @NonNull IdentityProcessor identityProcessor) {
     Optional<ProtectedReference> referenceToFullUrl =
         protectedReferenceFactory.forUri(
             entry.fullUrl(), entry::fullUrl, protectedReferenceFactory.replaceIdOnly());
-    protectResource(
+    processResource(
         entry.resource(),
-        referenceToFullUrl.isEmpty() ? List.of() : List.of(referenceToFullUrl.get()));
+        referenceToFullUrl.isEmpty() ? List.of() : List.of(referenceToFullUrl.get()),
+        identityProcessor);
   }
 
-  private void protectResource(
-      @NonNull Resource resource, List<ProtectedReference> additionalReferences) {
+  private void processResource(
+      @NonNull Resource resource,
+      List<ProtectedReference> additionalReferences,
+      @NonNull IdentityProcessor identityProcessor) {
     /*
      * We need to work around the compiler safeguards a little here. Since we are in control of the
      * map, we populate the key to be type of the agent. From the map is guaranteed to be type
@@ -154,15 +223,15 @@ public class WitnessProtectionAdvice extends IdentitySubstitution<ProtectedRefer
                         .map(this::restorePublicPatientIds))
             .isReplaceable(reference -> true)
             .resourceNameOf(ProtectedReference::type)
-            .privateIdOf(ProtectedReference::id)
-            .updatePrivateIdToPublicId(ProtectedReference::updateId)
+            .idTransformation(identityProcessor.transformation())
             .build();
-    IdentityMapping identities = register(List.of(resource), operations.toReferences());
-    identities.replacePrivateIdsWithPublicIds(List.of(resource), operations);
+    identityProcessor.replace().accept(resource, operations);
   }
 
-  private void protectResource(@NonNull Resource resource) {
-    protectResource(resource, List.of());
+  private void processResource(
+      @NonNull Resource resource,
+      @NonNull WitnessProtectionAdvice.IdentityProcessor identityProcessor) {
+    processResource(resource, List.of(), identityProcessor);
   }
 
   private ProtectedReference restorePublicPatientIds(ProtectedReference reference) {
@@ -197,6 +266,14 @@ public class WitnessProtectionAdvice extends IdentitySubstitution<ProtectedRefer
   }
 
   @Override
+  public boolean supports(
+      @org.springframework.lang.NonNull MethodParameter methodParameter,
+      @org.springframework.lang.NonNull Type type,
+      @org.springframework.lang.NonNull Class<? extends HttpMessageConverter<?>> converterType) {
+    return supports(methodParameter, converterType);
+  }
+
+  @Override
   public String toPrivateId(String publicId) {
     return identityService.lookup(publicId).stream()
         .map(ResourceIdentity::identifier)
@@ -220,5 +297,12 @@ public class WitnessProtectionAdvice extends IdentitySubstitution<ProtectedRefer
         .findFirst()
         .orElseThrow(
             () -> new IllegalStateException("Could not generate private id for resource."));
+  }
+
+  @Value
+  @Builder
+  static class IdentityProcessor {
+    IdTransformation<ProtectedReference> transformation;
+    BiConsumer<Resource, Operations<Resource, ProtectedReference>> replace;
   }
 }
