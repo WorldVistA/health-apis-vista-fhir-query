@@ -4,14 +4,14 @@
   <parent>
     <groupId>gov.va.api.health</groupId>
     <artifactId>service-starter</artifactId>
-    <version>8.0.26</version>
+    <version>8.0.27</version>
     <relativePath/>
   </parent>
   <artifactId>vista-fhir-query-mock-services</artifactId>
-  <version>1.0.76-SNAPSHOT</version>
+  <version>1.0.76</version>
   <packaging>jar</packaging>
   <properties>
-    <fhir-resources.version>8.0.15</fhir-resources.version>
+    <fhir-resources.version>8.0.17</fhir-resources.version>
     <mockserver.version>5.11.2</mockserver.version>
     <charon.version>4.0.31</charon.version>
   </properties>
