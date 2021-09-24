@@ -18,6 +18,8 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.http.HttpHeaders;
+import org.springframework.mock.web.MockHttpServletResponse;
 
 @ExtendWith(MockitoExtension.class)
 class R4SiteOrganizationControllerTest {
@@ -27,6 +29,7 @@ class R4SiteOrganizationControllerTest {
 
   private R4SiteOrganizationController _controller() {
     return R4SiteOrganizationController.builder()
+        .linkProperties(OrganizationSamples.linkProperties())
         .charon(charon)
         .witnessProtection(witnessProtection)
         .build();
@@ -38,6 +41,17 @@ class R4SiteOrganizationControllerTest {
         .timezone("UTC")
         .response(json(value))
         .build();
+  }
+
+  @Test
+  void create() {
+    var response = new MockHttpServletResponse();
+    _controller()
+        .organizationCreate(
+            response, "123", OrganizationSamples.R4.create().organization("123", "o1"));
+    assertThat(response.getStatus()).isEqualTo(201);
+    assertThat(response.getHeader(HttpHeaders.LOCATION))
+        .isEqualTo("http://fake.com/site/123/r4/Organization/{new-resource-id}");
   }
 
   @Test

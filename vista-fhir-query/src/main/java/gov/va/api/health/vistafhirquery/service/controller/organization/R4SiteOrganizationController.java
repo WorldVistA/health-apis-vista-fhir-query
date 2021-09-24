@@ -6,9 +6,12 @@ import static gov.va.api.health.vistafhirquery.service.controller.R4Controllers.
 import static gov.va.api.health.vistafhirquery.service.controller.R4Controllers.verifyAndGetResult;
 import static java.util.stream.Collectors.toList;
 
+import com.google.common.net.HttpHeaders;
+import gov.va.api.health.autoconfig.logging.Redact;
 import gov.va.api.health.r4.api.resources.Organization;
 import gov.va.api.health.vistafhirquery.service.api.R4OrganizationApi;
 import gov.va.api.health.vistafhirquery.service.charonclient.CharonClient;
+import gov.va.api.health.vistafhirquery.service.config.LinkProperties;
 import gov.va.api.health.vistafhirquery.service.controller.R4Transformation;
 import gov.va.api.health.vistafhirquery.service.controller.RecordCoordinates;
 import gov.va.api.health.vistafhirquery.service.controller.ResourceExceptions.NotFound;
@@ -18,6 +21,7 @@ import gov.va.api.lighthouse.charon.models.lhslighthouserpcgateway.LhsLighthouse
 import gov.va.api.lighthouse.charon.models.lhslighthouserpcgateway.LhsLighthouseRpcGatewayGetsManifest.Request.GetsManifestFlags;
 import gov.va.api.lighthouse.charon.models.lhslighthouserpcgateway.LhsLighthouseRpcGatewayResponse;
 import java.util.List;
+import javax.servlet.http.HttpServletResponse;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.NonNull;
@@ -27,6 +31,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -37,9 +43,12 @@ import org.springframework.web.bind.annotation.RestController;
 @AllArgsConstructor(onConstructor_ = {@Autowired, @NonNull})
 @Slf4j
 public class R4SiteOrganizationController implements R4OrganizationApi {
+
   private final WitnessProtection witnessProtection;
 
   private final CharonClient charon;
+
+  private final LinkProperties linkProperties;
 
   /** Create A request based off of record coordinates. */
   public static LhsLighthouseRpcGatewayGetsManifest.Request manifestRequest(
@@ -60,6 +69,19 @@ public class R4SiteOrganizationController implements R4OrganizationApi {
     if (!InsuranceCompany.FILE_NUMBER.equals(recordCoordinates.file())) {
       throw new NotFound(id);
     }
+  }
+
+  @Override
+  @PostMapping(
+      value = "/site/{site}/r4/Organization",
+      consumes = {"application/json", "application/fhir+json"})
+  public void organizationCreate(
+      @Redact HttpServletResponse response,
+      @PathVariable(value = "site") String site,
+      @Redact @RequestBody Organization body) {
+    var newResourceUrl = linkProperties.r4().readUrl(site, "Organization", "{new-resource-id}");
+    response.setStatus(201);
+    response.addHeader(HttpHeaders.LOCATION, newResourceUrl);
   }
 
   @Override

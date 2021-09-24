@@ -34,6 +34,7 @@
     <Or>
       <Class name="gov.va.api.health.vistafhirquery.service.controller.coverage.R4SiteCoverageController"/>
       <Class name="gov.va.api.health.vistafhirquery.service.controller.insuranceplan.R4SiteInsurancePlanController"/>
+      <Class name="gov.va.api.health.vistafhirquery.service.controller.organization.R4SiteOrganizationController"/>
     </Or>
     <Bug pattern="UNVALIDATED_REDIRECT"/>
   </Match>

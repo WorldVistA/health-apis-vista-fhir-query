@@ -13,6 +13,7 @@ import gov.va.api.health.r4.api.datatypes.Quantity;
 import gov.va.api.health.r4.api.elements.Extension;
 import gov.va.api.health.r4.api.elements.Reference;
 import gov.va.api.health.r4.api.resources.Organization;
+import gov.va.api.health.vistafhirquery.service.config.LinkProperties;
 import gov.va.api.health.vistafhirquery.service.controller.RecordCoordinates;
 import gov.va.api.lighthouse.charon.models.lhslighthouserpcgateway.InsuranceCompany;
 import gov.va.api.lighthouse.charon.models.lhslighthouserpcgateway.LhsLighthouseRpcGatewayResponse;
@@ -29,6 +30,15 @@ public class OrganizationSamples {
   @SneakyThrows
   public static String json(Object o) {
     return JacksonConfig.createMapper().writeValueAsString(o);
+  }
+
+  public static LinkProperties linkProperties() {
+    return LinkProperties.builder()
+        .publicUrl("http://fake.com")
+        .publicR4BasePath("site/{site}/r4")
+        .defaultPageSize(10)
+        .maxPageSize(100)
+        .build();
   }
 
   @NoArgsConstructor(staticName = "create")
