@@ -6,9 +6,11 @@ import static gov.va.api.health.vistafhirquery.service.controller.R4Controllers.
 import static gov.va.api.health.vistafhirquery.service.controller.R4Controllers.verifyAndGetResult;
 import static java.util.stream.Collectors.toList;
 
+import gov.va.api.health.autoconfig.logging.Redact;
 import gov.va.api.health.r4.api.resources.InsurancePlan;
 import gov.va.api.health.vistafhirquery.service.api.R4InsurancePlanApi;
 import gov.va.api.health.vistafhirquery.service.charonclient.CharonClient;
+import gov.va.api.health.vistafhirquery.service.config.LinkProperties;
 import gov.va.api.health.vistafhirquery.service.controller.R4Transformation;
 import gov.va.api.health.vistafhirquery.service.controller.RecordCoordinates;
 import gov.va.api.health.vistafhirquery.service.controller.ResourceExceptions.NotFound;
@@ -18,15 +20,19 @@ import gov.va.api.lighthouse.charon.models.lhslighthouserpcgateway.LhsLighthouse
 import gov.va.api.lighthouse.charon.models.lhslighthouserpcgateway.LhsLighthouseRpcGatewayGetsManifest.Request.GetsManifestFlags;
 import gov.va.api.lighthouse.charon.models.lhslighthouserpcgateway.LhsLighthouseRpcGatewayResponse;
 import java.util.List;
+import javax.servlet.http.HttpServletResponse;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.NonNull;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpHeaders;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -37,6 +43,9 @@ import org.springframework.web.bind.annotation.RestController;
 @AllArgsConstructor(onConstructor_ = {@Autowired, @NonNull})
 @Slf4j
 public class R4SiteInsurancePlanController implements R4InsurancePlanApi {
+
+  private final LinkProperties linkProperties;
+
   private final WitnessProtection witnessProtection;
 
   private final CharonClient charon;
@@ -60,6 +69,19 @@ public class R4SiteInsurancePlanController implements R4InsurancePlanApi {
     if (!GroupInsurancePlan.FILE_NUMBER.equals(recordCoordinates.file())) {
       throw new NotFound(id);
     }
+  }
+
+  @Override
+  @PostMapping(
+      value = "/site/{site}/r4/InsurancePlan",
+      consumes = {"application/json", "application/fhir+json"})
+  public void insurancePlanCreate(
+      @Redact HttpServletResponse response,
+      @PathVariable(value = "site") String site,
+      @Redact @RequestBody InsurancePlan body) {
+    var newResourceUrl = linkProperties.r4().readUrl(site, "InsurancePlan", "{new-resource-id}");
+    response.setStatus(201);
+    response.addHeader(HttpHeaders.LOCATION, newResourceUrl);
   }
 
   @Override

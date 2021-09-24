@@ -18,6 +18,8 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.http.HttpHeaders;
+import org.springframework.mock.web.MockHttpServletResponse;
 
 @ExtendWith(MockitoExtension.class)
 class R4SiteInsurancePlanControllerTest {
@@ -27,6 +29,7 @@ class R4SiteInsurancePlanControllerTest {
 
   private R4SiteInsurancePlanController _controller() {
     return R4SiteInsurancePlanController.builder()
+        .linkProperties(InsurancePlanSamples.linkProperties())
         .charon(charon)
         .witnessProtection(witnessProtection)
         .build();
@@ -38,6 +41,17 @@ class R4SiteInsurancePlanControllerTest {
         .timezone("UTC")
         .response(json(value))
         .build();
+  }
+
+  @Test
+  void create() {
+    var response = new MockHttpServletResponse();
+    _controller()
+        .insurancePlanCreate(
+            response, "123", InsurancePlanSamples.R4.create().insurancePlan("123", "ip1"));
+    assertThat(response.getStatus()).isEqualTo(201);
+    assertThat(response.getHeader(HttpHeaders.LOCATION))
+        .isEqualTo("http://fugazi.com/site/123/r4/InsurancePlan/{new-resource-id}");
   }
 
   @Test

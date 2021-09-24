@@ -31,7 +31,10 @@
   resource.
   -->
   <Match>
-    <Class name="gov.va.api.health.vistafhirquery.service.controller.coverage.R4SiteCoverageController"/>
+    <Or>
+      <Class name="gov.va.api.health.vistafhirquery.service.controller.coverage.R4SiteCoverageController"/>
+      <Class name="gov.va.api.health.vistafhirquery.service.controller.insuranceplan.R4SiteInsurancePlanController"/>
+    </Or>
     <Bug pattern="UNVALIDATED_REDIRECT"/>
   </Match>
   <!--

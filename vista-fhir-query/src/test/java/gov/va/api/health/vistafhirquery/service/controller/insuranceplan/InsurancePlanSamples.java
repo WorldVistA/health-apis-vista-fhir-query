@@ -9,6 +9,7 @@ import gov.va.api.health.r4.api.elements.Extension;
 import gov.va.api.health.r4.api.elements.Meta;
 import gov.va.api.health.r4.api.elements.Reference;
 import gov.va.api.health.r4.api.resources.InsurancePlan;
+import gov.va.api.health.vistafhirquery.service.config.LinkProperties;
 import gov.va.api.health.vistafhirquery.service.controller.RecordCoordinates;
 import gov.va.api.lighthouse.charon.models.lhslighthouserpcgateway.GroupInsurancePlan;
 import gov.va.api.lighthouse.charon.models.lhslighthouserpcgateway.LhsLighthouseRpcGatewayResponse;
@@ -25,6 +26,15 @@ public class InsurancePlanSamples {
   @SneakyThrows
   public static String json(Object o) {
     return JacksonConfig.createMapper().writeValueAsString(o);
+  }
+
+  public static LinkProperties linkProperties() {
+    return LinkProperties.builder()
+        .publicUrl("http://fugazi.com")
+        .publicR4BasePath("site/{site}/r4")
+        .defaultPageSize(10)
+        .maxPageSize(100)
+        .build();
   }
 
   @NoArgsConstructor(staticName = "create")
