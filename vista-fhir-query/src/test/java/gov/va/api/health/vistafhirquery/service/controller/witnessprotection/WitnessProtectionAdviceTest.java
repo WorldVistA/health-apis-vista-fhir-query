@@ -16,15 +16,18 @@ import gov.va.api.health.ids.api.ResourceIdentity;
 import gov.va.api.health.r4.api.bundle.AbstractBundle;
 import gov.va.api.health.r4.api.bundle.AbstractEntry;
 import gov.va.api.health.r4.api.elements.Meta;
+import gov.va.api.health.r4.api.elements.Reference;
 import gov.va.api.health.r4.api.resources.Resource;
 import gov.va.api.health.vistafhirquery.service.config.LinkProperties;
 import gov.va.api.health.vistafhirquery.service.controller.ResourceExceptions;
+import gov.va.api.health.vistafhirquery.service.controller.witnessprotection.AlternatePatientIds.MappedAlternatePatientIds;
 import gov.va.api.health.vistafhirquery.service.controller.witnessprotection.WitnessProtectionAdvice.IdentityProcessor;
 import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.function.Consumer;
 import java.util.stream.Stream;
 import lombok.AllArgsConstructor;
@@ -45,6 +48,25 @@ import org.springframework.http.server.ServerHttpResponse;
 class WitnessProtectionAdviceTest {
   @Mock IdentityService identityService;
 
+  private Object afterBodyRead(Object o) {
+    return wp().afterBodyRead(
+            o,
+            mock(HttpInputMessage.class),
+            mock(MethodParameter.class),
+            mock(Type.class),
+            StringHttpMessageConverter.class);
+  }
+
+  private Object beforeBodyWrite(Object o) {
+    return wp().beforeBodyWrite(
+            o,
+            mock(MethodParameter.class),
+            mock(MediaType.class),
+            StringHttpMessageConverter.class,
+            mock(ServerHttpRequest.class),
+            mock(ServerHttpResponse.class));
+  }
+
   @Test
   void bundleOfMixedResourcesIsProtected() {
     var f11 = FugaziOne.builder().id("private-f11").build();
@@ -63,13 +85,7 @@ class WitnessProtectionAdviceTest {
                 registration("FugaziOne", "f12"),
                 registration("FugaziTwo", "f21"),
                 registration("FugaziTwo", "f22")));
-    wp().beforeBodyWrite(
-            bundle,
-            mock(MethodParameter.class),
-            mock(MediaType.class),
-            StringHttpMessageConverter.class,
-            mock(ServerHttpRequest.class),
-            mock(ServerHttpResponse.class));
+    beforeBodyWrite(bundle);
     assertThat(f11.id()).isEqualTo("public-f11");
     assertThat(ef11.fullUrl()).isEqualTo("http://fugazi.com/fugazi/FugaziOne/public-f11");
     assertThat(f12.id()).isEqualTo("public-f12");
@@ -98,12 +114,7 @@ class WitnessProtectionAdviceTest {
       expected.put(e2, "private-f2" + i);
     }
     FugaziBundle bundle = new FugaziBundle(entries);
-    wp().afterBodyRead(
-            bundle,
-            mock(HttpInputMessage.class),
-            mock(MethodParameter.class),
-            mock(Type.class),
-            StringHttpMessageConverter.class);
+    afterBodyRead(bundle);
     expected.forEach(
         (entry, expectedId) -> {
           assertThat(entry.resource().id()).isEqualTo(expectedId);
@@ -157,46 +168,34 @@ class WitnessProtectionAdviceTest {
   @Test
   void singleResourceIsProtected() {
     when(identityService.register(any())).thenReturn(List.of(registration("FugaziOne", "f1")));
-    var f1 = FugaziOne.builder().id("private-f1").build();
-    wp().beforeBodyWrite(
-            f1,
-            mock(MethodParameter.class),
-            mock(MediaType.class),
-            StringHttpMessageConverter.class,
-            mock(ServerHttpRequest.class),
-            mock(ServerHttpResponse.class));
+    var f1 =
+        FugaziOne.builder()
+            .id("private-f1")
+            .patient(Reference.builder().reference("Patient/private-p1").build())
+            .build();
+    beforeBodyWrite(f1);
     assertThat(f1.id()).isEqualTo("public-f1");
+    assertThat(f1.patient().reference()).endsWith("Patient/public-p1");
     when(identityService.register(any())).thenReturn(List.of(registration("FugaziTwo", "f2")));
     var f2 = FugaziTwo.builder().id("private-f2").build();
-    wp().beforeBodyWrite(
-            f2,
-            mock(MethodParameter.class),
-            mock(MediaType.class),
-            StringHttpMessageConverter.class,
-            mock(ServerHttpRequest.class),
-            mock(ServerHttpResponse.class));
+    beforeBodyWrite(f2);
     assertThat(f2.id()).isEqualTo("public-f2");
   }
 
   @Test
   void singleResourceIsRevealed() {
-    when(identityService.lookup(eq("public-f1"))).thenReturn(List.of(identity("FugaziOne", "f1")));
-    var f1 = FugaziOne.builder().id("public-f1").build();
-    wp().afterBodyRead(
-            f1,
-            mock(HttpInputMessage.class),
-            mock(MethodParameter.class),
-            mock(Type.class),
-            StringHttpMessageConverter.class);
+    when(identityService.lookup(any())).thenReturn(List.of(identity("FugaziOne", "f1")));
+    var f1 =
+        FugaziOne.builder()
+            .id("public-f1")
+            .patient(Reference.builder().reference("Patient/public-p1").build())
+            .build();
+    afterBodyRead(f1);
     assertThat(f1.id()).isEqualTo("private-f1");
+    assertThat(f1.patient().reference()).endsWith("Patient/private-p1");
     when(identityService.lookup(eq("public-f2"))).thenReturn(List.of(identity("FugaziTwo", "f2")));
     var f2 = FugaziTwo.builder().id("public-f2").build();
-    wp().afterBodyRead(
-            f2,
-            mock(HttpInputMessage.class),
-            mock(MethodParameter.class),
-            mock(Type.class),
-            StringHttpMessageConverter.class);
+    afterBodyRead(f2);
     assertThat(f2.id()).isEqualTo("private-f2");
   }
 
@@ -294,7 +293,11 @@ class WitnessProtectionAdviceTest {
     ProtectedReferenceFactory prf = new ProtectedReferenceFactory(linkProperties());
     return WitnessProtectionAdvice.builder()
         .protectedReferenceFactory(prf)
-        .alternatePatientIds(new AlternatePatientIds.DisabledAlternatePatientIds())
+        .alternatePatientIds(
+            new MappedAlternatePatientIds.MappedAlternatePatientIdsBuilder()
+                .patientIdParameters(List.of("patient"))
+                .publicToPrivateIds(Map.of("public-p1", "private-p1"))
+                .build())
         .identityService(identityService)
         .availableAgents(List.of(FugaziOneAgent.of(prf), FugaziTwoAgent.of(prf)))
         .build();
@@ -322,6 +325,8 @@ class WitnessProtectionAdviceTest {
 
     String language;
 
+    Reference patient;
+
     Meta meta;
   }
 
@@ -331,7 +336,10 @@ class WitnessProtectionAdviceTest {
 
     @Override
     public Stream<ProtectedReference> referencesOf(FugaziOne resource) {
-      return Stream.of(prf.forResource(resource, resource::id));
+      return Stream.of(
+              prf.forResource(resource, resource::id),
+              prf.forReferenceWithoutSite(resource.patient()).orElse(null))
+          .filter(Objects::nonNull);
     }
   }
 

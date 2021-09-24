@@ -6,9 +6,9 @@ import static java.util.stream.Collectors.joining;
 import static java.util.stream.Collectors.toMap;
 import static java.util.stream.Stream.concat;
 
-import gov.va.api.health.ids.api.IdTransformation;
 import gov.va.api.health.ids.api.IdentityService;
 import gov.va.api.health.ids.api.IdentitySubstitution;
+import gov.va.api.health.ids.api.IsTransformable;
 import gov.va.api.health.ids.api.PrivateToPublicIdTransformation;
 import gov.va.api.health.ids.api.PublicToPrivateIdTransformation;
 import gov.va.api.health.ids.api.Registration;
@@ -26,6 +26,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.function.BiConsumer;
+import java.util.function.Function;
 import java.util.stream.Stream;
 import lombok.Builder;
 import lombok.NonNull;
@@ -106,11 +107,23 @@ public class WitnessProtectionAdvice extends IdentitySubstitution<ProtectedRefer
                     .build())
             .replace(
                 (resource, operations) -> {
-                  IdentityMapping identities = lookup(List.of(resource), operations.toReferences());
+                  var referencesOf =
+                      operations.toReferences().andThen(this::alternatePatientPrivateIds);
+                  IdentityMapping identities = lookup(List.of(resource), referencesOf);
                   identities.replacePublicIdsWithPrivateIds(List.of(resource), operations);
                 })
             .build();
     return process(payload, identityOperations);
+  }
+
+  private Stream<ProtectedReference> alternatePatientPrivateIds(
+      Stream<ProtectedReference> references) {
+    return references.map(r -> processAlternatePatientIds(r, alternatePatientIds::toPrivateId));
+  }
+
+  private Stream<ProtectedReference> alternatePatientPublicIds(
+      Stream<ProtectedReference> references) {
+    return references.map(r -> processAlternatePatientIds(r, alternatePatientIds::toPublicId));
   }
 
   @Override
@@ -141,8 +154,9 @@ public class WitnessProtectionAdvice extends IdentitySubstitution<ProtectedRefer
                     .build())
             .replace(
                 (resource, operations) -> {
-                  IdentityMapping identities =
-                      register(List.of(resource), operations.toReferences());
+                  var referenceOf =
+                      operations.toReferences().andThen(this::alternatePatientPublicIds);
+                  IdentityMapping identities = register(List.of(resource), referenceOf);
                   identities.replacePrivateIdsWithPublicIds(List.of(resource), operations);
                 })
             .build();
@@ -184,6 +198,22 @@ public class WitnessProtectionAdvice extends IdentitySubstitution<ProtectedRefer
     return body;
   }
 
+  private ProtectedReference processAlternatePatientIds(
+      ProtectedReference reference, Function<String, String> alternateIdSubstitution) {
+    if (!"Patient".equals(reference.type())) {
+      return reference;
+    }
+    var id = alternateIdSubstitution.apply(reference.id());
+    ProtectedReference copyOfReferenceWithAlternateId =
+        ProtectedReference.builder()
+            .type(reference.type())
+            .onUpdate(reference.onUpdate())
+            .id(id)
+            .build();
+    copyOfReferenceWithAlternateId.onUpdate().accept(id);
+    return copyOfReferenceWithAlternateId;
+  }
+
   private void processBundle(
       AbstractBundle<?> bundle, @NonNull IdentityProcessor identityProcessor) {
     bundle.entry().forEach(e -> processEntry(e, identityProcessor));
@@ -218,13 +248,10 @@ public class WitnessProtectionAdvice extends IdentitySubstitution<ProtectedRefer
     }
     Operations<Resource, ProtectedReference> operations =
         Operations.<Resource, ProtectedReference>builder()
-            .toReferences(
-                rsrc ->
-                    concat(additionalReferences.stream(), agent.referencesOf(rsrc))
-                        .map(this::restorePublicPatientIds))
+            .toReferences(rsrc -> concat(additionalReferences.stream(), agent.referencesOf(rsrc)))
             .isReplaceable(reference -> true)
             .resourceNameOf(ProtectedReference::type)
-            .idTransformation(identityProcessor.transformation())
+            .transform(identityProcessor.transformation())
             .build();
     identityProcessor.replace().accept(resource, operations);
   }
@@ -233,21 +260,6 @@ public class WitnessProtectionAdvice extends IdentitySubstitution<ProtectedRefer
       @NonNull Resource resource,
       @NonNull WitnessProtectionAdvice.IdentityProcessor identityProcessor) {
     processResource(resource, List.of(), identityProcessor);
-  }
-
-  private ProtectedReference restorePublicPatientIds(ProtectedReference reference) {
-    if (!"Patient".equals(reference.type())) {
-      return reference;
-    }
-    String publicId = alternatePatientIds.toPublicId(reference.id());
-    ProtectedReference referenceWithPublicId =
-        ProtectedReference.builder()
-            .type(reference.type())
-            .onUpdate(reference.onUpdate())
-            .id(publicId)
-            .build();
-    referenceWithPublicId.onUpdate().accept(publicId);
-    return referenceWithPublicId;
   }
 
   private List<ResourceIdentity> safeLookup(String publicId) {
@@ -303,7 +315,8 @@ public class WitnessProtectionAdvice extends IdentitySubstitution<ProtectedRefer
   @Value
   @Builder
   static class IdentityProcessor {
-    IdTransformation<ProtectedReference> transformation;
+    IsTransformable<ProtectedReference> transformation;
+
     BiConsumer<Resource, Operations<Resource, ProtectedReference>> replace;
   }
 }
