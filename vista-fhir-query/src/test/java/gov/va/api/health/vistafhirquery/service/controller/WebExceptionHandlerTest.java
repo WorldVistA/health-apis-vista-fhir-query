@@ -11,8 +11,12 @@ import com.fasterxml.jackson.core.io.JsonEOFException;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.exc.MismatchedInputException;
 import com.google.common.collect.ImmutableMap;
+import gov.va.api.health.r4.api.datatypes.CodeableConcept;
+import gov.va.api.health.r4.api.datatypes.Coding;
 import gov.va.api.health.r4.api.elements.Narrative;
 import gov.va.api.health.r4.api.resources.OperationOutcome;
+import gov.va.api.health.vistafhirquery.service.controller.ResourceExceptions.CannotUpdateResourceWithMismatchedIds;
+import gov.va.api.health.vistafhirquery.service.controller.ResourceExceptions.CannotUpdateUnknownResource;
 import gov.va.api.health.vistafhirquery.service.mpifhirqueryclient.MpiFhirQueryClientExceptions;
 import java.util.List;
 import java.util.Set;
@@ -25,6 +29,7 @@ import lombok.Builder;
 import lombok.Value;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.HttpStatus;
+import org.springframework.mock.web.MockHttpServletRequest;
 import org.springframework.web.HttpRequestMethodNotSupportedException;
 import org.springframework.web.bind.UnsatisfiedServletRequestParameterException;
 import org.springframework.web.client.HttpClientErrorException;
@@ -32,76 +37,34 @@ import org.springframework.web.client.HttpServerErrorException;
 import org.springframework.web.client.ResourceAccessException;
 
 public class WebExceptionHandlerTest {
-  @Test
-  void badRequest() {
-    OperationOutcome outcome =
-        new WebExceptionHandler("")
-            .handleBadRequest(
-                new UnsatisfiedServletRequestParameterException(
-                    new String[] {"hello"}, ImmutableMap.of("foo", new String[] {"bar"})),
-                mock(HttpServletRequest.class));
-    assertThat(outcome.id(null).extension(null)).isEqualTo(operationOutcome("structure"));
+
+  private OperationOutcome _addDetails(OperationOutcome oo, String code, String display) {
+    oo.issue()
+        .get(0)
+        .details(
+            CodeableConcept.builder()
+                .coding(
+                    List.of(
+                        Coding.builder()
+                            .system("http://terminology.hl7.org/CodeSystem/operation-outcome")
+                            .code(code)
+                            .display(display)
+                            .build()))
+                .build());
+    return oo;
   }
 
-  @Test
-  void forbidden() {
-    HttpClientErrorException forbidden =
-        HttpClientErrorException.Forbidden.create(HttpStatus.FORBIDDEN, null, null, null, null);
-    OperationOutcome outcome =
-        new WebExceptionHandler("")
-            .handleInternalServerError(forbidden, mock(HttpServletRequest.class));
-    assertThat(outcome.id(null).extension(null))
-        .isEqualTo(operationOutcome("internal-server-error"));
+  private WebExceptionHandler _handler() {
+    return new WebExceptionHandler("");
   }
 
-  @Test
-  void internalServerError() {
-    HttpServerErrorException internalServerError =
-        HttpServerErrorException.InternalServerError.create(
-            HttpStatus.INTERNAL_SERVER_ERROR, null, null, null, null);
-    OperationOutcome outcome =
-        new WebExceptionHandler("")
-            .handleInternalServerError(internalServerError, mock(HttpServletRequest.class));
-    assertThat(outcome.id(null).extension(null))
-        .isEqualTo(operationOutcome("internal-server-error"));
-  }
-
-  @Test
-  void mfqRequestFailed() {
-    MpiFhirQueryClientExceptions.MpiFhirQueryRequestFailed mfqRequestFailed =
-        MpiFhirQueryClientExceptions.MpiFhirQueryRequestFailed.because("rip");
-    OperationOutcome outcome =
-        new WebExceptionHandler("")
-            .mpiFhirQueryRequestFailed(mfqRequestFailed, mock(HttpServletRequest.class));
-    assertThat(outcome.id(null).extension(null))
-        .isEqualTo(operationOutcome("internal-server-error"));
-  }
-
-  @Test
-  void notAllowed() {
-    OperationOutcome outcome =
-        new WebExceptionHandler("")
-            .handleNotAllowed(
-                new HttpRequestMethodNotSupportedException("method"),
-                mock(HttpServletRequest.class));
-    assertThat(outcome.id(null).extension(null)).isEqualTo(operationOutcome("not-allowed"));
-  }
-
-  @Test
-  void notFound() {
-    OperationOutcome outcome =
-        new WebExceptionHandler("")
-            .handleNotFound(new ResourceExceptions.NotFound("x"), mock(HttpServletRequest.class));
-    assertThat(outcome.id(null).extension(null)).isEqualTo(operationOutcome("not-found"));
-  }
-
-  private OperationOutcome operationOutcome(String code) {
+  private OperationOutcome _operationOutcome(String code) {
     return OperationOutcome.builder()
         .resourceType("OperationOutcome")
         .text(
             Narrative.builder()
                 .status(Narrative.NarrativeStatus.additional)
-                .div("<div>Failure: null</div>")
+                .div("<div>Failure: /fugazi</div>")
                 .build())
         .issue(
             List.of(
@@ -112,19 +75,118 @@ public class WebExceptionHandlerTest {
         .build();
   }
 
-  @Test
-  void requestTimeout() {
-    ResourceAccessException requestTimeout = new ResourceAccessException(null);
-    OperationOutcome outcome =
-        new WebExceptionHandler("")
-            .handleRequestTimeout(requestTimeout, mock(HttpServletRequest.class));
-    assertThat(outcome.id(null).extension(null)).isEqualTo(operationOutcome("request-timeout"));
+  private OperationOutcome _removeIdAndExtension(OperationOutcome outcome) {
+    return outcome.id(null).extension(null);
+  }
+
+  private HttpServletRequest _request() {
+    var request = new MockHttpServletRequest();
+    request.setRequestURI("/fugazi");
+    return request;
   }
 
   @Test
-  void sanitizedMessage_Exception() {
-    assertThat(WebExceptionHandler.sanitizedMessage(new RuntimeException("oh noez")))
-        .isEqualTo("oh noez");
+  void badRequest() {
+    var oo =
+        _handler()
+            .handleBadRequest(
+                new UnsatisfiedServletRequestParameterException(
+                    new String[] {"hello"}, ImmutableMap.of("foo", new String[] {"bar"})),
+                _request());
+    assertThat(_removeIdAndExtension(oo))
+        .usingRecursiveComparison()
+        .isEqualTo(_operationOutcome("structure"));
+  }
+
+  @Test
+  void cannotUpdateResourceWithMismatchedIds() {
+    // expect 400
+    // code: processing
+    // coding: MSG_RESOURCE_ID_MISSING (if resource.id == null)
+    // coding: MSG_RESOURCE_ID_MISMATCH (if url != resource.id)
+
+    var ooNotSameId =
+        _handler()
+            .handleCannotUpdateResourceWithMismatchedIds(
+                CannotUpdateResourceWithMismatchedIds.because("123", "456"), _request());
+    assertThat(_removeIdAndExtension(ooNotSameId))
+        .usingRecursiveComparison()
+        .isEqualTo(
+            _addDetails(
+                _operationOutcome("processing"),
+                "MSG_RESOURCE_ID_MISMATCH",
+                "Resource Id Mismatch"));
+
+    var ooNotPresentInResource =
+        _handler()
+            .handleCannotUpdateResourceWithMismatchedIds(
+                CannotUpdateResourceWithMismatchedIds.because("123", null), _request());
+    assertThat(_removeIdAndExtension(ooNotPresentInResource))
+        .usingRecursiveComparison()
+        .isEqualTo(
+            _addDetails(
+                _operationOutcome("processing"), "MSG_RESOURCE_ID_MISSING", "Resource Id Missing"));
+  }
+
+  @Test
+  void cannotUpdateUnknownResource() {
+    // expect 405
+    // code: not-found
+    // coding: MSG_NO_EXIST
+    var oo =
+        _handler()
+            .handleCannotUpdateUnknownResource(
+                CannotUpdateUnknownResource.because("123"), _request());
+    var expected =
+        _addDetails(
+            _operationOutcome("not-found"), "MSG_NO_EXIST", "Resource Id \"123\" does not exist");
+    assertThat(_removeIdAndExtension(oo)).isEqualTo(expected);
+  }
+
+  @Test
+  void forbidden() {
+    HttpClientErrorException forbidden =
+        HttpClientErrorException.Forbidden.create(HttpStatus.FORBIDDEN, null, null, null, null);
+    var oo = _handler().handleInternalServerError(forbidden, _request());
+    assertThat(_removeIdAndExtension(oo)).isEqualTo(_operationOutcome("internal-server-error"));
+  }
+
+  @Test
+  void internalServerError() {
+    HttpServerErrorException internalServerError =
+        HttpServerErrorException.InternalServerError.create(
+            HttpStatus.INTERNAL_SERVER_ERROR, null, null, null, null);
+    var oo = _handler().handleInternalServerError(internalServerError, _request());
+    assertThat(_removeIdAndExtension(oo)).isEqualTo(_operationOutcome("internal-server-error"));
+  }
+
+  @Test
+  void mfqRequestFailed() {
+    MpiFhirQueryClientExceptions.MpiFhirQueryRequestFailed mfqRequestFailed =
+        MpiFhirQueryClientExceptions.MpiFhirQueryRequestFailed.because("rip");
+    var oo = _handler().mpiFhirQueryRequestFailed(mfqRequestFailed, _request());
+    assertThat(_removeIdAndExtension(oo)).isEqualTo(_operationOutcome("internal-server-error"));
+  }
+
+  @Test
+  void notAllowed() {
+    var oo =
+        _handler()
+            .handleNotAllowed(new HttpRequestMethodNotSupportedException("method"), _request());
+    assertThat(_removeIdAndExtension(oo)).isEqualTo(_operationOutcome("not-allowed"));
+  }
+
+  @Test
+  void notFound() {
+    var oo = _handler().handleNotFound(new ResourceExceptions.NotFound("x"), _request());
+    assertThat(_removeIdAndExtension(oo)).isEqualTo(_operationOutcome("not-found"));
+  }
+
+  @Test
+  void requestTimeout() {
+    ResourceAccessException requestTimeout = new ResourceAccessException(null);
+    var oo = _handler().handleRequestTimeout(requestTimeout, _request());
+    assertThat(_removeIdAndExtension(oo)).isEqualTo(_operationOutcome("request-timeout"));
   }
 
   @Test
@@ -163,12 +225,9 @@ public class WebExceptionHandlerTest {
 
   @Test
   void snafu_json() {
-    OperationOutcome outcome =
-        new WebExceptionHandler("")
-            .handleSnafu(
-                new JsonParseException(mock(JsonParser.class), "x"),
-                mock(HttpServletRequest.class));
-    assertThat(outcome.id(null).extension(null)).isEqualTo(operationOutcome("database"));
+    var oo =
+        _handler().handleSnafu(new JsonParseException(mock(JsonParser.class), "x"), _request());
+    assertThat(_removeIdAndExtension(oo)).isEqualTo(_operationOutcome("database"));
   }
 
   @Test
@@ -176,28 +235,25 @@ public class WebExceptionHandlerTest {
     HttpClientErrorException unauthorized =
         HttpClientErrorException.Unauthorized.create(
             HttpStatus.UNAUTHORIZED, null, null, null, null);
-    OperationOutcome outcome =
-        new WebExceptionHandler("")
-            .handleUnauthorized(unauthorized, mock(HttpServletRequest.class));
-    assertThat(outcome.id(null).extension(null)).isEqualTo(operationOutcome("unauthorized"));
+    var oo = _handler().handleUnauthorized(unauthorized, _request());
+    assertThat(_removeIdAndExtension(oo)).isEqualTo(_operationOutcome("unauthorized"));
   }
 
   @Test
   void validationException() {
     Set<ConstraintViolation<Foo>> violations =
         Validation.buildDefaultValidatorFactory().getValidator().validate(Foo.builder().build());
-    OperationOutcome outcome =
-        new WebExceptionHandler("")
-            .handleValidationException(
-                new ConstraintViolationException(violations), mock(HttpServletRequest.class));
-    assertThat(outcome.id(null).extension(null))
+    var oo =
+        _handler()
+            .handleValidationException(new ConstraintViolationException(violations), _request());
+    assertThat(_removeIdAndExtension(oo))
         .isEqualTo(
             OperationOutcome.builder()
                 .resourceType("OperationOutcome")
                 .text(
                     Narrative.builder()
                         .status(Narrative.NarrativeStatus.additional)
-                        .div("<div>Failure: null</div>")
+                        .div("<div>Failure: /fugazi</div>")
                         .build())
                 .issue(
                     List.of(

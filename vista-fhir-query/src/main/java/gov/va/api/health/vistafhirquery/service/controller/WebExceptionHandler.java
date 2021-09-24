@@ -1,9 +1,11 @@
 package gov.va.api.health.vistafhirquery.service.controller;
 
 import static com.google.common.base.Preconditions.checkState;
+import static java.lang.String.format;
 import static java.util.Collections.emptyList;
 import static java.util.stream.Collectors.joining;
 import static java.util.stream.Collectors.toList;
+import static org.apache.commons.lang3.StringUtils.isBlank;
 import static org.apache.commons.lang3.StringUtils.isNotBlank;
 
 import com.fasterxml.jackson.core.JsonParseException;
@@ -13,9 +15,13 @@ import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.exc.MismatchedInputException;
 import gov.va.api.health.autoconfig.configuration.JacksonConfig;
 import gov.va.api.health.autoconfig.encryption.BasicEncryption;
+import gov.va.api.health.r4.api.datatypes.CodeableConcept;
+import gov.va.api.health.r4.api.datatypes.Coding;
 import gov.va.api.health.r4.api.elements.Extension;
 import gov.va.api.health.r4.api.elements.Narrative;
 import gov.va.api.health.r4.api.resources.OperationOutcome;
+import gov.va.api.health.vistafhirquery.service.controller.ResourceExceptions.CannotUpdateResourceWithMismatchedIds;
+import gov.va.api.health.vistafhirquery.service.controller.ResourceExceptions.CannotUpdateUnknownResource;
 import gov.va.api.health.vistafhirquery.service.mpifhirqueryclient.MpiFhirQueryClientExceptions.MpiFhirQueryRequestFailed;
 import java.lang.reflect.UndeclaredThrowableException;
 import java.time.Instant;
@@ -90,24 +96,24 @@ public final class WebExceptionHandler {
   static String sanitizedMessage(Throwable tr) {
     if (tr instanceof MismatchedInputException) {
       MismatchedInputException mie = (MismatchedInputException) tr;
-      return String.format("path: %s", mie.getPathReference());
+      return format("path: %s", mie.getPathReference());
     }
     if (tr instanceof JsonEOFException) {
       JsonEOFException eofe = (JsonEOFException) tr;
       if (eofe.getLocation() != null) {
-        return String.format(
+        return format(
             "line: %s, column: %s",
             eofe.getLocation().getLineNr(), eofe.getLocation().getColumnNr());
       }
     }
     if (tr instanceof JsonMappingException) {
       JsonMappingException jme = (JsonMappingException) tr;
-      return String.format("path: %s", jme.getPathReference());
+      return format("path: %s", jme.getPathReference());
     }
     if (tr instanceof JsonParseException) {
       JsonParseException jpe = (JsonParseException) tr;
       if (jpe.getLocation() != null) {
-        return String.format(
+        return format(
             "line: %s, column: %s", jpe.getLocation().getLineNr(), jpe.getLocation().getColumnNr());
       }
     }
@@ -115,12 +121,19 @@ public final class WebExceptionHandler {
   }
 
   private OperationOutcome asOperationOutcome(
-      String code, Throwable tr, HttpServletRequest request, List<String> diagnostics) {
+      String code,
+      Throwable tr,
+      HttpServletRequest request,
+      List<String> diagnostics,
+      CodeableConcept maybeDetail) {
     OperationOutcome.Issue issue =
         OperationOutcome.Issue.builder()
             .severity(OperationOutcome.Issue.IssueSeverity.fatal)
             .code(code)
             .build();
+    if (maybeDetail != null) {
+      issue.details(maybeDetail);
+    }
     String diagnostic = diagnostics.stream().collect(joining(", "));
     if (isNotBlank(diagnostic)) {
       issue.diagnostics(diagnostic);
@@ -135,6 +148,18 @@ public final class WebExceptionHandler {
                 .div("<div>Failure: " + request.getRequestURI() + "</div>")
                 .build())
         .issue(List.of(issue))
+        .build();
+  }
+
+  private CodeableConcept detail(String code, String display) {
+    return CodeableConcept.builder()
+        .coding(
+            List.of(
+                Coding.builder()
+                    .system("http://terminology.hl7.org/CodeSystem/operation-outcome")
+                    .code(code)
+                    .display(display)
+                    .build()))
         .build();
   }
 
@@ -172,7 +197,31 @@ public final class WebExceptionHandler {
   })
   @ResponseStatus(HttpStatus.BAD_REQUEST)
   OperationOutcome handleBadRequest(Exception e, HttpServletRequest request) {
-    return responseFor("structure", e, request, emptyList(), true);
+    return responseFor("structure", e, request, emptyList(), true, null);
+  }
+
+  @ExceptionHandler({ResourceExceptions.CannotUpdateResourceWithMismatchedIds.class})
+  @ResponseStatus(HttpStatus.BAD_REQUEST)
+  OperationOutcome handleCannotUpdateResourceWithMismatchedIds(
+      CannotUpdateResourceWithMismatchedIds e, HttpServletRequest request) {
+    var detail =
+        isBlank(e.idFromResource())
+            ? detail("MSG_RESOURCE_ID_MISSING", "Resource Id Missing")
+            : detail("MSG_RESOURCE_ID_MISMATCH", "Resource Id Mismatch");
+    return responseFor("processing", e, request, emptyList(), true, detail);
+  }
+
+  @ExceptionHandler({ResourceExceptions.CannotUpdateUnknownResource.class})
+  @ResponseStatus(HttpStatus.METHOD_NOT_ALLOWED)
+  OperationOutcome handleCannotUpdateUnknownResource(
+      CannotUpdateUnknownResource e, HttpServletRequest request) {
+    return responseFor(
+        "not-found",
+        e,
+        request,
+        emptyList(),
+        true,
+        detail("MSG_NO_EXIST", format("Resource Id \"%s\" does not exist", e.resourceId())));
   }
 
   /**
@@ -188,25 +237,25 @@ public final class WebExceptionHandler {
     if (e instanceof HttpClientErrorException.Forbidden) {
       log.warn("The application proxy user authorization configuration may be incorrect.");
     }
-    return responseFor("internal-server-error", e, request, emptyList(), true);
+    return responseFor("internal-server-error", e, request, emptyList(), true, null);
   }
 
   @ExceptionHandler({HttpRequestMethodNotSupportedException.class})
   @ResponseStatus(HttpStatus.METHOD_NOT_ALLOWED)
   OperationOutcome handleNotAllowed(Exception e, HttpServletRequest request) {
-    return responseFor("not-allowed", e, request, emptyList(), true);
+    return responseFor("not-allowed", e, request, emptyList(), true, null);
   }
 
   @ExceptionHandler({HttpClientErrorException.NotFound.class, ResourceExceptions.NotFound.class})
   @ResponseStatus(HttpStatus.NOT_FOUND)
   OperationOutcome handleNotFound(Exception e, HttpServletRequest request) {
-    return responseFor("not-found", e, request, emptyList(), true);
+    return responseFor("not-found", e, request, emptyList(), true, null);
   }
 
   @ExceptionHandler({ResourceAccessException.class})
   @ResponseStatus(HttpStatus.REQUEST_TIMEOUT)
   OperationOutcome handleRequestTimeout(Exception e, HttpServletRequest request) {
-    return responseFor("request-timeout", e, request, emptyList(), true);
+    return responseFor("request-timeout", e, request, emptyList(), true, null);
   }
 
   /**
@@ -218,9 +267,9 @@ public final class WebExceptionHandler {
   @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
   public OperationOutcome handleSnafu(Exception e, HttpServletRequest request) {
     if (isJsonError(e)) {
-      return responseFor("database", e, request, emptyList(), false);
+      return responseFor("database", e, request, emptyList(), false, null);
     }
-    return responseFor("exception", e, request, emptyList(), true);
+    return responseFor("exception", e, request, emptyList(), true, null);
   }
 
   /**
@@ -233,13 +282,13 @@ public final class WebExceptionHandler {
     if (e instanceof HttpClientErrorException.Unauthorized) {
       log.warn("The application proxy user authorization configuration may be incorrect.");
     }
-    return responseFor("unauthorized", e, request, emptyList(), true);
+    return responseFor("unauthorized", e, request, emptyList(), true, null);
   }
 
   @ExceptionHandler({ResourceExceptions.BadRequestPayload.class})
   @ResponseStatus(HttpStatus.UNPROCESSABLE_ENTITY)
   OperationOutcome handleUnprocessableEntity(Exception e, HttpServletRequest request) {
-    return responseFor("structure", e, request, emptyList(), true);
+    return responseFor("structure", e, request, emptyList(), true, null);
   }
 
   /**
@@ -255,14 +304,14 @@ public final class WebExceptionHandler {
         e.getConstraintViolations().stream()
             .map(v -> v.getPropertyPath() + " " + v.getMessage())
             .collect(toList());
-    return responseFor("structure", e, request, diagnostics, true);
+    return responseFor("structure", e, request, diagnostics, true, null);
   }
 
   @ExceptionHandler(MpiFhirQueryRequestFailed.class)
   @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
   OperationOutcome mpiFhirQueryRequestFailed(
       MpiFhirQueryRequestFailed e, HttpServletRequest request) {
-    return responseFor("internal-server-error", e, request, emptyList(), true);
+    return responseFor("internal-server-error", e, request, emptyList(), true, null);
   }
 
   @SneakyThrows
@@ -271,8 +320,9 @@ public final class WebExceptionHandler {
       Throwable tr,
       HttpServletRequest request,
       List<String> diagnostics,
-      boolean printStackTrace) {
-    OperationOutcome response = asOperationOutcome(code, tr, request, diagnostics);
+      boolean printStackTrace,
+      CodeableConcept maybeDetail) {
+    OperationOutcome response = asOperationOutcome(code, tr, request, diagnostics, maybeDetail);
     if (printStackTrace) {
       log.error("Response {}", JacksonConfig.createMapper().writeValueAsString(response), tr);
     } else {

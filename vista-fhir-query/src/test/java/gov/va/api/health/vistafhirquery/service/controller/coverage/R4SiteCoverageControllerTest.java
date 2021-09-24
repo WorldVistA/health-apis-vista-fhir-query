@@ -6,6 +6,7 @@ import static gov.va.api.health.vistafhirquery.service.controller.MockRequests.j
 import static gov.va.api.health.vistafhirquery.service.controller.MockRequests.requestFromUri;
 import static gov.va.api.health.vistafhirquery.service.controller.coverage.CoverageSamples.R4.link;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.fail;
 import static org.mockito.Mockito.when;
 
 import gov.va.api.health.r4.api.bundle.BundleLink;
@@ -23,6 +24,7 @@ import gov.va.api.lighthouse.charon.models.lhslighthouserpcgateway.LhsLighthouse
 import gov.va.api.lighthouse.charon.models.lhslighthouserpcgateway.LhsLighthouseRpcGatewayGetsManifest;
 import gov.va.api.lighthouse.charon.models.lhslighthouserpcgateway.LhsLighthouseRpcGatewayResponse;
 import java.util.List;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
@@ -153,7 +155,7 @@ public class R4SiteCoverageControllerTest {
     var captor = requestCaptor(LhsLighthouseRpcGatewayCoverageWrite.Request.class);
     var answer =
         answerFor(captor).value(results).invocationResult(_invocationResult(results)).build();
-    // will need later:
+    // TODO API-10150-put-coverage-part-2
     // when(charon.request(captor.capture())).thenAnswer(answer);
     // when(witnessProtection.toPublicId(Coverage.class, "p1+123+ip1")).thenReturn("public-ip1");
     _controller()
@@ -162,8 +164,30 @@ public class R4SiteCoverageControllerTest {
             "123",
             "public-ip1",
             CoverageSamples.R4.create().coverage("123", "ip1", "p1"));
-    // You will need this later:
     // assertThat(captor.getValue().rpcRequest().api()).isEqualTo(CoverageWriteApi.UPDATE);
     assertThat(response.getStatus()).isEqualTo(200);
+  }
+
+  @Test
+  @Disabled
+  void updateThrowsBadRequestPayloadForResourcesThatCannotBeProcessed() {
+    // 422
+    fail();
+  }
+
+  @Test
+  @Disabled
+  void updateThrowsCannotUpdateResourceWithMismatchedIdsWhenUrlAndPayloadIdsDoNotMatch() {
+    // 400
+    // when /r4/Coverage/123 != resource.id
+    // when /r4/Coverage/123 && resource.id == null
+    fail();
+  }
+
+  @Test
+  @Disabled
+  void updateThrowsCannotUpdateUnknownResourceForUnknownResource() {
+    // 405
+    fail();
   }
 }
