@@ -33,7 +33,7 @@ import lombok.experimental.UtilityClass;
 public class CoverageSamples {
   @NoArgsConstructor(staticName = "create")
   public static class R4 {
-    static Coverage.Bundle asBundle(
+    public static Coverage.Bundle asBundle(
         String baseUrl, Collection<Coverage> resources, int totalRecords, BundleLink... links) {
       return Coverage.Bundle.builder()
           .resourceType("Bundle")
@@ -56,7 +56,7 @@ public class CoverageSamples {
           .build();
     }
 
-    static BundleLink link(BundleLink.LinkRelation rel, String base, String query) {
+    public static BundleLink link(BundleLink.LinkRelation rel, String base, String query) {
       return BundleLink.builder().relation(rel).url(base + "?" + query).build();
     }
 
@@ -103,11 +103,11 @@ public class CoverageSamples {
               .build());
     }
 
-    Coverage coverage() {
+    public Coverage coverage() {
       return coverage("666", "1,8,", "1010101010V666666");
     }
 
-    Coverage coverage(String station, String ien, String patient) {
+    public Coverage coverage(String station, String ien, String patient) {
       return Coverage.builder()
           .id(
               PatientTypeCoordinates.builder()

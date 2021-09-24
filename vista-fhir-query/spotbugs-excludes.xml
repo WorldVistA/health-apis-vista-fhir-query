@@ -34,4 +34,12 @@
     <Class name="gov.va.api.health.vistafhirquery.service.controller.coverage.R4SiteCoverageController"/>
     <Bug pattern="UNVALIDATED_REDIRECT"/>
   </Match>
+  <!--
+  Lombok generated lazy getter.
+  -->
+  <Match>
+    <Class name="gov.va.api.health.vistafhirquery.service.controller.witnessprotection.RequestPayloadModifier"/>
+    <Method name="site"/>
+    <Bug pattern="JLM_JSR166_UTILCONCURRENT_MONITORENTER"/>
+  </Match>
 </FindBugsFilter>

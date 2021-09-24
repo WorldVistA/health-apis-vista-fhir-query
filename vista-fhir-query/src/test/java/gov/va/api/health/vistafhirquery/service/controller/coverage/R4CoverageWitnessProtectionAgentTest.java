@@ -16,11 +16,13 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.mock.web.MockHttpServletRequest;
 
 @ExtendWith(MockitoExtension.class)
 public class R4CoverageWitnessProtectionAgentTest {
 
   @Mock LinkProperties linkProperties;
+  MockHttpServletRequest request = new MockHttpServletRequest();
 
   @Test
   void referencesOfT() {
@@ -39,7 +41,9 @@ public class R4CoverageWitnessProtectionAgentTest {
                     CoverageClass.builder().value("InsurancePlan/gp2").build(),
                     CoverageClass.builder().value("Prefix1/Prefix2/gp3").build()))
             .build();
-    var wpa = new R4CoverageWitnessProtectionAgent(new ProtectedReferenceFactory(linkProperties));
+    var wpa =
+        new R4CoverageWitnessProtectionAgent(
+            new ProtectedReferenceFactory(linkProperties), request);
     // By transforming to resource identity, we can test the advice gets all the references correct
     assertThat(
             wpa.referencesOf(coverage)
@@ -92,7 +96,9 @@ public class R4CoverageWitnessProtectionAgentTest {
                     Reference.builder().reference("Organization/o2").build()))
             .coverageClass(List.of(CoverageClass.builder().value("InsurancePlan/").build()))
             .build();
-    var wpa = new R4CoverageWitnessProtectionAgent(new ProtectedReferenceFactory(linkProperties));
+    var wpa =
+        new R4CoverageWitnessProtectionAgent(
+            new ProtectedReferenceFactory(linkProperties), request);
     assertThatExceptionOfType(IllegalArgumentException.class)
         .isThrownBy(
             () ->

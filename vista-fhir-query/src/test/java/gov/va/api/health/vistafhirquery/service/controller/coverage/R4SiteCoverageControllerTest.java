@@ -144,4 +144,26 @@ public class R4SiteCoverageControllerTest {
                 "page=1&_count=10&patient=p1"));
     assertThat(json(actual)).isEqualTo(json(expected));
   }
+
+  @Test
+  void update() {
+    var response = new MockHttpServletResponse();
+    var samples = CoverageSamples.VistaLhsLighthouseRpcGateway.create();
+    var results = samples.createCoverageResults("ip1");
+    var captor = requestCaptor(LhsLighthouseRpcGatewayCoverageWrite.Request.class);
+    var answer =
+        answerFor(captor).value(results).invocationResult(_invocationResult(results)).build();
+    // will need later:
+    // when(charon.request(captor.capture())).thenAnswer(answer);
+    // when(witnessProtection.toPublicId(Coverage.class, "p1+123+ip1")).thenReturn("public-ip1");
+    _controller()
+        .coverageUpdate(
+            response,
+            "123",
+            "public-ip1",
+            CoverageSamples.R4.create().coverage("123", "ip1", "p1"));
+    // You will need this later:
+    // assertThat(captor.getValue().rpcRequest().api()).isEqualTo(CoverageWriteApi.UPDATE);
+    assertThat(response.getStatus()).isEqualTo(200);
+  }
 }

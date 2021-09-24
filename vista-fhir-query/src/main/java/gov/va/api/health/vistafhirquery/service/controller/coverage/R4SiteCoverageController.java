@@ -7,6 +7,7 @@ import static gov.va.api.health.vistafhirquery.service.controller.R4Controllers.
 import static gov.va.api.health.vistafhirquery.service.controller.R4Controllers.verifySiteSpecificVistaResponseOrDie;
 import static gov.va.api.health.vistafhirquery.service.controller.R4Transformers.getReferenceId;
 import static java.util.stream.Collectors.toList;
+import static org.apache.commons.lang3.StringUtils.isBlank;
 
 import gov.va.api.health.autoconfig.logging.Redact;
 import gov.va.api.health.r4.api.resources.Coverage;
@@ -44,6 +45,7 @@ import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -133,6 +135,25 @@ public class R4SiteCoverageController implements R4CoverageApi {
     var request = lighthouseRpcGatewayRequest(site, coverageByPatientIcn(patientIcn));
     var response = charon.request(request);
     return toBundle(httpRequest, response).apply(lighthouseRpcGatewayResponse(response));
+  }
+
+  @Override
+  @PutMapping(
+      value = "/site/{site}/r4/Coverage/{id}",
+      consumes = {"application/json", "application/fhir+json"})
+  public void coverageUpdate(
+      @Redact HttpServletResponse response,
+      @PathVariable(value = "site") String site,
+      @PathVariable(value = "id") String id,
+      @Redact @RequestBody Coverage body) {
+    /*
+     * TODO: Implement this check better when this no-op implementation s done for real.
+     * TODO: https://vajira.max.gov/browse/API-10150
+     */
+    if (isBlank(id)) {
+      throw BadRequestPayload.because("Coverage is missing id");
+    }
+    response.setStatus(200);
   }
 
   private LhsLighthouseRpcGatewayCoverageWrite.Request coverageWriteDetails(

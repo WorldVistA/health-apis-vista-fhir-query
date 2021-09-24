@@ -96,6 +96,7 @@ public class WitnessProtectionAdvice extends IdentitySubstitution<ProtectedRefer
       @org.springframework.lang.NonNull MethodParameter methodParameter,
       @org.springframework.lang.NonNull Type type,
       @org.springframework.lang.NonNull Class<? extends HttpMessageConverter<?>> converterType) {
+
     var identityOperations =
         IdentityProcessor.builder()
             .transformation(

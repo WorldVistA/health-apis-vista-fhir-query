@@ -3,9 +3,11 @@ package gov.va.api.health.vistafhirquery.service.controller.coverage;
 import gov.va.api.health.r4.api.resources.Coverage;
 import gov.va.api.health.vistafhirquery.service.controller.witnessprotection.ProtectedReference;
 import gov.va.api.health.vistafhirquery.service.controller.witnessprotection.ProtectedReferenceFactory;
+import gov.va.api.health.vistafhirquery.service.controller.witnessprotection.RequestPayloadModifier;
 import gov.va.api.health.vistafhirquery.service.controller.witnessprotection.WitnessProtectionAgent;
 import java.util.Objects;
 import java.util.stream.Stream;
+import javax.servlet.http.HttpServletRequest;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -17,8 +19,16 @@ import org.springframework.stereotype.Component;
 public class R4CoverageWitnessProtectionAgent implements WitnessProtectionAgent<Coverage> {
   private final ProtectedReferenceFactory protectedReferenceFactory;
 
+  private final HttpServletRequest request;
+
   @Override
   public Stream<ProtectedReference> referencesOf(Coverage resource) {
+    RequestPayloadModifier.forPayload(resource)
+        .request(request)
+        .addMeta(resource::meta)
+        .build()
+        .applyModifications();
+
     Stream<ProtectedReference> referenceGroups =
         Stream.concat(
             resource.payor().stream()
