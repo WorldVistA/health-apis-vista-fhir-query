@@ -41,6 +41,7 @@ class RestCharonClientTest {
                 .clientKey("ck")
                 .lomaLindaHackContext("LL HACK")
                 .vprGetPatientDataContext("VPR CTX")
+                .debugCharon(true)
                 .build())
         .rpcPrincipalLookup(lookup)
         .restTemplate(rt)

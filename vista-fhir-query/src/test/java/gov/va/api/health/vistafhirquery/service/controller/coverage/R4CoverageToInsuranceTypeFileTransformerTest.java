@@ -141,7 +141,7 @@ public class R4CoverageToInsuranceTypeFileTransformerTest {
 
   @Test
   void toInsuranceTypeFile() {
-    var expected = CoverageSamples.VistaLhsLighthouseRpcGateway.create().createApiInput();
+    var expected = CoverageSamples.VistaLhsLighthouseRpcGateway.create().updateApiInput();
     assertThat(_transformer().toInsuranceTypeFile()).containsExactlyInAnyOrderElementsOf(expected);
   }
 }

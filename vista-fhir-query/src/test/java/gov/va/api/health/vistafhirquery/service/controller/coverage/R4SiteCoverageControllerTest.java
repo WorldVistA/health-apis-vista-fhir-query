@@ -6,7 +6,7 @@ import static gov.va.api.health.vistafhirquery.service.controller.MockRequests.j
 import static gov.va.api.health.vistafhirquery.service.controller.MockRequests.requestFromUri;
 import static gov.va.api.health.vistafhirquery.service.controller.coverage.CoverageSamples.R4.link;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.jupiter.api.Assertions.fail;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.mockito.Mockito.when;
 
 import gov.va.api.health.r4.api.bundle.BundleLink;
@@ -15,6 +15,9 @@ import gov.va.api.health.vistafhirquery.service.charonclient.CharonClient;
 import gov.va.api.health.vistafhirquery.service.config.LinkProperties;
 import gov.va.api.health.vistafhirquery.service.controller.PatientTypeCoordinates;
 import gov.va.api.health.vistafhirquery.service.controller.R4BundlerFactory;
+import gov.va.api.health.vistafhirquery.service.controller.ResourceExceptions;
+import gov.va.api.health.vistafhirquery.service.controller.ResourceExceptions.BadRequestPayload;
+import gov.va.api.health.vistafhirquery.service.controller.ResourceExceptions.CannotUpdateResourceWithMismatchedIds;
 import gov.va.api.health.vistafhirquery.service.controller.witnessprotection.AlternatePatientIds;
 import gov.va.api.health.vistafhirquery.service.controller.witnessprotection.WitnessProtection;
 import gov.va.api.lighthouse.charon.api.v1.RpcInvocationResultV1;
@@ -27,6 +30,9 @@ import java.util.List;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.NullAndEmptySource;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.mock.web.MockHttpServletResponse;
@@ -155,39 +161,73 @@ public class R4SiteCoverageControllerTest {
     var captor = requestCaptor(LhsLighthouseRpcGatewayCoverageWrite.Request.class);
     var answer =
         answerFor(captor).value(results).invocationResult(_invocationResult(results)).build();
-    // TODO API-10150-put-coverage-part-2
-    // when(charon.request(captor.capture())).thenAnswer(answer);
-    // when(witnessProtection.toPublicId(Coverage.class, "p1+123+ip1")).thenReturn("public-ip1");
+    when(charon.request(captor.capture())).thenAnswer(answer);
+    when(witnessProtection.privateIdForResourceOrDie("public-c1", Coverage.class))
+        .thenReturn("p1+123+ip1");
     _controller()
         .coverageUpdate(
-            response,
-            "123",
-            "public-ip1",
-            CoverageSamples.R4.create().coverage("123", "ip1", "p1"));
-    // assertThat(captor.getValue().rpcRequest().api()).isEqualTo(CoverageWriteApi.UPDATE);
+            response, "123", "public-c1", CoverageSamples.R4.create().coverage("123", "ip1", "p1"));
+    assertThat(captor.getValue().rpcRequest().api()).isEqualTo(CoverageWriteApi.UPDATE);
     assertThat(response.getStatus()).isEqualTo(200);
   }
 
   @Test
-  @Disabled
   void updateThrowsBadRequestPayloadForResourcesThatCannotBeProcessed() {
-    // 422
-    fail();
+    var response = new MockHttpServletResponse();
+    when(witnessProtection.privateIdForResourceOrDie("public-c1", Coverage.class))
+        .thenReturn("p1+123+ip1");
+    assertThatExceptionOfType(BadRequestPayload.class)
+        .isThrownBy(
+            () ->
+                _controller()
+                    .coverageUpdate(
+                        response,
+                        "123",
+                        "public-c1",
+                        CoverageSamples.R4
+                            .create()
+                            .coverage("123", "ip1", "p1")
+                            .beneficiary(null)));
   }
 
-  @Test
-  @Disabled
-  void updateThrowsCannotUpdateResourceWithMismatchedIdsWhenUrlAndPayloadIdsDoNotMatch() {
-    // 400
-    // when /r4/Coverage/123 != resource.id
-    // when /r4/Coverage/123 && resource.id == null
-    fail();
+  @ParameterizedTest
+  @NullAndEmptySource
+  @ValueSource(strings = {"456"})
+  void updateThrowsCannotUpdateResourceWithMismatchedIdsWhenUrlAndPayloadIdsDoNotMatch(
+      String resourceId) {
+    var response = new MockHttpServletResponse();
+    when(witnessProtection.privateIdForResourceOrDie("public-c1", Coverage.class))
+        .thenReturn("p1+123+ip1");
+    assertThatExceptionOfType(CannotUpdateResourceWithMismatchedIds.class)
+        .isThrownBy(
+            () ->
+                _controller()
+                    .coverageUpdate(
+                        response,
+                        "123",
+                        "public-c1",
+                        CoverageSamples.R4.create().coverage().id(resourceId)));
   }
 
   @Test
   @Disabled
   void updateThrowsCannotUpdateUnknownResourceForUnknownResource() {
     // 405
-    fail();
+    var response = new MockHttpServletResponse();
+    var samples = CoverageSamples.VistaLhsLighthouseRpcGateway.create();
+    var results = samples.updateCoverageWithNotExistsId();
+    var captor = requestCaptor(LhsLighthouseRpcGatewayCoverageWrite.Request.class);
+    var answer =
+        answerFor(captor).value(results).invocationResult(_invocationResult(results)).build();
+    when(charon.request(captor.capture())).thenAnswer(answer);
+    assertThatExceptionOfType(ResourceExceptions.CannotUpdateUnknownResource.class)
+        .isThrownBy(
+            () ->
+                _controller()
+                    .coverageUpdate(
+                        response,
+                        "123",
+                        "public-c1",
+                        CoverageSamples.R4.create().coverage("123", "ip1", "p1")));
   }
 }

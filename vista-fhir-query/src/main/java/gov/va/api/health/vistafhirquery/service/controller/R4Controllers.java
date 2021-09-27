@@ -35,7 +35,6 @@ public class R4Controllers {
    */
   public static void verifySiteSpecificVistaResponseOrDie(
       String site, LhsLighthouseRpcGatewayResponse response) {
-    dieOnError(response);
     if (response.resultsByStation().size() != 1) {
       throw ExpectationFailed.because(
           "Unexpected number of vista results returned: Size(%d) Sites(%s)",

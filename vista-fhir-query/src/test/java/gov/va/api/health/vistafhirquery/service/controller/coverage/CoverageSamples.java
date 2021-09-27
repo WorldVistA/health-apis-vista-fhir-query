@@ -22,6 +22,7 @@ import gov.va.api.lighthouse.charon.models.lhslighthouserpcgateway.LhsLighthouse
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -261,6 +262,37 @@ public class CoverageSamples {
 
     private WriteableFilemanValue pointerTo(String file, String ien) {
       return WriteableFilemanValue.builder().file(file).index(1).field("ien").value(ien).build();
+    }
+
+    public Set<WriteableFilemanValue> updateApiInput() {
+      var filemanValues = new HashSet<>(createApiInput());
+      filemanValues.add(pointerTo(InsuranceType.FILE_NUMBER, "1,8,"));
+      return Set.copyOf(filemanValues);
+    }
+
+    public LhsLighthouseRpcGatewayResponse.Results updateCoverageWithNotExistsId() {
+      return LhsLighthouseRpcGatewayResponse.Results.builder()
+          .results(
+              List.of(
+                  LhsLighthouseRpcGatewayResponse.FilemanEntry.builder()
+                      .file("2.312")
+                      .ien("doesnt-exist")
+                      .index("1")
+                      .status("-1")
+                      .build()))
+          .errors(
+              List.of(
+                  LhsLighthouseRpcGatewayResponse.ResultsError.builder()
+                      .data(
+                          Map.of(
+                              "code",
+                              "601",
+                              "location",
+                              "FILE^LHSIBUTL",
+                              "text",
+                              "The entry does not exist."))
+                      .build()))
+          .build();
     }
   }
 }

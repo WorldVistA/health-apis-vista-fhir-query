@@ -1,5 +1,6 @@
 package gov.va.api.health.vistafhirquery.service.charonclient;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import gov.va.api.health.vistafhirquery.service.config.VistaApiConfig;
 import gov.va.api.health.vistafhirquery.service.controller.ResourceExceptions;
@@ -13,6 +14,7 @@ import lombok.Builder;
 import lombok.NonNull;
 import lombok.SneakyThrows;
 import lombok.Value;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.http.RequestEntity;
@@ -24,6 +26,7 @@ import org.springframework.web.client.RestTemplate;
 @Builder
 @Component
 @AllArgsConstructor(onConstructor_ = @Autowired)
+@Slf4j
 public class RestCharonClient implements CharonClient {
 
   private static final ObjectMapper MAPPER = new ObjectMapper();
@@ -52,6 +55,31 @@ public class RestCharonClient implements CharonClient {
         .body(body);
   }
 
+  @SneakyThrows
+  private <I extends TypeSafeRpcRequest, O> void debugRequest(CharonRequest<I, O> request) {
+    if (!config().isDebugCharon()) {
+      return;
+    }
+    log.info(
+        "REQUEST\n{}",
+        new ObjectMapper()
+            .writerWithDefaultPrettyPrinter()
+            .writeValueAsString(request.rpcRequest().asDetails()));
+  }
+
+  private <I extends TypeSafeRpcRequest, O> void debugResponse(CharonResponse<I, O> response) {
+    if (!config().isDebugCharon()) {
+      return;
+    }
+    String pretty;
+    try {
+      pretty = new ObjectMapper().readTree(response.invocationResult().response()).toPrettyString();
+    } catch (JsonProcessingException e) {
+      pretty = response.invocationResult().response();
+    }
+    log.info("RESPONSE\n{}", pretty);
+  }
+
   /** Make a request using a full RPC Request. */
   @Override
   @SneakyThrows
@@ -65,6 +93,7 @@ public class RestCharonClient implements CharonClient {
   @Override
   public <I extends TypeSafeRpcRequest, O> CharonResponse<I, O> request(
       @NonNull CharonRequest<I, O> request) {
+    debugRequest(request);
     var details = request.rpcRequest().asDetails();
     var principal =
         rpcPrincipalLookup
@@ -77,11 +106,15 @@ public class RestCharonClient implements CharonClient {
                 .principal(principal)
                 .rpc(details)
                 .build());
-    return CharonResponse.<I, O>builder()
-        .request(request)
-        .invocationResult(invocationResult)
-        .value(fromJson(invocationResult.response(), request.responseType()))
-        .build();
+
+    var response =
+        CharonResponse.<I, O>builder()
+            .request(request)
+            .invocationResult(invocationResult)
+            .value(fromJson(invocationResult.response(), request.responseType()))
+            .build();
+    debugResponse(response);
+    return response;
   }
 
   private void verifyVistalinkApiResponse(ResponseEntity<RpcInvocationResultV1> response) {

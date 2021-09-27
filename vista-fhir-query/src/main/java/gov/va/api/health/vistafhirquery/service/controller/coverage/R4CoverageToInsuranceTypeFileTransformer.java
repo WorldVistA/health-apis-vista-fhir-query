@@ -9,6 +9,7 @@ import gov.va.api.health.r4.api.elements.Extension;
 import gov.va.api.health.r4.api.elements.Reference;
 import gov.va.api.health.r4.api.resources.Coverage;
 import gov.va.api.health.r4.api.resources.Coverage.CoverageClass;
+import gov.va.api.health.vistafhirquery.service.controller.PatientTypeCoordinates;
 import gov.va.api.health.vistafhirquery.service.controller.ResourceExceptions.BadRequestPayload;
 import gov.va.api.lighthouse.charon.models.lhslighthouserpcgateway.GroupInsurancePlan;
 import gov.va.api.lighthouse.charon.models.lhslighthouserpcgateway.InsuranceCompany;
@@ -211,6 +212,10 @@ public class R4CoverageToInsuranceTypeFileTransformer {
   /** Create a set of writeable fileman values. */
   public Set<WriteableFilemanValue> toInsuranceTypeFile() {
     Set<WriteableFilemanValue> fields = new HashSet<>();
+    Optional.ofNullable(coverage().id())
+        .map(PatientTypeCoordinates::fromString)
+        .map(coordinates -> pointer(InsuranceType.FILE_NUMBER, 1, coordinates.recordId()))
+        .ifPresent(fields::add);
     fields.add(insuranceType(coverage().payor()));
     fields.add(groupPlan(coverage().coverageClass()));
     fields.add(coordinationOfBenefits(coverage().order()));

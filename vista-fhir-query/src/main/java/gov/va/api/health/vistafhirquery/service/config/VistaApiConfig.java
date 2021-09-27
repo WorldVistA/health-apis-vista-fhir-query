@@ -31,6 +31,8 @@ public class VistaApiConfig {
 
   private String lomaLindaHackContext;
 
+  private boolean debugCharon;
+
   public String getLomaLindaHackContext() {
     return trimToNull(lomaLindaHackContext);
   }
