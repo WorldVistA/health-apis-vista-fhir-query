@@ -16,11 +16,13 @@ import gov.va.api.health.r4.api.resources.Organization;
 import gov.va.api.health.vistafhirquery.service.config.LinkProperties;
 import gov.va.api.health.vistafhirquery.service.controller.RecordCoordinates;
 import gov.va.api.lighthouse.charon.models.lhslighthouserpcgateway.InsuranceCompany;
+import gov.va.api.lighthouse.charon.models.lhslighthouserpcgateway.LhsLighthouseRpcGatewayCoverageWrite.WriteableFilemanValue;
 import gov.va.api.lighthouse.charon.models.lhslighthouserpcgateway.LhsLighthouseRpcGatewayResponse;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import lombok.NoArgsConstructor;
 import lombok.SneakyThrows;
 import lombok.experimental.UtilityClass;
@@ -41,8 +43,60 @@ public class OrganizationSamples {
         .build();
   }
 
+  private WriteableFilemanValue insuranceCompanyValue(String field, String value) {
+    return WriteableFilemanValue.builder()
+        .file(InsuranceCompany.FILE_NUMBER)
+        .index(1)
+        .field(field)
+        .value(value)
+        .build();
+  }
+
   @NoArgsConstructor(staticName = "create")
   public static class VistaLhsLighthouseRpcGateway {
+    public Set<WriteableFilemanValue> createApiInput() {
+      return Set.of(
+          insuranceCompanyValue(InsuranceCompany.NAME, "SHANKS OF FL"),
+          insuranceCompanyValue(InsuranceCompany.CITY, "SHANK CITY"),
+          insuranceCompanyValue(InsuranceCompany.STATE, "SHANKTICUT"),
+          insuranceCompanyValue(InsuranceCompany.STREET_ADDRESS_LINE_1_, "SHANKSVILLE LINE 1"),
+          insuranceCompanyValue(InsuranceCompany.STREET_ADDRESS_LINE_2_, "SHANKSVILLE LINE 2"),
+          insuranceCompanyValue(InsuranceCompany.STREET_ADDRESS_LINE_3_, "SHANKSVILLE LINE 3"),
+          insuranceCompanyValue(InsuranceCompany.ZIP_CODE, "SHANKZIP"),
+          insuranceCompanyValue(InsuranceCompany.BILLING_COMPANY_NAME, "SHANK-BILLING"),
+          insuranceCompanyValue(InsuranceCompany.FAX_NUMBER, "SHANKFAX"),
+          insuranceCompanyValue(InsuranceCompany.TYPE_OF_COVERAGE, "SHANK INSURANCE"),
+          insuranceCompanyValue(InsuranceCompany.PHONE_NUMBER, "1-800-SHANKTO"),
+          insuranceCompanyValue(InsuranceCompany.BILLING_PHONE_NUMBER, "1-800-SHANK-BILLING"),
+          insuranceCompanyValue(
+              InsuranceCompany.PRECERTIFICATION_PHONE_NUMBER, "1-800-SHANK-PRECERT"),
+          insuranceCompanyValue(
+              InsuranceCompany.VERIFICATION_PHONE_NUMBER, "1-800-SHANK-VERIFICATION"),
+          insuranceCompanyValue(
+              InsuranceCompany.CLAIMS_INPT_PHONE_NUMBER, "1-800-SHANK-CLAIMS-INPT"),
+          insuranceCompanyValue(InsuranceCompany.CLAIMS_OPT_PHONE_NUMBER, "1-800-SHANK-CLAIMS-OPT"),
+          insuranceCompanyValue(InsuranceCompany.APPEALS_PHONE_NUMBER, "1-800-SHANK-APPEALS"),
+          insuranceCompanyValue(InsuranceCompany.INQUIRY_PHONE_NUMBER, "1-800-SHANK-INQUIRY"),
+          insuranceCompanyValue(InsuranceCompany.STANDARD_FTF, "DAYS"),
+          insuranceCompanyValue(InsuranceCompany.STANDARD_FTF_VALUE, "365"),
+          insuranceCompanyValue(InsuranceCompany.REIMBURSE_, "Y"),
+          insuranceCompanyValue(InsuranceCompany.SIGNATURE_REQUIRED_ON_BILL_, "1"),
+          insuranceCompanyValue(InsuranceCompany.TRANSMIT_ELECTRONICALLY, "2"),
+          insuranceCompanyValue(InsuranceCompany.EDI_ID_NUMBER_PROF, "55555"),
+          insuranceCompanyValue(InsuranceCompany.EDI_ID_NUMBER_INST, "55555"),
+          insuranceCompanyValue(
+              InsuranceCompany.ELECTRONIC_INSURANCE_TYPE, "ELECTRONIC INSHANKANCE"),
+          insuranceCompanyValue(InsuranceCompany.PAYER, "SHANK PAYER"),
+          insuranceCompanyValue(
+              InsuranceCompany.SECONDARY_ID_REQUIREMENTS, "SHANKONDARY ID REQUIREMENTS"),
+          insuranceCompanyValue(InsuranceCompany.REF_PROV_SEC_ID_REQ_ON_CLAIMS, "0"),
+          insuranceCompanyValue(InsuranceCompany.ATT_REND_ID_BILL_SEC_ID_PROF, "0"),
+          insuranceCompanyValue(InsuranceCompany.ATT_REND_ID_BILL_SEC_ID_INST, "0"),
+          insuranceCompanyValue(InsuranceCompany.PRINT_SEC_TERT_AUTO_CLAIMS_, "0"),
+          insuranceCompanyValue(InsuranceCompany.PRINT_SEC_MED_CLAIMS_W_O_MRA_, "0"),
+          insuranceCompanyValue(InsuranceCompany.N277EDI_ID_NUMBER, "22-7777777"));
+    }
+
     private Map<String, LhsLighthouseRpcGatewayResponse.Values> fields() {
       Map<String, LhsLighthouseRpcGatewayResponse.Values> fields = new HashMap<>();
       // Active
