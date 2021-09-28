@@ -7,6 +7,7 @@ import static gov.va.api.health.vistafhirquery.service.controller.MockRequests.r
 import static gov.va.api.health.vistafhirquery.service.controller.coverage.CoverageSamples.R4.link;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import gov.va.api.health.r4.api.bundle.BundleLink;
@@ -27,7 +28,7 @@ import gov.va.api.lighthouse.charon.models.lhslighthouserpcgateway.LhsLighthouse
 import gov.va.api.lighthouse.charon.models.lhslighthouserpcgateway.LhsLighthouseRpcGatewayGetsManifest;
 import gov.va.api.lighthouse.charon.models.lhslighthouserpcgateway.LhsLighthouseRpcGatewayResponse;
 import java.util.List;
-import org.junit.jupiter.api.Disabled;
+import javax.servlet.http.HttpServletResponse;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -210,9 +211,7 @@ public class R4SiteCoverageControllerTest {
   }
 
   @Test
-  @Disabled
   void updateThrowsCannotUpdateUnknownResourceForUnknownResource() {
-    // 405
     var response = new MockHttpServletResponse();
     var samples = CoverageSamples.VistaLhsLighthouseRpcGateway.create();
     var results = samples.updateCoverageWithNotExistsId();
@@ -220,6 +219,14 @@ public class R4SiteCoverageControllerTest {
     var answer =
         answerFor(captor).value(results).invocationResult(_invocationResult(results)).build();
     when(charon.request(captor.capture())).thenAnswer(answer);
+    when(witnessProtection.privateIdForResourceOrDie("public-c1", Coverage.class))
+        .thenReturn(
+            PatientTypeCoordinates.builder()
+                .siteId("123")
+                .recordId("ip1")
+                .icn("p1")
+                .build()
+                .toString());
     assertThatExceptionOfType(ResourceExceptions.CannotUpdateUnknownResource.class)
         .isThrownBy(
             () ->
@@ -229,5 +236,42 @@ public class R4SiteCoverageControllerTest {
                         "123",
                         "public-c1",
                         CoverageSamples.R4.create().coverage("123", "ip1", "p1")));
+  }
+
+  @Test
+  void updateThrowsWhenPatientMismatch() {
+    var sample = CoverageSamples.R4.create().coverage("123", "456", "p1");
+    when(witnessProtection.privateIdForResourceOrDie("public-c1", Coverage.class))
+        .thenReturn(
+            PatientTypeCoordinates.builder()
+                .siteId("123")
+                .recordId("456")
+                .icn("p1")
+                .build()
+                .toString());
+    sample.beneficiary().reference("Patient/p2");
+    assertThatExceptionOfType(ResourceExceptions.ExpectationFailed.class)
+        .isThrownBy(
+            () ->
+                _controller()
+                    .coverageUpdate(mock(HttpServletResponse.class), "123", "public-c1", sample));
+  }
+
+  @Test
+  void updateThrowsWhenSiteMismatch() {
+    var sample = CoverageSamples.R4.create().coverage("123", "456", "p1");
+    when(witnessProtection.privateIdForResourceOrDie("public-c1", Coverage.class))
+        .thenReturn(
+            PatientTypeCoordinates.builder()
+                .siteId("123")
+                .recordId("456")
+                .icn("p1")
+                .build()
+                .toString());
+    assertThatExceptionOfType(ResourceExceptions.ExpectationFailed.class)
+        .isThrownBy(
+            () ->
+                _controller()
+                    .coverageUpdate(mock(HttpServletResponse.class), "321", "public-c1", sample));
   }
 }

@@ -12,6 +12,10 @@ import gov.va.api.health.r4.api.elements.Reference;
 import gov.va.api.health.r4.api.resources.Coverage;
 import gov.va.api.health.r4.api.resources.Coverage.CoverageClass;
 import gov.va.api.health.vistafhirquery.service.controller.ResourceExceptions.BadRequestPayload;
+import gov.va.api.lighthouse.charon.models.lhslighthouserpcgateway.InsuranceType;
+import gov.va.api.lighthouse.charon.models.lhslighthouserpcgateway.LhsLighthouseRpcGatewayCoverageWrite.WriteableFilemanValue;
+import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 import java.util.List;
 import org.assertj.core.api.ThrowableAssert.ThrowingCallable;
 import org.junit.jupiter.api.Test;
@@ -79,7 +83,6 @@ public class R4CoverageToInsuranceTypeFileTransformerTest {
 
   @Test
   void optionalFields() {
-    assertThat(_transformer().insuranceExpirationDate(null)).isEmpty();
     assertThat(_transformer().pharmacyPersonCode(null)).isEmpty();
   }
 
@@ -129,10 +132,50 @@ public class R4CoverageToInsuranceTypeFileTransformerTest {
   }
 
   @Test
+  void policyStartAndEndDates() {
+    var period = Period.builder().start(Instant.parse("1992-01-12T12:34:56Z").toString()).build();
+    assertThat(_transformer().policyStartAndEndDates(period))
+        .containsOnly(
+            WriteableFilemanValue.builder()
+                .file(InsuranceType.FILE_NUMBER)
+                .field(InsuranceType.EFFECTIVE_DATE_OF_POLICY)
+                .index(1)
+                .value("01-12-1992")
+                .build());
+    period.end(Instant.parse("2025-01-01T10:20:30Z").toString());
+    assertThat(_transformer().policyStartAndEndDates(period))
+        .containsExactlyInAnyOrder(
+            WriteableFilemanValue.builder()
+                .file(InsuranceType.FILE_NUMBER)
+                .field(InsuranceType.EFFECTIVE_DATE_OF_POLICY)
+                .index(1)
+                .value("01-12-1992")
+                .build(),
+            WriteableFilemanValue.builder()
+                .file(InsuranceType.FILE_NUMBER)
+                .field(InsuranceType.INSURANCE_EXPIRATION_DATE)
+                .index(1)
+                .value("01-01-2025")
+                .build());
+  }
+
+  @Test
+  void policyStartAndEndDatesEndBeforeStartThrows() {
+    var start = Instant.now();
+    var period =
+        Period.builder()
+            .start(start.toString())
+            .end(start.minus(1, ChronoUnit.HOURS).toString())
+            .build();
+    assertThatExceptionOfType(BadRequestPayload.class)
+        .isThrownBy(() -> _transformer().policyStartAndEndDates(period));
+  }
+
+  @Test
   void requiredFields() {
-    assertBadRequestBodyThrown(() -> _transformer().effectiveDateOfPolicy(null));
+    assertBadRequestBodyThrown(() -> _transformer().policyStartAndEndDates(null));
     assertBadRequestBodyThrown(
-        () -> _transformer().effectiveDateOfPolicy(Period.builder().build()));
+        () -> _transformer().policyStartAndEndDates(Period.builder().build()));
     assertBadRequestBodyThrown(() -> _transformer().stopPolicyFromBilling(null));
     assertBadRequestBodyThrown(
         () -> _transformer().stopPolicyFromBilling(Extension.builder().build()));

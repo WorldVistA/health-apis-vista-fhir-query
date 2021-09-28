@@ -18,6 +18,7 @@ import gov.va.api.lighthouse.charon.models.lhslighthouserpcgateway.LhsLighthouse
 import java.time.Instant;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
@@ -58,16 +59,6 @@ public class R4CoverageToInsuranceTypeFileTransformer {
     return insuranceTypeCoordinates(InsuranceType.COORDINATION_OF_BENEFITS, 1, priority);
   }
 
-  WriteableFilemanValue effectiveDateOfPolicy(Period period) {
-    if (isBlank(period) || isBlank(period.start())) {
-      throw BadRequestPayload.because(
-          InsuranceType.EFFECTIVE_DATE_OF_POLICY, "period start is null");
-    }
-    var date = Instant.parse(period.start());
-    return insuranceTypeCoordinates(
-        InsuranceType.EFFECTIVE_DATE_OF_POLICY, 1, vistaDateFormatter().format(date));
-  }
-
   private Optional<Extension> extensionForSystem(String system) {
     if (isBlank(coverage().extension())) {
       return Optional.empty();
@@ -98,16 +89,6 @@ public class R4CoverageToInsuranceTypeFileTransformer {
             () ->
                 BadRequestPayload.because(
                     InsuranceType.GROUP_PLAN, "class type 'group' not found"));
-  }
-
-  Optional<WriteableFilemanValue> insuranceExpirationDate(Period period) {
-    if (isBlank(period)) {
-      return Optional.empty();
-    }
-    var date = Instant.parse(period.end());
-    return Optional.ofNullable(
-        insuranceTypeCoordinates(
-            InsuranceType.INSURANCE_EXPIRATION_DATE, 1, vistaDateFormatter().format(date)));
   }
 
   WriteableFilemanValue insuranceType(List<Reference> payors) {
@@ -194,6 +175,31 @@ public class R4CoverageToInsuranceTypeFileTransformer {
     return WriteableFilemanValue.builder().file(file).field("ien").index(index).value(ien).build();
   }
 
+  List<WriteableFilemanValue> policyStartAndEndDates(Period period) {
+    if (isBlank(period) || isBlank(period.start())) {
+      throw BadRequestPayload.because(
+          InsuranceType.EFFECTIVE_DATE_OF_POLICY, "period start is null");
+    }
+    List<WriteableFilemanValue> dates = new ArrayList<>(2);
+    var start = Instant.parse(period.start());
+    var effectiveDate =
+        insuranceTypeCoordinates(
+            InsuranceType.EFFECTIVE_DATE_OF_POLICY, 1, vistaDateFormatter().format(start));
+    dates.add(effectiveDate);
+    if (isBlank(period.end())) {
+      return dates;
+    }
+    var end = Instant.parse(period.end());
+    if (end.isBefore(start)) {
+      throw BadRequestPayload.because("Coverage expiration Date is before start date.");
+    }
+    var expire =
+        insuranceTypeCoordinates(
+            InsuranceType.INSURANCE_EXPIRATION_DATE, 1, vistaDateFormatter().format(end));
+    dates.add(expire);
+    return dates;
+  }
+
   WriteableFilemanValue stopPolicyFromBilling(Extension extension) {
     if (isBlank(extension) || isBlank(extension.valueBoolean())) {
       throw BadRequestPayload.because(InsuranceType.STOP_POLICY_FROM_BILLING, "extension is null");
@@ -219,7 +225,6 @@ public class R4CoverageToInsuranceTypeFileTransformer {
     fields.add(insuranceType(coverage().payor()));
     fields.add(groupPlan(coverage().coverageClass()));
     fields.add(coordinationOfBenefits(coverage().order()));
-    insuranceExpirationDate(coverage().period()).ifPresent(fields::add);
     extensionForSystem("http://va.gov/fhir/StructureDefinition/coverage-stopPolicyFromBilling")
         .map(this::stopPolicyFromBilling)
         .ifPresentOrElse(
@@ -234,7 +239,7 @@ public class R4CoverageToInsuranceTypeFileTransformer {
         .ifPresent(fields::add);
     fields.add(patientId(coverage().beneficiary()));
     fields.add(subscriberId(coverage().subscriberId()));
-    fields.add(effectiveDateOfPolicy(coverage().period()));
+    policyStartAndEndDates(coverage().period()).forEach(fields::add);
     return fields;
   }
 }

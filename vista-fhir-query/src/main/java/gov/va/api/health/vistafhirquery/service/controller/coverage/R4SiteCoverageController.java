@@ -20,9 +20,7 @@ import gov.va.api.health.vistafhirquery.service.controller.PatientTypeCoordinate
 import gov.va.api.health.vistafhirquery.service.controller.R4Bundler;
 import gov.va.api.health.vistafhirquery.service.controller.R4BundlerFactory;
 import gov.va.api.health.vistafhirquery.service.controller.R4Bundling;
-import gov.va.api.health.vistafhirquery.service.controller.R4Controllers.FatalServerError;
 import gov.va.api.health.vistafhirquery.service.controller.R4Transformation;
-import gov.va.api.health.vistafhirquery.service.controller.ResourceExceptions;
 import gov.va.api.health.vistafhirquery.service.controller.ResourceExceptions.BadRequestPayload;
 import gov.va.api.health.vistafhirquery.service.controller.ResourceExceptions.CannotUpdateResourceWithMismatchedIds;
 import gov.va.api.health.vistafhirquery.service.controller.ResourceExceptions.ExpectationFailed;
@@ -38,7 +36,6 @@ import gov.va.api.lighthouse.charon.models.lhslighthouserpcgateway.LhsLighthouse
 import gov.va.api.lighthouse.charon.models.lhslighthouserpcgateway.PatientId;
 import java.time.ZoneId;
 import java.util.List;
-import java.util.Objects;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import lombok.AllArgsConstructor;
@@ -144,11 +141,15 @@ public class R4SiteCoverageController implements R4CoverageApi {
       @PathVariable(value = "id") String id,
       @Redact @RequestBody Coverage body) {
     var privateId = witnessProtection.privateIdForResourceOrDie(id, Coverage.class);
-    if (isBlank(body.id()) || !privateId.equals(body.id())) {
-      throw CannotUpdateResourceWithMismatchedIds.because(privateId, body.id());
-    }
-    updateOrCreate(
-        CoverageWriteContext.builder().site(site).body(body).mode(CoverageWriteApi.UPDATE).build());
+    var ctx =
+        CoverageWriteContext.builder()
+            .privateId(privateId)
+            .site(site)
+            .body(body)
+            .mode(CoverageWriteApi.UPDATE)
+            .build();
+    updateValidationRules().forEach(rule -> rule.test(ctx));
+    updateOrCreate(ctx);
     response.setStatus(200);
   }
 
@@ -233,6 +234,43 @@ public class R4SiteCoverageController implements R4CoverageApi {
     return ctx.result(lhsResponse);
   }
 
+  private List<ContextValidationRule> updateValidationRules() {
+    return List.of(this::validateIdsMatch, this::validatePatientsMatch, this::validateSitesMatch);
+  }
+
+  private void validateIdsMatch(CoverageWriteContext ctx) {
+    var idFromBody = ctx.body().id();
+    var idFromUrl = ctx.idCoordinates().toString();
+    if (isBlank(idFromBody) || !idFromUrl.equals(idFromBody)) {
+      throw CannotUpdateResourceWithMismatchedIds.because(idFromUrl, idFromBody);
+    }
+  }
+
+  private void validatePatientsMatch(CoverageWriteContext ctx) {
+    var icnFromBody = ctx.patientIcn();
+    var icnFromId = ctx.idCoordinates().icn();
+    if (!icnFromBody.equals(icnFromId)) {
+      throw ExpectationFailed.because(
+          "Patient ICNs do not match: IcnFromBody(%s), IcnFromIdCoordinates(%s)",
+          icnFromBody, icnFromId);
+    }
+  }
+
+  private void validateSitesMatch(CoverageWriteContext ctx) {
+    var siteFromUrl = ctx.site();
+    var siteFromId = ctx.idCoordinates().siteId();
+    if (!siteFromId.equals(siteFromUrl)) {
+      throw ExpectationFailed.because(
+          "Site ids do not match: SiteFromIdCoordinates(%s), SiteFromUrl(%s)",
+          siteFromId, siteFromUrl);
+    }
+  }
+
+  @FunctionalInterface
+  interface ContextValidationRule {
+    void test(CoverageWriteContext ctx);
+  }
+
   @Getter
   @Setter
   private static class CoverageWriteContext {
@@ -244,40 +282,27 @@ public class R4SiteCoverageController implements R4CoverageApi {
 
     private final String patientIcn;
 
+    private final PatientTypeCoordinates idCoordinates;
+
     private LhsLighthouseRpcGatewayResponse.FilemanEntry result;
 
     @Builder
-    public CoverageWriteContext(String site, Coverage body, CoverageWriteApi mode) {
+    public CoverageWriteContext(
+        String site, Coverage body, CoverageWriteApi mode, String privateId) {
       this.site = site;
       this.body = body;
       this.mode = mode;
       this.patientIcn =
           getReferenceId(body.beneficiary())
               .orElseThrow(() -> BadRequestPayload.because("Beneficiary reference not found."));
-    }
-
-    void determineErrorAndThrow(List<LhsLighthouseRpcGatewayResponse.ResultsError> errors) {
-      var errorCodes =
-          errors.stream()
-              .map(LhsLighthouseRpcGatewayResponse.ResultsError::data)
-              .map(m -> m.get("code"))
-              .filter(Objects::nonNull)
-              .toList();
-      if (errorCodes.size() > 1) {
-        throw new FatalServerError("Ambiguous error codes: " + errors);
-      }
-      // ResultsError(data={code=601, location=FILE^LHSIBUTL, text=The entry does not exist.})
-      if ("601".equals(errorCodes.get(0))) {
-        throw new ResourceExceptions.CannotUpdateUnknownResource(body().id());
-      }
-      throw new FatalServerError(errors.toString());
+      this.idCoordinates = privateId == null ? null : PatientTypeCoordinates.fromString(privateId);
     }
 
     String newResourceId() {
       return PatientTypeCoordinates.builder()
-          .siteId(site)
-          .icn(patientIcn)
-          .recordId(result.ien())
+          .siteId(site())
+          .icn(patientIcn())
+          .recordId(result().ien())
           .build()
           .toString();
     }
@@ -285,9 +310,7 @@ public class R4SiteCoverageController implements R4CoverageApi {
     CoverageWriteContext result(LhsLighthouseRpcGatewayResponse response) {
       verifySiteSpecificVistaResponseOrDie(site(), response);
       var resultsForStation = response.resultsByStation().get(site());
-      if (resultsForStation.hasError()) {
-        determineErrorAndThrow(resultsForStation.errors());
-      }
+      LhsGatewayErrorHandler.of(resultsForStation).validateResults();
       var results = resultsForStation.results();
       var insTypeResults =
           resultsForStation.results().stream()
