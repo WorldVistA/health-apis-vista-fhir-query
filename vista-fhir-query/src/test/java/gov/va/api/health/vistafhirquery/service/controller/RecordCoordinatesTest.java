@@ -8,10 +8,11 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 
 public class RecordCoordinatesTest {
+
   @Test
   void identifierFromStringSuccess() {
-    var sample = "ABC;123;456";
-    var expected = RecordCoordinates.builder().site("ABC").file("123").ien("456").build();
+    var sample = "ABC;123;456,789";
+    var expected = RecordCoordinates.builder().site("ABC").file("123").ien("456,789").build();
     assertThat(RecordCoordinates.fromString(sample)).isEqualTo(expected);
   }
 
@@ -27,5 +28,12 @@ public class RecordCoordinatesTest {
     var sample = RecordCoordinates.builder().site("ABC").file("123").ien("456").build();
     var expected = "ABC;123;456";
     assertThat(sample.toString()).isEqualTo(expected);
+  }
+
+  @Test
+  void traillingCommaIsRemoved() {
+    var sample = "ABC;123;456,789,0";
+    var expected = RecordCoordinates.builder().site("ABC").file("123").ien("456,789,0,").build();
+    assertThat(RecordCoordinates.fromString(sample)).isEqualTo(expected);
   }
 }
