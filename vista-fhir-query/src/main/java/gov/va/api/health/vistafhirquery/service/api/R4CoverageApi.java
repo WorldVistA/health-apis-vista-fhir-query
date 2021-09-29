@@ -183,7 +183,7 @@ public interface R4CoverageApi {
                   "The number of resources that should be returned in a single page. "
                       + "The maximum count size is 100.")
           @DefaultValue("30")
-          Integer count);
+          int count);
 
   @PUT
   @Operation(

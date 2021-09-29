@@ -125,7 +125,11 @@ public class R4SiteCoverageController implements R4CoverageApi {
       @PathVariable(value = "site") String site,
       @RequestParam(value = "patient") String patientIcn,
       @RequestParam(value = "page", required = false) Integer page,
-      @RequestParam(value = "_count", required = false) Integer count) {
+      @RequestParam(
+              value = "_count",
+              required = false,
+              defaultValue = "${vista-fhir-query.default-page-size}")
+          int count) {
     var request = lighthouseRpcGatewayRequest(site, coverageByPatientIcn(patientIcn));
     var response = charon.request(request);
     return toBundle(httpRequest, response).apply(lighthouseRpcGatewayResponse(response));

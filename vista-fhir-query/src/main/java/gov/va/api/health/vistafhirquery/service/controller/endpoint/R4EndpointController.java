@@ -64,7 +64,12 @@ public class R4EndpointController implements R4EndpointApi {
   @GetMapping
   public Endpoint.Bundle endpointSearch(
       HttpServletRequest request,
-      @Min(0) @RequestParam(value = "_count", required = false, defaultValue = "100") int count,
+      @Min(0)
+          @RequestParam(
+              value = "_count",
+              required = false,
+              defaultValue = "${vista-fhir-query.default-page-size}")
+          int count,
       @RequestParam(name = "patient", required = false) String patient,
       @RequestParam(value = "status", required = false) String status) {
     if (!isSupportedStatus(status)) {

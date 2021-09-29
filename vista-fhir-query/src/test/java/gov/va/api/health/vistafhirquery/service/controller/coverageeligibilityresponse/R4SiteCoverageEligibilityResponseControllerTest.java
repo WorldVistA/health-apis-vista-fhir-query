@@ -31,8 +31,7 @@ public class R4SiteCoverageEligibilityResponseControllerTest {
   void noop() {
     assertThat(
             _controller()
-                .coverageEligibilityResponseSearch(
-                    mock(HttpServletRequest.class), "123", "p1", null)
+                .coverageEligibilityResponseSearch(mock(HttpServletRequest.class), "123", "p1", 15)
                 .entry())
         .isEmpty();
   }

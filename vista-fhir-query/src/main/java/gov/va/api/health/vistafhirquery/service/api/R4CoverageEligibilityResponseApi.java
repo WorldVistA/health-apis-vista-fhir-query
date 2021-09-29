@@ -61,5 +61,5 @@ public interface R4CoverageEligibilityResponseApi {
               name = "_count",
               description = "The number of resources that should be returned in a single page.")
           @DefaultValue("30")
-          Integer count);
+          int count);
 }

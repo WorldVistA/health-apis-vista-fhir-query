@@ -45,7 +45,11 @@ public class R4SiteCoverageEligibilityResponseController
       @Redact HttpServletRequest httpRequest,
       @NonNull @PathVariable(value = "site") String site,
       @RequestParam(value = "patient") String icn,
-      @RequestParam(value = "_count", required = false) Integer count) {
+      @RequestParam(
+              value = "_count",
+              required = false,
+              defaultValue = "${vista-fhir-query.default-page-size}")
+          int count) {
     var searchByPatient =
         LhsLighthouseRpcGatewayCoverageSearch.Request.builder().id(PatientId.forIcn(icn)).build();
     var charonRequest = lighthouseRpcGatewayRequest(site, searchByPatient);
