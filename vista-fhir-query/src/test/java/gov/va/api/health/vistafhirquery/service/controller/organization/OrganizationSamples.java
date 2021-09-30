@@ -18,6 +18,7 @@ import gov.va.api.health.vistafhirquery.service.controller.RecordCoordinates;
 import gov.va.api.lighthouse.charon.models.lhslighthouserpcgateway.InsuranceCompany;
 import gov.va.api.lighthouse.charon.models.lhslighthouserpcgateway.LhsLighthouseRpcGatewayCoverageWrite.WriteableFilemanValue;
 import gov.va.api.lighthouse.charon.models.lhslighthouserpcgateway.LhsLighthouseRpcGatewayResponse;
+import gov.va.api.lighthouse.charon.models.lhslighthouserpcgateway.Payer;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -52,29 +53,30 @@ public class OrganizationSamples {
         .build();
   }
 
+  private WriteableFilemanValue pointerTo(String file, String ien) {
+    return WriteableFilemanValue.builder().file(file).index(1).field("ien").value(ien).build();
+  }
+
   @NoArgsConstructor(staticName = "create")
   public static class VistaLhsLighthouseRpcGateway {
     public Set<WriteableFilemanValue> createApiInput() {
       return Set.of(
           insuranceCompanyValue(InsuranceCompany.NAME, "SHANKS OF FL"),
           insuranceCompanyValue(InsuranceCompany.CITY, "SHANK CITY"),
-          insuranceCompanyValue(InsuranceCompany.STATE, "SHANKTICUT"),
+          insuranceCompanyValue(InsuranceCompany.STATE, "12"),
           insuranceCompanyValue(InsuranceCompany.STREET_ADDRESS_LINE_1_, "SHANKSVILLE LINE 1"),
           insuranceCompanyValue(InsuranceCompany.STREET_ADDRESS_LINE_2_, "SHANKSVILLE LINE 2"),
           insuranceCompanyValue(InsuranceCompany.STREET_ADDRESS_LINE_3_, "SHANKSVILLE LINE 3"),
-          insuranceCompanyValue(InsuranceCompany.ZIP_CODE, "SHANKZIP"),
+          insuranceCompanyValue(InsuranceCompany.ZIP_CODE, "322310014"),
           insuranceCompanyValue(InsuranceCompany.BILLING_COMPANY_NAME, "SHANK-BILLING"),
           insuranceCompanyValue(InsuranceCompany.FAX_NUMBER, "SHANKFAX"),
-          insuranceCompanyValue(InsuranceCompany.TYPE_OF_COVERAGE, "SHANK INSURANCE"),
-          insuranceCompanyValue(InsuranceCompany.PHONE_NUMBER, "1-800-SHANKTO"),
-          insuranceCompanyValue(InsuranceCompany.BILLING_PHONE_NUMBER, "1-800-SHANK-BILLING"),
-          insuranceCompanyValue(
-              InsuranceCompany.PRECERTIFICATION_PHONE_NUMBER, "1-800-SHANK-PRECERT"),
-          insuranceCompanyValue(
-              InsuranceCompany.VERIFICATION_PHONE_NUMBER, "1-800-SHANK-VERIFICATION"),
-          insuranceCompanyValue(
-              InsuranceCompany.CLAIMS_INPT_PHONE_NUMBER, "1-800-SHANK-CLAIMS-INPT"),
-          insuranceCompanyValue(InsuranceCompany.CLAIMS_OPT_PHONE_NUMBER, "1-800-SHANK-CLAIMS-OPT"),
+          pointerTo("355.2", "5"),
+          insuranceCompanyValue(InsuranceCompany.PHONE_NUMBER, "800-456-8888"),
+          insuranceCompanyValue(InsuranceCompany.BILLING_PHONE_NUMBER, "800-123-7777"),
+          insuranceCompanyValue(InsuranceCompany.PRECERTIFICATION_PHONE_NUMBER, "800-222-9999"),
+          insuranceCompanyValue(InsuranceCompany.VERIFICATION_PHONE_NUMBER, "800-333-8888"),
+          insuranceCompanyValue(InsuranceCompany.CLAIMS_INPT_PHONE_NUMBER, "800-444-7777"),
+          insuranceCompanyValue(InsuranceCompany.CLAIMS_OPT_PHONE_NUMBER, "800-555-6666"),
           insuranceCompanyValue(InsuranceCompany.APPEALS_PHONE_NUMBER, "1-800-SHANK-APPEALS"),
           insuranceCompanyValue(InsuranceCompany.INQUIRY_PHONE_NUMBER, "1-800-SHANK-INQUIRY"),
           insuranceCompanyValue(InsuranceCompany.STANDARD_FTF, "DAYS"),
@@ -84,17 +86,28 @@ public class OrganizationSamples {
           insuranceCompanyValue(InsuranceCompany.TRANSMIT_ELECTRONICALLY, "2"),
           insuranceCompanyValue(InsuranceCompany.EDI_ID_NUMBER_PROF, "55555"),
           insuranceCompanyValue(InsuranceCompany.EDI_ID_NUMBER_INST, "55555"),
-          insuranceCompanyValue(
-              InsuranceCompany.ELECTRONIC_INSURANCE_TYPE, "ELECTRONIC INSHANKANCE"),
-          insuranceCompanyValue(InsuranceCompany.PAYER, "SHANK PAYER"),
-          insuranceCompanyValue(
-              InsuranceCompany.SECONDARY_ID_REQUIREMENTS, "SHANKONDARY ID REQUIREMENTS"),
+          insuranceCompanyValue(InsuranceCompany.ELECTRONIC_INSURANCE_TYPE, "OTHER"),
+          pointerTo(Payer.FILE_NUMBER, "17"),
+          insuranceCompanyValue(InsuranceCompany.SECONDARY_ID_REQUIREMENTS, "NONE REQUIRED"),
           insuranceCompanyValue(InsuranceCompany.REF_PROV_SEC_ID_REQ_ON_CLAIMS, "0"),
           insuranceCompanyValue(InsuranceCompany.ATT_REND_ID_BILL_SEC_ID_PROF, "0"),
           insuranceCompanyValue(InsuranceCompany.ATT_REND_ID_BILL_SEC_ID_INST, "0"),
           insuranceCompanyValue(InsuranceCompany.PRINT_SEC_TERT_AUTO_CLAIMS_, "0"),
           insuranceCompanyValue(InsuranceCompany.PRINT_SEC_MED_CLAIMS_W_O_MRA_, "0"),
           insuranceCompanyValue(InsuranceCompany.N277EDI_ID_NUMBER, "22-7777777"));
+    }
+
+    public LhsLighthouseRpcGatewayResponse.Results createOrganizationResults(String id) {
+      return LhsLighthouseRpcGatewayResponse.Results.builder()
+          .results(
+              List.of(
+                  LhsLighthouseRpcGatewayResponse.FilemanEntry.builder()
+                      .file("36")
+                      .ien(id)
+                      .index("1")
+                      .status("1")
+                      .build()))
+          .build();
     }
 
     private Map<String, LhsLighthouseRpcGatewayResponse.Values> fields() {

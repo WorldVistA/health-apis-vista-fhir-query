@@ -34,18 +34,30 @@ public class R4OrganizationToInsuranceCompanyFileTransformer {
         .build();
   }
 
+  /*
+  private WriteableFilemanValue pointer(@NonNull String file, int index, String ien) {
+    if (isBlank(ien)) {
+      return null;
+    }
+    return WriteableFilemanValue.builder().file(file).field("ien").index(index).value(ien).build();
+  }
+  */
+
   /** Create a set of writeable fileman values. */
   public Set<WriteableFilemanValue> toInsuranceCompanyFile() {
+
+    var n = System.currentTimeMillis() / 1000;
+    var name = "FUGAZI-" + n;
     Set<WriteableFilemanValue> fields = new HashSet<>();
     fields.add(
-        insuranceCompanyCoordinatesOrBadRequestPayload(
-            InsuranceCompany.NAME, 1, "SHANKS OF FL", "name"));
+        insuranceCompanyCoordinatesOrBadRequestPayload(InsuranceCompany.NAME, 1, name, "name"));
+    return fields;
+    /*
     fields.add(
         insuranceCompanyCoordinatesOrBadRequestPayload(
             InsuranceCompany.CITY, 1, "SHANK CITY", "city"));
     fields.add(
-        insuranceCompanyCoordinatesOrBadRequestPayload(
-            InsuranceCompany.STATE, 1, "SHANKTICUT", "state"));
+        insuranceCompanyCoordinatesOrBadRequestPayload(InsuranceCompany.STATE, 1, "12", "state"));
     fields.add(
         insuranceCompanyCoordinatesOrBadRequestPayload(
             InsuranceCompany.STREET_ADDRESS_LINE_1_, 1, "SHANKSVILLE LINE 1", "address line 1"));
@@ -57,48 +69,43 @@ public class R4OrganizationToInsuranceCompanyFileTransformer {
             InsuranceCompany.STREET_ADDRESS_LINE_3_, 1, "SHANKSVILLE LINE 3", "address line 3"));
     fields.add(
         insuranceCompanyCoordinatesOrBadRequestPayload(
-            InsuranceCompany.ZIP_CODE, 1, "SHANKZIP", "zipcode"));
+            InsuranceCompany.ZIP_CODE, 1, "322310014", "zipcode"));
     fields.add(
         insuranceCompanyCoordinatesOrBadRequestPayload(
             InsuranceCompany.BILLING_COMPANY_NAME, 1, "SHANK-BILLING", "billing company name"));
     fields.add(
         insuranceCompanyCoordinatesOrBadRequestPayload(
             InsuranceCompany.FAX_NUMBER, 1, "SHANKFAX", "fax number"));
+    fields.add(pointer("355.2", 1, "5"));
     fields.add(
         insuranceCompanyCoordinatesOrBadRequestPayload(
-            InsuranceCompany.TYPE_OF_COVERAGE, 1, "SHANK INSURANCE", "type of coverage"));
+            InsuranceCompany.PHONE_NUMBER, 1, "800-456-8888", "phone number"));
     fields.add(
         insuranceCompanyCoordinatesOrBadRequestPayload(
-            InsuranceCompany.PHONE_NUMBER, 1, "1-800-SHANKTO", "phone number"));
-    fields.add(
-        insuranceCompanyCoordinatesOrBadRequestPayload(
-            InsuranceCompany.BILLING_PHONE_NUMBER,
-            1,
-            "1-800-SHANK-BILLING",
-            "billing phone number"));
+            InsuranceCompany.BILLING_PHONE_NUMBER, 1, "800-123-7777", "billing phone number"));
     fields.add(
         insuranceCompanyCoordinatesOrBadRequestPayload(
             InsuranceCompany.PRECERTIFICATION_PHONE_NUMBER,
             1,
-            "1-800-SHANK-PRECERT",
+            "800-222-9999",
             "precertification phone number"));
     fields.add(
         insuranceCompanyCoordinatesOrBadRequestPayload(
             InsuranceCompany.VERIFICATION_PHONE_NUMBER,
             1,
-            "1-800-SHANK-VERIFICATION",
+            "800-333-8888",
             "verification phone number"));
     fields.add(
         insuranceCompanyCoordinatesOrBadRequestPayload(
             InsuranceCompany.CLAIMS_INPT_PHONE_NUMBER,
             1,
-            "1-800-SHANK-CLAIMS-INPT",
+            "800-444-7777",
             "claims inpt phone number"));
     fields.add(
         insuranceCompanyCoordinatesOrBadRequestPayload(
             InsuranceCompany.CLAIMS_OPT_PHONE_NUMBER,
             1,
-            "1-800-SHANK-CLAIMS-OPT",
+            "800-555-6666",
             "claims opt phone number"));
     fields.add(
         insuranceCompanyCoordinatesOrBadRequestPayload(
@@ -135,18 +142,13 @@ public class R4OrganizationToInsuranceCompanyFileTransformer {
             InsuranceCompany.EDI_ID_NUMBER_INST, 1, "55555", "edi id number inst"));
     fields.add(
         insuranceCompanyCoordinatesOrBadRequestPayload(
-            InsuranceCompany.ELECTRONIC_INSURANCE_TYPE,
-            1,
-            "ELECTRONIC INSHANKANCE",
-            "electronic insurance type"));
-    fields.add(
-        insuranceCompanyCoordinatesOrBadRequestPayload(
-            InsuranceCompany.PAYER, 1, "SHANK PAYER", "payer"));
+            InsuranceCompany.ELECTRONIC_INSURANCE_TYPE, 1, "OTHER", "electronic insurance type"));
+    fields.add(pointer("365.12", 1, "17"));
     fields.add(
         insuranceCompanyCoordinatesOrBadRequestPayload(
             InsuranceCompany.SECONDARY_ID_REQUIREMENTS,
             1,
-            "SHANKONDARY ID REQUIREMENTS",
+            "NONE REQUIRED",
             "secondary id requirements"));
     fields.add(
         insuranceCompanyCoordinatesOrBadRequestPayload(
@@ -173,5 +175,6 @@ public class R4OrganizationToInsuranceCompanyFileTransformer {
         insuranceCompanyCoordinatesOrBadRequestPayload(
             InsuranceCompany.N277EDI_ID_NUMBER, 1, "22-7777777", "n277edi id number"));
     return fields;
+     */
   }
 }

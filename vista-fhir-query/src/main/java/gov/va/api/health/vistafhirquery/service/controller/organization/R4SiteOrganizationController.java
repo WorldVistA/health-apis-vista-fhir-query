@@ -4,30 +4,40 @@ import static gov.va.api.health.vistafhirquery.service.charonclient.CharonReques
 import static gov.va.api.health.vistafhirquery.service.charonclient.CharonRequests.lighthouseRpcGatewayResponse;
 import static gov.va.api.health.vistafhirquery.service.controller.R4Controllers.dieOnError;
 import static gov.va.api.health.vistafhirquery.service.controller.R4Controllers.verifyAndGetResult;
+import static gov.va.api.health.vistafhirquery.service.controller.R4Controllers.verifySiteSpecificVistaResponseOrDie;
+import static gov.va.api.health.vistafhirquery.service.controller.ResourceExceptions.ExpectationFailed;
+import static java.util.stream.Collectors.joining;
 import static java.util.stream.Collectors.toList;
 
-import com.google.common.net.HttpHeaders;
 import gov.va.api.health.autoconfig.logging.Redact;
 import gov.va.api.health.r4.api.resources.Organization;
 import gov.va.api.health.vistafhirquery.service.api.R4OrganizationApi;
 import gov.va.api.health.vistafhirquery.service.charonclient.CharonClient;
-import gov.va.api.health.vistafhirquery.service.config.LinkProperties;
+import gov.va.api.health.vistafhirquery.service.controller.R4BundlerFactory;
+import gov.va.api.health.vistafhirquery.service.controller.R4Controllers.FatalServerError;
 import gov.va.api.health.vistafhirquery.service.controller.R4Transformation;
 import gov.va.api.health.vistafhirquery.service.controller.RecordCoordinates;
 import gov.va.api.health.vistafhirquery.service.controller.ResourceExceptions.NotFound;
 import gov.va.api.health.vistafhirquery.service.controller.witnessprotection.WitnessProtection;
 import gov.va.api.lighthouse.charon.models.lhslighthouserpcgateway.InsuranceCompany;
+import gov.va.api.lighthouse.charon.models.lhslighthouserpcgateway.LhsLighthouseRpcGatewayCoverageWrite;
+import gov.va.api.lighthouse.charon.models.lhslighthouserpcgateway.LhsLighthouseRpcGatewayCoverageWrite.Request.CoverageWriteApi;
 import gov.va.api.lighthouse.charon.models.lhslighthouserpcgateway.LhsLighthouseRpcGatewayGetsManifest;
 import gov.va.api.lighthouse.charon.models.lhslighthouserpcgateway.LhsLighthouseRpcGatewayGetsManifest.Request.GetsManifestFlags;
 import gov.va.api.lighthouse.charon.models.lhslighthouserpcgateway.LhsLighthouseRpcGatewayResponse;
+import gov.va.api.lighthouse.charon.models.lhslighthouserpcgateway.LhsLighthouseRpcGatewayResponse.ResultsError;
 import java.util.List;
+import java.util.Objects;
 import javax.servlet.http.HttpServletResponse;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
+import lombok.Getter;
 import lombok.NonNull;
+import lombok.Setter;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpHeaders;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -43,12 +53,11 @@ import org.springframework.web.bind.annotation.RestController;
 @AllArgsConstructor(onConstructor_ = {@Autowired, @NonNull})
 @Slf4j
 public class R4SiteOrganizationController implements R4OrganizationApi {
+  private final R4BundlerFactory bundlerFactory;
 
   private final WitnessProtection witnessProtection;
 
   private final CharonClient charon;
-
-  private final LinkProperties linkProperties;
 
   /** Create A request based off of record coordinates. */
   public static LhsLighthouseRpcGatewayGetsManifest.Request manifestRequest(
@@ -79,9 +88,23 @@ public class R4SiteOrganizationController implements R4OrganizationApi {
       @Redact HttpServletResponse response,
       @PathVariable(value = "site") String site,
       @Redact @RequestBody Organization body) {
-    var newResourceUrl = linkProperties.r4().readUrl(site, "Organization", "{new-resource-id}");
-    response.setStatus(201);
+    var ctx =
+        updateOrCreate(
+            OrganizationWriteContext.builder()
+                .site(site)
+                .body(body)
+                .mode(CoverageWriteApi.CREATE)
+                .build());
+    var newResourceUrl =
+        bundlerFactory
+            .linkProperties()
+            .r4()
+            .readUrl(
+                site,
+                "Organization",
+                witnessProtection.toPublicId(Organization.class, ctx.newResourceId()));
     response.addHeader(HttpHeaders.LOCATION, newResourceUrl);
+    response.setStatus(201);
   }
 
   @Override
@@ -100,9 +123,21 @@ public class R4SiteOrganizationController implements R4OrganizationApi {
     var response = charon.request(request);
     var lhsResponse = lighthouseRpcGatewayResponse(response);
     dieOnError(lhsResponse);
-
     var resources = transformation().toResource().apply(lhsResponse);
     return verifyAndGetResult(resources, id);
+  }
+
+  private LhsLighthouseRpcGatewayCoverageWrite.Request organizationWriteDetails(
+      CoverageWriteApi operation, Organization body) {
+    var fieldsToWrite =
+        R4OrganizationToInsuranceCompanyFileTransformer.builder()
+            .organization(body)
+            .build()
+            .toInsuranceCompanyFile();
+    return LhsLighthouseRpcGatewayCoverageWrite.Request.builder()
+        .api(operation)
+        .fields(fieldsToWrite)
+        .build();
   }
 
   private R4Transformation<LhsLighthouseRpcGatewayResponse, Organization> transformation() {
@@ -118,5 +153,85 @@ public class R4SiteOrganizationController implements R4OrganizationApi {
                                 .toFhir())
                     .collect(toList()))
         .build();
+  }
+
+  private OrganizationWriteContext updateOrCreate(OrganizationWriteContext ctx) {
+    var charonRequest =
+        lighthouseRpcGatewayRequest(ctx.site(), organizationWriteDetails(ctx.mode(), ctx.body()));
+    var charonResponse = charon.request(charonRequest);
+    var lhsResponse = lighthouseRpcGatewayResponse(charonResponse);
+    return ctx.result(lhsResponse);
+  }
+
+  @Getter
+  @Setter
+  private static class OrganizationWriteContext {
+    private final String site;
+
+    private final Organization body;
+
+    private final String fileNumber;
+
+    /** The CoverageWriteApi is used for organization writes as well. */
+    private final CoverageWriteApi mode;
+
+    private LhsLighthouseRpcGatewayResponse.FilemanEntry result;
+
+    @Builder
+    public OrganizationWriteContext(String site, Organization body, CoverageWriteApi mode) {
+      this.site = site;
+      this.body = body;
+      this.mode = mode;
+      this.fileNumber = InsuranceCompany.FILE_NUMBER;
+    }
+
+    void determineErrorAndThrow(List<LhsLighthouseRpcGatewayResponse.ResultsError> errors) {
+      var errorCodes =
+          errors.stream()
+              .map(LhsLighthouseRpcGatewayResponse.ResultsError::data)
+              .map(m -> m.get("code"))
+              .filter(Objects::nonNull)
+              .toList();
+      if (errorCodes.size() > 1) {
+        throw new FatalServerError(
+            "Ambiguous error codes: \n"
+                + errors.stream()
+                    .map(ResultsError::data)
+                    .map(Objects::toString)
+                    .collect(joining("\n")));
+      }
+      throw new FatalServerError(errors.stream().map(Objects::toString).collect(joining("\n")));
+    }
+
+    String newResourceId() {
+      return RecordCoordinates.builder()
+          .site(site())
+          .ien(result().ien())
+          .file(fileNumber())
+          .build()
+          .toString();
+    }
+
+    OrganizationWriteContext result(LhsLighthouseRpcGatewayResponse response) {
+      verifySiteSpecificVistaResponseOrDie(site(), response);
+      var resultsForStation = response.resultsByStation().get(site());
+      if (resultsForStation.hasError()) {
+        determineErrorAndThrow(resultsForStation.errors());
+      }
+      var results = resultsForStation.results();
+      var insTypeResults =
+          resultsForStation.results().stream()
+              .filter(entry -> fileNumber.equals(entry.file()))
+              .toList();
+      if (insTypeResults.size() != 1) {
+        throw ExpectationFailed.because("Unexpected number of results: " + results.size());
+      }
+      if ("1".equals(insTypeResults.get(0).status())) {
+        this.result = insTypeResults.get(0);
+        return this;
+      }
+      throw ExpectationFailed.because(
+          "Unexpected status code from results: " + insTypeResults.get(0).status());
+    }
   }
 }

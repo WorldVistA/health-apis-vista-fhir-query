@@ -5,20 +5,25 @@ import static gov.va.api.health.vistafhirquery.service.charonclient.CharonTestSu
 import static gov.va.api.health.vistafhirquery.service.controller.MockRequests.json;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
+import static org.junit.jupiter.api.Assertions.fail;
 import static org.mockito.Mockito.when;
 
 import gov.va.api.health.vistafhirquery.service.charonclient.CharonClient;
+import gov.va.api.health.vistafhirquery.service.config.LinkProperties;
 import gov.va.api.health.vistafhirquery.service.controller.MockWitnessProtection;
+import gov.va.api.health.vistafhirquery.service.controller.R4BundlerFactory;
 import gov.va.api.health.vistafhirquery.service.controller.ResourceExceptions.NotFound;
+import gov.va.api.health.vistafhirquery.service.controller.witnessprotection.AlternatePatientIds;
 import gov.va.api.lighthouse.charon.api.v1.RpcInvocationResultV1;
 import gov.va.api.lighthouse.charon.models.lhslighthouserpcgateway.LhsLighthouseRpcGatewayCoverageSearch;
+import gov.va.api.lighthouse.charon.models.lhslighthouserpcgateway.LhsLighthouseRpcGatewayCoverageWrite;
 import gov.va.api.lighthouse.charon.models.lhslighthouserpcgateway.LhsLighthouseRpcGatewayGetsManifest;
 import gov.va.api.lighthouse.charon.models.lhslighthouserpcgateway.LhsLighthouseRpcGatewayResponse;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.http.HttpHeaders;
 import org.springframework.mock.web.MockHttpServletResponse;
 
 @ExtendWith(MockitoExtension.class)
@@ -29,7 +34,17 @@ class R4SiteOrganizationControllerTest {
 
   private R4SiteOrganizationController _controller() {
     return R4SiteOrganizationController.builder()
-        .linkProperties(OrganizationSamples.linkProperties())
+        .bundlerFactory(
+            R4BundlerFactory.builder()
+                .linkProperties(
+                    LinkProperties.builder()
+                        .defaultPageSize(15)
+                        .maxPageSize(100)
+                        .publicUrl("http://fugazi.com")
+                        .publicR4BasePath("site/{site}/r4")
+                        .build())
+                .alternatePatientIds(new AlternatePatientIds.DisabledAlternatePatientIds())
+                .build())
         .charon(charon)
         .witnessProtection(witnessProtection)
         .build();
@@ -46,12 +61,35 @@ class R4SiteOrganizationControllerTest {
   @Test
   void create() {
     var response = new MockHttpServletResponse();
+    var samples = OrganizationSamples.VistaLhsLighthouseRpcGateway.create();
+    var results = samples.createOrganizationResults("ien1");
+    var captor = requestCaptor(LhsLighthouseRpcGatewayCoverageWrite.Request.class);
+    var answer =
+        answerFor(captor).value(results).invocationResult(_invocationResult(results)).build();
+    when(charon.request(captor.capture())).thenAnswer(answer);
+    witnessProtection.add("pub1", "123;36;ien1");
     _controller()
         .organizationCreate(
-            response, "123", OrganizationSamples.R4.create().organization("123", "o1"));
+            response, "123", OrganizationSamples.R4.create().organization("123", "ien1"));
+    assertThat(captor.getValue().rpcRequest().api())
+        .isEqualTo(LhsLighthouseRpcGatewayCoverageWrite.Request.CoverageWriteApi.CREATE);
     assertThat(response.getStatus()).isEqualTo(201);
-    assertThat(response.getHeader(HttpHeaders.LOCATION))
-        .isEqualTo("http://fake.com/site/123/r4/Organization/{new-resource-id}");
+    assertThat(response.getHeader("Location"))
+        .isEqualTo("http://fugazi.com/site/123/r4/Organization/pub1");
+  }
+
+  @Test
+  @Disabled
+  void createThrowsBadPayloadForPayloadMissingRequiredFields() {
+    // payload is missing required fields (fails minimum required fields validation)
+    fail();
+  }
+
+  @Test
+  @Disabled
+  void createThrowsCannotCreateUnknownResourceForUnknownResource() {
+    // trying to create organization with a payload that is not organization
+    fail();
   }
 
   @Test
