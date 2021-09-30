@@ -1,17 +1,13 @@
 package gov.va.api.health.vistafhirquery.service.controller;
 
-import static gov.va.api.health.vistafhirquery.service.controller.R4Transformers.allBlank;
-import static gov.va.api.health.vistafhirquery.service.controller.R4Transformers.getReferenceId;
-import static gov.va.api.health.vistafhirquery.service.controller.R4Transformers.ifPresent;
-import static gov.va.api.health.vistafhirquery.service.controller.R4Transformers.isBlank;
-import static gov.va.api.health.vistafhirquery.service.controller.R4Transformers.toBigDecimal;
-import static gov.va.api.health.vistafhirquery.service.controller.R4Transformers.toHumanDateTime;
-import static gov.va.api.health.vistafhirquery.service.controller.R4Transformers.toIso8601;
-import static gov.va.api.health.vistafhirquery.service.controller.R4Transformers.toLocalDateMacroString;
-import static gov.va.api.health.vistafhirquery.service.controller.R4Transformers.valueOfValueOnlyXmlAttribute;
+import static gov.va.api.health.vistafhirquery.service.controller.R4Transformers.*;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 
+import gov.va.api.health.r4.api.datatypes.CodeableConcept;
+import gov.va.api.health.r4.api.datatypes.Coding;
+import gov.va.api.health.r4.api.datatypes.Identifier;
+import gov.va.api.health.r4.api.elements.Extension;
 import gov.va.api.health.r4.api.elements.Reference;
 import gov.va.api.lighthouse.charon.models.FilemanDate;
 import gov.va.api.lighthouse.charon.models.ValueOnlyXmlAttribute;
@@ -80,6 +76,39 @@ public class R4TransformersTest {
   }
 
   @Test
+  void codeableConceptHasCodingSystemTest() {
+    assertThat(
+            codeableconceptHasCodingSystem(
+                CodeableConcept.builder()
+                    .coding(List.of(Coding.builder().system("system").build()))
+                    .build(),
+                "system"))
+        .isTrue();
+    assertThat(
+            codeableconceptHasCodingSystem(
+                CodeableConcept.builder()
+                    .coding(List.of(Coding.builder().system("system").build()))
+                    .build(),
+                "nope"))
+        .isFalse();
+    assertThat(codeableconceptHasCodingSystem(CodeableConcept.builder().build(), "system"))
+        .isFalse();
+    assertThat(
+            codeableconceptHasCodingSystem(
+                CodeableConcept.builder().coding(List.of()).build(), "system"))
+        .isFalse();
+  }
+
+  @Test
+  void extensionForSystemTest() {
+    assertThatExceptionOfType(ResourceExceptions.BadRequestPayload.class)
+        .isThrownBy(() -> extensionForSystem(null, "url"));
+    assertThat(
+            extensionForSystem(List.of(Extension.builder().url("url").build()), "url").isPresent())
+        .isTrue();
+  }
+
+  @Test
   void getReferenceIds() {
     assertThat(getReferenceId(Reference.builder().reference("Patient/p1").build()).get())
         .isEqualTo("p1");
@@ -102,6 +131,15 @@ public class R4TransformersTest {
         .isThrownBy(() -> toHumanDateTime(ValueOnlyXmlAttribute.of("29")));
     assertThatExceptionOfType(FilemanDate.BadFilemanDate.class)
         .isThrownBy(() -> toHumanDateTime(ValueOnlyXmlAttribute.of("abc")));
+  }
+
+  @Test
+  void identifierHasCodingSystemTest() {
+    assertThat(identifierHasCodingSystem(Identifier.builder().system("system").build(), "system"))
+        .isTrue();
+    assertThat(identifierHasCodingSystem(Identifier.builder().system("system").build(), "nope"))
+        .isFalse();
+    assertThat(identifierHasCodingSystem(Identifier.builder().build(), "system")).isFalse();
   }
 
   @Test

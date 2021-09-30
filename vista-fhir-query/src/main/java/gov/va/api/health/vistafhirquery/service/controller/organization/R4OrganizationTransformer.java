@@ -363,7 +363,8 @@ public class R4OrganizationTransformer {
             extensions.ofQuantity(
                 InsuranceCompany.STANDARD_FTF_VALUE,
                 "d",
-                "urn:oid:2.16.840.1.113883.3.8901.3.3558013"),
+                "urn:oid:2.16.840.1.113883.3.8901.3.1.3558013",
+                "http://va.gov/fhir/StructureDefinition/organization-planStandardFilingTimeFrame"),
             extensions.ofCodeableConcept(
                 InsuranceCompany.REIMBURSE_,
                 "urn:oid:2.16.840.1.113883.3.8901.3.36.1",

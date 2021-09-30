@@ -35,7 +35,7 @@ public class ExtensionFactory {
   }
 
   /** Creates a valueQuantity extension. */
-  public Extension ofQuantity(String fieldNumber, String unit, String system) {
+  public Extension ofQuantity(String fieldNumber, String unit, String system, String url) {
     var value = entry.internal(fieldNumber);
     if (value.isEmpty()) {
       return null;
@@ -47,6 +47,7 @@ public class ExtensionFactory {
       throw new LhsLighthouseRpcGatewayResponse.UnexpectedVistaValue(fieldNumber, value, e);
     }
     return Extension.builder()
+        .url(url)
         .valueQuantity(Quantity.builder().value(quantity).unit(unit).system(system).build())
         .build();
   }

@@ -5,6 +5,8 @@ import static org.springframework.util.CollectionUtils.isEmpty;
 import gov.va.api.health.fhir.api.IsReference;
 import gov.va.api.health.r4.api.datatypes.CodeableConcept;
 import gov.va.api.health.r4.api.datatypes.Coding;
+import gov.va.api.health.r4.api.datatypes.Identifier;
+import gov.va.api.health.r4.api.elements.Extension;
 import gov.va.api.health.r4.api.elements.Reference;
 import gov.va.api.lighthouse.charon.models.FilemanDate;
 import gov.va.api.lighthouse.charon.models.ValueOnlyXmlAttribute;
@@ -50,6 +52,14 @@ public class R4Transformers {
     return CodeableConcept.builder().coding(List.of(coding)).build();
   }
 
+  /** Checks if the given system value has a match in the given CodeableConcept's coding List. */
+  public static boolean codeableconceptHasCodingSystem(CodeableConcept c, String system) {
+    if (isBlank(c) || emptyToNull(c.coding()) == null) {
+      return false;
+    }
+    return c.coding().stream().anyMatch(coding -> system.equals(coding.system()));
+  }
+
   /** Filter null items and return null if the result is null or empty. */
   public static <T> List<T> emptyToNull(List<T> items) {
     if (isEmpty(items)) {
@@ -57,6 +67,15 @@ public class R4Transformers {
     }
     List<T> filtered = items.stream().filter(Objects::nonNull).collect(Collectors.toList());
     return filtered.isEmpty() ? null : filtered;
+  }
+
+  /** Extract an extension whose url matches the given url. */
+  public static Optional<Extension> extensionForSystem(
+      List<Extension> extensions, String definingUrl) {
+    if (isBlank(extensions)) {
+      throw ResourceExceptions.BadRequestPayload.because("extension is null");
+    }
+    return extensions.stream().filter(extension -> definingUrl.equals(extension.url())).findFirst();
   }
 
   /** Given a reference, attempt to get the reference Id from the reference field. */
@@ -70,6 +89,14 @@ public class R4Transformers {
       return Optional.empty();
     }
     return Optional.ofNullable(referenceParts[referenceParts.length - 1]);
+  }
+
+  /** Checks if the given system value matches to the given Identifier's system field. */
+  public static boolean identifierHasCodingSystem(Identifier i, String system) {
+    if (i == null || isBlank(i.system())) {
+      return false;
+    }
+    return system.equals(i.system());
   }
 
   /**

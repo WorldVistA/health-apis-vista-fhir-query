@@ -79,6 +79,7 @@ public class R4InsurancePlanTransformer {
             extensions.ofQuantity(
                 GroupInsurancePlan.PLAN_STANDARD_FTF_VALUE,
                 entry.external(GroupInsurancePlan.PLAN_STANDARD_FTF).orElse(null),
+                "urn:oid:2.16.840.1.113883.3.8901.3.1.3558013",
                 "http://va.gov/fhir/StructureDefinition/insuranceplan-planStandardFilingTimeFrame"))
         .filter(Objects::nonNull)
         .toList();

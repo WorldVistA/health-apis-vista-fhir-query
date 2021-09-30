@@ -12,11 +12,14 @@ import gov.va.api.health.r4.api.resources.InsurancePlan;
 import gov.va.api.health.vistafhirquery.service.config.LinkProperties;
 import gov.va.api.health.vistafhirquery.service.controller.RecordCoordinates;
 import gov.va.api.lighthouse.charon.models.lhslighthouserpcgateway.GroupInsurancePlan;
+import gov.va.api.lighthouse.charon.models.lhslighthouserpcgateway.InsuranceCompany;
+import gov.va.api.lighthouse.charon.models.lhslighthouserpcgateway.LhsLighthouseRpcGatewayCoverageWrite.WriteableFilemanValue;
 import gov.va.api.lighthouse.charon.models.lhslighthouserpcgateway.LhsLighthouseRpcGatewayResponse;
 import java.math.BigDecimal;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import lombok.NoArgsConstructor;
 import lombok.SneakyThrows;
 import lombok.experimental.UtilityClass;
@@ -66,12 +69,13 @@ public class InsurancePlanSamples {
               .valueBoolean(true)
               .build(),
           Extension.builder()
+              .url(
+                  "http://va.gov/fhir/StructureDefinition/insuranceplan-planStandardFilingTimeFrame")
               .valueQuantity(
                   Quantity.builder()
                       .value(new BigDecimal("365"))
                       .unit("DAYS")
-                      .system(
-                          "http://va.gov/fhir/StructureDefinition/insuranceplan-planStandardFilingTimeFrame")
+                      .system("urn:oid:2.16.840.1.113883.3.8901.3.1.3558013")
                       .build())
               .build());
     }
@@ -153,6 +157,24 @@ public class InsurancePlanSamples {
 
   @NoArgsConstructor(staticName = "create")
   public static class VistaLhsLighthouseRpcGateway {
+
+    public Set<WriteableFilemanValue> createApiInput() {
+      return Set.of(
+          pointerTo(InsuranceCompany.FILE_NUMBER, "8"),
+          insuranceValue(GroupInsurancePlan.IS_UTILIZATION_REVIEW_REQUIRED, "YES"),
+          insuranceValue(GroupInsurancePlan.IS_PRE_CERTIFICATION_REQUIRED_, "YES"),
+          insuranceValue(GroupInsurancePlan.EXCLUDE_PRE_EXISTING_CONDITION, "NO"),
+          insuranceValue(GroupInsurancePlan.BENEFITS_ASSIGNABLE_, "YES"),
+          insuranceValue(GroupInsurancePlan.TYPE_OF_PLAN, "40"),
+          insuranceValue(GroupInsurancePlan.AMBULATORY_CARE_CERTIFICATION, "YES"),
+          insuranceValue(GroupInsurancePlan.ELECTRONIC_PLAN_TYPE, "CI"),
+          insuranceValue(GroupInsurancePlan.PLAN_STANDARD_FTF, "DAYS"),
+          insuranceValue(GroupInsurancePlan.PLAN_STANDARD_FTF_VALUE, "365"),
+          insuranceValue(GroupInsurancePlan.GROUP_NAME, "BCBS OF SHANKSVILLE GROUP"),
+          insuranceValue(GroupInsurancePlan.GROUP_NUMBER, "GRP123456"),
+          insuranceValue(GroupInsurancePlan.PLAN_ID, "4444"));
+    }
+
     private Map<String, LhsLighthouseRpcGatewayResponse.Values> fields() {
       Map<String, LhsLighthouseRpcGatewayResponse.Values> fields = new HashMap<>();
       fields.put(
@@ -217,6 +239,19 @@ public class InsurancePlanSamples {
                       .fields(fields())
                       .build()))
           .build();
+    }
+
+    private WriteableFilemanValue insuranceValue(String field, String value) {
+      return WriteableFilemanValue.builder()
+          .file(GroupInsurancePlan.FILE_NUMBER)
+          .index(1)
+          .field(field)
+          .value(value)
+          .build();
+    }
+
+    private WriteableFilemanValue pointerTo(String file, String ien) {
+      return WriteableFilemanValue.builder().file(file).index(1).field("ien").value(ien).build();
     }
   }
 }

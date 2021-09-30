@@ -747,11 +747,13 @@ public class OrganizationSamples {
               .valueBoolean(Boolean.TRUE)
               .build(),
           Extension.builder()
+              .url(
+                  "http://va.gov/fhir/StructureDefinition/organization-planStandardFilingTimeFrame")
               .valueQuantity(
                   Quantity.builder()
                       .value(toBigDecimal("8675309"))
                       .unit("d")
-                      .system("urn:oid:2.16.840.1.113883.3.8901.3.3558013")
+                      .system("urn:oid:2.16.840.1.113883.3.8901.3.1.3558013")
                       .build())
               .build(),
           Extension.builder()
