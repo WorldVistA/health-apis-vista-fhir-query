@@ -32,13 +32,11 @@ import lombok.NonNull;
 
 @Builder
 public class R4OrganizationTransformer {
-
   // The following list can be generated using:
   // grep InsuranceCompany R4OrganizationTransformer.java \
   // | sed 's/.*\(InsuranceCompany\.[A-Z0-9_]\+\).*/\1,/' \
   // | grep -vE '(import|FILE_NUMBER)' \
   // | sort -u
-
   /** The insurance company fields needed by the transformer. */
   public static final List<String> REQUIRED_FIELDS =
       List.of(
@@ -149,7 +147,7 @@ public class R4OrganizationTransformer {
         entry.internal(InsuranceCompany.APPEALS_ADDRESS_CITY).orElse(null),
         entry.internal(InsuranceCompany.APPEALS_ADDRESS_STATE).orElse(null),
         entry.internal(InsuranceCompany.APPEALS_ADDRESS_ZIP).orElse(null),
-        null,
+        "APPEAL",
         entry.internal(InsuranceCompany.APPEALS_PHONE_NUMBER).orElse(null),
         entry.internal(InsuranceCompany.APPEALS_FAX).orElse(null),
         entry.internal(InsuranceCompany.APPEALS_COMPANY_NAME).orElse(null));
@@ -310,7 +308,8 @@ public class R4OrganizationTransformer {
             claimsOptContact(entry),
             claimsRxContact(entry),
             inquiryContact(entry),
-            precertificationContact(entry))
+            precertificationContact(entry),
+            verificationContact(entry))
         .filter(Objects::nonNull)
         .collect(Collectors.toList());
   }
@@ -445,7 +444,7 @@ public class R4OrganizationTransformer {
         entry.internal(InsuranceCompany.INQUIRY_ADDRESS_CITY).orElse(null),
         entry.internal(InsuranceCompany.INQUIRY_ADDRESS_STATE).orElse(null),
         entry.internal(InsuranceCompany.INQUIRY_ADDRESS_ZIP_CODE).orElse(null),
-        null,
+        "INQUIRY",
         entry.internal(InsuranceCompany.INQUIRY_PHONE_NUMBER).orElse(null),
         entry.internal(InsuranceCompany.INQUIRY_FAX).orElse(null),
         entry.internal(InsuranceCompany.INQUIRY_COMPANY_NAME).orElse(null));
@@ -544,5 +543,20 @@ public class R4OrganizationTransformer {
             emptyToNull(
                 organizationTelecom(entry.internal(InsuranceCompany.PHONE_NUMBER).orElse(null))))
         .build();
+  }
+
+  private Organization.Contact verificationContact(
+      LhsLighthouseRpcGatewayResponse.FilemanEntry entry) {
+    return contact(
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        "VERIFY",
+        entry.internal(InsuranceCompany.VERIFICATION_PHONE_NUMBER).orElse(null),
+        null,
+        null);
   }
 }

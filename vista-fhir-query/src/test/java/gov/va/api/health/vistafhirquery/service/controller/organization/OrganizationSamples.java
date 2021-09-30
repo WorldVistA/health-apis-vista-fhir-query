@@ -337,6 +337,11 @@ public class OrganizationSamples {
           "#.139",
           LhsLighthouseRpcGatewayResponse.Values.of(
               "SHANK-PRECERT NAME: EXT", "SHANK-PRECERT NAME: IN"));
+      // Contact - Verification
+      fields.put(
+          "#.134",
+          LhsLighthouseRpcGatewayResponse.Values.of(
+              "1-800-SHANK-VERIFICATION: EXT", "1-800-SHANK-VERIFICATION: IN"));
       // Telecom
       fields.put(
           "#.131",
@@ -467,6 +472,16 @@ public class OrganizationSamples {
                       .value("FAX SHANK-APPEALS: IN")
                       .system(ContactPoint.ContactPointSystem.fax)
                       .build()))
+          .purpose(
+              CodeableConcept.builder()
+                  .coding(
+                      Collections.singletonList(
+                          Coding.builder()
+                              .system("http://terminology.hl7.org/CodeSystem/contactentity-type")
+                              .code("APPEAL")
+                              .display("APPEAL")
+                              .build()))
+                  .build())
           .build();
     }
 
@@ -670,7 +685,8 @@ public class OrganizationSamples {
           claimsOptContact(),
           claimsRxContact(),
           inquiryContact(),
-          precertificationContact());
+          precertificationContact(),
+          verificationContact());
     }
 
     private List<Extension> extensions(String station) {
@@ -956,6 +972,16 @@ public class OrganizationSamples {
                       .value("FAX SHANK-INQUIRY: IN")
                       .system(ContactPoint.ContactPointSystem.fax)
                       .build()))
+          .purpose(
+              CodeableConcept.builder()
+                  .coding(
+                      Collections.singletonList(
+                          Coding.builder()
+                              .system("http://terminology.hl7.org/CodeSystem/contactentity-type")
+                              .code("INQUIRY")
+                              .display("INQUIRY")
+                              .build()))
+                  .build())
           .build();
     }
 
@@ -1027,6 +1053,27 @@ public class OrganizationSamples {
                   .display("Insurance Company")
                   .system("http://hl7.org/fhir/ValueSet/organization-type")
                   .build()));
+    }
+
+    private Organization.Contact verificationContact() {
+      return Organization.Contact.builder()
+          .telecom(
+              List.of(
+                  ContactPoint.builder()
+                      .value("1-800-SHANK-VERIFICATION: IN")
+                      .system(ContactPoint.ContactPointSystem.phone)
+                      .build()))
+          .purpose(
+              CodeableConcept.builder()
+                  .coding(
+                      Collections.singletonList(
+                          Coding.builder()
+                              .system("http://terminology.hl7.org/CodeSystem/contactentity-type")
+                              .code("VERIFY")
+                              .display("VERIFY")
+                              .build()))
+                  .build())
+          .build();
     }
   }
 }

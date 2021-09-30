@@ -1,12 +1,21 @@
 package gov.va.api.health.vistafhirquery.service.controller.organization;
 
+import static gov.va.api.health.vistafhirquery.service.controller.R4Transformers.asCodeableConcept;
 import static gov.va.api.health.vistafhirquery.service.controller.R4Transformers.isBlank;
 
+import gov.va.api.health.r4.api.datatypes.Address;
+import gov.va.api.health.r4.api.datatypes.CodeableConcept;
+import gov.va.api.health.r4.api.datatypes.Coding;
+import gov.va.api.health.r4.api.datatypes.ContactPoint;
+import gov.va.api.health.r4.api.elements.Extension;
+import gov.va.api.health.r4.api.elements.Reference;
 import gov.va.api.health.r4.api.resources.Organization;
-import gov.va.api.health.vistafhirquery.service.controller.ResourceExceptions;
+import gov.va.api.health.vistafhirquery.service.controller.ResourceExceptions.BadRequestPayload;
 import gov.va.api.lighthouse.charon.models.lhslighthouserpcgateway.InsuranceCompany;
 import gov.va.api.lighthouse.charon.models.lhslighthouserpcgateway.LhsLighthouseRpcGatewayCoverageWrite.WriteableFilemanValue;
 import java.util.HashSet;
+import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 import lombok.Builder;
 import lombok.NonNull;
@@ -21,10 +30,128 @@ public class R4OrganizationToInsuranceCompanyFileTransformer {
     this.organization = organization;
   }
 
-  WriteableFilemanValue insuranceCompanyCoordinatesOrBadRequestPayload(
+  private Set<WriteableFilemanValue> address() {
+    if (isBlank(organization.address())) {
+      throw BadRequestPayload.because(
+          InsuranceCompany.STREET_ADDRESS_LINE_1_, "address is empty or null");
+    }
+    /* Address is a list but vista expects a single address. */
+    Address firstAddress = organization.address().get(0);
+    List<String> lines = firstAddress.line();
+    if (isBlank(lines) && lines.size() >= 3) {
+      throw BadRequestPayload.because(
+          InsuranceCompany.STREET_ADDRESS_LINE_1_, "one or more address lines are null");
+    }
+    return Set.of(
+        insuranceCompanyCoordinatesOrDie(
+            InsuranceCompany.STREET_ADDRESS_LINE_1_, 1, lines.get(0), "address line 1"),
+        insuranceCompanyCoordinatesOrDie(
+            InsuranceCompany.STREET_ADDRESS_LINE_2_, 1, lines.get(1), "address line 2"),
+        insuranceCompanyCoordinatesOrDie(
+            InsuranceCompany.STREET_ADDRESS_LINE_3_, 1, lines.get(2), "address line 3"),
+        insuranceCompanyCoordinatesOrDie(InsuranceCompany.CITY, 1, firstAddress.city(), "city"),
+        insuranceCompanyCoordinatesOrDie(InsuranceCompany.STATE, 1, firstAddress.state(), "state"),
+        insuranceCompanyCoordinatesOrDie(
+            InsuranceCompany.ZIP_CODE, 1, firstAddress.postalCode(), "zip code"));
+  }
+
+  private WriteableFilemanValue appealsContact() {
+    Organization.Contact verificationContact =
+        contactForPurposeOrDie("APPEAL", InsuranceCompany.APPEALS_PHONE_NUMBER, "appeals");
+    return phoneNumber(verificationContact, InsuranceCompany.APPEALS_PHONE_NUMBER, "appeals");
+  }
+
+  private Set<WriteableFilemanValue> billingContact() {
+    Organization.Contact billingContact =
+        contactForPurposeOrDie("BILL", InsuranceCompany.BILLING_COMPANY_NAME, "billing");
+    return Set.of(
+        companyName(billingContact, InsuranceCompany.BILLING_COMPANY_NAME, "billing"),
+        phoneNumber(billingContact, InsuranceCompany.BILLING_PHONE_NUMBER, "billing"));
+  }
+
+  private WriteableFilemanValue claimsInptContact() {
+    Organization.Contact verificationContact =
+        contactForPurposeOrDie(
+            "INPTCLAIMS", InsuranceCompany.CLAIMS_INPT_PHONE_NUMBER, "claims inpt");
+    return phoneNumber(
+        verificationContact, InsuranceCompany.CLAIMS_INPT_PHONE_NUMBER, "claims inpt");
+  }
+
+  private WriteableFilemanValue claimsOptContact() {
+    Organization.Contact verificationContact =
+        contactForPurposeOrDie(
+            "OUTPTCLAIMS", InsuranceCompany.CLAIMS_OPT_PHONE_NUMBER, "claims opt");
+    return phoneNumber(verificationContact, InsuranceCompany.CLAIMS_OPT_PHONE_NUMBER, "claims opt");
+  }
+
+  private WriteableFilemanValue companyName(
+      Organization.Contact contact, String fieldNumber, String contactType) {
+    Extension companyNameExtension =
+        extensionForSystem(
+                contact.extension(),
+                "http://hl7.org/fhir/us/davinci-pdex-plan-net/StructureDefinition/via-intermediary")
+            .orElseThrow(
+                () ->
+                    BadRequestPayload.because(
+                        fieldNumber, contactType + " contact extension is null"));
+    Reference billingCompanyNameReference = companyNameExtension.valueReference();
+    if (isBlank(billingCompanyNameReference)) {
+      throw BadRequestPayload.because(
+          fieldNumber, contactType + " contact extension value reference is null");
+    }
+    return insuranceCompanyCoordinatesOrDie(
+        fieldNumber, 1, billingCompanyNameReference.display(), contactType + "company name");
+  }
+
+  private Organization.Contact contactForPurposeOrDie(
+      String purpose, String fieldNumber, String contactType) {
+    List<Organization.Contact> contacts = organization().contact();
+    if (isBlank(contacts)) {
+      throw BadRequestPayload.because(fieldNumber, contactType + " contact is null");
+    }
+    CodeableConcept purposeCodeableConcept =
+        asCodeableConcept(
+            Coding.builder()
+                .code(purpose)
+                .display(purpose)
+                .system("http://terminology.hl7.org/CodeSystem/contactentity-type")
+                .build());
+    return contacts.stream()
+        .filter(c -> purposeCodeableConcept.equals(c.purpose()))
+        .findFirst()
+        .orElseThrow(
+            () -> BadRequestPayload.because(fieldNumber, contactType + " contact is null"));
+  }
+
+  private Set<WriteableFilemanValue> contacts() {
+    Set<WriteableFilemanValue> fields = new HashSet<>();
+    fields.add(appealsContact());
+    fields.addAll(billingContact());
+    fields.add(claimsInptContact());
+    fields.add(claimsOptContact());
+    fields.add(inquiryContact());
+    fields.add(precertContact());
+    fields.add(verificationContact());
+    return fields;
+  }
+
+  private Optional<Extension> extensionForSystem(List<Extension> extensions, String system) {
+    if (isBlank(extensions)) {
+      return Optional.empty();
+    }
+    return extensions.stream().filter(e -> system.equals(e.url())).findFirst();
+  }
+
+  private WriteableFilemanValue inquiryContact() {
+    Organization.Contact verificationContact =
+        contactForPurposeOrDie("INQUIRY", InsuranceCompany.INQUIRY_PHONE_NUMBER, "inquiry");
+    return phoneNumber(verificationContact, InsuranceCompany.INQUIRY_PHONE_NUMBER, "inquiry");
+  }
+
+  WriteableFilemanValue insuranceCompanyCoordinatesOrDie(
       String field, Integer index, String value, String fieldName) {
     if (isBlank(field)) {
-      throw ResourceExceptions.BadRequestPayload.because(field, fieldName + " is null");
+      throw BadRequestPayload.because(field, fieldName + " is null");
     }
     return WriteableFilemanValue.builder()
         .file(InsuranceCompany.FILE_NUMBER)
@@ -32,6 +159,26 @@ public class R4OrganizationToInsuranceCompanyFileTransformer {
         .index(index)
         .value(value)
         .build();
+  }
+
+  private WriteableFilemanValue phoneNumber(
+      Organization.Contact contact, String fieldNumber, String contactType) {
+    List<ContactPoint> telecom = contact.telecom();
+    if (isBlank(telecom)) {
+      throw BadRequestPayload.because(fieldNumber, contactType + "telecom reference is null");
+    }
+    return insuranceCompanyCoordinatesOrDie(
+        fieldNumber, 1, telecom.get(0).value(), contactType + " phone number");
+  }
+
+  private WriteableFilemanValue precertContact() {
+    Organization.Contact precertContact =
+        contactForPurposeOrDie(
+            "PRECERT",
+            InsuranceCompany.PRECERTIFICATION_PHONE_NUMBER,
+            "precertification contact is null");
+    return phoneNumber(
+        precertContact, InsuranceCompany.PRECERTIFICATION_PHONE_NUMBER, "precertification");
   }
 
   /*
@@ -45,136 +192,20 @@ public class R4OrganizationToInsuranceCompanyFileTransformer {
 
   /** Create a set of writeable fileman values. */
   public Set<WriteableFilemanValue> toInsuranceCompanyFile() {
-
+    // TODO: Remove Fugazi name generation https://vajira.max.gov/browse/API-10384
     var n = System.currentTimeMillis() / 1000;
-    var name = "FUGAZI-" + n;
     Set<WriteableFilemanValue> fields = new HashSet<>();
     fields.add(
-        insuranceCompanyCoordinatesOrBadRequestPayload(InsuranceCompany.NAME, 1, name, "name"));
+        insuranceCompanyCoordinatesOrDie(
+            InsuranceCompany.NAME, 1, organization.name() + " : " + n, "name"));
+    fields.addAll(address());
+    fields.addAll(contacts());
     return fields;
-    /*
-    fields.add(
-        insuranceCompanyCoordinatesOrBadRequestPayload(
-            InsuranceCompany.CITY, 1, "SHANK CITY", "city"));
-    fields.add(
-        insuranceCompanyCoordinatesOrBadRequestPayload(InsuranceCompany.STATE, 1, "12", "state"));
-    fields.add(
-        insuranceCompanyCoordinatesOrBadRequestPayload(
-            InsuranceCompany.STREET_ADDRESS_LINE_1_, 1, "SHANKSVILLE LINE 1", "address line 1"));
-    fields.add(
-        insuranceCompanyCoordinatesOrBadRequestPayload(
-            InsuranceCompany.STREET_ADDRESS_LINE_2_, 1, "SHANKSVILLE LINE 2", "address line 2"));
-    fields.add(
-        insuranceCompanyCoordinatesOrBadRequestPayload(
-            InsuranceCompany.STREET_ADDRESS_LINE_3_, 1, "SHANKSVILLE LINE 3", "address line 3"));
-    fields.add(
-        insuranceCompanyCoordinatesOrBadRequestPayload(
-            InsuranceCompany.ZIP_CODE, 1, "322310014", "zipcode"));
-    fields.add(
-        insuranceCompanyCoordinatesOrBadRequestPayload(
-            InsuranceCompany.BILLING_COMPANY_NAME, 1, "SHANK-BILLING", "billing company name"));
-    fields.add(
-        insuranceCompanyCoordinatesOrBadRequestPayload(
-            InsuranceCompany.FAX_NUMBER, 1, "SHANKFAX", "fax number"));
-    fields.add(pointer("355.2", 1, "5"));
-    fields.add(
-        insuranceCompanyCoordinatesOrBadRequestPayload(
-            InsuranceCompany.PHONE_NUMBER, 1, "800-456-8888", "phone number"));
-    fields.add(
-        insuranceCompanyCoordinatesOrBadRequestPayload(
-            InsuranceCompany.BILLING_PHONE_NUMBER, 1, "800-123-7777", "billing phone number"));
-    fields.add(
-        insuranceCompanyCoordinatesOrBadRequestPayload(
-            InsuranceCompany.PRECERTIFICATION_PHONE_NUMBER,
-            1,
-            "800-222-9999",
-            "precertification phone number"));
-    fields.add(
-        insuranceCompanyCoordinatesOrBadRequestPayload(
-            InsuranceCompany.VERIFICATION_PHONE_NUMBER,
-            1,
-            "800-333-8888",
-            "verification phone number"));
-    fields.add(
-        insuranceCompanyCoordinatesOrBadRequestPayload(
-            InsuranceCompany.CLAIMS_INPT_PHONE_NUMBER,
-            1,
-            "800-444-7777",
-            "claims inpt phone number"));
-    fields.add(
-        insuranceCompanyCoordinatesOrBadRequestPayload(
-            InsuranceCompany.CLAIMS_OPT_PHONE_NUMBER,
-            1,
-            "800-555-6666",
-            "claims opt phone number"));
-    fields.add(
-        insuranceCompanyCoordinatesOrBadRequestPayload(
-            InsuranceCompany.APPEALS_PHONE_NUMBER,
-            1,
-            "1-800-SHANK-APPEALS",
-            "appeals phone number"));
-    fields.add(
-        insuranceCompanyCoordinatesOrBadRequestPayload(
-            InsuranceCompany.INQUIRY_PHONE_NUMBER,
-            1,
-            "1-800-SHANK-INQUIRY",
-            "inquiry phone number"));
-    fields.add(
-        insuranceCompanyCoordinatesOrBadRequestPayload(
-            InsuranceCompany.STANDARD_FTF, 1, "DAYS", "standard ftf"));
-    fields.add(
-        insuranceCompanyCoordinatesOrBadRequestPayload(
-            InsuranceCompany.STANDARD_FTF_VALUE, 1, "365", "standard ftf value"));
-    fields.add(
-        insuranceCompanyCoordinatesOrBadRequestPayload(
-            InsuranceCompany.REIMBURSE_, 1, "Y", "reimburse"));
-    fields.add(
-        insuranceCompanyCoordinatesOrBadRequestPayload(
-            InsuranceCompany.SIGNATURE_REQUIRED_ON_BILL_, 1, "1", "signature required on bill"));
-    fields.add(
-        insuranceCompanyCoordinatesOrBadRequestPayload(
-            InsuranceCompany.TRANSMIT_ELECTRONICALLY, 1, "2", "transmit electronically"));
-    fields.add(
-        insuranceCompanyCoordinatesOrBadRequestPayload(
-            InsuranceCompany.EDI_ID_NUMBER_PROF, 1, "55555", "edi id number prof"));
-    fields.add(
-        insuranceCompanyCoordinatesOrBadRequestPayload(
-            InsuranceCompany.EDI_ID_NUMBER_INST, 1, "55555", "edi id number inst"));
-    fields.add(
-        insuranceCompanyCoordinatesOrBadRequestPayload(
-            InsuranceCompany.ELECTRONIC_INSURANCE_TYPE, 1, "OTHER", "electronic insurance type"));
-    fields.add(pointer("365.12", 1, "17"));
-    fields.add(
-        insuranceCompanyCoordinatesOrBadRequestPayload(
-            InsuranceCompany.SECONDARY_ID_REQUIREMENTS,
-            1,
-            "NONE REQUIRED",
-            "secondary id requirements"));
-    fields.add(
-        insuranceCompanyCoordinatesOrBadRequestPayload(
-            InsuranceCompany.REF_PROV_SEC_ID_REQ_ON_CLAIMS,
-            1,
-            "0",
-            "ref prov sec id req on claims"));
-    fields.add(
-        insuranceCompanyCoordinatesOrBadRequestPayload(
-            InsuranceCompany.ATT_REND_ID_BILL_SEC_ID_PROF, 1, "0", "att rend id bill sec id prof"));
-    fields.add(
-        insuranceCompanyCoordinatesOrBadRequestPayload(
-            InsuranceCompany.ATT_REND_ID_BILL_SEC_ID_INST, 1, "0", "att rend id bill sec id inst"));
-    fields.add(
-        insuranceCompanyCoordinatesOrBadRequestPayload(
-            InsuranceCompany.PRINT_SEC_TERT_AUTO_CLAIMS_, 1, "0", "print sec tert auto claims"));
-    fields.add(
-        insuranceCompanyCoordinatesOrBadRequestPayload(
-            InsuranceCompany.PRINT_SEC_MED_CLAIMS_W_O_MRA_,
-            1,
-            "0",
-            "print sec med claims w o mra"));
-    fields.add(
-        insuranceCompanyCoordinatesOrBadRequestPayload(
-            InsuranceCompany.N277EDI_ID_NUMBER, 1, "22-7777777", "n277edi id number"));
-    return fields;
-     */
+  }
+
+  private WriteableFilemanValue verificationContact() {
+    Organization.Contact verificationContact =
+        contactForPurposeOrDie("VERIFY", InsuranceCompany.VERIFICATION_PHONE_NUMBER, "verify");
+    return phoneNumber(verificationContact, InsuranceCompany.VERIFICATION_PHONE_NUMBER, "verify");
   }
 }
