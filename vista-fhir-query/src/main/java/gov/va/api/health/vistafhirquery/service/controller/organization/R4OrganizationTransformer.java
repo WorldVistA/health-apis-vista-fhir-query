@@ -44,10 +44,10 @@ public class R4OrganizationTransformer {
           InsuranceCompany.AMBULATORY_SURG_REV_CODE,
           InsuranceCompany.ANOTHER_CO_PROCESS_IP_CLAIMS_,
           InsuranceCompany.APPEALS_ADDRESS_CITY,
-          InsuranceCompany.APPEALS_ADDRESS_STATE,
           InsuranceCompany.APPEALS_ADDRESS_ST_LINE_1_,
           InsuranceCompany.APPEALS_ADDRESS_ST_LINE_2_,
           InsuranceCompany.APPEALS_ADDRESS_ST_LINE_3_,
+          InsuranceCompany.APPEALS_ADDRESS_STATE,
           InsuranceCompany.APPEALS_ADDRESS_ZIP,
           InsuranceCompany.APPEALS_COMPANY_NAME,
           InsuranceCompany.APPEALS_FAX,
@@ -93,10 +93,10 @@ public class R4OrganizationTransformer {
           InsuranceCompany.FILING_TIME_FRAME,
           InsuranceCompany.INACTIVE,
           InsuranceCompany.INQUIRY_ADDRESS_CITY,
-          InsuranceCompany.INQUIRY_ADDRESS_STATE,
           InsuranceCompany.INQUIRY_ADDRESS_ST_LINE_1_,
           InsuranceCompany.INQUIRY_ADDRESS_ST_LINE_2_,
           InsuranceCompany.INQUIRY_ADDRESS_ST_LINE_3_,
+          InsuranceCompany.INQUIRY_ADDRESS_STATE,
           InsuranceCompany.INQUIRY_ADDRESS_ZIP_CODE,
           InsuranceCompany.INQUIRY_COMPANY_NAME,
           InsuranceCompany.INQUIRY_FAX,
@@ -104,12 +104,15 @@ public class R4OrganizationTransformer {
           InsuranceCompany.NAME,
           InsuranceCompany.ONE_OPT_VISIT_ON_BILL_ONLY,
           InsuranceCompany.PHONE_NUMBER,
-          InsuranceCompany.PRECERTIFICATION_PHONE_NUMBER,
           InsuranceCompany.PRECERT_COMPANY_NAME,
+          InsuranceCompany.PRECERTIFICATION_PHONE_NUMBER,
+          InsuranceCompany.STANDARD_FTF,
+          InsuranceCompany.STANDARD_FTF_VALUE,
           InsuranceCompany.STATE,
           InsuranceCompany.STREET_ADDRESS_LINE_1_,
           InsuranceCompany.STREET_ADDRESS_LINE_2_,
           InsuranceCompany.STREET_ADDRESS_LINE_3_,
+          InsuranceCompany.TYPE_OF_COVERAGE,
           InsuranceCompany.ZIP_CODE);
 
   static final Map<String, Boolean> YES_NO = Map.of("1", true, "0", false);
@@ -361,8 +364,8 @@ public class R4OrganizationTransformer {
                 "http://va.gov/fhir/StructureDefinition/organization-anotherCompanyProcessesDentalClaims"),
             extensions.ofQuantity(
                 InsuranceCompany.STANDARD_FTF_VALUE,
-                "d",
-                "urn:oid:2.16.840.1.113883.3.8901.3.1.3558013",
+                entry.external(InsuranceCompany.STANDARD_FTF).orElse(null),
+                "urn:oid:2.16.840.1.113883.3.8901.3.3558013",
                 "http://va.gov/fhir/StructureDefinition/organization-planStandardFilingTimeFrame"),
             extensions.ofCodeableConcept(
                 InsuranceCompany.REIMBURSE_,
@@ -460,17 +463,6 @@ public class R4OrganizationTransformer {
                 .build()));
   }
 
-  private List<ContactPoint> organizationTelecom(String phoneNumber) {
-    if (isBlank(phoneNumber)) {
-      return emptyList();
-    }
-    return Collections.singletonList(
-        ContactPoint.builder()
-            .value(phoneNumber)
-            .system(ContactPoint.ContactPointSystem.phone)
-            .build());
-  }
-
   private String payerId(LhsLighthouseRpcGatewayResponse.FilemanEntry entry) {
     var value = entry.internal(InsuranceCompany.PAYER);
     if (value.isEmpty()) {
@@ -541,7 +533,9 @@ public class R4OrganizationTransformer {
         .contact(contacts(entry))
         .telecom(
             emptyToNull(
-                organizationTelecom(entry.internal(InsuranceCompany.PHONE_NUMBER).orElse(null))))
+                contactTelecom(
+                    entry.internal(InsuranceCompany.PHONE_NUMBER).orElse(null),
+                    entry.internal(InsuranceCompany.FAX_NUMBER).orElse(null))))
         .build();
   }
 

@@ -344,8 +344,8 @@ public class OrganizationSamples {
               "1-800-SHANK-VERIFICATION: EXT", "1-800-SHANK-VERIFICATION: IN"));
       // Telecom
       fields.put(
-          "#.131",
-          LhsLighthouseRpcGatewayResponse.Values.of("1-800-SHANK: EXT", "1-800-SHANK: IN"));
+          "#.131", LhsLighthouseRpcGatewayResponse.Values.of("1-800-SHANKTO", "1-800-SHANKTO"));
+      fields.put("#.119", LhsLighthouseRpcGatewayResponse.Values.of("SHANKFAX", "SHANKFAX"));
       // Extension
       fields.put("#.06", LhsLighthouseRpcGatewayResponse.Values.of("TRUE", "1"));
       fields.put("#.08", LhsLighthouseRpcGatewayResponse.Values.of("TRUE", "1"));
@@ -356,9 +356,7 @@ public class OrganizationSamples {
               "FILING SHANKTOTIME FRAME: EX", "FILING SHANKTOTIME FRAME: IN"));
       fields.put("#.128", LhsLighthouseRpcGatewayResponse.Values.of("TRUE", "1"));
       fields.put(
-          "#.13",
-          LhsLighthouseRpcGatewayResponse.Values.of(
-              "SHANK HEALTH INSURANCE: EXT", "SHANK HEALTH INSURANCE: IN"));
+          "#.13", LhsLighthouseRpcGatewayResponse.Values.of("SHANK INSURANCE", "SHANK INSURANCE"));
       fields.put("#.148", LhsLighthouseRpcGatewayResponse.Values.of("TRUE", "1"));
       fields.put(
           "#.15",
@@ -369,7 +367,8 @@ public class OrganizationSamples {
       fields.put("#.178", LhsLighthouseRpcGatewayResponse.Values.of("TRUE", "1"));
       fields.put("#.188", LhsLighthouseRpcGatewayResponse.Values.of("TRUE", "1"));
       fields.put("#.198", LhsLighthouseRpcGatewayResponse.Values.of("TRUE", "1"));
-      fields.put("#.19", LhsLighthouseRpcGatewayResponse.Values.of("SHANK FTF: EXT", "8675309"));
+      fields.put("#.18", LhsLighthouseRpcGatewayResponse.Values.of("DAYS", "DAYS"));
+      fields.put("#.19", LhsLighthouseRpcGatewayResponse.Values.of("SHANK FTF VALUE: EXT", "365"));
       fields.put(
           "#1",
           LhsLighthouseRpcGatewayResponse.Values.of("SHANK REIMBURSE: EXT", "SHANK REIMBURSE: IN"));
@@ -727,7 +726,7 @@ public class OrganizationSamples {
                       .coding(
                           Collections.singletonList(
                               Coding.builder()
-                                  .code("SHANK HEALTH INSURANCE: IN")
+                                  .code("SHANK INSURANCE")
                                   .system("urn:oid:2.16.840.1.113883.3.8901.3.36.8013")
                                   .build()))
                       .build())
@@ -780,10 +779,12 @@ public class OrganizationSamples {
                   "http://va.gov/fhir/StructureDefinition/organization-planStandardFilingTimeFrame")
               .valueQuantity(
                   Quantity.builder()
-                      .value(toBigDecimal("8675309"))
-                      .unit("d")
-                      .system("urn:oid:2.16.840.1.113883.3.8901.3.1.3558013")
+                      .value(toBigDecimal("365"))
+                      .unit("DAYS")
+                      .system("urn:oid:2.16.840.1.113883.3.8901.3.3558013")
                       .build())
+              .url(
+                  "http://va.gov/fhir/StructureDefinition/organization-planStandardFilingTimeFrame")
               .build(),
           Extension.builder()
               .url("http://va.gov/fhir/StructureDefinition/organization-willReimburseForCare")
@@ -1038,10 +1039,14 @@ public class OrganizationSamples {
     }
 
     private List<ContactPoint> telecom() {
-      return Collections.singletonList(
+      return List.of(
           ContactPoint.builder()
-              .value("1-800-SHANK: IN")
+              .value("1-800-SHANKTO")
               .system(ContactPoint.ContactPointSystem.phone)
+              .build(),
+          ContactPoint.builder()
+              .value("SHANKFAX")
+              .system(ContactPoint.ContactPointSystem.fax)
               .build());
     }
 

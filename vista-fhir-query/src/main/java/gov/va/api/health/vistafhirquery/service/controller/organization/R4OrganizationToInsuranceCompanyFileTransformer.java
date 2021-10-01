@@ -7,6 +7,7 @@ import gov.va.api.health.r4.api.datatypes.Address;
 import gov.va.api.health.r4.api.datatypes.CodeableConcept;
 import gov.va.api.health.r4.api.datatypes.Coding;
 import gov.va.api.health.r4.api.datatypes.ContactPoint;
+import gov.va.api.health.r4.api.datatypes.Quantity;
 import gov.va.api.health.r4.api.elements.Extension;
 import gov.va.api.health.r4.api.elements.Reference;
 import gov.va.api.health.r4.api.resources.Organization;
@@ -58,7 +59,11 @@ public class R4OrganizationToInsuranceCompanyFileTransformer {
   private WriteableFilemanValue appealsContact() {
     Organization.Contact verificationContact =
         contactForPurposeOrDie("APPEAL", InsuranceCompany.APPEALS_PHONE_NUMBER, "appeals");
-    return phoneNumber(verificationContact, InsuranceCompany.APPEALS_PHONE_NUMBER, "appeals");
+    return contactPoint(
+        verificationContact.telecom(),
+        InsuranceCompany.APPEALS_PHONE_NUMBER,
+        "appeals",
+        ContactPoint.ContactPointSystem.phone);
   }
 
   private Set<WriteableFilemanValue> billingContact() {
@@ -66,25 +71,43 @@ public class R4OrganizationToInsuranceCompanyFileTransformer {
         contactForPurposeOrDie("BILL", InsuranceCompany.BILLING_COMPANY_NAME, "billing");
     return Set.of(
         companyName(billingContact, InsuranceCompany.BILLING_COMPANY_NAME, "billing"),
-        phoneNumber(billingContact, InsuranceCompany.BILLING_PHONE_NUMBER, "billing"));
+        contactPoint(
+            billingContact.telecom(),
+            InsuranceCompany.BILLING_PHONE_NUMBER,
+            "billing",
+            ContactPoint.ContactPointSystem.phone));
   }
 
   private WriteableFilemanValue claimsInptContact() {
     Organization.Contact verificationContact =
         contactForPurposeOrDie(
             "INPTCLAIMS", InsuranceCompany.CLAIMS_INPT_PHONE_NUMBER, "claims inpt");
-    return phoneNumber(
-        verificationContact, InsuranceCompany.CLAIMS_INPT_PHONE_NUMBER, "claims inpt");
+    return contactPoint(
+        verificationContact.telecom(),
+        InsuranceCompany.CLAIMS_INPT_PHONE_NUMBER,
+        "claims inpt",
+        ContactPoint.ContactPointSystem.phone);
   }
 
   private WriteableFilemanValue claimsOptContact() {
     Organization.Contact verificationContact =
         contactForPurposeOrDie(
             "OUTPTCLAIMS", InsuranceCompany.CLAIMS_OPT_PHONE_NUMBER, "claims opt");
-    return phoneNumber(verificationContact, InsuranceCompany.CLAIMS_OPT_PHONE_NUMBER, "claims opt");
+    return contactPoint(
+        verificationContact.telecom(),
+        InsuranceCompany.CLAIMS_OPT_PHONE_NUMBER,
+        "claims opt",
+        ContactPoint.ContactPointSystem.phone);
   }
 
-  private WriteableFilemanValue companyName(
+  Optional<Coding> codingForSystem(List<Coding> codings, String system) {
+    if (isBlank(codings)) {
+      return Optional.empty();
+    }
+    return codings.stream().filter(c -> system.equals(c.system())).findFirst();
+  }
+
+  WriteableFilemanValue companyName(
       Organization.Contact contact, String fieldNumber, String contactType) {
     Extension companyNameExtension =
         extensionForSystem(
@@ -103,7 +126,7 @@ public class R4OrganizationToInsuranceCompanyFileTransformer {
         fieldNumber, 1, billingCompanyNameReference.display(), contactType + "company name");
   }
 
-  private Organization.Contact contactForPurposeOrDie(
+  Organization.Contact contactForPurposeOrDie(
       String purpose, String fieldNumber, String contactType) {
     List<Organization.Contact> contacts = organization().contact();
     if (isBlank(contacts)) {
@@ -123,6 +146,31 @@ public class R4OrganizationToInsuranceCompanyFileTransformer {
             () -> BadRequestPayload.because(fieldNumber, contactType + " contact is null"));
   }
 
+  WriteableFilemanValue contactPoint(
+      List<ContactPoint> telecom,
+      String fieldNumber,
+      String contactType,
+      ContactPoint.ContactPointSystem system) {
+    if (isBlank(telecom)) {
+      throw BadRequestPayload.because(fieldNumber, contactType + "telecom reference is null");
+    }
+    ContactPoint contactPoint =
+        contactPointForSystem(telecom, system)
+            .orElseThrow(
+                () ->
+                    BadRequestPayload.because(fieldNumber, contactType + " contact point is null"));
+    return insuranceCompanyCoordinatesOrDie(
+        fieldNumber, 1, contactPoint.value(), contactType + " contact point value");
+  }
+
+  Optional<ContactPoint> contactPointForSystem(
+      List<ContactPoint> contactPoints, ContactPoint.ContactPointSystem system) {
+    if (isBlank(contactPoints)) {
+      return Optional.empty();
+    }
+    return contactPoints.stream().filter(c -> system.equals(c.system())).findFirst();
+  }
+
   private Set<WriteableFilemanValue> contacts() {
     Set<WriteableFilemanValue> fields = new HashSet<>();
     fields.add(appealsContact());
@@ -135,7 +183,7 @@ public class R4OrganizationToInsuranceCompanyFileTransformer {
     return fields;
   }
 
-  private Optional<Extension> extensionForSystem(List<Extension> extensions, String system) {
+  Optional<Extension> extensionForSystem(List<Extension> extensions, String system) {
     if (isBlank(extensions)) {
       return Optional.empty();
     }
@@ -145,12 +193,16 @@ public class R4OrganizationToInsuranceCompanyFileTransformer {
   private WriteableFilemanValue inquiryContact() {
     Organization.Contact verificationContact =
         contactForPurposeOrDie("INQUIRY", InsuranceCompany.INQUIRY_PHONE_NUMBER, "inquiry");
-    return phoneNumber(verificationContact, InsuranceCompany.INQUIRY_PHONE_NUMBER, "inquiry");
+    return contactPoint(
+        verificationContact.telecom(),
+        InsuranceCompany.INQUIRY_PHONE_NUMBER,
+        "inquiry",
+        ContactPoint.ContactPointSystem.phone);
   }
 
-  WriteableFilemanValue insuranceCompanyCoordinatesOrDie(
+  private WriteableFilemanValue insuranceCompanyCoordinatesOrDie(
       String field, Integer index, String value, String fieldName) {
-    if (isBlank(field)) {
+    if (isBlank(value)) {
       throw BadRequestPayload.because(field, fieldName + " is null");
     }
     return WriteableFilemanValue.builder()
@@ -161,34 +213,44 @@ public class R4OrganizationToInsuranceCompanyFileTransformer {
         .build();
   }
 
-  private WriteableFilemanValue phoneNumber(
-      Organization.Contact contact, String fieldNumber, String contactType) {
-    List<ContactPoint> telecom = contact.telecom();
-    if (isBlank(telecom)) {
-      throw BadRequestPayload.because(fieldNumber, contactType + "telecom reference is null");
-    }
-    return insuranceCompanyCoordinatesOrDie(
-        fieldNumber, 1, telecom.get(0).value(), contactType + " phone number");
-  }
-
   private WriteableFilemanValue precertContact() {
     Organization.Contact precertContact =
         contactForPurposeOrDie(
             "PRECERT",
             InsuranceCompany.PRECERTIFICATION_PHONE_NUMBER,
             "precertification contact is null");
-    return phoneNumber(
-        precertContact, InsuranceCompany.PRECERTIFICATION_PHONE_NUMBER, "precertification");
+    return contactPoint(
+        precertContact.telecom(),
+        InsuranceCompany.PRECERTIFICATION_PHONE_NUMBER,
+        "precertification",
+        ContactPoint.ContactPointSystem.phone);
   }
 
-  /*
-  private WriteableFilemanValue pointer(@NonNull String file, int index, String ien) {
-    if (isBlank(ien)) {
-      return null;
+  private Set<WriteableFilemanValue> standardFtf() {
+    Extension standardFtfExtension =
+        extensionForSystem(
+                organization.extension(),
+                "http://va.gov/fhir/StructureDefinition/organization-planStandardFilingTimeFrame")
+            .orElseThrow(
+                () ->
+                    BadRequestPayload.because(
+                        InsuranceCompany.STANDARD_FTF, "standard ftf extension is null"));
+    Quantity standardFtfQuantity = standardFtfExtension.valueQuantity();
+    if (isBlank(standardFtfQuantity)) {
+      throw BadRequestPayload.because(
+          InsuranceCompany.STANDARD_FTF, "standard ftf quantity is null");
     }
-    return WriteableFilemanValue.builder().file(file).field("ien").index(index).value(ien).build();
+    return Set.of(
+        insuranceCompanyCoordinatesOrDie(
+            InsuranceCompany.STANDARD_FTF, 1, standardFtfQuantity.unit(), "standard ftf unit"),
+        insuranceCompanyCoordinatesOrDie(
+            InsuranceCompany.STANDARD_FTF_VALUE,
+            1,
+            isBlank(standardFtfQuantity.value())
+                ? null
+                : String.valueOf(standardFtfQuantity.value()),
+            "standard ftf unit"));
   }
-  */
 
   /** Create a set of writeable fileman values. */
   public Set<WriteableFilemanValue> toInsuranceCompanyFile() {
@@ -200,12 +262,57 @@ public class R4OrganizationToInsuranceCompanyFileTransformer {
             InsuranceCompany.NAME, 1, organization.name() + " : " + n, "name"));
     fields.addAll(address());
     fields.addAll(contacts());
+    fields.add(
+        contactPoint(
+            organization.telecom(),
+            InsuranceCompany.FAX_NUMBER,
+            "organization",
+            ContactPoint.ContactPointSystem.fax));
+    fields.add(typeOfCoverage());
+    fields.add(
+        contactPoint(
+            organization.telecom(),
+            InsuranceCompany.PHONE_NUMBER,
+            "organization",
+            ContactPoint.ContactPointSystem.phone));
+    fields.addAll(standardFtf());
     return fields;
+  }
+
+  private WriteableFilemanValue typeOfCoverage() {
+    Extension companyNameExtension =
+        extensionForSystem(
+                organization.extension(),
+                "http://va.gov/fhir/StructureDefinition/organization-typeOfCoverage")
+            .orElseThrow(
+                () ->
+                    BadRequestPayload.because(
+                        InsuranceCompany.TYPE_OF_COVERAGE, " type of coverage extension is null"));
+    CodeableConcept typeOfCoverageCodeableConcept = companyNameExtension.valueCodeableConcept();
+    if (isBlank(typeOfCoverageCodeableConcept)) {
+      throw BadRequestPayload.because(
+          InsuranceCompany.TYPE_OF_COVERAGE, "type of coverage codeable concept is null");
+    }
+    Coding typeOfCoverageCoding =
+        codingForSystem(
+                typeOfCoverageCodeableConcept.coding(),
+                "urn:oid:2.16.840.1.113883.3.8901.3.36.8013")
+            .orElseThrow(
+                () ->
+                    BadRequestPayload.because(
+                        InsuranceCompany.TYPE_OF_COVERAGE, " type of coverage coding is null"));
+    ;
+    return insuranceCompanyCoordinatesOrDie(
+        InsuranceCompany.TYPE_OF_COVERAGE, 1, typeOfCoverageCoding.code(), "type of coverage");
   }
 
   private WriteableFilemanValue verificationContact() {
     Organization.Contact verificationContact =
         contactForPurposeOrDie("VERIFY", InsuranceCompany.VERIFICATION_PHONE_NUMBER, "verify");
-    return phoneNumber(verificationContact, InsuranceCompany.VERIFICATION_PHONE_NUMBER, "verify");
+    return contactPoint(
+        verificationContact.telecom(),
+        InsuranceCompany.VERIFICATION_PHONE_NUMBER,
+        "verify",
+        ContactPoint.ContactPointSystem.phone);
   }
 }
