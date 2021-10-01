@@ -3,6 +3,8 @@ package gov.va.api.health.vistafhirquery.service.controller.coverage;
 import static gov.va.api.health.vistafhirquery.service.charonclient.CharonRequests.lighthouseRpcGatewayRequest;
 import static gov.va.api.health.vistafhirquery.service.charonclient.CharonRequests.lighthouseRpcGatewayResponse;
 import static gov.va.api.health.vistafhirquery.service.controller.R4Controllers.dieOnError;
+import static gov.va.api.health.vistafhirquery.service.controller.R4Controllers.ignoreIdForCreate;
+import static gov.va.api.health.vistafhirquery.service.controller.R4Controllers.updateResponseForCreatedResource;
 import static gov.va.api.health.vistafhirquery.service.controller.R4Controllers.verifyAndGetResult;
 import static gov.va.api.health.vistafhirquery.service.controller.R4Controllers.verifySiteSpecificVistaResponseOrDie;
 import static gov.va.api.health.vistafhirquery.service.controller.R4Transformers.getReferenceId;
@@ -16,6 +18,7 @@ import gov.va.api.health.r4.api.resources.Coverage.Entry;
 import gov.va.api.health.vistafhirquery.service.api.R4CoverageApi;
 import gov.va.api.health.vistafhirquery.service.charonclient.CharonClient;
 import gov.va.api.health.vistafhirquery.service.charonclient.CharonResponse;
+import gov.va.api.health.vistafhirquery.service.charonclient.LhsGatewayErrorHandler;
 import gov.va.api.health.vistafhirquery.service.controller.PatientTypeCoordinates;
 import gov.va.api.health.vistafhirquery.service.controller.R4Bundler;
 import gov.va.api.health.vistafhirquery.service.controller.R4BundlerFactory;
@@ -78,8 +81,7 @@ public class R4SiteCoverageController implements R4CoverageApi {
       @Redact HttpServletResponse response,
       @PathVariable(value = "site") String site,
       @Redact @RequestBody Coverage body) {
-    // Per the fhir spec, creates should ignore the id field if populated
-    body.id(null);
+    ignoreIdForCreate(body);
     var ctx =
         updateOrCreate(
             CoverageWriteContext.builder()
@@ -95,8 +97,7 @@ public class R4SiteCoverageController implements R4CoverageApi {
                 site,
                 "Coverage",
                 witnessProtection.toPublicId(Coverage.class, ctx.newResourceId()));
-    response.addHeader("Location", newResourceUrl);
-    response.setStatus(201);
+    updateResponseForCreatedResource(response, newResourceUrl);
   }
 
   @Override
@@ -323,12 +324,8 @@ public class R4SiteCoverageController implements R4CoverageApi {
       if (insTypeResults.size() != 1) {
         throw ExpectationFailed.because("Unexpected number of results: " + results.size());
       }
-      if ("1".equals(insTypeResults.get(0).status())) {
-        this.result = insTypeResults.get(0);
-        return this;
-      }
-      throw ExpectationFailed.because(
-          "Unexpected status code from results: " + insTypeResults.get(0).status());
+      this.result = insTypeResults.get(0);
+      return this;
     }
   }
 }

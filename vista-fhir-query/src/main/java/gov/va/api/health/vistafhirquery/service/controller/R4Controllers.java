@@ -2,11 +2,16 @@ package gov.va.api.health.vistafhirquery.service.controller;
 
 import static java.lang.String.join;
 
+import gov.va.api.health.fhir.api.IsResource;
 import gov.va.api.health.vistafhirquery.service.controller.ResourceExceptions.ExpectationFailed;
 import gov.va.api.health.vistafhirquery.service.controller.ResourceExceptions.NotFound;
 import gov.va.api.lighthouse.charon.models.lhslighthouserpcgateway.LhsLighthouseRpcGatewayResponse;
 import java.util.List;
+import javax.servlet.http.HttpServletResponse;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpHeaders;
 
+@Slf4j
 public class R4Controllers {
   /** If there are any errors that can be collected from the response, throw a fatal error. */
   public static void dieOnError(LhsLighthouseRpcGatewayResponse response) {
@@ -15,6 +20,19 @@ public class R4Controllers {
       return;
     }
     throw new FatalServerError(response.toString());
+  }
+
+  /** Clear the ID field used when creating new resources. */
+  public static void ignoreIdForCreate(IsResource resource) {
+    resource.id(null);
+  }
+
+  /** Set the Location header and response status to 201. */
+  public static void updateResponseForCreatedResource(
+      HttpServletResponse response, String newResourceUrl) {
+    log.info("Resource created: {}", newResourceUrl);
+    response.addHeader(HttpHeaders.LOCATION, newResourceUrl);
+    response.setStatus(201);
   }
 
   /** Verifies that a list of resources has only one result and returns that result. */

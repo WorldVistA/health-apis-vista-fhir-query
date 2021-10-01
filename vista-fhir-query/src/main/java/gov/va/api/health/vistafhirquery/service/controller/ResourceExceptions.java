@@ -1,8 +1,10 @@
 package gov.va.api.health.vistafhirquery.service.controller;
 
 import static java.lang.String.format;
+import static java.util.stream.Collectors.joining;
 
 import com.google.errorprone.annotations.FormatMethod;
+import java.util.List;
 import lombok.Getter;
 import lombok.NonNull;
 import org.springframework.lang.Nullable;
@@ -86,7 +88,24 @@ public class ResourceExceptions {
     }
   }
 
-  /** NotFound . */
+  /** More than one reason has caused a failure. */
+  public static final class MultipleErrorReasons extends ResourceException {
+
+    @Getter private final List<ResourceException> reasons;
+
+    /** Look at those chickens. */
+    public MultipleErrorReasons(List<ResourceException> reasons) {
+      super(
+          reasons.size()
+              + " reasons:\n"
+              + reasons.stream()
+                  .map(e -> format("%s: %s", e.getClass().getSimpleName(), e.getMessage()))
+                  .collect(joining("\n")));
+      this.reasons = reasons;
+    }
+  }
+
+  /** The resource was not found. */
   public static final class NotFound extends ResourceException {
     public NotFound(String message) {
       super(message);
@@ -102,9 +121,16 @@ public class ResourceExceptions {
     }
   }
 
-  /** ResourceException . */
-  static class ResourceException extends RuntimeException {
+  /** Base exception for resource related errors. */
+  public static class ResourceException extends RuntimeException {
     ResourceException(String message) {
+      super(message);
+    }
+  }
+
+  /** Cannot determine cause of error. */
+  public static final class UnknownErrorReason extends ResourceException {
+    public UnknownErrorReason(String message) {
       super(message);
     }
   }
