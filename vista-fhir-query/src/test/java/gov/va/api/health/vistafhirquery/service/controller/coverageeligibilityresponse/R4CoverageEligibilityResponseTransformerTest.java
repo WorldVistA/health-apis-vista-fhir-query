@@ -1,9 +1,14 @@
 package gov.va.api.health.vistafhirquery.service.controller.coverageeligibilityresponse;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 
 import gov.va.api.health.vistafhirquery.service.controller.coverage.CoverageSamples;
+import gov.va.api.lighthouse.charon.models.lhslighthouserpcgateway.InsuranceType;
 import gov.va.api.lighthouse.charon.models.lhslighthouserpcgateway.LhsLighthouseRpcGatewayResponse;
+import gov.va.api.lighthouse.charon.models.lhslighthouserpcgateway.LhsLighthouseRpcGatewayResponse.FilemanEntry;
+import gov.va.api.lighthouse.charon.models.lhslighthouserpcgateway.LhsLighthouseRpcGatewayResponse.UnexpectedVistaValue;
+import java.util.Map;
 import org.junit.jupiter.api.Test;
 
 public class R4CoverageEligibilityResponseTransformerTest {
@@ -23,6 +28,14 @@ public class R4CoverageEligibilityResponseTransformerTest {
   private R4CoverageEligibilityResponseTransformer _transformer(
       R4CoverageEligibilityResponseSearchContext ctx) {
     return R4CoverageEligibilityResponseTransformer.builder().searchContext(ctx).build();
+  }
+
+  @Test
+  void coverageWithoutPlanFieldThrows() {
+    var sample =
+        FilemanEntry.builder().file(InsuranceType.FILE_NUMBER).ien("1").fields(Map.of()).build();
+    assertThatExceptionOfType(UnexpectedVistaValue.class)
+        .isThrownBy(() -> _transformer().toCoverageEligibilityResponse(sample));
   }
 
   @Test
@@ -47,7 +60,6 @@ public class R4CoverageEligibilityResponseTransformerTest {
     assertThat(_transformer().toFhir().findFirst().orElse(null))
         .usingRecursiveComparison()
         .ignoringFields("created")
-        .isEqualTo(
-            CoverageEligibilityResponseSamples.R4.create().coverageEligibilityResponse("p1", "4"));
+        .isEqualTo(CoverageEligibilityResponseSamples.R4.create().coverageEligibilityResponse());
   }
 }

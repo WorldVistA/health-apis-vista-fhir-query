@@ -2,19 +2,19 @@ package gov.va.api.health.vistafhirquery.service.controller.coverageeligibilityr
 
 import static gov.va.api.health.vistafhirquery.service.charonclient.CharonRequests.lighthouseRpcGatewayRequest;
 import static gov.va.api.health.vistafhirquery.service.charonclient.CharonRequests.lighthouseRpcGatewayResponse;
+import static gov.va.api.health.vistafhirquery.service.controller.coverage.R4SiteCoverageController.coverageByPatientIcn;
 
 import gov.va.api.health.autoconfig.logging.Redact;
 import gov.va.api.health.r4.api.resources.CoverageEligibilityResponse;
 import gov.va.api.health.vistafhirquery.service.api.R4CoverageEligibilityResponseApi;
-import gov.va.api.health.vistafhirquery.service.charonclient.CharonResponse;
+import gov.va.api.health.vistafhirquery.service.charonclient.CharonClient;
 import gov.va.api.health.vistafhirquery.service.controller.R4Bundler;
 import gov.va.api.health.vistafhirquery.service.controller.R4BundlerFactory;
 import gov.va.api.health.vistafhirquery.service.controller.R4Bundling;
 import gov.va.api.health.vistafhirquery.service.controller.R4Transformation;
-import gov.va.api.lighthouse.charon.api.v1.RpcInvocationResultV1;
-import gov.va.api.lighthouse.charon.models.lhslighthouserpcgateway.LhsLighthouseRpcGatewayCoverageSearch;
-import gov.va.api.lighthouse.charon.models.lhslighthouserpcgateway.LhsLighthouseRpcGatewayResponse;
-import gov.va.api.lighthouse.charon.models.lhslighthouserpcgateway.PatientId;
+import gov.va.api.lighthouse.charon.models.lhslighthouserpcgateway.LhsLighthouseRpcGatewayListManifest;
+import gov.va.api.lighthouse.charon.models.lhslighthouserpcgateway.PlanCoverageLimitations;
+import java.util.ArrayList;
 import java.util.List;
 import javax.servlet.http.HttpServletRequest;
 import lombok.AllArgsConstructor;
@@ -35,8 +35,33 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping(produces = {"application/json", "application/fhir+json"})
 public class R4SiteCoverageEligibilityResponseController
     implements R4CoverageEligibilityResponseApi {
-
   private final R4BundlerFactory bundlerFactory;
+
+  private final CharonClient charon;
+
+  private void addCoverageResultsToContext(R4CoverageEligibilityResponseSearchContext ctx) {
+    var charonRequest =
+        lighthouseRpcGatewayRequest(ctx.site(), coverageByPatientIcn(ctx.patientIcn()));
+    var charonResponse = charon.request(charonRequest);
+    ctx.coverageResults(
+        lighthouseRpcGatewayResponse(charonResponse).resultsByStation().get(ctx.site()));
+  }
+
+  private void addPlanLimitationsToContext(R4CoverageEligibilityResponseSearchContext ctx) {
+    List<String> fields = new ArrayList<>();
+    fields.add("@");
+    fields.addAll(
+        internalAndExternalFieldsFor(R4CoverageEligibilityResponseTransformer.REQUIRED_FIELDS));
+    var details =
+        LhsLighthouseRpcGatewayListManifest.Request.builder()
+            .file(PlanCoverageLimitations.FILE_NUMBER)
+            .fields(fields)
+            .build();
+    var charonRequest = lighthouseRpcGatewayRequest(ctx.site(), details);
+    var charonResponse = charon.request(charonRequest);
+    ctx.planLimitationsResults(
+        lighthouseRpcGatewayResponse(charonResponse).resultsByStation().get(ctx.site()));
+  }
 
   /** Search support. */
   @Override
@@ -50,40 +75,26 @@ public class R4SiteCoverageEligibilityResponseController
               required = false,
               defaultValue = "${vista-fhir-query.default-page-size}")
           int count) {
-    var searchByPatient =
-        LhsLighthouseRpcGatewayCoverageSearch.Request.builder().id(PatientId.forIcn(icn)).build();
-    var charonRequest = lighthouseRpcGatewayRequest(site, searchByPatient);
-    var charonResponse =
-        CharonResponse
-            .<LhsLighthouseRpcGatewayCoverageSearch.Request,
-                LhsLighthouseRpcGatewayResponse.Results>
-                builder()
-            .request(charonRequest)
-            .invocationResult(RpcInvocationResultV1.builder().vista(site).response("").build())
-            .value(
-                LhsLighthouseRpcGatewayResponse.Results.builder()
-                    .results(
-                        List.of(LhsLighthouseRpcGatewayResponse.FilemanEntry.builder().build()))
-                    .build())
-            .build();
-    return toBundle(httpRequest, charonResponse)
-        .apply(lighthouseRpcGatewayResponse(charonResponse));
+    var searchCtx =
+        R4CoverageEligibilityResponseSearchContext.builder().site(site).patientIcn(icn).build();
+    addCoverageResultsToContext(searchCtx);
+    addPlanLimitationsToContext(searchCtx);
+    return toBundle(httpRequest, site).apply(searchCtx);
+  }
+
+  private List<String> internalAndExternalFieldsFor(List<String> requiredFields) {
+    return requiredFields.stream().map(f -> f + "IE").toList();
   }
 
   private R4Bundler<
-          LhsLighthouseRpcGatewayResponse,
+          R4CoverageEligibilityResponseSearchContext,
           CoverageEligibilityResponse,
           CoverageEligibilityResponse.Entry,
           CoverageEligibilityResponse.Bundle>
-      toBundle(
-          HttpServletRequest request,
-          CharonResponse<
-                  LhsLighthouseRpcGatewayCoverageSearch.Request,
-                  LhsLighthouseRpcGatewayResponse.Results>
-              response) {
+      toBundle(HttpServletRequest request, String site) {
     return bundlerFactory
         .forTransformation(transformation())
-        .site(response.invocationResult().vista())
+        .site(site)
         .bundling(
             R4Bundling.newBundle(CoverageEligibilityResponse.Bundle::new)
                 .newEntry(CoverageEligibilityResponse.Entry::new)
@@ -93,10 +104,17 @@ public class R4SiteCoverageEligibilityResponseController
         .build();
   }
 
-  private R4Transformation<LhsLighthouseRpcGatewayResponse, CoverageEligibilityResponse>
+  private R4Transformation<R4CoverageEligibilityResponseSearchContext, CoverageEligibilityResponse>
       transformation() {
-    return R4Transformation.<LhsLighthouseRpcGatewayResponse, CoverageEligibilityResponse>builder()
-        .toResource(rpcResponse -> List.of())
+    return R4Transformation
+        .<R4CoverageEligibilityResponseSearchContext, CoverageEligibilityResponse>builder()
+        .toResource(
+            ctx ->
+                R4CoverageEligibilityResponseTransformer.builder()
+                    .searchContext(ctx)
+                    .build()
+                    .toFhir()
+                    .toList())
         .build();
   }
 }

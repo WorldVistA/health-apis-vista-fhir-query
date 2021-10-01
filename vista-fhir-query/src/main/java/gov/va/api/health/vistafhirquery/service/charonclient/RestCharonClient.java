@@ -40,7 +40,12 @@ public class RestCharonClient implements CharonClient {
   /** Quietly unmarshal the JSON to the object type. */
   @SneakyThrows
   static <T> T fromJson(String json, Class<T> type) {
-    return MAPPER.readValue(json, type);
+    try {
+      return MAPPER.readValue(json, type);
+    } catch (JsonProcessingException e) {
+      log.error("Failed to read {}: {}", type.getName(), e.getMessage());
+      throw e;
+    }
   }
 
   @SneakyThrows

@@ -1,5 +1,6 @@
 package gov.va.api.health.vistafhirquery.service.controller.coverageeligibilityresponse;
 
+import gov.va.api.health.vistafhirquery.service.controller.PatientTypeCoordinates;
 import gov.va.api.lighthouse.charon.models.lhslighthouserpcgateway.LhsLighthouseRpcGatewayResponse;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -18,4 +19,8 @@ public class R4CoverageEligibilityResponseSearchContext {
   private LhsLighthouseRpcGatewayResponse.Results coverageResults;
 
   private LhsLighthouseRpcGatewayResponse.Results planLimitationsResults;
+
+  public PatientTypeCoordinates resourceIdFor(String ien) {
+    return PatientTypeCoordinates.builder().siteId(site()).icn(patientIcn()).recordId(ien).build();
+  }
 }

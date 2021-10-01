@@ -4,16 +4,17 @@ import static gov.va.api.health.vistafhirquery.service.controller.R4Transformers
 
 import gov.va.api.health.r4.api.DataAbsentReason;
 import gov.va.api.health.r4.api.DataAbsentReason.Reason;
+import gov.va.api.health.r4.api.elements.Meta;
 import gov.va.api.health.r4.api.elements.Reference;
 import gov.va.api.health.r4.api.resources.CoverageEligibilityResponse;
 import gov.va.api.health.r4.api.resources.CoverageEligibilityResponse.Outcome;
 import gov.va.api.health.r4.api.resources.CoverageEligibilityResponse.Purpose;
 import gov.va.api.health.r4.api.resources.CoverageEligibilityResponse.Status;
 import gov.va.api.health.vistafhirquery.service.controller.RecordCoordinates;
-import gov.va.api.health.vistafhirquery.service.controller.ResourceExceptions.BadRequestPayload;
 import gov.va.api.lighthouse.charon.models.lhslighthouserpcgateway.InsuranceCompany;
 import gov.va.api.lighthouse.charon.models.lhslighthouserpcgateway.InsuranceType;
 import gov.va.api.lighthouse.charon.models.lhslighthouserpcgateway.LhsLighthouseRpcGatewayResponse.FilemanEntry;
+import gov.va.api.lighthouse.charon.models.lhslighthouserpcgateway.LhsLighthouseRpcGatewayResponse.UnexpectedVistaValue;
 import gov.va.api.lighthouse.charon.models.lhslighthouserpcgateway.PlanCoverageLimitations;
 import java.time.Instant;
 import java.util.List;
@@ -26,6 +27,9 @@ import lombok.Value;
 @Value
 @Builder
 public class R4CoverageEligibilityResponseTransformer {
+  /** The fields needed by the transformer to generate a fhir response from the vista file. */
+  public static final List<String> REQUIRED_FIELDS = List.of(PlanCoverageLimitations.PLAN);
+
   @NonNull R4CoverageEligibilityResponseSearchContext searchContext;
 
   private Reference insurer(Optional<String> field) {
@@ -41,17 +45,23 @@ public class R4CoverageEligibilityResponseTransformer {
         .orElse(null);
   }
 
-  private Stream<CoverageEligibilityResponse> toCoverageEligibilityResponse(FilemanEntry coverage) {
+  Stream<CoverageEligibilityResponse> toCoverageEligibilityResponse(FilemanEntry coverage) {
     var plan =
         coverage
             .internal(InsuranceType.GROUP_PLAN)
             .orElseThrow(
-                () -> BadRequestPayload.because("Cannot determine plan for eligibilities."));
+                () ->
+                    new UnexpectedVistaValue(
+                        InsuranceType.GROUP_PLAN,
+                        null,
+                        "Cannot determine plan for eligibilities."));
     return searchContext().planLimitationsResults().results().stream()
         .filter(r -> plan.equals(r.internal(PlanCoverageLimitations.PLAN).orElse(null)))
         .map(
             pcl ->
                 CoverageEligibilityResponse.builder()
+                    .meta(Meta.builder().source(searchContext().site()).build())
+                    .id(searchContext().resourceIdFor(pcl.ien()).toString())
                     .status(Status.active)
                     .purpose(List.of(Purpose.discovery))
                     .patient(toReference("Patient", searchContext().patientIcn(), null))
