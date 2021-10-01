@@ -52,6 +52,8 @@ public class R4OrganizationTransformer {
           InsuranceCompany.APPEALS_COMPANY_NAME,
           InsuranceCompany.APPEALS_FAX,
           InsuranceCompany.APPEALS_PHONE_NUMBER,
+          InsuranceCompany.ATT_REND_ID_BILL_SEC_ID_INST,
+          InsuranceCompany.ATT_REND_ID_BILL_SEC_ID_PROF,
           InsuranceCompany.BILLING_COMPANY_NAME,
           InsuranceCompany.BILLING_PHONE_NUMBER,
           InsuranceCompany.CITY,
@@ -90,6 +92,7 @@ public class R4OrganizationTransformer {
           InsuranceCompany.CLAIMS_RX_STREET_ADDRESS_2,
           InsuranceCompany.CLAIMS_RX_STREET_ADDRESS_3,
           InsuranceCompany.CLAIMS_RX_ZIP,
+          InsuranceCompany.ELECTRONIC_INSURANCE_TYPE,
           InsuranceCompany.FILING_TIME_FRAME,
           InsuranceCompany.INACTIVE,
           InsuranceCompany.INQUIRY_ADDRESS_CITY,
@@ -105,13 +108,19 @@ public class R4OrganizationTransformer {
           InsuranceCompany.ONE_OPT_VISIT_ON_BILL_ONLY,
           InsuranceCompany.PHONE_NUMBER,
           InsuranceCompany.PRECERT_COMPANY_NAME,
+          InsuranceCompany.PRINT_SEC_MED_CLAIMS_W_O_MRA_,
+          InsuranceCompany.PRINT_SEC_TERT_AUTO_CLAIMS_,
           InsuranceCompany.PRECERTIFICATION_PHONE_NUMBER,
+          InsuranceCompany.REIMBURSE_,
+          InsuranceCompany.REF_PROV_SEC_ID_REQ_ON_CLAIMS,
+          InsuranceCompany.SIGNATURE_REQUIRED_ON_BILL_,
           InsuranceCompany.STANDARD_FTF,
           InsuranceCompany.STANDARD_FTF_VALUE,
           InsuranceCompany.STATE,
           InsuranceCompany.STREET_ADDRESS_LINE_1_,
           InsuranceCompany.STREET_ADDRESS_LINE_2_,
           InsuranceCompany.STREET_ADDRESS_LINE_3_,
+          InsuranceCompany.TRANSMIT_ELECTRONICALLY,
           InsuranceCompany.TYPE_OF_COVERAGE,
           InsuranceCompany.ZIP_CODE);
 
@@ -369,18 +378,18 @@ public class R4OrganizationTransformer {
                 "http://va.gov/fhir/StructureDefinition/organization-planStandardFilingTimeFrame"),
             extensions.ofCodeableConcept(
                 InsuranceCompany.REIMBURSE_,
-                "urn:oid:2.16.840.1.113883.3.8901.3.36.1",
+                "urn:oid:2.16.840.1.113883.3.8901.3.1.36.1",
                 "http://va.gov/fhir/StructureDefinition/organization-willReimburseForCare"),
             extensions.ofYesNoBoolean(
                 InsuranceCompany.SIGNATURE_REQUIRED_ON_BILL_,
                 "http://va.gov/fhir/StructureDefinition/organization-signatureRequiredOnBill"),
             extensions.ofCodeableConcept(
                 InsuranceCompany.TRANSMIT_ELECTRONICALLY,
-                "urn:oid:2.16.840.1.113883.3.8901.3.36.38001",
+                "urn:oid:2.16.840.1.113883.3.8901.3.1.36.38001",
                 "http://va.gov/fhir/StructureDefinition/organization-electronicTransmissionMode"),
             extensions.ofCodeableConcept(
                 InsuranceCompany.ELECTRONIC_INSURANCE_TYPE,
-                "urn:oid:2.16.840.1.113883.3.8901.3.36.38009",
+                "urn:oid:2.16.840.1.113883.3.8901.3.1.36.38009",
                 "http://va.gov/fhir/StructureDefinition/organization-electronicInsuranceType"),
             extensions.ofReference(
                 "Organization",
@@ -388,19 +397,19 @@ public class R4OrganizationTransformer {
                 "http://hl7.org/fhir/us/davinci-pdex-plan-net/StructureDefinition/via-intermediary"),
             extensions.ofCodeableConcept(
                 InsuranceCompany.PERF_PROV_SECOND_ID_TYPE_1500,
-                "urn:oid:2.16.840.1.113883.3.8901.3.3558097.8001",
+                "urn:oid:2.16.840.1.113883.3.8901.3.1.3558097.8001",
                 "http://va.gov/fhir/StructureDefinition/organization-performingProviderSecondIDTypeCMS1500"),
             extensions.ofCodeableConcept(
                 InsuranceCompany.PERF_PROV_SECOND_ID_TYPE_UB,
-                "urn:oid:2.16.840.1.113883.3.8901.3.3558097.8001",
+                "urn:oid:2.16.840.1.113883.3.8901.3.1.3558097.8001",
                 "http://va.gov/fhir/StructureDefinition/organization-performingProviderSecondIDTypeUB04"),
             extensions.ofCodeableConcept(
                 InsuranceCompany.REF_PROV_SEC_ID_DEF_CMS_1500,
-                "urn:oid:2.16.840.1.113883.3.8901.3.3558097.8001",
+                "urn:oid:2.16.840.1.113883.3.8901.3.1.3558097.8001",
                 "http://va.gov/fhir/StructureDefinition/organization-referrngProviderSecondIDTypeCMS1500"),
             extensions.ofCodeableConcept(
                 InsuranceCompany.REF_PROV_SEC_ID_REQ_ON_CLAIMS,
-                "urn:oid:2.16.840.1.113883.3.8901.3.3558097.8001",
+                "urn:oid:2.16.840.1.113883.3.8901.3.1.3558097.8001",
                 "http://va.gov/fhir/StructureDefinition/organization-referrngProviderSecondIDTypeUB04"),
             extensions.ofYesNoBoolean(
                 InsuranceCompany.ATT_REND_ID_BILL_SEC_ID_PROF,

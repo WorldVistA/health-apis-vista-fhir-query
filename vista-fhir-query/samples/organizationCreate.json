@@ -18,12 +18,76 @@
       }
     },
     {
+      "url": "http://va.gov/fhir/StructureDefinition/organization-willReimburseForCare",
+      "valueCodeableConcept": {
+        "coding": [
+          {
+            "system": "urn:oid:2.16.840.1.113883.3.8901.3.1.36.1",
+            "code": "WILL REIMBURSE"
+          }
+        ]
+      }
+    },
+    {
       "url": "http://va.gov/fhir/StructureDefinition/organization-planStandardFilingTimeFrame",
       "valueQuantity": {
         "value": 365,
         "unit": "DAYS",
         "system": "urn:oid:2.16.840.1.113883.3.8901.3.3558013"
       }
+    },
+    {
+      "url": "http://va.gov/fhir/StructureDefinition/organization-signatureRequiredOnBill",
+      "valueBoolean": true
+    },
+    {
+      "url": "http://va.gov/fhir/StructureDefinition/organization-electronicTransmissionMode",
+      "valueCodeableConcept": {
+        "coding": [
+          {
+            "system": "urn:oid:2.16.840.1.113883.3.8901.3.1.36.38001",
+            "code": "YES-LIVE"
+          }
+        ]
+      }
+    },
+    {
+      "url": "http://va.gov/fhir/StructureDefinition/organization-electronicInsuranceType",
+      "valueCodeableConcept": {
+        "coding": [
+          {
+            "system": "urn:oid:2.16.840.1.113883.3.8901.3.1.36.38009",
+            "code": "MEDICARE"
+          }
+        ]
+      }
+    },
+    {
+      "url": "http://va.gov/fhir/StructureDefinition/organization-referrngProviderSecondIDTypeUB04",
+      "valueCodeableConcept": {
+        "coding": [
+          {
+            "system": "urn:oid:2.16.840.1.113883.3.8901.3.1.3558097.8001",
+            "code": "1"
+          }
+        ]
+      }
+    },
+    {
+      "url": "http://va.gov/fhir/StructureDefinition/organization-attendingRenderingProviderSecondaryIDProfesionalRequired",
+      "valueBoolean": true
+    },
+    {
+      "url": "http://va.gov/fhir/StructureDefinition/organization-attendingRenderingProviderSecondaryIDInstitutionalRequired",
+      "valueBoolean": true
+    },
+    {
+      "url": "http://va.gov/fhir/StructureDefinition/organization-printSecTertAutoClaimsLocally",
+      "valueBoolean": true
+    },
+    {
+      "url": "http://va.gov/fhir/StructureDefinition/organization-printSecMedClaimsWOMRALocally",
+      "valueBoolean": true
     },
     {
       "url": "http://va.gov/fhir/StructureDefinition/organization-oneOutpatVisitOnBillOnly",

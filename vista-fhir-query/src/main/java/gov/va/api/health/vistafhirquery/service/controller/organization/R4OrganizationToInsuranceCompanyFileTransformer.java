@@ -16,6 +16,7 @@ import gov.va.api.lighthouse.charon.models.lhslighthouserpcgateway.InsuranceComp
 import gov.va.api.lighthouse.charon.models.lhslighthouserpcgateway.LhsLighthouseRpcGatewayCoverageWrite.WriteableFilemanValue;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import lombok.Builder;
@@ -24,6 +25,8 @@ import lombok.Value;
 
 @Value
 public class R4OrganizationToInsuranceCompanyFileTransformer {
+  static final Map<Boolean, String> YES_NO = Map.of(true, "YES", false, "NO");
+
   @NonNull Organization organization;
 
   @Builder
@@ -183,11 +186,43 @@ public class R4OrganizationToInsuranceCompanyFileTransformer {
     return fields;
   }
 
+  WriteableFilemanValue extensionCodeableConcept(
+      String fieldName, String fieldNumber, String extensionSystem, String codingSystem) {
+    Extension extension =
+        extensionForSystem(organization.extension(), extensionSystem)
+            .orElseThrow(
+                () -> BadRequestPayload.because(fieldNumber, fieldName + " extension is null"));
+    CodeableConcept extensionCodeableConcept = extension.valueCodeableConcept();
+    if (isBlank(extensionCodeableConcept)) {
+      throw BadRequestPayload.because(
+          fieldNumber, fieldName + " extension.codeableConcept is null");
+    }
+    Coding coding =
+        codingForSystem(extensionCodeableConcept.coding(), codingSystem)
+            .orElseThrow(
+                () ->
+                    BadRequestPayload.because(
+                        fieldNumber, fieldName + " extension.codeableConcept.coding is null"));
+    return insuranceCompanyCoordinatesOrDie(fieldNumber, 1, coding.code(), fieldName);
+  }
+
   Optional<Extension> extensionForSystem(List<Extension> extensions, String system) {
     if (isBlank(extensions)) {
       return Optional.empty();
     }
     return extensions.stream().filter(e -> system.equals(e.url())).findFirst();
+  }
+
+  WriteableFilemanValue extensionYesNoBoolean(String fieldName, String fieldNumber, String system) {
+    Extension extension =
+        extensionForSystem(organization.extension(), system)
+            .orElseThrow(
+                () -> BadRequestPayload.because(fieldNumber, fieldName + " extension is null"));
+    if (extension.valueBoolean() == null) {
+      throw BadRequestPayload.because(fieldNumber, fieldName + " extension.valueBoolean is null");
+    }
+    return insuranceCompanyCoordinatesOrDie(
+        fieldNumber, 1, YES_NO.get(extension.valueBoolean()), fieldName);
   }
 
   private WriteableFilemanValue inquiryContact() {
@@ -268,7 +303,12 @@ public class R4OrganizationToInsuranceCompanyFileTransformer {
             InsuranceCompany.FAX_NUMBER,
             "organization",
             ContactPoint.ContactPointSystem.fax));
-    fields.add(typeOfCoverage());
+    fields.add(
+        extensionCodeableConcept(
+            "type of coverage",
+            InsuranceCompany.TYPE_OF_COVERAGE,
+            "http://va.gov/fhir/StructureDefinition/organization-typeOfCoverage",
+            "urn:oid:2.16.840.1.113883.3.8901.3.36.8013"));
     fields.add(
         contactPoint(
             organization.telecom(),
@@ -276,34 +316,56 @@ public class R4OrganizationToInsuranceCompanyFileTransformer {
             "organization",
             ContactPoint.ContactPointSystem.phone));
     fields.addAll(standardFtf());
+    fields.add(
+        extensionCodeableConcept(
+            "reimburse",
+            InsuranceCompany.REIMBURSE_,
+            "http://va.gov/fhir/StructureDefinition/organization-willReimburseForCare",
+            "urn:oid:2.16.840.1.113883.3.8901.3.1.36.1"));
+    fields.add(
+        extensionYesNoBoolean(
+            "signature required on bill",
+            InsuranceCompany.SIGNATURE_REQUIRED_ON_BILL_,
+            "http://va.gov/fhir/StructureDefinition/organization-signatureRequiredOnBill"));
+    fields.add(
+        extensionCodeableConcept(
+            "transmit electronically",
+            InsuranceCompany.TRANSMIT_ELECTRONICALLY,
+            "http://va.gov/fhir/StructureDefinition/organization-electronicTransmissionMode",
+            "urn:oid:2.16.840.1.113883.3.8901.3.1.36.38001"));
+    fields.add(
+        extensionCodeableConcept(
+            "electronic insurance type",
+            InsuranceCompany.ELECTRONIC_INSURANCE_TYPE,
+            "http://va.gov/fhir/StructureDefinition/organization-electronicInsuranceType",
+            "urn:oid:2.16.840.1.113883.3.8901.3.1.36.38009"));
+    fields.add(
+        extensionCodeableConcept(
+            "ref prov sec id req on claims",
+            InsuranceCompany.REF_PROV_SEC_ID_REQ_ON_CLAIMS,
+            "http://va.gov/fhir/StructureDefinition/organization-referrngProviderSecondIDTypeUB04",
+            "urn:oid:2.16.840.1.113883.3.8901.3.1.3558097.8001"));
+    fields.add(
+        extensionYesNoBoolean(
+            "att/rend id bill sec id prof",
+            InsuranceCompany.ATT_REND_ID_BILL_SEC_ID_PROF,
+            "http://va.gov/fhir/StructureDefinition/organization-attendingRenderingProviderSecondaryIDProfesionalRequired"));
+    fields.add(
+        extensionYesNoBoolean(
+            "att rend id bill sec id inst",
+            InsuranceCompany.ATT_REND_ID_BILL_SEC_ID_INST,
+            "http://va.gov/fhir/StructureDefinition/organization-attendingRenderingProviderSecondaryIDInstitutionalRequired"));
+    fields.add(
+        extensionYesNoBoolean(
+            "print sec tert auto claims",
+            InsuranceCompany.PRINT_SEC_TERT_AUTO_CLAIMS_,
+            "http://va.gov/fhir/StructureDefinition/organization-printSecTertAutoClaimsLocally"));
+    fields.add(
+        extensionYesNoBoolean(
+            "print sec med claims w/o mra",
+            InsuranceCompany.PRINT_SEC_MED_CLAIMS_W_O_MRA_,
+            "http://va.gov/fhir/StructureDefinition/organization-printSecMedClaimsWOMRALocally"));
     return fields;
-  }
-
-  private WriteableFilemanValue typeOfCoverage() {
-    Extension companyNameExtension =
-        extensionForSystem(
-                organization.extension(),
-                "http://va.gov/fhir/StructureDefinition/organization-typeOfCoverage")
-            .orElseThrow(
-                () ->
-                    BadRequestPayload.because(
-                        InsuranceCompany.TYPE_OF_COVERAGE, " type of coverage extension is null"));
-    CodeableConcept typeOfCoverageCodeableConcept = companyNameExtension.valueCodeableConcept();
-    if (isBlank(typeOfCoverageCodeableConcept)) {
-      throw BadRequestPayload.because(
-          InsuranceCompany.TYPE_OF_COVERAGE, "type of coverage codeable concept is null");
-    }
-    Coding typeOfCoverageCoding =
-        codingForSystem(
-                typeOfCoverageCodeableConcept.coding(),
-                "urn:oid:2.16.840.1.113883.3.8901.3.36.8013")
-            .orElseThrow(
-                () ->
-                    BadRequestPayload.because(
-                        InsuranceCompany.TYPE_OF_COVERAGE, " type of coverage coding is null"));
-    ;
-    return insuranceCompanyCoordinatesOrDie(
-        InsuranceCompany.TYPE_OF_COVERAGE, 1, typeOfCoverageCoding.code(), "type of coverage");
   }
 
   private WriteableFilemanValue verificationContact() {

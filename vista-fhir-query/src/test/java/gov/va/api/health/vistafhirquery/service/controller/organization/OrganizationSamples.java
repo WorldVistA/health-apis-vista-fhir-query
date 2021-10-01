@@ -81,7 +81,7 @@ public class OrganizationSamples {
           insuranceCompanyValue(InsuranceCompany.INQUIRY_PHONE_NUMBER, "1-800-SHANK-INQUIRY"),
           insuranceCompanyValue(InsuranceCompany.STANDARD_FTF, "DAYS"),
           insuranceCompanyValue(InsuranceCompany.STANDARD_FTF_VALUE, "365"),
-          insuranceCompanyValue(InsuranceCompany.REIMBURSE_, "Y"),
+          insuranceCompanyValue(InsuranceCompany.REIMBURSE_, "WILL REIMBURSE"),
           insuranceCompanyValue(InsuranceCompany.SIGNATURE_REQUIRED_ON_BILL_, "1"),
           insuranceCompanyValue(InsuranceCompany.TRANSMIT_ELECTRONICALLY, "2"),
           insuranceCompanyValue(InsuranceCompany.EDI_ID_NUMBER_PROF, "55555"),
@@ -371,7 +371,7 @@ public class OrganizationSamples {
       fields.put("#.19", LhsLighthouseRpcGatewayResponse.Values.of("SHANK FTF VALUE: EXT", "365"));
       fields.put(
           "#1",
-          LhsLighthouseRpcGatewayResponse.Values.of("SHANK REIMBURSE: EXT", "SHANK REIMBURSE: IN"));
+          LhsLighthouseRpcGatewayResponse.Values.of("SHANK REIMBURSE: EXT", "WILL REIMBURSE"));
       fields.put("#2", LhsLighthouseRpcGatewayResponse.Values.of("TRUE", "1"));
       fields.put(
           "#3.01",
@@ -793,8 +793,8 @@ public class OrganizationSamples {
                       .coding(
                           Collections.singletonList(
                               Coding.builder()
-                                  .code("SHANK REIMBURSE: IN")
-                                  .system("urn:oid:2.16.840.1.113883.3.8901.3.36.1")
+                                  .code("WILL REIMBURSE")
+                                  .system("urn:oid:2.16.840.1.113883.3.8901.3.1.36.1")
                                   .build()))
                       .build())
               .build(),
@@ -809,7 +809,7 @@ public class OrganizationSamples {
                       .coding(
                           Collections.singletonList(
                               Coding.builder()
-                                  .system("urn:oid:2.16.840.1.113883.3.8901.3.36.38001")
+                                  .system("urn:oid:2.16.840.1.113883.3.8901.3.1.36.38001")
                                   .code("SHANKED ELECTRONICALLY: IN")
                                   .build()))
                       .build())
@@ -822,7 +822,7 @@ public class OrganizationSamples {
                           Collections.singletonList(
                               Coding.builder()
                                   .code("ELECTRONIC INSHANKANCE TYPE: IN")
-                                  .system("urn:oid:2.16.840.1.113883.3.8901.3.36.38009")
+                                  .system("urn:oid:2.16.840.1.113883.3.8901.3.1.36.38009")
                                   .build()))
                       .build())
               .build(),
@@ -849,7 +849,7 @@ public class OrganizationSamples {
                       .coding(
                           Collections.singletonList(
                               Coding.builder()
-                                  .system("urn:oid:2.16.840.1.113883.3.8901.3.3558097.8001")
+                                  .system("urn:oid:2.16.840.1.113883.3.8901.3.1.3558097.8001")
                                   .code("SHANK 1500: IN")
                                   .build()))
                       .build())
@@ -863,7 +863,7 @@ public class OrganizationSamples {
                           Collections.singletonList(
                               Coding.builder()
                                   .code("PERF SHANK UB: IN")
-                                  .system("urn:oid:2.16.840.1.113883.3.8901.3.3558097.8001")
+                                  .system("urn:oid:2.16.840.1.113883.3.8901.3.1.3558097.8001")
                                   .build()))
                       .build())
               .build(),
@@ -876,7 +876,7 @@ public class OrganizationSamples {
                           Collections.singletonList(
                               Coding.builder()
                                   .code("REF SHANK 1500: IN")
-                                  .system("urn:oid:2.16.840.1.113883.3.8901.3.3558097.8001")
+                                  .system("urn:oid:2.16.840.1.113883.3.8901.3.1.3558097.8001")
                                   .build()))
                       .build())
               .build(),
@@ -889,7 +889,7 @@ public class OrganizationSamples {
                           Collections.singletonList(
                               Coding.builder()
                                   .code("REF SHANK CLAIMS: IN")
-                                  .system("urn:oid:2.16.840.1.113883.3.8901.3.3558097.8001")
+                                  .system("urn:oid:2.16.840.1.113883.3.8901.3.1.3558097.8001")
                                   .build()))
                       .build())
               .build(),

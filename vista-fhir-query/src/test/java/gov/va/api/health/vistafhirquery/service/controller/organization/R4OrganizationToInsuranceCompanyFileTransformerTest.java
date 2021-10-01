@@ -5,7 +5,7 @@ import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 
 import gov.va.api.health.r4.api.datatypes.ContactPoint;
 import gov.va.api.health.r4.api.resources.Organization;
-import gov.va.api.health.vistafhirquery.service.controller.ResourceExceptions;
+import gov.va.api.health.vistafhirquery.service.controller.ResourceExceptions.BadRequestPayload;
 import java.util.List;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
@@ -19,9 +19,9 @@ public class R4OrganizationToInsuranceCompanyFileTransformerTest {
 
   @Test
   void contactPointThrowsBadRequestPayload() {
-    assertThatExceptionOfType(ResourceExceptions.BadRequestPayload.class)
+    assertThatExceptionOfType(BadRequestPayload.class)
         .isThrownBy(() -> _transformer().contactPoint(null, null, null, null));
-    assertThatExceptionOfType(ResourceExceptions.BadRequestPayload.class)
+    assertThatExceptionOfType(BadRequestPayload.class)
         .isThrownBy(
             () ->
                 _transformer()
@@ -34,7 +34,7 @@ public class R4OrganizationToInsuranceCompanyFileTransformerTest {
 
   @Test
   void empty() {
-    assertThatExceptionOfType(ResourceExceptions.BadRequestPayload.class)
+    assertThatExceptionOfType(BadRequestPayload.class)
         .isThrownBy(
             () ->
                 R4OrganizationToInsuranceCompanyFileTransformer.builder()
