@@ -1,9 +1,8 @@
-package gov.va.api.health.vistafhirquery.service.controller.coverage;
+package gov.va.api.health.vistafhirquery.service.charonclient;
 
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.junit.jupiter.params.provider.Arguments.arguments;
 
-import gov.va.api.health.vistafhirquery.service.charonclient.LhsGatewayErrorHandler;
 import gov.va.api.health.vistafhirquery.service.charonclient.LhsGatewayErrorHandler.LhsGatewayError;
 import gov.va.api.health.vistafhirquery.service.controller.ResourceExceptions.BadRequestPayload;
 import gov.va.api.health.vistafhirquery.service.controller.ResourceExceptions.CannotUpdateUnknownResource;

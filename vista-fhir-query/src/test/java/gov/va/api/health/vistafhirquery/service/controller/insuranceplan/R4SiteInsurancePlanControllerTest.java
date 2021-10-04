@@ -8,10 +8,14 @@ import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.mockito.Mockito.when;
 
 import gov.va.api.health.vistafhirquery.service.charonclient.CharonClient;
+import gov.va.api.health.vistafhirquery.service.config.LinkProperties;
 import gov.va.api.health.vistafhirquery.service.controller.MockWitnessProtection;
+import gov.va.api.health.vistafhirquery.service.controller.R4BundlerFactory;
 import gov.va.api.health.vistafhirquery.service.controller.ResourceExceptions.NotFound;
+import gov.va.api.health.vistafhirquery.service.controller.witnessprotection.AlternatePatientIds;
 import gov.va.api.lighthouse.charon.api.v1.RpcInvocationResultV1;
 import gov.va.api.lighthouse.charon.models.lhslighthouserpcgateway.LhsLighthouseRpcGatewayCoverageSearch;
+import gov.va.api.lighthouse.charon.models.lhslighthouserpcgateway.LhsLighthouseRpcGatewayCoverageWrite;
 import gov.va.api.lighthouse.charon.models.lhslighthouserpcgateway.LhsLighthouseRpcGatewayGetsManifest;
 import gov.va.api.lighthouse.charon.models.lhslighthouserpcgateway.LhsLighthouseRpcGatewayResponse;
 import org.junit.jupiter.api.Test;
@@ -29,7 +33,17 @@ class R4SiteInsurancePlanControllerTest {
 
   private R4SiteInsurancePlanController _controller() {
     return R4SiteInsurancePlanController.builder()
-        .linkProperties(InsurancePlanSamples.linkProperties())
+        .bundlerFactory(
+            R4BundlerFactory.builder()
+                .linkProperties(
+                    LinkProperties.builder()
+                        .defaultPageSize(15)
+                        .maxPageSize(100)
+                        .publicUrl("http://fugazi.com")
+                        .publicR4BasePath("site/{site}/r4")
+                        .build())
+                .alternatePatientIds(new AlternatePatientIds.DisabledAlternatePatientIds())
+                .build())
         .charon(charon)
         .witnessProtection(witnessProtection)
         .build();
@@ -46,12 +60,21 @@ class R4SiteInsurancePlanControllerTest {
   @Test
   void create() {
     var response = new MockHttpServletResponse();
+    var samples = InsurancePlanSamples.VistaLhsLighthouseRpcGateway.create();
+    var results = samples.createInsurancePlanResults("ien1");
+    var captor = requestCaptor(LhsLighthouseRpcGatewayCoverageWrite.Request.class);
+    var answer =
+        answerFor(captor).value(results).invocationResult(_invocationResult(results)).build();
+    when(charon.request(captor.capture())).thenAnswer(answer);
+    witnessProtection.add("pub1", "123;355.3;ien1");
     _controller()
         .insurancePlanCreate(
-            response, "123", InsurancePlanSamples.R4.create().insurancePlan("123", "ip1"));
+            response, "123", InsurancePlanSamples.R4.create().insurancePlan("123", "ien1"));
+    assertThat(captor.getValue().rpcRequest().api())
+        .isEqualTo(LhsLighthouseRpcGatewayCoverageWrite.Request.CoverageWriteApi.CREATE);
     assertThat(response.getStatus()).isEqualTo(201);
     assertThat(response.getHeader(HttpHeaders.LOCATION))
-        .isEqualTo("http://fugazi.com/site/123/r4/InsurancePlan/{new-resource-id}");
+        .isEqualTo("http://fugazi.com/site/123/r4/InsurancePlan/pub1");
   }
 
   @Test

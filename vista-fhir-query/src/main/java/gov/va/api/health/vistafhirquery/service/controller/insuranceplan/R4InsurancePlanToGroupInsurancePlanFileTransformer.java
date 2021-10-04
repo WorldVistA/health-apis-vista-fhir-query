@@ -18,6 +18,7 @@ import gov.va.api.lighthouse.charon.models.lhslighthouserpcgateway.InsuranceComp
 import gov.va.api.lighthouse.charon.models.lhslighthouserpcgateway.LhsLighthouseRpcGatewayCoverageWrite.WriteableFilemanValue;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Objects;
 import java.util.Set;
 import java.util.function.Function;
 import java.util.function.Predicate;
@@ -74,6 +75,7 @@ public class R4InsurancePlanToGroupInsurancePlanFileTransformer {
     return object.stream()
         .filter(predicate)
         .map(mapper)
+        .filter(Objects::nonNull)
         .findFirst()
         .map(value -> groupInsurancePlanCoordinates(field, 1, (String) value))
         .orElseThrow(() -> ResourceExceptions.BadRequestPayload.because(field, error));
@@ -225,7 +227,7 @@ public class R4InsurancePlanToGroupInsurancePlanFileTransformer {
         c ->
             codeableconceptHasCodingSystem(
                 c.type(), "urn:oid:2.16.840.1.113883.3.8901.3.1.355803.8009"),
-        c -> extractCodeFromCoding(c.type()),
+        c -> c.type().coding().stream().findFirst().map(Coding::display).orElse(null),
         GroupInsurancePlan.TYPE_OF_PLAN,
         "system type 'urn:oid:2.16.840.1.113883.3.8901.3.1.355803.8009' not found");
   }

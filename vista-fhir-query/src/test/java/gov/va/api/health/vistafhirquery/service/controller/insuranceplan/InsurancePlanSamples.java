@@ -88,7 +88,7 @@ public class InsurancePlanSamples {
               .build(),
           Identifier.builder()
               .system("urn:oid:2.16.840.1.113883.3.8901.3.1.355803.68001")
-              .value("4444")
+              .value("BC SX")
               .build(),
           Identifier.builder()
               .system("urn:oid:2.16.840.1.113883.3.8901.3.1.355803.68002")
@@ -165,14 +165,27 @@ public class InsurancePlanSamples {
           insuranceValue(GroupInsurancePlan.IS_PRE_CERTIFICATION_REQUIRED_, "YES"),
           insuranceValue(GroupInsurancePlan.EXCLUDE_PRE_EXISTING_CONDITION, "NO"),
           insuranceValue(GroupInsurancePlan.BENEFITS_ASSIGNABLE_, "YES"),
-          insuranceValue(GroupInsurancePlan.TYPE_OF_PLAN, "40"),
+          insuranceValue(GroupInsurancePlan.TYPE_OF_PLAN, "PREFERRED PROVIDER ORGANIZATION (PPO)"),
           insuranceValue(GroupInsurancePlan.AMBULATORY_CARE_CERTIFICATION, "YES"),
           insuranceValue(GroupInsurancePlan.ELECTRONIC_PLAN_TYPE, "CI"),
           insuranceValue(GroupInsurancePlan.PLAN_STANDARD_FTF, "DAYS"),
           insuranceValue(GroupInsurancePlan.PLAN_STANDARD_FTF_VALUE, "365"),
           insuranceValue(GroupInsurancePlan.GROUP_NAME, "BCBS OF SHANKSVILLE GROUP"),
           insuranceValue(GroupInsurancePlan.GROUP_NUMBER, "GRP123456"),
-          insuranceValue(GroupInsurancePlan.PLAN_ID, "4444"));
+          insuranceValue(GroupInsurancePlan.PLAN_ID, "BC SX"));
+    }
+
+    public LhsLighthouseRpcGatewayResponse.Results createInsurancePlanResults(String id) {
+      return LhsLighthouseRpcGatewayResponse.Results.builder()
+          .results(
+              List.of(
+                  LhsLighthouseRpcGatewayResponse.FilemanEntry.builder()
+                      .file(GroupInsurancePlan.FILE_NUMBER)
+                      .ien(id)
+                      .index("1")
+                      .status("1")
+                      .build()))
+          .build();
     }
 
     private Map<String, LhsLighthouseRpcGatewayResponse.Values> fields() {
@@ -215,7 +228,8 @@ public class InsurancePlanSamples {
           GroupInsurancePlan.GROUP_NUMBER,
           LhsLighthouseRpcGatewayResponse.Values.of("GRP123456", "GRP123456"));
       fields.put(
-          GroupInsurancePlan.PLAN_ID, LhsLighthouseRpcGatewayResponse.Values.of("VA55555", "4444"));
+          GroupInsurancePlan.PLAN_ID,
+          LhsLighthouseRpcGatewayResponse.Values.of("VA55555", "BC SX"));
       fields.put(
           GroupInsurancePlan.BANKING_IDENTIFICATION_NUMBER,
           LhsLighthouseRpcGatewayResponse.Values.of("88888888", "88888888"));

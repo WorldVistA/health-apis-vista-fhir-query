@@ -4,18 +4,23 @@ import static gov.va.api.health.vistafhirquery.service.charonclient.CharonReques
 import static gov.va.api.health.vistafhirquery.service.charonclient.CharonRequests.lighthouseRpcGatewayResponse;
 import static gov.va.api.health.vistafhirquery.service.controller.R4Controllers.dieOnError;
 import static gov.va.api.health.vistafhirquery.service.controller.R4Controllers.verifyAndGetResult;
+import static gov.va.api.health.vistafhirquery.service.controller.R4Controllers.verifySiteSpecificVistaResponseOrDie;
 import static java.util.stream.Collectors.toList;
 
 import gov.va.api.health.autoconfig.logging.Redact;
 import gov.va.api.health.r4.api.resources.InsurancePlan;
 import gov.va.api.health.vistafhirquery.service.api.R4InsurancePlanApi;
 import gov.va.api.health.vistafhirquery.service.charonclient.CharonClient;
-import gov.va.api.health.vistafhirquery.service.config.LinkProperties;
+import gov.va.api.health.vistafhirquery.service.charonclient.LhsGatewayErrorHandler;
+import gov.va.api.health.vistafhirquery.service.controller.R4BundlerFactory;
 import gov.va.api.health.vistafhirquery.service.controller.R4Transformation;
 import gov.va.api.health.vistafhirquery.service.controller.RecordCoordinates;
+import gov.va.api.health.vistafhirquery.service.controller.ResourceExceptions.ExpectationFailed;
 import gov.va.api.health.vistafhirquery.service.controller.ResourceExceptions.NotFound;
 import gov.va.api.health.vistafhirquery.service.controller.witnessprotection.WitnessProtection;
 import gov.va.api.lighthouse.charon.models.lhslighthouserpcgateway.GroupInsurancePlan;
+import gov.va.api.lighthouse.charon.models.lhslighthouserpcgateway.LhsLighthouseRpcGatewayCoverageWrite;
+import gov.va.api.lighthouse.charon.models.lhslighthouserpcgateway.LhsLighthouseRpcGatewayCoverageWrite.Request.CoverageWriteApi;
 import gov.va.api.lighthouse.charon.models.lhslighthouserpcgateway.LhsLighthouseRpcGatewayGetsManifest;
 import gov.va.api.lighthouse.charon.models.lhslighthouserpcgateway.LhsLighthouseRpcGatewayGetsManifest.Request.GetsManifestFlags;
 import gov.va.api.lighthouse.charon.models.lhslighthouserpcgateway.LhsLighthouseRpcGatewayResponse;
@@ -23,7 +28,9 @@ import java.util.List;
 import javax.servlet.http.HttpServletResponse;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
+import lombok.Getter;
 import lombok.NonNull;
+import lombok.Setter;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -43,8 +50,7 @@ import org.springframework.web.bind.annotation.RestController;
 @AllArgsConstructor(onConstructor_ = {@Autowired, @NonNull})
 @Slf4j
 public class R4SiteInsurancePlanController implements R4InsurancePlanApi {
-
-  private final LinkProperties linkProperties;
+  private final R4BundlerFactory bundlerFactory;
 
   private final WitnessProtection witnessProtection;
 
@@ -79,9 +85,23 @@ public class R4SiteInsurancePlanController implements R4InsurancePlanApi {
       @Redact HttpServletResponse response,
       @PathVariable(value = "site") String site,
       @Redact @RequestBody InsurancePlan body) {
-    var newResourceUrl = linkProperties.r4().readUrl(site, "InsurancePlan", "{new-resource-id}");
-    response.setStatus(201);
+    var ctx =
+        updateOrCreate(
+            InsurancePlanWriteContext.builder()
+                .site(site)
+                .body(body)
+                .mode(CoverageWriteApi.CREATE)
+                .build());
+    var newResourceUrl =
+        bundlerFactory
+            .linkProperties()
+            .r4()
+            .readUrl(
+                site,
+                "InsurancePlan",
+                witnessProtection.toPublicId(InsurancePlan.class, ctx.newResourceId()));
     response.addHeader(HttpHeaders.LOCATION, newResourceUrl);
+    response.setStatus(201);
   }
 
   @Override
@@ -100,9 +120,21 @@ public class R4SiteInsurancePlanController implements R4InsurancePlanApi {
     var response = charon.request(request);
     var lhsResponse = lighthouseRpcGatewayResponse(response);
     dieOnError(lhsResponse);
-
     var resources = transformation().toResource().apply(lhsResponse);
     return verifyAndGetResult(resources, id);
+  }
+
+  private LhsLighthouseRpcGatewayCoverageWrite.Request insurancePlanWriteDetails(
+      CoverageWriteApi operation, InsurancePlan body) {
+    var fieldsToWrite =
+        R4InsurancePlanToGroupInsurancePlanFileTransformer.builder()
+            .insurancePlan(body)
+            .build()
+            .toGroupInsurancePlanFile();
+    return LhsLighthouseRpcGatewayCoverageWrite.Request.builder()
+        .api(operation)
+        .fields(fieldsToWrite)
+        .build();
   }
 
   private R4Transformation<LhsLighthouseRpcGatewayResponse, InsurancePlan> transformation() {
@@ -118,5 +150,64 @@ public class R4SiteInsurancePlanController implements R4InsurancePlanApi {
                                 .toFhir())
                     .collect(toList()))
         .build();
+  }
+
+  private InsurancePlanWriteContext updateOrCreate(InsurancePlanWriteContext ctx) {
+    var charonRequest =
+        lighthouseRpcGatewayRequest(ctx.site(), insurancePlanWriteDetails(ctx.mode(), ctx.body()));
+    var charonResponse = charon.request(charonRequest);
+    var lhsResponse = lighthouseRpcGatewayResponse(charonResponse);
+    return ctx.result(lhsResponse);
+  }
+
+  @Getter
+  @Setter
+  private static class InsurancePlanWriteContext {
+    private final String site;
+
+    private final InsurancePlan body;
+
+    private final String fileNumber;
+
+    private final CoverageWriteApi mode;
+
+    private LhsLighthouseRpcGatewayResponse.FilemanEntry result;
+
+    @Builder
+    public InsurancePlanWriteContext(String site, InsurancePlan body, CoverageWriteApi mode) {
+      this.site = site;
+      this.body = body;
+      this.mode = mode;
+      this.fileNumber = GroupInsurancePlan.FILE_NUMBER;
+    }
+
+    String newResourceId() {
+      return RecordCoordinates.builder()
+          .site(site())
+          .ien(result().ien())
+          .file(fileNumber())
+          .build()
+          .toString();
+    }
+
+    InsurancePlanWriteContext result(LhsLighthouseRpcGatewayResponse response) {
+      verifySiteSpecificVistaResponseOrDie(site(), response);
+      var resultsForStation = response.resultsByStation().get(site());
+      LhsGatewayErrorHandler.of(resultsForStation).validateResults();
+      var results = resultsForStation.results();
+      var insTypeResults =
+          resultsForStation.results().stream()
+              .filter(entry -> fileNumber.equals(entry.file()))
+              .toList();
+      if (insTypeResults.size() != 1) {
+        throw ExpectationFailed.because("Unexpected number of results: " + results.size());
+      }
+      if ("1".equals(insTypeResults.get(0).status())) {
+        this.result = insTypeResults.get(0);
+        return this;
+      }
+      throw ExpectationFailed.because(
+          "Unexpected status code from results: " + insTypeResults.get(0).status());
+    }
   }
 }
