@@ -218,6 +218,11 @@ public class R4Transformers {
   }
 
   public static Reference toReference(
+      @NonNull String resourceType, @NonNull PatientTypeCoordinates coordinates) {
+    return toReference(resourceType, coordinates.toString(), null);
+  }
+
+  public static Reference toReference(
       @NonNull String resourceType, @NonNull RecordCoordinates coordinates) {
     return toReference(resourceType, coordinates.toString(), null);
   }

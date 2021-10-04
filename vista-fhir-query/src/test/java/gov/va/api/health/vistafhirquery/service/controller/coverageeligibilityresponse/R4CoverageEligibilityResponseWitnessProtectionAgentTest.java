@@ -9,6 +9,7 @@ import gov.va.api.health.r4.api.elements.Reference;
 import gov.va.api.health.r4.api.resources.Coverage;
 import gov.va.api.health.r4.api.resources.Coverage.CoverageClass;
 import gov.va.api.health.r4.api.resources.CoverageEligibilityResponse;
+import gov.va.api.health.r4.api.resources.CoverageEligibilityResponse.Insurance;
 import gov.va.api.health.vistafhirquery.service.config.LinkProperties;
 import gov.va.api.health.vistafhirquery.service.controller.coverage.R4CoverageWitnessProtectionAgent;
 import gov.va.api.health.vistafhirquery.service.controller.witnessprotection.ProtectedReferenceFactory;
@@ -34,6 +35,14 @@ public class R4CoverageEligibilityResponseWitnessProtectionAgentTest {
             .meta(Meta.builder().source("123").build())
             .patient(Reference.builder().reference("Patient/p1").build())
             .insurer(Reference.builder().reference("Organization/o1").build())
+            .insurance(
+                List.of(
+                    Insurance.builder()
+                        .coverage(Reference.builder().reference("Coverage/c1").build())
+                        .build(),
+                    Insurance.builder()
+                        .coverage(Reference.builder().reference("Coverage/c2").build())
+                        .build()))
             .build();
     var wpa =
         new R4CoverageEligibilityResponseWitnessProtectionAgent(
@@ -50,6 +59,16 @@ public class R4CoverageEligibilityResponseWitnessProtectionAgentTest {
                 .identifier("cer1")
                 .build(),
             ResourceIdentity.builder().system("VISTA").resource("Patient").identifier("p1").build(),
+            ResourceIdentity.builder()
+                .system("VISTA")
+                .resource("Coverage")
+                .identifier("c1")
+                .build(),
+            ResourceIdentity.builder()
+                .system("VISTA")
+                .resource("Coverage")
+                .identifier("c2")
+                .build(),
             ResourceIdentity.builder()
                 .system("VISTA")
                 .resource("Organization")

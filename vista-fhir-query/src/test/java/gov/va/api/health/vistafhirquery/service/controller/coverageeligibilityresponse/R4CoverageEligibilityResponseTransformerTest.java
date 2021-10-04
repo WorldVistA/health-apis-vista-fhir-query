@@ -18,7 +18,7 @@ public class R4CoverageEligibilityResponseTransformerTest {
             .site("123")
             .patientIcn("p1")
             .coverageResults(
-                CoverageSamples.VistaLhsLighthouseRpcGateway.create().getsManifestResults("c1"))
+                CoverageSamples.VistaLhsLighthouseRpcGateway.create().getsManifestResults("1,8,"))
             .planLimitationsResults(
                 CoverageEligibilityResponseSamples.VistaLhsLighthouseRpcGateway.create()
                     .getsManifestResults())

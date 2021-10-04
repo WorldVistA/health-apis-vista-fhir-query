@@ -23,6 +23,7 @@ import gov.va.api.lighthouse.charon.models.lhslighthouserpcgateway.LhsLighthouse
 import gov.va.api.lighthouse.charon.models.lhslighthouserpcgateway.PatientId;
 import gov.va.api.lighthouse.charon.models.lhslighthouserpcgateway.PlanCoverageLimitations;
 import java.util.List;
+import java.util.stream.Stream;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
@@ -87,7 +88,7 @@ public class R4SiteCoverageEligibilityResponseControllerTest {
                 .id(PatientId.forIcn("p1"))
                 .build());
     var insTypeResults =
-        CoverageSamples.VistaLhsLighthouseRpcGateway.create().getsManifestResults("c1");
+        CoverageSamples.VistaLhsLighthouseRpcGateway.create().getsManifestResults("1,8,");
     when(charon.request(eq(insTypeRequest)))
         .thenReturn(charonResponseFor(insTypeRequest, insTypeResults));
     // Plan Limitations
@@ -95,7 +96,12 @@ public class R4SiteCoverageEligibilityResponseControllerTest {
         charonRequestFor(
             LhsLighthouseRpcGatewayListManifest.Request.builder()
                 .file(PlanCoverageLimitations.FILE_NUMBER)
-                .fields(List.of("@", "#.01IE"))
+                .fields(
+                    Stream.concat(
+                            Stream.of("@"),
+                            R4CoverageEligibilityResponseTransformer.REQUIRED_FIELDS.stream()
+                                .map(s -> s + "IE"))
+                        .toList())
                 .build());
     var limitationsResults =
         CoverageEligibilityResponseSamples.VistaLhsLighthouseRpcGateway.create()

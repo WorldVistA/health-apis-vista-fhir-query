@@ -47,4 +47,13 @@
     <Method name="site"/>
     <Bug pattern="JLM_JSR166_UTILCONCURRENT_MONITORENTER"/>
   </Match>
+  <!--
+  In the fhir transformers it is sometimes desirable to return a null value for a Boolean in the case where a value we
+  are mapping does not exist.
+  -->
+  <Match>
+    <Class name="gov.va.api.health.vistafhirquery.service.controller.coverageeligibilityresponse.R4CoverageEligibilityResponseTransformer"/>
+    <Method name="isCoverageInForce"/>
+    <Bug pattern="NP_BOOLEAN_RETURN_NULL"/>
+  </Match>
 </FindBugsFilter>
