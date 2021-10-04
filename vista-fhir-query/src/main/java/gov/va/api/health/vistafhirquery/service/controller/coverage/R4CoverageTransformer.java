@@ -36,6 +36,20 @@ import lombok.NonNull;
 
 @Builder
 public class R4CoverageTransformer {
+  /** The fields needed by the transformer to generate a fhir response from the vista file. */
+  public static final List<String> REQUIRED_FIELDS =
+      List.of(
+          InsuranceType.COORDINATION_OF_BENEFITS,
+          InsuranceType.EFFECTIVE_DATE_OF_POLICY,
+          InsuranceType.GROUP_PLAN,
+          InsuranceType.INSURANCE_EXPIRATION_DATE,
+          InsuranceType.INSURANCE_TYPE,
+          InsuranceType.PATIENT_ID,
+          InsuranceType.PHARMACY_PERSON_CODE,
+          InsuranceType.PT_RELATIONSHIP_HIPAA,
+          InsuranceType.STOP_POLICY_FROM_BILLING,
+          InsuranceType.SUBSCRIBER_ID);
+
   @NonNull Map.Entry<String, LhsLighthouseRpcGatewayResponse.Results> rpcResults;
 
   @NonNull String patientIcn;

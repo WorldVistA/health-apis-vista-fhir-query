@@ -177,17 +177,7 @@ public class R4SiteCoverageController implements R4CoverageApi {
     return LhsLighthouseRpcGatewayGetsManifest.Request.builder()
         .file(InsuranceType.FILE_NUMBER)
         .iens(coordinates.recordId())
-        .fields(
-            List.of(
-                InsuranceType.INSURANCE_TYPE,
-                InsuranceType.GROUP_PLAN,
-                InsuranceType.COORDINATION_OF_BENEFITS,
-                InsuranceType.INSURANCE_EXPIRATION_DATE,
-                InsuranceType.STOP_POLICY_FROM_BILLING,
-                InsuranceType.PT_RELATIONSHIP_HIPAA,
-                InsuranceType.PHARMACY_PERSON_CODE,
-                InsuranceType.SUBSCRIBER_ID,
-                InsuranceType.EFFECTIVE_DATE_OF_POLICY))
+        .fields(R4CoverageTransformer.REQUIRED_FIELDS)
         .flags(
             List.of(
                 GetsManifestFlags.OMIT_NULL_VALUES,
