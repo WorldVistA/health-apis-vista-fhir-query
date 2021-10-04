@@ -7,7 +7,6 @@ import gov.va.api.health.r4.api.datatypes.ContactPoint;
 import gov.va.api.health.r4.api.resources.Organization;
 import gov.va.api.health.vistafhirquery.service.controller.ResourceExceptions.BadRequestPayload;
 import java.util.List;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
 public class R4OrganizationToInsuranceCompanyFileTransformerTest {
@@ -49,9 +48,6 @@ public class R4OrganizationToInsuranceCompanyFileTransformerTest {
     _transformer().codingForSystem(null, null).isEmpty();
   }
 
-  // TODO:  https://vajira.max.gov/browse/API-10379
-  // FUN
-  @Disabled
   @Test
   void toInsuranceCompanyFile() {
     var expected = OrganizationSamples.VistaLhsLighthouseRpcGateway.create().createApiInput();

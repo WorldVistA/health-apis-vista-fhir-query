@@ -197,14 +197,14 @@ public class R4SiteOrganizationController implements R4OrganizationApi {
       var resultsForStation = response.resultsByStation().get(site());
       LhsGatewayErrorHandler.of(resultsForStation).validateResults();
       var results = resultsForStation.results();
-      var insTypeResults =
+      var filemanEntries =
           resultsForStation.results().stream()
               .filter(entry -> fileNumber.equals(entry.file()))
               .toList();
-      if (insTypeResults.size() != 1) {
+      if (filemanEntries.size() != 1) {
         throw ExpectationFailed.because("Unexpected number of results: " + results.size());
       }
-      this.result = insTypeResults.get(0);
+      this.result = filemanEntries.get(0);
       return this;
     }
   }

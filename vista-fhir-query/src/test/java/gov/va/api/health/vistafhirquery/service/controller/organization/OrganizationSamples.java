@@ -18,7 +18,6 @@ import gov.va.api.health.vistafhirquery.service.controller.RecordCoordinates;
 import gov.va.api.lighthouse.charon.models.lhslighthouserpcgateway.InsuranceCompany;
 import gov.va.api.lighthouse.charon.models.lhslighthouserpcgateway.LhsLighthouseRpcGatewayCoverageWrite.WriteableFilemanValue;
 import gov.va.api.lighthouse.charon.models.lhslighthouserpcgateway.LhsLighthouseRpcGatewayResponse;
-import gov.va.api.lighthouse.charon.models.lhslighthouserpcgateway.Payer;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -70,7 +69,7 @@ public class OrganizationSamples {
           insuranceCompanyValue(InsuranceCompany.ZIP_CODE, "322310014"),
           insuranceCompanyValue(InsuranceCompany.BILLING_COMPANY_NAME, "SHANK-BILLING"),
           insuranceCompanyValue(InsuranceCompany.FAX_NUMBER, "SHANKFAX"),
-          pointerTo("355.2", "5"),
+          insuranceCompanyValue(InsuranceCompany.TYPE_OF_COVERAGE, "HEALTH INSURANCE"),
           insuranceCompanyValue(InsuranceCompany.PHONE_NUMBER, "800-456-8888"),
           insuranceCompanyValue(InsuranceCompany.BILLING_PHONE_NUMBER, "800-123-7777"),
           insuranceCompanyValue(InsuranceCompany.PRECERTIFICATION_PHONE_NUMBER, "800-222-9999"),
@@ -82,19 +81,14 @@ public class OrganizationSamples {
           insuranceCompanyValue(InsuranceCompany.STANDARD_FTF, "DAYS"),
           insuranceCompanyValue(InsuranceCompany.STANDARD_FTF_VALUE, "365"),
           insuranceCompanyValue(InsuranceCompany.REIMBURSE_, "WILL REIMBURSE"),
-          insuranceCompanyValue(InsuranceCompany.SIGNATURE_REQUIRED_ON_BILL_, "1"),
+          insuranceCompanyValue(InsuranceCompany.SIGNATURE_REQUIRED_ON_BILL_, "YES"),
           insuranceCompanyValue(InsuranceCompany.TRANSMIT_ELECTRONICALLY, "2"),
-          insuranceCompanyValue(InsuranceCompany.EDI_ID_NUMBER_PROF, "55555"),
-          insuranceCompanyValue(InsuranceCompany.EDI_ID_NUMBER_INST, "55555"),
           insuranceCompanyValue(InsuranceCompany.ELECTRONIC_INSURANCE_TYPE, "OTHER"),
-          pointerTo(Payer.FILE_NUMBER, "17"),
-          insuranceCompanyValue(InsuranceCompany.SECONDARY_ID_REQUIREMENTS, "NONE REQUIRED"),
-          insuranceCompanyValue(InsuranceCompany.REF_PROV_SEC_ID_REQ_ON_CLAIMS, "0"),
-          insuranceCompanyValue(InsuranceCompany.ATT_REND_ID_BILL_SEC_ID_PROF, "0"),
-          insuranceCompanyValue(InsuranceCompany.ATT_REND_ID_BILL_SEC_ID_INST, "0"),
-          insuranceCompanyValue(InsuranceCompany.PRINT_SEC_TERT_AUTO_CLAIMS_, "0"),
-          insuranceCompanyValue(InsuranceCompany.PRINT_SEC_MED_CLAIMS_W_O_MRA_, "0"),
-          insuranceCompanyValue(InsuranceCompany.N277EDI_ID_NUMBER, "22-7777777"));
+          insuranceCompanyValue(InsuranceCompany.REF_PROV_SEC_ID_REQ_ON_CLAIMS, "REF PROV 04"),
+          insuranceCompanyValue(InsuranceCompany.ATT_REND_ID_BILL_SEC_ID_PROF, "YES"),
+          insuranceCompanyValue(InsuranceCompany.ATT_REND_ID_BILL_SEC_ID_INST, "YES"),
+          insuranceCompanyValue(InsuranceCompany.PRINT_SEC_TERT_AUTO_CLAIMS_, "YES"),
+          insuranceCompanyValue(InsuranceCompany.PRINT_SEC_MED_CLAIMS_W_O_MRA_, "YES"));
     }
 
     public LhsLighthouseRpcGatewayResponse.Results createOrganizationResults(String id) {
@@ -115,236 +109,199 @@ public class OrganizationSamples {
       // Active
       fields.put("#.05", LhsLighthouseRpcGatewayResponse.Values.of(null, null));
       // Address
-      fields.put(
-          "#.01",
-          LhsLighthouseRpcGatewayResponse.Values.of("SHANKS OF FL: EXT", "SHANKS OF FL: IN"));
+      fields.put("#.01", LhsLighthouseRpcGatewayResponse.Values.of("SHANKS OF FL", "SHANKS OF FL"));
       fields.put(
           "#.111",
-          LhsLighthouseRpcGatewayResponse.Values.of(
-              "SHANKSVILLE LINE 1", "SHANKSVILLE LINE 1: IN"));
+          LhsLighthouseRpcGatewayResponse.Values.of("SHANKSVILLE LINE 1", "SHANKSVILLE LINE 1"));
       fields.put(
           "#.112",
-          LhsLighthouseRpcGatewayResponse.Values.of(
-              "SHANKSVILLE LINE 2", "SHANKSVILLE LINE 2: IN"));
+          LhsLighthouseRpcGatewayResponse.Values.of("SHANKSVILLE LINE 2", "SHANKSVILLE LINE 2"));
       fields.put(
           "#.113",
-          LhsLighthouseRpcGatewayResponse.Values.of(
-              "SHANKSVILLE LINE 3", "SHANKSVILLE LINE 3: IN"));
-      fields.put(
-          "#.114", LhsLighthouseRpcGatewayResponse.Values.of("SHANK CITY: EXT", "SHANK CITY: IN"));
-      fields.put(
-          "#.115", LhsLighthouseRpcGatewayResponse.Values.of("SHANKTICUT: EXT", "SHANKTICUT: IN"));
-      fields.put(
-          "#.116", LhsLighthouseRpcGatewayResponse.Values.of("SHANK ZIP: EXT", "SHANK ZIP: IN"));
+          LhsLighthouseRpcGatewayResponse.Values.of("SHANKSVILLE LINE 3", "SHANKSVILLE LINE 3"));
+      fields.put("#.114", LhsLighthouseRpcGatewayResponse.Values.of("SHANK CITY", "SHANK CITY"));
+      fields.put("#.115", LhsLighthouseRpcGatewayResponse.Values.of("12", "12"));
+      fields.put("#.116", LhsLighthouseRpcGatewayResponse.Values.of("322310014", "322310014"));
       // Contact - Appeals
       fields.put(
           "#.141",
           LhsLighthouseRpcGatewayResponse.Values.of(
-              "SHANK-APPEALS LINE 1", "SHANK-APPEALS LINE 1: IN"));
+              "SHANK-APPEALS LINE 1", "SHANK-APPEALS LINE 1"));
       fields.put(
           "#.142",
           LhsLighthouseRpcGatewayResponse.Values.of(
-              "SHANK-APPEALS LINE 2", "SHANK-APPEALS LINE 2: IN"));
+              "SHANK-APPEALS LINE 2", "SHANK-APPEALS LINE 2"));
       fields.put(
           "#.143",
           LhsLighthouseRpcGatewayResponse.Values.of(
-              "SHANK-APPEALS LINE 3", "SHANK-APPEALS LINE 3: IN"));
+              "SHANK-APPEALS LINE 3", "SHANK-APPEALS LINE 3"));
       fields.put(
           "#.144",
           LhsLighthouseRpcGatewayResponse.Values.of(
-              "SHANK-APPEALS CITY: EXT", "SHANK-APPEALS CITY: IN"));
-      fields.put(
-          "#.145", LhsLighthouseRpcGatewayResponse.Values.of("SHANKTICUT: EXT", "SHANKTICUT: IN"));
+              "SHANK-APPEALS CITY: EXT", "SHANK-APPEALS CITY"));
+      fields.put("#.145", LhsLighthouseRpcGatewayResponse.Values.of("12", "12"));
       fields.put(
           "#.146",
-          LhsLighthouseRpcGatewayResponse.Values.of(
-              "SHANK-APPEALS ZIP: EXT", "SHANK-APPEALS ZIP: IN"));
+          LhsLighthouseRpcGatewayResponse.Values.of("SHANK-APPEALS ZIP: EXT", "SHANK-APPEALS ZIP"));
       fields.put(
           "#.147",
           LhsLighthouseRpcGatewayResponse.Values.of(
-              "SHANK-APPEALS NAME: EXT", "SHANK-APPEALS NAME: IN"));
+              "SHANK-APPEALS NAME: EXT", "SHANK-APPEALS NAME"));
       fields.put(
           "#.137",
           LhsLighthouseRpcGatewayResponse.Values.of(
-              "1-800-SHANK-APPEALS: EXT", "1-800-SHANK-APPEALS: IN"));
+              "1-800-SHANK-APPEALS: EXT", "1-800-SHANK-APPEALS"));
       fields.put(
           "#.149",
-          LhsLighthouseRpcGatewayResponse.Values.of(
-              "FAX SHANK-APPEALS: EXT", "FAX SHANK-APPEALS: IN"));
+          LhsLighthouseRpcGatewayResponse.Values.of("FAX SHANK-APPEALS: EXT", "FAX SHANK-APPEALS"));
       // Contact - Billing
       fields.put(
-          "#.117",
-          LhsLighthouseRpcGatewayResponse.Values.of(
-              "SHANK-BILLING NAME: EXT", "SHANK-BILLING NAME: IN"));
+          "#.117", LhsLighthouseRpcGatewayResponse.Values.of("SHANK-BILLING", "SHANK-BILLING"));
       fields.put(
           "#.132",
-          LhsLighthouseRpcGatewayResponse.Values.of(
-              "1-800-SHANK-BILLING: EXT", "1-800-SHANK-BILLING: IN"));
+          LhsLighthouseRpcGatewayResponse.Values.of("1-800-SHANK-BILLING: EXT", "800-123-7777"));
       // Contact - Claims Dental
       fields.put(
           "#.191",
           LhsLighthouseRpcGatewayResponse.Values.of(
-              "SHANK-DENTAL LINE 1: EXT", "SHANK-DENTAL LINE 1: IN"));
+              "SHANK-DENTAL LINE 1: EXT", "SHANK-DENTAL LINE 1"));
       fields.put(
           "#.192",
           LhsLighthouseRpcGatewayResponse.Values.of(
-              "SHANK-DENTAL LINE 2: EXT", "SHANK-DENTAL LINE 2: IN"));
+              "SHANK-DENTAL LINE 2: EXT", "SHANK-DENTAL LINE 2"));
       fields.put(
           "#.194",
-          LhsLighthouseRpcGatewayResponse.Values.of(
-              "SHANK-DENTAL CITY: EXT", "SHANK-DENTAL CITY: IN"));
-      fields.put(
-          "#.195", LhsLighthouseRpcGatewayResponse.Values.of("SHANKTICUT: EXT", "SHANKTICUT: IN"));
+          LhsLighthouseRpcGatewayResponse.Values.of("SHANK-DENTAL CITY: EXT", "SHANK-DENTAL CITY"));
+      fields.put("#.195", LhsLighthouseRpcGatewayResponse.Values.of("12", "12"));
       fields.put(
           "#.196",
-          LhsLighthouseRpcGatewayResponse.Values.of(
-              "SHANK-DENTAL ZIP: EXT", "SHANK-DENTAL ZIP: IN"));
+          LhsLighthouseRpcGatewayResponse.Values.of("SHANK-DENTAL ZIP: EXT", "SHANK-DENTAL ZIP"));
       fields.put(
           "#.197",
-          LhsLighthouseRpcGatewayResponse.Values.of(
-              "SHANK-DENTAL NAME: EXT", "SHANK-DENTAL NAME: IN"));
+          LhsLighthouseRpcGatewayResponse.Values.of("SHANK-DENTAL NAME: EXT", "SHANK-DENTAL NAME"));
       fields.put(
           "#.199",
-          LhsLighthouseRpcGatewayResponse.Values.of(
-              "FAX SHANK-DENTAL: EXT", "FAX SHANK-DENTAL: IN"));
+          LhsLighthouseRpcGatewayResponse.Values.of("FAX SHANK-DENTAL: EXT", "FAX SHANK-DENTAL"));
       fields.put(
           "#.1911",
           LhsLighthouseRpcGatewayResponse.Values.of(
-              "1-800-SHANK-DENTAL: EXT", "1-800-SHANK-DENTAL: IN"));
+              "1-800-SHANK-DENTAL: EXT", "1-800-SHANK-DENTAL"));
       // Contact - Claims Inpt
       fields.put(
           "#.121",
-          LhsLighthouseRpcGatewayResponse.Values.of("SHANK-INPT LINE 1", "SHANK-INPT LINE 1: IN"));
+          LhsLighthouseRpcGatewayResponse.Values.of("SHANK-INPT LINE 1", "SHANK-INPT LINE 1"));
       fields.put(
           "#.122",
-          LhsLighthouseRpcGatewayResponse.Values.of("SHANK-INPT LINE 2", "SHANK-INPT LINE 2: IN"));
+          LhsLighthouseRpcGatewayResponse.Values.of("SHANK-INPT LINE 2", "SHANK-INPT LINE 2"));
       fields.put(
           "#.123",
-          LhsLighthouseRpcGatewayResponse.Values.of("SHANK-INPT LINE 3", "SHANK-INPT LINE 3: IN"));
+          LhsLighthouseRpcGatewayResponse.Values.of("SHANK-INPT LINE 3", "SHANK-INPT LINE 3"));
       fields.put(
           "#.124",
-          LhsLighthouseRpcGatewayResponse.Values.of("SHANK-INPT CITY: EXT", "SHANK-INPT CITY: IN"));
-      fields.put(
-          "#.125", LhsLighthouseRpcGatewayResponse.Values.of("SHANKTICUT: EXT", "SHANKTICUT: IN"));
+          LhsLighthouseRpcGatewayResponse.Values.of("SHANK-INPT CITY: EXT", "SHANK-INPT CITY"));
+      fields.put("#.125", LhsLighthouseRpcGatewayResponse.Values.of("12", "12"));
       fields.put(
           "#.126",
-          LhsLighthouseRpcGatewayResponse.Values.of("SHANK-INPT ZIP: EXT", "SHANK-INPT ZIP: IN"));
+          LhsLighthouseRpcGatewayResponse.Values.of("SHANK-INPT ZIP: EXT", "SHANK-INPT ZIP"));
       fields.put(
           "#.127",
-          LhsLighthouseRpcGatewayResponse.Values.of("SHANK-INPT NAME: EXT", "SHANK-INPT NAME: IN"));
+          LhsLighthouseRpcGatewayResponse.Values.of("SHANK-INPT NAME: EXT", "SHANK-INPT NAME"));
       fields.put(
-          "#.135",
-          LhsLighthouseRpcGatewayResponse.Values.of(
-              "1-800-SHANK-INPT: EXT", "1-800-SHANK-INPT: IN"));
+          "#.135", LhsLighthouseRpcGatewayResponse.Values.of("800-444-7777", "800-444-7777"));
       fields.put(
           "#.129",
-          LhsLighthouseRpcGatewayResponse.Values.of("FAX SHANK-INPT: EXT", "FAX SHANK-INPT: IN"));
+          LhsLighthouseRpcGatewayResponse.Values.of("FAX SHANK-INPT: EXT", "FAX SHANK-INPT"));
       // Contact - Opt
       fields.put(
           "#.161",
-          LhsLighthouseRpcGatewayResponse.Values.of("SHANK-OPT LINE 1", "SHANK-OPT LINE 1: IN"));
+          LhsLighthouseRpcGatewayResponse.Values.of("SHANK-OPT LINE 1", "SHANK-OPT LINE 1"));
       fields.put(
           "#.162",
-          LhsLighthouseRpcGatewayResponse.Values.of("SHANK-OPT LINE 2", "SHANK-OPT LINE 2: IN"));
+          LhsLighthouseRpcGatewayResponse.Values.of("SHANK-OPT LINE 2", "SHANK-OPT LINE 2"));
       fields.put(
           "#.163",
-          LhsLighthouseRpcGatewayResponse.Values.of("SHANK-OPT LINE 3", "SHANK-OPT LINE 3: IN"));
+          LhsLighthouseRpcGatewayResponse.Values.of("SHANK-OPT LINE 3", "SHANK-OPT LINE 3"));
       fields.put(
           "#.164",
-          LhsLighthouseRpcGatewayResponse.Values.of("SHANK-OPT CITY: EXT", "SHANK-OPT CITY: IN"));
-      fields.put(
-          "#.165", LhsLighthouseRpcGatewayResponse.Values.of("SHANKTICUT: EXT", "SHANKTICUT: IN"));
+          LhsLighthouseRpcGatewayResponse.Values.of("SHANK-OPT CITY: EXT", "SHANK-OPT CITY"));
+      fields.put("#.165", LhsLighthouseRpcGatewayResponse.Values.of("12", "12"));
       fields.put(
           "#.166",
-          LhsLighthouseRpcGatewayResponse.Values.of("SHANK-OPT ZIP: EXT", "SHANK-OPT ZIP: IN"));
+          LhsLighthouseRpcGatewayResponse.Values.of("SHANK-OPT ZIP: EXT", "SHANK-OPT ZIP"));
       fields.put(
           "#.167",
-          LhsLighthouseRpcGatewayResponse.Values.of("SHANK-OPT NAME: EXT", "SHANK-OPT NAME: IN"));
+          LhsLighthouseRpcGatewayResponse.Values.of("SHANK-OPT NAME: EXT", "SHANK-OPT NAME"));
       fields.put(
-          "#.136",
-          LhsLighthouseRpcGatewayResponse.Values.of("1-800-SHANK-OPT: EXT", "1-800-SHANK-OPT: IN"));
+          "#.136", LhsLighthouseRpcGatewayResponse.Values.of("800-555-6666", "800-555-6666"));
       fields.put(
           "#.169",
-          LhsLighthouseRpcGatewayResponse.Values.of("FAX SHANK-OPT: EXT", "FAX SHANK-OPT: IN"));
+          LhsLighthouseRpcGatewayResponse.Values.of("FAX SHANK-OPT: EXT", "FAX SHANK-OPT"));
       // Contact - RX
       fields.put(
-          "#.181",
-          LhsLighthouseRpcGatewayResponse.Values.of("SHANK-RX LINE 1", "SHANK-RX LINE 1: IN"));
+          "#.181", LhsLighthouseRpcGatewayResponse.Values.of("SHANK-RX LINE 1", "SHANK-RX LINE 1"));
       fields.put(
-          "#.182",
-          LhsLighthouseRpcGatewayResponse.Values.of("SHANK-RX LINE 2", "SHANK-RX LINE 2: IN"));
+          "#.182", LhsLighthouseRpcGatewayResponse.Values.of("SHANK-RX LINE 2", "SHANK-RX LINE 2"));
       fields.put(
-          "#.183",
-          LhsLighthouseRpcGatewayResponse.Values.of("SHANK-RX LINE 3", "SHANK-RX LINE 3: IN"));
+          "#.183", LhsLighthouseRpcGatewayResponse.Values.of("SHANK-RX LINE 3", "SHANK-RX LINE 3"));
       fields.put(
           "#.184",
-          LhsLighthouseRpcGatewayResponse.Values.of("SHANK-RX CITY: EXT", "SHANK-RX CITY: IN"));
+          LhsLighthouseRpcGatewayResponse.Values.of("SHANK-RX CITY: EXT", "SHANK-RX CITY"));
+      fields.put("#.185", LhsLighthouseRpcGatewayResponse.Values.of("12", "12"));
       fields.put(
-          "#.185", LhsLighthouseRpcGatewayResponse.Values.of("SHANKTICUT: EXT", "SHANKTICUT: IN"));
-      fields.put(
-          "#.186",
-          LhsLighthouseRpcGatewayResponse.Values.of("SHANK-RX ZIP: EXT", "SHANK-RX ZIP: IN"));
+          "#.186", LhsLighthouseRpcGatewayResponse.Values.of("SHANK-RX ZIP: EXT", "SHANK-RX ZIP"));
       fields.put(
           "#.187",
-          LhsLighthouseRpcGatewayResponse.Values.of("SHANK-RX NAME: EXT", "SHANK-RX NAME: IN"));
+          LhsLighthouseRpcGatewayResponse.Values.of("SHANK-RX NAME: EXT", "SHANK-RX NAME"));
       fields.put(
           "#.1311",
-          LhsLighthouseRpcGatewayResponse.Values.of("1-800-SHANK-RX: EXT", "1-800-SHANK-RX: IN"));
+          LhsLighthouseRpcGatewayResponse.Values.of("1-800-SHANK-RX: EXT", "1-800-SHANK-RX"));
       fields.put(
-          "#.189",
-          LhsLighthouseRpcGatewayResponse.Values.of("FAX SHANK-RX: EXT", "FAX SHANK-RX: IN"));
+          "#.189", LhsLighthouseRpcGatewayResponse.Values.of("FAX SHANK-RX: EXT", "FAX SHANK-RX"));
       // Contact - Inquiry
       fields.put(
           "#.151",
           LhsLighthouseRpcGatewayResponse.Values.of(
-              "SHANK-INQUIRY LINE 1", "SHANK-INQUIRY LINE 1: IN"));
+              "SHANK-INQUIRY LINE 1", "SHANK-INQUIRY LINE 1"));
       fields.put(
           "#.152",
           LhsLighthouseRpcGatewayResponse.Values.of(
-              "SHANK-INQUIRY LINE 2", "SHANK-INQUIRY LINE 2: IN"));
+              "SHANK-INQUIRY LINE 2", "SHANK-INQUIRY LINE 2"));
       fields.put(
           "#.153",
           LhsLighthouseRpcGatewayResponse.Values.of(
-              "SHANK-INQUIRY LINE 3", "SHANK-INQUIRY LINE 3: IN"));
+              "SHANK-INQUIRY LINE 3", "SHANK-INQUIRY LINE 3"));
       fields.put(
           "#.154",
           LhsLighthouseRpcGatewayResponse.Values.of(
-              "SHANK-INQUIRY CITY: EXT", "SHANK-INQUIRY CITY: IN"));
-      fields.put(
-          "#.155", LhsLighthouseRpcGatewayResponse.Values.of("SHANKTICUT: EXT", "SHANKTICUT: IN"));
+              "SHANK-INQUIRY CITY: EXT", "SHANK-INQUIRY CITY"));
+      fields.put("#.155", LhsLighthouseRpcGatewayResponse.Values.of("12", "12"));
       fields.put(
           "#.156",
-          LhsLighthouseRpcGatewayResponse.Values.of(
-              "SHANK-INQUIRY ZIP: EXT", "SHANK-INQUIRY ZIP: IN"));
+          LhsLighthouseRpcGatewayResponse.Values.of("SHANK-INQUIRY ZIP: EXT", "SHANK-INQUIRY ZIP"));
       fields.put(
           "#.157",
           LhsLighthouseRpcGatewayResponse.Values.of(
-              "SHANK-INQUIRY NAME: EXT", "SHANK-INQUIRY NAME: IN"));
+              "SHANK-INQUIRY NAME: EXT", "SHANK-INQUIRY NAME"));
       fields.put(
           "#.138",
           LhsLighthouseRpcGatewayResponse.Values.of(
-              "1-800-SHANK-INQUIRY: EXT", "1-800-SHANK-INQUIRY: IN"));
+              "1-800-SHANK-INQUIRY: EXT", "1-800-SHANK-INQUIRY"));
       fields.put(
           "#.159",
-          LhsLighthouseRpcGatewayResponse.Values.of(
-              "FAX SHANK-INQUIRY: EXT", "FAX SHANK-INQUIRY: IN"));
+          LhsLighthouseRpcGatewayResponse.Values.of("FAX SHANK-INQUIRY: EXT", "FAX SHANK-INQUIRY"));
       // Contact - Precertification
       fields.put(
-          "#.133",
-          LhsLighthouseRpcGatewayResponse.Values.of(
-              "1-800-SHANK-PRECERT: EXT", "1-800-SHANK-PRECERT: IN"));
+          "#.133", LhsLighthouseRpcGatewayResponse.Values.of("800-222-9999", "800-222-9999"));
       fields.put(
           "#.139",
           LhsLighthouseRpcGatewayResponse.Values.of(
-              "SHANK-PRECERT NAME: EXT", "SHANK-PRECERT NAME: IN"));
+              "SHANK-PRECERT NAME: EXT", "SHANK-PRECERT NAME"));
       // Contact - Verification
       fields.put(
-          "#.134",
-          LhsLighthouseRpcGatewayResponse.Values.of(
-              "1-800-SHANK-VERIFICATION: EXT", "1-800-SHANK-VERIFICATION: IN"));
+          "#.134", LhsLighthouseRpcGatewayResponse.Values.of("800-333-8888", "800-333-8888"));
       // Telecom
       fields.put(
-          "#.131", LhsLighthouseRpcGatewayResponse.Values.of("1-800-SHANKTO", "1-800-SHANKTO"));
+          "#.131", LhsLighthouseRpcGatewayResponse.Values.of("800-456-8888", "800-456-8888"));
       fields.put("#.119", LhsLighthouseRpcGatewayResponse.Values.of("SHANKFAX", "SHANKFAX"));
       // Extension
       fields.put("#.06", LhsLighthouseRpcGatewayResponse.Values.of("TRUE", "1"));
@@ -353,60 +310,47 @@ public class OrganizationSamples {
       fields.put(
           "#.12",
           LhsLighthouseRpcGatewayResponse.Values.of(
-              "FILING SHANKTOTIME FRAME: EX", "FILING SHANKTOTIME FRAME: IN"));
+              "FILING SHANKTOTIME FRAME: EX", "FILING SHANKTOTIME FRAME"));
       fields.put("#.128", LhsLighthouseRpcGatewayResponse.Values.of("TRUE", "1"));
       fields.put(
-          "#.13", LhsLighthouseRpcGatewayResponse.Values.of("SHANK INSURANCE", "SHANK INSURANCE"));
+          "#.13",
+          LhsLighthouseRpcGatewayResponse.Values.of("HEALTH INSURANCE", "HEALTH INSURANCE"));
       fields.put("#.148", LhsLighthouseRpcGatewayResponse.Values.of("TRUE", "1"));
       fields.put(
           "#.15",
           LhsLighthouseRpcGatewayResponse.Values.of(
-              "SHANK PRESCRIPTION REV CODE: EXT", "SHANK PRESCRIPTION REV CODE: IN"));
+              "SHANK PRESCRIPTION REV CODE: EXT", "SHANK PRESCRIPTION REV CODE"));
       fields.put("#.158", LhsLighthouseRpcGatewayResponse.Values.of("TRUE", "1"));
       fields.put("#.168", LhsLighthouseRpcGatewayResponse.Values.of("TRUE", "1"));
       fields.put("#.178", LhsLighthouseRpcGatewayResponse.Values.of("TRUE", "1"));
       fields.put("#.188", LhsLighthouseRpcGatewayResponse.Values.of("TRUE", "1"));
       fields.put("#.198", LhsLighthouseRpcGatewayResponse.Values.of("TRUE", "1"));
       fields.put("#.18", LhsLighthouseRpcGatewayResponse.Values.of("DAYS", "DAYS"));
-      fields.put("#.19", LhsLighthouseRpcGatewayResponse.Values.of("SHANK FTF VALUE: EXT", "365"));
+      fields.put("#.19", LhsLighthouseRpcGatewayResponse.Values.of("365", "365"));
       fields.put(
           "#1",
           LhsLighthouseRpcGatewayResponse.Values.of("SHANK REIMBURSE: EXT", "WILL REIMBURSE"));
       fields.put("#2", LhsLighthouseRpcGatewayResponse.Values.of("TRUE", "1"));
+      fields.put("#3.01", LhsLighthouseRpcGatewayResponse.Values.of("2", "2"));
+      fields.put("#3.09", LhsLighthouseRpcGatewayResponse.Values.of("OTHER", "OTHER"));
       fields.put(
-          "#3.01",
-          LhsLighthouseRpcGatewayResponse.Values.of(
-              "SHANKED ELECTRONICALLY: EXT", "SHANKED ELECTRONICALLY: IN"));
+          "#3.1", LhsLighthouseRpcGatewayResponse.Values.of("SHANK PAYER: EXT", "SHANK PAYER"));
       fields.put(
-          "#3.09",
-          LhsLighthouseRpcGatewayResponse.Values.of(
-              "ELECTRONIC INSHANKANCE TYPE: EXT", "ELECTRONIC INSHANKANCE TYPE: IN"));
+          "#4.01", LhsLighthouseRpcGatewayResponse.Values.of("PERF PROF 1500", "PERF PROV 1500"));
       fields.put(
-          "#3.1", LhsLighthouseRpcGatewayResponse.Values.of("SHANK PAYER: EXT", "SHANK PAYER: IN"));
-      fields.put(
-          "#4.01",
-          LhsLighthouseRpcGatewayResponse.Values.of("PERF SHANK 1500: EXT", "SHANK 1500: IN"));
-      fields.put(
-          "#4.02",
-          LhsLighthouseRpcGatewayResponse.Values.of("PERF SHANK UB: EXT", "PERF SHANK UB: IN"));
+          "#4.02", LhsLighthouseRpcGatewayResponse.Values.of("PERF PROV 04", "PERF PROV 04"));
       fields.put(
           "#4.04",
-          LhsLighthouseRpcGatewayResponse.Values.of("REF SHANK 1500: EXT", "REF SHANK 1500: IN"));
-      fields.put(
-          "#4.05",
-          LhsLighthouseRpcGatewayResponse.Values.of(
-              "REF SHANK CLAIMS: EXT", "REF SHANK CLAIMS: IN"));
+          LhsLighthouseRpcGatewayResponse.Values.of("REF PROV CMS 1500", "REF PROV CMS 1500"));
+      fields.put("#4.05", LhsLighthouseRpcGatewayResponse.Values.of("REF PROV 04", "REF PROV 04"));
       fields.put("#4.06", LhsLighthouseRpcGatewayResponse.Values.of("TRUE", "1"));
       fields.put("#4.08", LhsLighthouseRpcGatewayResponse.Values.of("TRUE", "1"));
       fields.put("#6.09", LhsLighthouseRpcGatewayResponse.Values.of("TRUE", "1"));
       fields.put("#6.1", LhsLighthouseRpcGatewayResponse.Values.of("TRUE", "1"));
       // Identifiers
-      fields.put(
-          "#3.02", LhsLighthouseRpcGatewayResponse.Values.of("SHANKFEDI: EXT", "SHANKFEDI: IN"));
-      fields.put(
-          "#3.03", LhsLighthouseRpcGatewayResponse.Values.of("SHANKBIN: EXT", "SHANKBIN: IN"));
-      fields.put(
-          "#3.04", LhsLighthouseRpcGatewayResponse.Values.of("SHANKTEDI: EXT", "SHANKTEDI: IN"));
+      fields.put("#3.02", LhsLighthouseRpcGatewayResponse.Values.of("55555", "55555"));
+      fields.put("#3.03", LhsLighthouseRpcGatewayResponse.Values.of("SHANKBIN: EXT", "SHANKBIN"));
+      fields.put("#3.04", LhsLighthouseRpcGatewayResponse.Values.of("66666", "66666"));
       return Map.copyOf(fields);
     }
 
@@ -432,12 +376,10 @@ public class OrganizationSamples {
     private List<Address> address() {
       return List.of(
           Address.builder()
-              .line(
-                  List.of(
-                      "SHANKSVILLE LINE 1: IN", "SHANKSVILLE LINE 2: IN", "SHANKSVILLE LINE 3: IN"))
-              .city("SHANK CITY: IN")
-              .state("SHANKTICUT: IN")
-              .postalCode("SHANK ZIP: IN")
+              .line(List.of("SHANKSVILLE LINE 1", "SHANKSVILLE LINE 2", "SHANKSVILLE LINE 3"))
+              .city("SHANK CITY")
+              .state("12")
+              .postalCode("322310014")
               .build());
     }
 
@@ -446,7 +388,7 @@ public class OrganizationSamples {
           .extension(
               List.of(
                   Extension.builder()
-                      .valueReference(Reference.builder().display("SHANK-APPEALS NAME: IN").build())
+                      .valueReference(Reference.builder().display("SHANK-APPEALS NAME").build())
                       .url(
                           "http://hl7.org/fhir/us/davinci-pdex-plan-net/StructureDefinition/via-intermediary")
                       .build()))
@@ -454,21 +396,19 @@ public class OrganizationSamples {
               Address.builder()
                   .line(
                       List.of(
-                          "SHANK-APPEALS LINE 1: IN",
-                          "SHANK-APPEALS LINE 2: IN",
-                          "SHANK-APPEALS LINE 3: IN"))
-                  .city("SHANK-APPEALS CITY: IN")
-                  .state("SHANKTICUT: IN")
-                  .postalCode("SHANK-APPEALS ZIP: IN")
+                          "SHANK-APPEALS LINE 1", "SHANK-APPEALS LINE 2", "SHANK-APPEALS LINE 3"))
+                  .city("SHANK-APPEALS CITY")
+                  .state("12")
+                  .postalCode("SHANK-APPEALS ZIP")
                   .build())
           .telecom(
               List.of(
                   ContactPoint.builder()
-                      .value("1-800-SHANK-APPEALS: IN")
+                      .value("1-800-SHANK-APPEALS")
                       .system(ContactPoint.ContactPointSystem.phone)
                       .build(),
                   ContactPoint.builder()
-                      .value("FAX SHANK-APPEALS: IN")
+                      .value("FAX SHANK-APPEALS")
                       .system(ContactPoint.ContactPointSystem.fax)
                       .build()))
           .purpose(
@@ -489,14 +429,14 @@ public class OrganizationSamples {
           .extension(
               List.of(
                   Extension.builder()
-                      .valueReference(Reference.builder().display("SHANK-BILLING NAME: IN").build())
+                      .valueReference(Reference.builder().display("SHANK-BILLING").build())
                       .url(
                           "http://hl7.org/fhir/us/davinci-pdex-plan-net/StructureDefinition/via-intermediary")
                       .build()))
           .telecom(
               List.of(
                   ContactPoint.builder()
-                      .value("1-800-SHANK-BILLING: IN")
+                      .value("800-123-7777")
                       .system(ContactPoint.ContactPointSystem.phone)
                       .build()))
           .purpose(
@@ -517,25 +457,25 @@ public class OrganizationSamples {
           .extension(
               List.of(
                   Extension.builder()
-                      .valueReference(Reference.builder().display("SHANK-DENTAL NAME: IN").build())
+                      .valueReference(Reference.builder().display("SHANK-DENTAL NAME").build())
                       .url(
                           "http://hl7.org/fhir/us/davinci-pdex-plan-net/StructureDefinition/via-intermediary")
                       .build()))
           .address(
               Address.builder()
-                  .line(List.of("SHANK-DENTAL LINE 1: IN", "SHANK-DENTAL LINE 2: IN"))
-                  .city("SHANK-DENTAL CITY: IN")
-                  .state("SHANKTICUT: IN")
-                  .postalCode("SHANK-DENTAL ZIP: IN")
+                  .line(List.of("SHANK-DENTAL LINE 1", "SHANK-DENTAL LINE 2"))
+                  .city("SHANK-DENTAL CITY")
+                  .state("12")
+                  .postalCode("SHANK-DENTAL ZIP")
                   .build())
           .telecom(
               List.of(
                   ContactPoint.builder()
-                      .value("1-800-SHANK-DENTAL: IN")
+                      .value("1-800-SHANK-DENTAL")
                       .system(ContactPoint.ContactPointSystem.phone)
                       .build(),
                   ContactPoint.builder()
-                      .value("FAX SHANK-DENTAL: IN")
+                      .value("FAX SHANK-DENTAL")
                       .system(ContactPoint.ContactPointSystem.fax)
                       .build()))
           .purpose(
@@ -556,29 +496,25 @@ public class OrganizationSamples {
           .extension(
               List.of(
                   Extension.builder()
-                      .valueReference(Reference.builder().display("SHANK-INPT NAME: IN").build())
+                      .valueReference(Reference.builder().display("SHANK-INPT NAME").build())
                       .url(
                           "http://hl7.org/fhir/us/davinci-pdex-plan-net/StructureDefinition/via-intermediary")
                       .build()))
           .address(
               Address.builder()
-                  .line(
-                      List.of(
-                          "SHANK-INPT LINE 1: IN",
-                          "SHANK-INPT LINE 2: IN",
-                          "SHANK-INPT LINE 3: IN"))
-                  .city("SHANK-INPT CITY: IN")
-                  .state("SHANKTICUT: IN")
-                  .postalCode("SHANK-INPT ZIP: IN")
+                  .line(List.of("SHANK-INPT LINE 1", "SHANK-INPT LINE 2", "SHANK-INPT LINE 3"))
+                  .city("SHANK-INPT CITY")
+                  .state("12")
+                  .postalCode("SHANK-INPT ZIP")
                   .build())
           .telecom(
               List.of(
                   ContactPoint.builder()
-                      .value("1-800-SHANK-INPT: IN")
+                      .value("800-444-7777")
                       .system(ContactPoint.ContactPointSystem.phone)
                       .build(),
                   ContactPoint.builder()
-                      .value("FAX SHANK-INPT: IN")
+                      .value("FAX SHANK-INPT")
                       .system(ContactPoint.ContactPointSystem.fax)
                       .build()))
           .purpose(
@@ -599,27 +535,25 @@ public class OrganizationSamples {
           .extension(
               List.of(
                   Extension.builder()
-                      .valueReference(Reference.builder().display("SHANK-OPT NAME: IN").build())
+                      .valueReference(Reference.builder().display("SHANK-OPT NAME").build())
                       .url(
                           "http://hl7.org/fhir/us/davinci-pdex-plan-net/StructureDefinition/via-intermediary")
                       .build()))
           .address(
               Address.builder()
-                  .line(
-                      List.of(
-                          "SHANK-OPT LINE 1: IN", "SHANK-OPT LINE 2: IN", "SHANK-OPT LINE 3: IN"))
-                  .city("SHANK-OPT CITY: IN")
-                  .state("SHANKTICUT: IN")
-                  .postalCode("SHANK-OPT ZIP: IN")
+                  .line(List.of("SHANK-OPT LINE 1", "SHANK-OPT LINE 2", "SHANK-OPT LINE 3"))
+                  .city("SHANK-OPT CITY")
+                  .state("12")
+                  .postalCode("SHANK-OPT ZIP")
                   .build())
           .telecom(
               List.of(
                   ContactPoint.builder()
-                      .value("1-800-SHANK-OPT: IN")
+                      .value("800-555-6666")
                       .system(ContactPoint.ContactPointSystem.phone)
                       .build(),
                   ContactPoint.builder()
-                      .value("FAX SHANK-OPT: IN")
+                      .value("FAX SHANK-OPT")
                       .system(ContactPoint.ContactPointSystem.fax)
                       .build()))
           .purpose(
@@ -640,26 +574,25 @@ public class OrganizationSamples {
           .extension(
               List.of(
                   Extension.builder()
-                      .valueReference(Reference.builder().display("SHANK-RX NAME: IN").build())
+                      .valueReference(Reference.builder().display("SHANK-RX NAME").build())
                       .url(
                           "http://hl7.org/fhir/us/davinci-pdex-plan-net/StructureDefinition/via-intermediary")
                       .build()))
           .address(
               Address.builder()
-                  .line(
-                      List.of("SHANK-RX LINE 1: IN", "SHANK-RX LINE 2: IN", "SHANK-RX LINE 3: IN"))
-                  .city("SHANK-RX CITY: IN")
-                  .state("SHANKTICUT: IN")
-                  .postalCode("SHANK-RX ZIP: IN")
+                  .line(List.of("SHANK-RX LINE 1", "SHANK-RX LINE 2", "SHANK-RX LINE 3"))
+                  .city("SHANK-RX CITY")
+                  .state("12")
+                  .postalCode("SHANK-RX ZIP")
                   .build())
           .telecom(
               List.of(
                   ContactPoint.builder()
-                      .value("1-800-SHANK-RX: IN")
+                      .value("1-800-SHANK-RX")
                       .system(ContactPoint.ContactPointSystem.phone)
                       .build(),
                   ContactPoint.builder()
-                      .value("FAX SHANK-RX: IN")
+                      .value("FAX SHANK-RX")
                       .system(ContactPoint.ContactPointSystem.fax)
                       .build()))
           .purpose(
@@ -692,10 +625,10 @@ public class OrganizationSamples {
       return List.of(
           Extension.builder()
               .valueBoolean(Boolean.TRUE)
-              .url("http://va.gov/fhir/StructureDefinition/organization-allowMultipleBedsections")
+              .url(OrganizationStructureDefinitions.ALLOW_MULTIPLE_BEDSECTIONS)
               .build(),
           Extension.builder()
-              .url("http://va.gov/fhir/StructureDefinition/organization-oneOutpatVisitOnBillOnly")
+              .url(OrganizationStructureDefinitions.ONE_OUTPAT_VISIT_ON_BILL_ONLY)
               .valueBoolean(Boolean.TRUE)
               .build(),
           Extension.builder()
@@ -705,20 +638,20 @@ public class OrganizationSamples {
                           Collections.singletonList(
                               Coding.builder()
                                   .code("994")
-                                  .system("urn:oid:2.16.840.1.113883.6.301.3")
+                                  .system(
+                                      OrganizationStructureDefinitions
+                                          .AMBULATORY_SURGERY_REVENUE_CODE_URN_OID)
                                   .build()))
                       .build())
-              .url(
-                  "http://va.gov/fhir/StructureDefinition/organization-ambulatorySurgeryRevenueCode")
+              .url(OrganizationStructureDefinitions.AMBULATORY_SURGERY_REVENUE_CODE)
               .build(),
           Extension.builder()
-              .valueString("FILING SHANKTOTIME FRAME: IN")
-              .url("http://va.gov/fhir/StructureDefinition/organization-filingTimeFrame")
+              .valueString("FILING SHANKTOTIME FRAME")
+              .url(OrganizationStructureDefinitions.FILING_TIME_FRAME)
               .build(),
           Extension.builder()
               .valueBoolean(Boolean.TRUE)
-              .url(
-                  "http://va.gov/fhir/StructureDefinition/organization-anotherCompanyProcessesInpatClaims")
+              .url(OrganizationStructureDefinitions.ANOTHER_COMPANY_PROCESSES_INPAT_CLAIMS)
               .build(),
           Extension.builder()
               .valueCodeableConcept(
@@ -726,103 +659,103 @@ public class OrganizationSamples {
                       .coding(
                           Collections.singletonList(
                               Coding.builder()
-                                  .code("SHANK INSURANCE")
-                                  .system("urn:oid:2.16.840.1.113883.3.8901.3.36.8013")
+                                  .code("HEALTH INSURANCE")
+                                  .system(OrganizationStructureDefinitions.TYPE_OF_COVERAGE_URN_OID)
                                   .build()))
                       .build())
-              .url("http://va.gov/fhir/StructureDefinition/organization-typeOfCoverage")
+              .url(OrganizationStructureDefinitions.TYPE_OF_COVERAGE)
               .build(),
           Extension.builder()
               .valueBoolean(Boolean.TRUE)
-              .url(
-                  "http://va.gov/fhir/StructureDefinition/organization-anotherCompanyProcessesAppeals")
+              .url(OrganizationStructureDefinitions.ANOTHER_COMPANY_PROCESSES_APPEALS)
               .build(),
           Extension.builder()
-              .url("http://va.gov/fhir/StructureDefinition/organization-prescriptionRevenueCode")
+              .url(OrganizationStructureDefinitions.PRESCRIPTION_REVENUE_CODE)
               .valueCodeableConcept(
                   CodeableConcept.builder()
                       .coding(
                           Collections.singletonList(
                               Coding.builder()
-                                  .system("urn:oid:2.16.840.1.113883.6.301.3")
-                                  .code("SHANK PRESCRIPTION REV CODE: IN")
+                                  .system(
+                                      OrganizationStructureDefinitions
+                                          .PRESCRIPTION_REVENUE_CODE_URN_OID)
+                                  .code("SHANK PRESCRIPTION REV CODE")
                                   .build()))
                       .build())
               .build(),
           Extension.builder()
               .valueBoolean(Boolean.TRUE)
-              .url(
-                  "http://va.gov/fhir/StructureDefinition/organization-anotherCompanyProcessesInquiries")
+              .url(OrganizationStructureDefinitions.ANOTHER_COMPANY_PROCESSES_INQUIRIES)
               .build(),
           Extension.builder()
-              .url(
-                  "http://va.gov/fhir/StructureDefinition/organization-anotherCompanyProcessesOutpatClaims")
+              .url(OrganizationStructureDefinitions.ANOTHER_COMPANY_PROCESSES_OUTPAT_CLAIMS)
               .valueBoolean(Boolean.TRUE)
               .build(),
           Extension.builder()
-              .url(
-                  "http://va.gov/fhir/StructureDefinition/organization-anotherCompanyProcessesPrecert")
+              .url(OrganizationStructureDefinitions.ANOTHER_COMPANY_PROCESSES_PRECERT)
               .valueBoolean(Boolean.TRUE)
               .build(),
           Extension.builder()
-              .url(
-                  "http://va.gov/fhir/StructureDefinition/organization-anotherCompanyProcessesRxClaims")
+              .url(OrganizationStructureDefinitions.ANOTHER_COMPANY_PROCESSES_RX_CLAIMS)
               .valueBoolean(Boolean.TRUE)
               .build(),
           Extension.builder()
-              .url(
-                  "http://va.gov/fhir/StructureDefinition/organization-anotherCompanyProcessesDentalClaims")
+              .url(OrganizationStructureDefinitions.ANOTHER_COMPANY_PROCESSES_DENTAL_CLAIMS)
               .valueBoolean(Boolean.TRUE)
               .build(),
           Extension.builder()
-              .url(
-                  "http://va.gov/fhir/StructureDefinition/organization-planStandardFilingTimeFrame")
               .valueQuantity(
                   Quantity.builder()
                       .value(toBigDecimal("365"))
                       .unit("DAYS")
-                      .system("urn:oid:2.16.840.1.113883.3.8901.3.3558013")
+                      .system(
+                          OrganizationStructureDefinitions.PLAN_STANDARD_FILING_TIME_FRAME_URN_OID)
                       .build())
-              .url(
-                  "http://va.gov/fhir/StructureDefinition/organization-planStandardFilingTimeFrame")
+              .url(OrganizationStructureDefinitions.PLAN_STANDARD_FILING_TIME_FRAME)
               .build(),
           Extension.builder()
-              .url("http://va.gov/fhir/StructureDefinition/organization-willReimburseForCare")
+              .url(OrganizationStructureDefinitions.WILL_REIMBURSE_FOR_CARE)
               .valueCodeableConcept(
                   CodeableConcept.builder()
                       .coding(
                           Collections.singletonList(
                               Coding.builder()
                                   .code("WILL REIMBURSE")
-                                  .system("urn:oid:2.16.840.1.113883.3.8901.3.1.36.1")
+                                  .system(
+                                      OrganizationStructureDefinitions
+                                          .WILL_REIMBURSE_FOR_CARE_URN_OID)
                                   .build()))
                       .build())
               .build(),
           Extension.builder()
-              .url("http://va.gov/fhir/StructureDefinition/organization-signatureRequiredOnBill")
+              .url(OrganizationStructureDefinitions.SIGNATURE_REQUIRED_ON_BILL)
               .valueBoolean(Boolean.TRUE)
               .build(),
           Extension.builder()
-              .url("http://va.gov/fhir/StructureDefinition/organization-electronicTransmissionMode")
+              .url(OrganizationStructureDefinitions.ELECTRONIC_TRANSMISSION_MODE)
               .valueCodeableConcept(
                   CodeableConcept.builder()
                       .coding(
                           Collections.singletonList(
                               Coding.builder()
-                                  .system("urn:oid:2.16.840.1.113883.3.8901.3.1.36.38001")
-                                  .code("SHANKED ELECTRONICALLY: IN")
+                                  .system(
+                                      OrganizationStructureDefinitions
+                                          .ELECTRONIC_TRANSMISSION_MODE_URN_OID)
+                                  .code("2")
                                   .build()))
                       .build())
               .build(),
           Extension.builder()
-              .url("http://va.gov/fhir/StructureDefinition/organization-electronicInsuranceType")
+              .url(OrganizationStructureDefinitions.ELECTRONIC_INSURANCE_TYPE)
               .valueCodeableConcept(
                   CodeableConcept.builder()
                       .coding(
                           Collections.singletonList(
                               Coding.builder()
-                                  .code("ELECTRONIC INSHANKANCE TYPE: IN")
-                                  .system("urn:oid:2.16.840.1.113883.3.8901.3.1.36.38009")
+                                  .code("OTHER")
+                                  .system(
+                                      OrganizationStructureDefinitions
+                                          .ELECTRONIC_INSURANCE_TYPE_URN_OID)
                                   .build()))
                       .build())
               .build(),
@@ -836,81 +769,85 @@ public class OrganizationSamples {
                               + RecordCoordinates.builder()
                                   .site(station)
                                   .file("365.12")
-                                  .ien("SHANK PAYER: IN")
+                                  .ien("SHANK PAYER")
                                   .build()
                                   .toString())
                       .build())
               .build(),
           Extension.builder()
-              .url(
-                  "http://va.gov/fhir/StructureDefinition/organization-performingProviderSecondIDTypeCMS1500")
+              .url(OrganizationStructureDefinitions.PERFORMING_PROVIDER_SECOND_IDTYPE_CMS_1500)
               .valueCodeableConcept(
                   CodeableConcept.builder()
                       .coding(
                           Collections.singletonList(
                               Coding.builder()
-                                  .system("urn:oid:2.16.840.1.113883.3.8901.3.1.3558097.8001")
-                                  .code("SHANK 1500: IN")
+                                  .system(
+                                      OrganizationStructureDefinitions
+                                          .PERFORMING_PROVIDER_SECOND_IDTYPE_CMS_1500_URN_OID)
+                                  .code("PERF PROV 1500")
                                   .build()))
                       .build())
               .build(),
           Extension.builder()
-              .url(
-                  "http://va.gov/fhir/StructureDefinition/organization-performingProviderSecondIDTypeUB04")
+              .url(OrganizationStructureDefinitions.PERFORMING_PROVIDER_SECOND_IDTYPE_UB_04)
               .valueCodeableConcept(
                   CodeableConcept.builder()
                       .coding(
                           Collections.singletonList(
                               Coding.builder()
-                                  .code("PERF SHANK UB: IN")
-                                  .system("urn:oid:2.16.840.1.113883.3.8901.3.1.3558097.8001")
+                                  .system(
+                                      OrganizationStructureDefinitions
+                                          .PERFORMING_PROVIDER_SECOND_IDTYPE_UB_04_URN_OID)
+                                  .code("PERF PROV 04")
                                   .build()))
                       .build())
               .build(),
           Extension.builder()
-              .url(
-                  "http://va.gov/fhir/StructureDefinition/organization-referrngProviderSecondIDTypeCMS1500")
+              .url(OrganizationStructureDefinitions.REFERRNG_PROVIDER_SECOND_IDTYPE_CMS_1500)
               .valueCodeableConcept(
                   CodeableConcept.builder()
                       .coding(
                           Collections.singletonList(
                               Coding.builder()
-                                  .code("REF SHANK 1500: IN")
-                                  .system("urn:oid:2.16.840.1.113883.3.8901.3.1.3558097.8001")
+                                  .code("REF PROV CMS 1500")
+                                  .system(
+                                      OrganizationStructureDefinitions
+                                          .REFERRNG_PROVIDER_SECOND_IDTYPE_CMS_1500_URN_OID)
                                   .build()))
                       .build())
               .build(),
           Extension.builder()
-              .url(
-                  "http://va.gov/fhir/StructureDefinition/organization-referrngProviderSecondIDTypeUB04")
+              .url(OrganizationStructureDefinitions.REFERRNG_PROVIDER_SECOND_IDTYPE_UB_04)
               .valueCodeableConcept(
                   CodeableConcept.builder()
                       .coding(
                           Collections.singletonList(
                               Coding.builder()
-                                  .code("REF SHANK CLAIMS: IN")
-                                  .system("urn:oid:2.16.840.1.113883.3.8901.3.1.3558097.8001")
+                                  .code("REF PROV 04")
+                                  .system(
+                                      OrganizationStructureDefinitions
+                                          .REFERRNG_PROVIDER_SECOND_IDTYPE_UB_04_URN_OID)
                                   .build()))
                       .build())
               .build(),
           Extension.builder()
               .url(
-                  "http://va.gov/fhir/StructureDefinition/organization-attendingRenderingProviderSecondaryIDProfesionalRequired")
+                  OrganizationStructureDefinitions
+                      .ATTENDING_RENDERING_PROVIDER_SECONDARY_IDPROFESIONAL_REQUIRED)
               .valueBoolean(Boolean.TRUE)
               .build(),
           Extension.builder()
               .url(
-                  "http://va.gov/fhir/StructureDefinition/organization-attendingRenderingProviderSecondaryIDInstitutionalRequired")
+                  OrganizationStructureDefinitions
+                      .ATTENDING_RENDERING_PROVIDER_SECONDARY_IDINSTITUTIONAL_REQUIRED)
               .valueBoolean(Boolean.TRUE)
               .build(),
           Extension.builder()
-              .url(
-                  "http://va.gov/fhir/StructureDefinition/organization-printSecTertAutoClaimsLocally")
+              .url(OrganizationStructureDefinitions.PRINT_SEC_TERT_AUTO_CLAIMS_LOCALLY)
               .valueBoolean(Boolean.TRUE)
               .build(),
           Extension.builder()
-              .url(
-                  "http://va.gov/fhir/StructureDefinition/organization-printSecMedClaimsWOMRALocally")
+              .url(OrganizationStructureDefinitions.PRINT_SEC_MED_CLAIMS_WOMRALOCALLY)
               .valueBoolean(Boolean.TRUE)
               .build());
     }
@@ -922,7 +859,7 @@ public class OrganizationSamples {
                   CodeableConcept.builder()
                       .coding(
                           Collections.singletonList(
-                              Coding.builder().id("SHANKFEDI: IN").code("PROFEDI").build()))
+                              Coding.builder().id("55555").code("PROFEDI").build()))
                       .build())
               .build(),
           Identifier.builder()
@@ -930,7 +867,7 @@ public class OrganizationSamples {
                   CodeableConcept.builder()
                       .coding(
                           Collections.singletonList(
-                              Coding.builder().id("SHANKTEDI: IN").code("INSTEDI").build()))
+                              Coding.builder().id("66666").code("INSTEDI").build()))
                       .build())
               .build(),
           Identifier.builder()
@@ -938,7 +875,7 @@ public class OrganizationSamples {
                   CodeableConcept.builder()
                       .coding(
                           Collections.singletonList(
-                              Coding.builder().id("SHANKBIN: IN").code("BIN").build()))
+                              Coding.builder().id("SHANKBIN").code("BIN").build()))
                       .build())
               .build());
     }
@@ -948,7 +885,7 @@ public class OrganizationSamples {
           .extension(
               List.of(
                   Extension.builder()
-                      .valueReference(Reference.builder().display("SHANK-INQUIRY NAME: IN").build())
+                      .valueReference(Reference.builder().display("SHANK-INQUIRY NAME").build())
                       .url(
                           "http://hl7.org/fhir/us/davinci-pdex-plan-net/StructureDefinition/via-intermediary")
                       .build()))
@@ -956,21 +893,19 @@ public class OrganizationSamples {
               Address.builder()
                   .line(
                       List.of(
-                          "SHANK-INQUIRY LINE 1: IN",
-                          "SHANK-INQUIRY LINE 2: IN",
-                          "SHANK-INQUIRY LINE 3: IN"))
-                  .city("SHANK-INQUIRY CITY: IN")
-                  .state("SHANKTICUT: IN")
-                  .postalCode("SHANK-INQUIRY ZIP: IN")
+                          "SHANK-INQUIRY LINE 1", "SHANK-INQUIRY LINE 2", "SHANK-INQUIRY LINE 3"))
+                  .city("SHANK-INQUIRY CITY")
+                  .state("12")
+                  .postalCode("SHANK-INQUIRY ZIP")
                   .build())
           .telecom(
               List.of(
                   ContactPoint.builder()
-                      .value("1-800-SHANK-INQUIRY: IN")
+                      .value("1-800-SHANK-INQUIRY")
                       .system(ContactPoint.ContactPointSystem.phone)
                       .build(),
                   ContactPoint.builder()
-                      .value("FAX SHANK-INQUIRY: IN")
+                      .value("FAX SHANK-INQUIRY")
                       .system(ContactPoint.ContactPointSystem.fax)
                       .build()))
           .purpose(
@@ -1001,7 +936,7 @@ public class OrganizationSamples {
                   .toString())
           .identifier(identifiers())
           .type(type())
-          .name("SHANKS OF FL: IN")
+          .name("SHANKS OF FL")
           .address(address())
           .active(Boolean.TRUE)
           .telecom(telecom())
@@ -1015,14 +950,14 @@ public class OrganizationSamples {
           .extension(
               List.of(
                   Extension.builder()
-                      .valueReference(Reference.builder().display("SHANK-PRECERT NAME: IN").build())
+                      .valueReference(Reference.builder().display("SHANK-PRECERT NAME").build())
                       .url(
                           "http://hl7.org/fhir/us/davinci-pdex-plan-net/StructureDefinition/via-intermediary")
                       .build()))
           .telecom(
               List.of(
                   ContactPoint.builder()
-                      .value("1-800-SHANK-PRECERT: IN")
+                      .value("800-222-9999")
                       .system(ContactPoint.ContactPointSystem.phone)
                       .build()))
           .purpose(
@@ -1041,7 +976,7 @@ public class OrganizationSamples {
     private List<ContactPoint> telecom() {
       return List.of(
           ContactPoint.builder()
-              .value("1-800-SHANKTO")
+              .value("800-456-8888")
               .system(ContactPoint.ContactPointSystem.phone)
               .build(),
           ContactPoint.builder()
@@ -1065,7 +1000,7 @@ public class OrganizationSamples {
           .telecom(
               List.of(
                   ContactPoint.builder()
-                      .value("1-800-SHANK-VERIFICATION: IN")
+                      .value("800-333-8888")
                       .system(ContactPoint.ContactPointSystem.phone)
                       .build()))
           .purpose(

@@ -5,7 +5,6 @@ import static gov.va.api.health.vistafhirquery.service.charonclient.CharonTestSu
 import static gov.va.api.health.vistafhirquery.service.controller.MockRequests.json;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
-import static org.junit.jupiter.api.Assertions.fail;
 import static org.mockito.Mockito.when;
 
 import gov.va.api.health.vistafhirquery.service.charonclient.CharonClient;
@@ -19,7 +18,6 @@ import gov.va.api.lighthouse.charon.models.lhslighthouserpcgateway.LhsLighthouse
 import gov.va.api.lighthouse.charon.models.lhslighthouserpcgateway.LhsLighthouseRpcGatewayCoverageWrite;
 import gov.va.api.lighthouse.charon.models.lhslighthouserpcgateway.LhsLighthouseRpcGatewayGetsManifest;
 import gov.va.api.lighthouse.charon.models.lhslighthouserpcgateway.LhsLighthouseRpcGatewayResponse;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
@@ -76,20 +74,6 @@ class R4SiteOrganizationControllerTest {
     assertThat(response.getStatus()).isEqualTo(201);
     assertThat(response.getHeader("Location"))
         .isEqualTo("http://fugazi.com/site/123/r4/Organization/pub1");
-  }
-
-  @Test
-  @Disabled
-  void createThrowsBadPayloadForPayloadMissingRequiredFields() {
-    // payload is missing required fields (fails minimum required fields validation)
-    fail();
-  }
-
-  @Test
-  @Disabled
-  void createThrowsCannotCreateUnknownResourceForUnknownResource() {
-    // trying to create organization with a payload that is not organization
-    fail();
   }
 
   @Test
