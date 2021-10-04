@@ -287,12 +287,9 @@ public class R4OrganizationToInsuranceCompanyFileTransformer {
 
   /** Create a set of writeable fileman values. */
   public Set<WriteableFilemanValue> toInsuranceCompanyFile() {
-    // TODO: Remove Fugazi name generation https://vajira.max.gov/browse/API-10384
-    var n = System.currentTimeMillis() / 1000;
     Set<WriteableFilemanValue> fields = new HashSet<>();
     fields.add(
-        insuranceCompanyCoordinatesOrDie(
-            InsuranceCompany.NAME, 1, organization.name() + " : " + n, "name"));
+        insuranceCompanyCoordinatesOrDie(InsuranceCompany.NAME, 1, organization.name(), "name"));
     fields.addAll(address());
     fields.addAll(contacts());
     fields.add(
