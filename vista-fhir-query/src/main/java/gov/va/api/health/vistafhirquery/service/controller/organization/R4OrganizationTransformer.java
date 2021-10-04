@@ -331,98 +331,98 @@ public class R4OrganizationTransformer {
     return Stream.of(
             extensions.ofYesNoBoolean(
                 InsuranceCompany.ALLOW_MULTIPLE_BEDSECTIONS,
-                "http://va.gov/fhir/StructureDefinition/organization-allowMultipleBedsections"),
+                OrganizationStructureDefinitions.ALLOW_MULTIPLE_BEDSECTIONS),
             extensions.ofYesNoBoolean(
                 InsuranceCompany.ONE_OPT_VISIT_ON_BILL_ONLY,
-                "http://va.gov/fhir/StructureDefinition/organization-oneOutpatVisitOnBillOnly"),
+                OrganizationStructureDefinitions.ONE_OUTPAT_VISIT_ON_BILL_ONLY),
             extensions.ofCodeableConcept(
                 InsuranceCompany.AMBULATORY_SURG_REV_CODE,
-                "urn:oid:2.16.840.1.113883.6.301.3",
-                "http://va.gov/fhir/StructureDefinition/organization-ambulatorySurgeryRevenueCode"),
+                OrganizationStructureDefinitions.AMBULATORY_SURGERY_REVENUE_CODE_URN_OID,
+                OrganizationStructureDefinitions.AMBULATORY_SURGERY_REVENUE_CODE),
             extensions.ofString(
                 InsuranceCompany.FILING_TIME_FRAME,
-                "http://va.gov/fhir/StructureDefinition/organization-filingTimeFrame"),
+                OrganizationStructureDefinitions.FILING_TIME_FRAME),
             extensions.ofYesNoBoolean(
                 InsuranceCompany.ANOTHER_CO_PROCESS_IP_CLAIMS_,
-                "http://va.gov/fhir/StructureDefinition/organization-anotherCompanyProcessesInpatClaims"),
+                OrganizationStructureDefinitions.ANOTHER_COMPANY_PROCESSES_INPAT_CLAIMS),
             extensions.ofCodeableConcept(
                 InsuranceCompany.TYPE_OF_COVERAGE,
-                "urn:oid:2.16.840.1.113883.3.8901.3.36.8013",
-                "http://va.gov/fhir/StructureDefinition/organization-typeOfCoverage"),
+                OrganizationStructureDefinitions.TYPE_OF_COVERAGE_URN_OID,
+                OrganizationStructureDefinitions.TYPE_OF_COVERAGE),
             extensions.ofYesNoBoolean(
                 InsuranceCompany.ANOTHER_CO_PROCESS_APPEALS_,
-                "http://va.gov/fhir/StructureDefinition/organization-anotherCompanyProcessesAppeals"),
+                OrganizationStructureDefinitions.ANOTHER_COMPANY_PROCESSES_APPEALS),
             extensions.ofCodeableConcept(
                 InsuranceCompany.PRESCRIPTION_REFILL_REV_CODE,
-                "urn:oid:2.16.840.1.113883.6.301.3",
-                "http://va.gov/fhir/StructureDefinition/organization-prescriptionRevenueCode"),
+                OrganizationStructureDefinitions.PRESCRIPTION_REVENUE_CODE_URN_OID,
+                OrganizationStructureDefinitions.PRESCRIPTION_REVENUE_CODE),
             extensions.ofYesNoBoolean(
                 InsuranceCompany.ANOTHER_CO_PROCESS_INQUIRIES_,
-                "http://va.gov/fhir/StructureDefinition/organization-anotherCompanyProcessesInquiries"),
+                OrganizationStructureDefinitions.ANOTHER_COMPANY_PROCESSES_INQUIRIES),
             extensions.ofYesNoBoolean(
                 InsuranceCompany.ANOTHER_CO_PROCESS_OP_CLAIMS_,
-                "http://va.gov/fhir/StructureDefinition/organization-anotherCompanyProcessesOutpatClaims"),
+                OrganizationStructureDefinitions.ANOTHER_COMPANY_PROCESSES_OUTPAT_CLAIMS),
             extensions.ofYesNoBoolean(
                 InsuranceCompany.ANOTHER_CO_PROCESS_PRECERTS_,
-                "http://va.gov/fhir/StructureDefinition/organization-anotherCompanyProcessesPrecert"),
+                OrganizationStructureDefinitions.ANOTHER_COMPANY_PROCESSES_PRECERT),
             extensions.ofYesNoBoolean(
                 InsuranceCompany.ANOTHER_CO_PROCESS_RX_CLAIMS_,
-                "http://va.gov/fhir/StructureDefinition/organization-anotherCompanyProcessesRxClaims"),
+                OrganizationStructureDefinitions.ANOTHER_COMPANY_PROCESSES_RX_CLAIMS),
             extensions.ofYesNoBoolean(
                 InsuranceCompany.ANOTHER_CO_PROC_DENT_CLAIMS_,
-                "http://va.gov/fhir/StructureDefinition/organization-anotherCompanyProcessesDentalClaims"),
+                OrganizationStructureDefinitions.ANOTHER_COMPANY_PROCESSES_DENTAL_CLAIMS),
             extensions.ofQuantity(
                 InsuranceCompany.STANDARD_FTF_VALUE,
                 entry.external(InsuranceCompany.STANDARD_FTF).orElse(null),
-                "urn:oid:2.16.840.1.113883.3.8901.3.3558013",
-                "http://va.gov/fhir/StructureDefinition/organization-planStandardFilingTimeFrame"),
+                OrganizationStructureDefinitions.PLAN_STANDARD_FILING_TIME_FRAME_URN_OID,
+                OrganizationStructureDefinitions.PLAN_STANDARD_FILING_TIME_FRAME),
             extensions.ofCodeableConcept(
                 InsuranceCompany.REIMBURSE_,
-                "urn:oid:2.16.840.1.113883.3.8901.3.1.36.1",
-                "http://va.gov/fhir/StructureDefinition/organization-willReimburseForCare"),
+                OrganizationStructureDefinitions.WILL_REIMBURSE_FOR_CARE_URN_OID,
+                OrganizationStructureDefinitions.WILL_REIMBURSE_FOR_CARE),
             extensions.ofYesNoBoolean(
                 InsuranceCompany.SIGNATURE_REQUIRED_ON_BILL_,
-                "http://va.gov/fhir/StructureDefinition/organization-signatureRequiredOnBill"),
+                OrganizationStructureDefinitions.SIGNATURE_REQUIRED_ON_BILL),
             extensions.ofCodeableConcept(
                 InsuranceCompany.TRANSMIT_ELECTRONICALLY,
-                "urn:oid:2.16.840.1.113883.3.8901.3.1.36.38001",
-                "http://va.gov/fhir/StructureDefinition/organization-electronicTransmissionMode"),
+                OrganizationStructureDefinitions.ELECTRONIC_TRANSMISSION_MODE_URN_OID,
+                OrganizationStructureDefinitions.ELECTRONIC_TRANSMISSION_MODE),
             extensions.ofCodeableConcept(
                 InsuranceCompany.ELECTRONIC_INSURANCE_TYPE,
-                "urn:oid:2.16.840.1.113883.3.8901.3.1.36.38009",
-                "http://va.gov/fhir/StructureDefinition/organization-electronicInsuranceType"),
+                OrganizationStructureDefinitions.ELECTRONIC_INSURANCE_TYPE_URN_OID,
+                OrganizationStructureDefinitions.ELECTRONIC_INSURANCE_TYPE),
             extensions.ofReference(
-                "Organization",
-                payerId(entry),
-                "http://hl7.org/fhir/us/davinci-pdex-plan-net/StructureDefinition/via-intermediary"),
+                "Organization", payerId(entry), OrganizationStructureDefinitions.VIA_INTERMEDIARY),
             extensions.ofCodeableConcept(
                 InsuranceCompany.PERF_PROV_SECOND_ID_TYPE_1500,
-                "urn:oid:2.16.840.1.113883.3.8901.3.1.3558097.8001",
-                "http://va.gov/fhir/StructureDefinition/organization-performingProviderSecondIDTypeCMS1500"),
+                OrganizationStructureDefinitions.PERFORMING_PROVIDER_SECOND_IDTYPE_CMS_1500_URN_OID,
+                OrganizationStructureDefinitions.PERFORMING_PROVIDER_SECOND_IDTYPE_CMS_1500),
             extensions.ofCodeableConcept(
                 InsuranceCompany.PERF_PROV_SECOND_ID_TYPE_UB,
-                "urn:oid:2.16.840.1.113883.3.8901.3.1.3558097.8001",
-                "http://va.gov/fhir/StructureDefinition/organization-performingProviderSecondIDTypeUB04"),
+                OrganizationStructureDefinitions.PERFORMING_PROVIDER_SECOND_IDTYPE_UB_04_URN_OID,
+                OrganizationStructureDefinitions.PERFORMING_PROVIDER_SECOND_IDTYPE_UB_04),
             extensions.ofCodeableConcept(
                 InsuranceCompany.REF_PROV_SEC_ID_DEF_CMS_1500,
-                "urn:oid:2.16.840.1.113883.3.8901.3.1.3558097.8001",
-                "http://va.gov/fhir/StructureDefinition/organization-referrngProviderSecondIDTypeCMS1500"),
+                OrganizationStructureDefinitions.REFERRNG_PROVIDER_SECOND_IDTYPE_CMS_1500_URN_OID,
+                OrganizationStructureDefinitions.REFERRNG_PROVIDER_SECOND_IDTYPE_CMS_1500),
             extensions.ofCodeableConcept(
                 InsuranceCompany.REF_PROV_SEC_ID_REQ_ON_CLAIMS,
-                "urn:oid:2.16.840.1.113883.3.8901.3.1.3558097.8001",
-                "http://va.gov/fhir/StructureDefinition/organization-referrngProviderSecondIDTypeUB04"),
+                OrganizationStructureDefinitions.REFERRNG_PROVIDER_SECOND_IDTYPE_UB_04_URN_OID,
+                OrganizationStructureDefinitions.REFERRNG_PROVIDER_SECOND_IDTYPE_UB_04),
             extensions.ofYesNoBoolean(
                 InsuranceCompany.ATT_REND_ID_BILL_SEC_ID_PROF,
-                "http://va.gov/fhir/StructureDefinition/organization-attendingRenderingProviderSecondaryIDProfesionalRequired"),
+                OrganizationStructureDefinitions
+                    .ATTENDING_RENDERING_PROVIDER_SECONDARY_IDPROFESIONAL_REQUIRED),
             extensions.ofYesNoBoolean(
                 InsuranceCompany.ATT_REND_ID_BILL_SEC_ID_INST,
-                "http://va.gov/fhir/StructureDefinition/organization-attendingRenderingProviderSecondaryIDInstitutionalRequired"),
+                OrganizationStructureDefinitions
+                    .ATTENDING_RENDERING_PROVIDER_SECONDARY_IDINSTITUTIONAL_REQUIRED),
             extensions.ofYesNoBoolean(
                 InsuranceCompany.PRINT_SEC_TERT_AUTO_CLAIMS_,
-                "http://va.gov/fhir/StructureDefinition/organization-printSecTertAutoClaimsLocally"),
+                OrganizationStructureDefinitions.PRINT_SEC_TERT_AUTO_CLAIMS_LOCALLY),
             extensions.ofYesNoBoolean(
                 InsuranceCompany.PRINT_SEC_MED_CLAIMS_W_O_MRA_,
-                "http://va.gov/fhir/StructureDefinition/organization-printSecMedClaimsWOMRALocally"))
+                OrganizationStructureDefinitions.PRINT_SEC_MED_CLAIMS_WOMRALOCALLY))
         .filter(Objects::nonNull)
         .collect(Collectors.toList());
   }

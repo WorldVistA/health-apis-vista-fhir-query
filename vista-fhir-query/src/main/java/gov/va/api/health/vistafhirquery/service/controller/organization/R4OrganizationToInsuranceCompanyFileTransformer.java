@@ -113,9 +113,7 @@ public class R4OrganizationToInsuranceCompanyFileTransformer {
   WriteableFilemanValue companyName(
       Organization.Contact contact, String fieldNumber, String contactType) {
     Extension companyNameExtension =
-        extensionForSystem(
-                contact.extension(),
-                "http://hl7.org/fhir/us/davinci-pdex-plan-net/StructureDefinition/via-intermediary")
+        extensionForSystem(contact.extension(), OrganizationStructureDefinitions.VIA_INTERMEDIARY)
             .orElseThrow(
                 () ->
                     BadRequestPayload.because(
@@ -265,7 +263,7 @@ public class R4OrganizationToInsuranceCompanyFileTransformer {
     Extension standardFtfExtension =
         extensionForSystem(
                 organization.extension(),
-                "http://va.gov/fhir/StructureDefinition/organization-planStandardFilingTimeFrame")
+                OrganizationStructureDefinitions.PLAN_STANDARD_FILING_TIME_FRAME)
             .orElseThrow(
                 () ->
                     BadRequestPayload.because(
@@ -307,8 +305,8 @@ public class R4OrganizationToInsuranceCompanyFileTransformer {
         extensionCodeableConcept(
             "type of coverage",
             InsuranceCompany.TYPE_OF_COVERAGE,
-            "http://va.gov/fhir/StructureDefinition/organization-typeOfCoverage",
-            "urn:oid:2.16.840.1.113883.3.8901.3.36.8013"));
+            OrganizationStructureDefinitions.TYPE_OF_COVERAGE,
+            OrganizationStructureDefinitions.TYPE_OF_COVERAGE_URN_OID));
     fields.add(
         contactPoint(
             organization.telecom(),
@@ -320,51 +318,53 @@ public class R4OrganizationToInsuranceCompanyFileTransformer {
         extensionCodeableConcept(
             "reimburse",
             InsuranceCompany.REIMBURSE_,
-            "http://va.gov/fhir/StructureDefinition/organization-willReimburseForCare",
-            "urn:oid:2.16.840.1.113883.3.8901.3.1.36.1"));
+            OrganizationStructureDefinitions.WILL_REIMBURSE_FOR_CARE,
+            OrganizationStructureDefinitions.WILL_REIMBURSE_FOR_CARE_URN_OID));
     fields.add(
         extensionYesNoBoolean(
             "signature required on bill",
             InsuranceCompany.SIGNATURE_REQUIRED_ON_BILL_,
-            "http://va.gov/fhir/StructureDefinition/organization-signatureRequiredOnBill"));
+            OrganizationStructureDefinitions.SIGNATURE_REQUIRED_ON_BILL));
     fields.add(
         extensionCodeableConcept(
             "transmit electronically",
             InsuranceCompany.TRANSMIT_ELECTRONICALLY,
-            "http://va.gov/fhir/StructureDefinition/organization-electronicTransmissionMode",
-            "urn:oid:2.16.840.1.113883.3.8901.3.1.36.38001"));
+            OrganizationStructureDefinitions.ELECTRONIC_TRANSMISSION_MODE,
+            OrganizationStructureDefinitions.ELECTRONIC_TRANSMISSION_MODE_URN_OID));
     fields.add(
         extensionCodeableConcept(
             "electronic insurance type",
             InsuranceCompany.ELECTRONIC_INSURANCE_TYPE,
-            "http://va.gov/fhir/StructureDefinition/organization-electronicInsuranceType",
-            "urn:oid:2.16.840.1.113883.3.8901.3.1.36.38009"));
+            OrganizationStructureDefinitions.ELECTRONIC_INSURANCE_TYPE,
+            OrganizationStructureDefinitions.ELECTRONIC_INSURANCE_TYPE_URN_OID));
     fields.add(
         extensionCodeableConcept(
             "ref prov sec id req on claims",
             InsuranceCompany.REF_PROV_SEC_ID_REQ_ON_CLAIMS,
-            "http://va.gov/fhir/StructureDefinition/organization-referrngProviderSecondIDTypeUB04",
-            "urn:oid:2.16.840.1.113883.3.8901.3.1.3558097.8001"));
+            OrganizationStructureDefinitions.REFERRNG_PROVIDER_SECOND_IDTYPE_UB_04,
+            OrganizationStructureDefinitions.REFERRNG_PROVIDER_SECOND_IDTYPE_UB_04_URN_OID));
     fields.add(
         extensionYesNoBoolean(
             "att/rend id bill sec id prof",
             InsuranceCompany.ATT_REND_ID_BILL_SEC_ID_PROF,
-            "http://va.gov/fhir/StructureDefinition/organization-attendingRenderingProviderSecondaryIDProfesionalRequired"));
+            OrganizationStructureDefinitions
+                .ATTENDING_RENDERING_PROVIDER_SECONDARY_IDPROFESIONAL_REQUIRED));
     fields.add(
         extensionYesNoBoolean(
             "att rend id bill sec id inst",
             InsuranceCompany.ATT_REND_ID_BILL_SEC_ID_INST,
-            "http://va.gov/fhir/StructureDefinition/organization-attendingRenderingProviderSecondaryIDInstitutionalRequired"));
+            OrganizationStructureDefinitions
+                .ATTENDING_RENDERING_PROVIDER_SECONDARY_IDINSTITUTIONAL_REQUIRED));
     fields.add(
         extensionYesNoBoolean(
             "print sec tert auto claims",
             InsuranceCompany.PRINT_SEC_TERT_AUTO_CLAIMS_,
-            "http://va.gov/fhir/StructureDefinition/organization-printSecTertAutoClaimsLocally"));
+            OrganizationStructureDefinitions.PRINT_SEC_TERT_AUTO_CLAIMS_LOCALLY));
     fields.add(
         extensionYesNoBoolean(
             "print sec med claims w/o mra",
             InsuranceCompany.PRINT_SEC_MED_CLAIMS_W_O_MRA_,
-            "http://va.gov/fhir/StructureDefinition/organization-printSecMedClaimsWOMRALocally"));
+            OrganizationStructureDefinitions.PRINT_SEC_MED_CLAIMS_WOMRALOCALLY));
     return fields;
   }
 
