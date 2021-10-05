@@ -88,7 +88,7 @@ public class InsurancePlanSamples {
               .build(),
           Identifier.builder()
               .system("urn:oid:2.16.840.1.113883.3.8901.3.1.355803.68001")
-              .value("BC SX")
+              .value("VA55555")
               .build(),
           Identifier.builder()
               .system("urn:oid:2.16.840.1.113883.3.8901.3.1.355803.68002")
@@ -133,9 +133,9 @@ public class InsurancePlanSamples {
                               Coding.builder()
                                   .system("urn:oid:2.16.840.1.113883.3.8901.3.1.355803.8009")
                                   .code("40")
-                                  .display("PREFERRED PROVIDER ORGANIZATION (PPO)")
+                                  .display("MEDICARE ADVANTAGE")
                                   .build()))
-                      .text("PREFERRED PROVIDER ORGANIZATION (PPO)")
+                      .text("MEDICARE ADVANTAGE")
                       .build())
               .build());
     }
@@ -146,11 +146,21 @@ public class InsurancePlanSamples {
               .coding(
                   List.of(
                       Coding.builder()
-                          .system("urn:oid:2.16.840.1.113883.3.8901.3.1.355803.8015")
-                          .code("CI")
-                          .display("COMMERCIAL")
+                          .system("urn:oid:2.16.840.1.113883.3.8901.3.1.355803.8014")
+                          .code("A")
+                          .display("MEDICARE PART A")
                           .build()))
-              .text("COMMERCIAL")
+              .text("MEDICARE PART A")
+              .build(),
+          CodeableConcept.builder()
+              .coding(
+                  List.of(
+                      Coding.builder()
+                          .system("urn:oid:2.16.840.1.113883.3.8901.3.1.355803.8015")
+                          .code("MX")
+                          .display("MEDICARE A or B")
+                          .build()))
+              .text("MEDICARE A or B")
               .build());
     }
   }
@@ -165,14 +175,17 @@ public class InsurancePlanSamples {
           insuranceValue(GroupInsurancePlan.IS_PRE_CERTIFICATION_REQUIRED_, "YES"),
           insuranceValue(GroupInsurancePlan.EXCLUDE_PRE_EXISTING_CONDITION, "NO"),
           insuranceValue(GroupInsurancePlan.BENEFITS_ASSIGNABLE_, "YES"),
-          insuranceValue(GroupInsurancePlan.TYPE_OF_PLAN, "PREFERRED PROVIDER ORGANIZATION (PPO)"),
+          insuranceValue(GroupInsurancePlan.TYPE_OF_PLAN, "MEDICARE ADVANTAGE"),
           insuranceValue(GroupInsurancePlan.AMBULATORY_CARE_CERTIFICATION, "YES"),
-          insuranceValue(GroupInsurancePlan.ELECTRONIC_PLAN_TYPE, "CI"),
+          insuranceValue(GroupInsurancePlan.PLAN_CATEGORY, "A"),
+          insuranceValue(GroupInsurancePlan.ELECTRONIC_PLAN_TYPE, "MX"),
           insuranceValue(GroupInsurancePlan.PLAN_STANDARD_FTF, "DAYS"),
           insuranceValue(GroupInsurancePlan.PLAN_STANDARD_FTF_VALUE, "365"),
           insuranceValue(GroupInsurancePlan.GROUP_NAME, "BCBS OF SHANKSVILLE GROUP"),
           insuranceValue(GroupInsurancePlan.GROUP_NUMBER, "GRP123456"),
-          insuranceValue(GroupInsurancePlan.PLAN_ID, "BC SX"));
+          insuranceValue(GroupInsurancePlan.PLAN_ID, "VA55555"),
+          insuranceValue(GroupInsurancePlan.BANKING_IDENTIFICATION_NUMBER, "88888888"),
+          insuranceValue(GroupInsurancePlan.PROCESSOR_CONTROL_NUMBER_PCN_, "121212121212"));
     }
 
     public LhsLighthouseRpcGatewayResponse.Results createInsurancePlanResults(String id) {
@@ -207,13 +220,16 @@ public class InsurancePlanSamples {
           LhsLighthouseRpcGatewayResponse.Values.of("YES", "1"));
       fields.put(
           GroupInsurancePlan.TYPE_OF_PLAN,
-          LhsLighthouseRpcGatewayResponse.Values.of("PREFERRED PROVIDER ORGANIZATION (PPO)", "40"));
+          LhsLighthouseRpcGatewayResponse.Values.of("MEDICARE ADVANTAGE", "40"));
       fields.put(
           GroupInsurancePlan.AMBULATORY_CARE_CERTIFICATION,
           LhsLighthouseRpcGatewayResponse.Values.of("YES", "1"));
       fields.put(
+          GroupInsurancePlan.PLAN_CATEGORY,
+          LhsLighthouseRpcGatewayResponse.Values.of("MEDICARE PART A", "A"));
+      fields.put(
           GroupInsurancePlan.ELECTRONIC_PLAN_TYPE,
-          LhsLighthouseRpcGatewayResponse.Values.of("COMMERCIAL", "CI"));
+          LhsLighthouseRpcGatewayResponse.Values.of("MEDICARE A or B", "MX"));
       fields.put(
           GroupInsurancePlan.PLAN_STANDARD_FTF,
           LhsLighthouseRpcGatewayResponse.Values.of("DAYS", "1"));

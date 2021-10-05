@@ -19,6 +19,7 @@ import gov.va.api.lighthouse.charon.models.lhslighthouserpcgateway.LhsLighthouse
 import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.Set;
 import java.util.function.Function;
 import java.util.function.Predicate;
@@ -35,8 +36,16 @@ public class R4InsurancePlanToGroupInsurancePlanFileTransformer {
     this.insurancePlan = insurancePlan;
   }
 
-  WriteableFilemanValue electronicPlanType(List<CodeableConcept> codeableConcepts) {
+  Optional<WriteableFilemanValue> bankingIdentificationNumber(List<Identifier> identifiers) {
     return extractFromList(
+        identifiers,
+        i -> identifierHasCodingSystem(i, "urn:oid:2.16.840.1.113883.3.8901.3.1.355803.68002"),
+        Identifier::value,
+        GroupInsurancePlan.BANKING_IDENTIFICATION_NUMBER);
+  }
+
+  WriteableFilemanValue electronicPlanType(List<CodeableConcept> codeableConcepts) {
+    return extractFromListOrDie(
         "plan",
         codeableConcepts,
         c -> codeableconceptHasCodingSystem(c, "urn:oid:2.16.840.1.113883.3.8901.3.1.355803.8015"),
@@ -62,7 +71,23 @@ public class R4InsurancePlanToGroupInsurancePlanFileTransformer {
     return c.coding().stream().findFirst().map(Coding::code).orElse("");
   }
 
-  <T, R> WriteableFilemanValue extractFromList(
+  <T, R> Optional<WriteableFilemanValue> extractFromList(
+      List<T> object,
+      Predicate<? super T> predicate,
+      Function<? super T, ? extends R> mapper,
+      String field) {
+    if (isBlank(object)) {
+      return Optional.empty();
+    }
+    return object.stream()
+        .filter(predicate)
+        .map(mapper)
+        .filter(Objects::nonNull)
+        .findFirst()
+        .map(value -> groupInsurancePlanCoordinates(field, 1, (String) value));
+  }
+
+  <T, R> WriteableFilemanValue extractFromListOrDie(
       String parameterName,
       List<T> object,
       Predicate<? super T> predicate,
@@ -72,12 +97,7 @@ public class R4InsurancePlanToGroupInsurancePlanFileTransformer {
     if (isBlank(object)) {
       throw ResourceExceptions.BadRequestPayload.because(field, parameterName + " is null");
     }
-    return object.stream()
-        .filter(predicate)
-        .map(mapper)
-        .filter(Objects::nonNull)
-        .findFirst()
-        .map(value -> groupInsurancePlanCoordinates(field, 1, (String) value))
+    return extractFromList(object, predicate, mapper, field)
         .orElseThrow(() -> ResourceExceptions.BadRequestPayload.because(field, error));
   }
 
@@ -99,7 +119,7 @@ public class R4InsurancePlanToGroupInsurancePlanFileTransformer {
   }
 
   WriteableFilemanValue groupNumber(List<Identifier> identifiers) {
-    return extractFromList(
+    return extractFromListOrDie(
         "identifiers",
         identifiers,
         i -> identifierHasCodingSystem(i, "urn:oid:2.16.840.1.113883.3.8901.3.1.355803.28002"),
@@ -119,8 +139,20 @@ public class R4InsurancePlanToGroupInsurancePlanFileTransformer {
         : pointer(InsuranceCompany.FILE_NUMBER, 1, recordCoordinates.get().ien());
   }
 
+  Optional<WriteableFilemanValue> planCategory(List<CodeableConcept> codeableConcepts) {
+    return codeableConcepts.stream()
+        .filter(
+            c ->
+                codeableconceptHasCodingSystem(
+                    c, "urn:oid:2.16.840.1.113883.3.8901.3.1.355803.8014"))
+        .map(this::extractCodeFromCoding)
+        .filter(Objects::nonNull)
+        .findFirst()
+        .map(value -> groupInsurancePlanCoordinates(GroupInsurancePlan.PLAN_CATEGORY, 1, value));
+  }
+
   WriteableFilemanValue planId(List<Identifier> identifiers) {
-    return extractFromList(
+    return extractFromListOrDie(
         "identifiers",
         identifiers,
         i -> identifierHasCodingSystem(i, "urn:oid:2.16.840.1.113883.3.8901.3.1.355803.68001"),
@@ -153,6 +185,14 @@ public class R4InsurancePlanToGroupInsurancePlanFileTransformer {
         .index(index)
         .value(ien)
         .build();
+  }
+
+  Optional<WriteableFilemanValue> processorControlNumber(List<Identifier> identifiers) {
+    return extractFromList(
+        identifiers,
+        i -> identifierHasCodingSystem(i, "urn:oid:2.16.840.1.113883.3.8901.3.1.355803.68003"),
+        Identifier::value,
+        GroupInsurancePlan.PROCESSOR_CONTROL_NUMBER_PCN_);
   }
 
   /** Create a set of writeable fileman values. */
@@ -217,11 +257,14 @@ public class R4InsurancePlanToGroupInsurancePlanFileTransformer {
     fields.add(groupName(insurancePlan().name()));
     fields.add(groupNumber(insurancePlan().identifier()));
     fields.add(planId(insurancePlan().identifier()));
+    planCategory(insurancePlan().type()).ifPresent(fields::add);
+    bankingIdentificationNumber(insurancePlan().identifier()).ifPresent(fields::add);
+    processorControlNumber(insurancePlan().identifier()).ifPresent(fields::add);
     return fields;
   }
 
   WriteableFilemanValue typeOfPlan(List<InsurancePlan.Plan> plan) {
-    return extractFromList(
+    return extractFromListOrDie(
         "plan",
         plan,
         c ->

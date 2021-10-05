@@ -25,7 +25,7 @@
   } ],
   "identifier" : [ {
     "system" : "urn:oid:2.16.840.1.113883.3.8901.3.1.355803.28002",
-    "value" : "GRP123456"
+    "value" : "GRP12345671"
   }, {
     "system" : "urn:oid:2.16.840.1.113883.3.8901.3.1.355803.68001",
     "value" : "VA96554"
@@ -38,11 +38,18 @@
   } ],
   "type" : [ {
     "coding" : [ {
-      "system" : "urn:oid:2.16.840.1.113883.3.8901.3.1.355803.8015",
-      "code" : "CI",
-      "display" : "COMMERCIAL"
+      "system" : "urn:oid:2.16.840.1.113883.3.8901.3.1.355803.8014",
+      "code" : "A",
+      "display" : "MEDICARE PART A"
     } ],
-    "text" : "COMMERCIAL"
+    "text" : "MEDICARE PART A"
+  },{
+    "coding" : [ {
+      "system" : "urn:oid:2.16.840.1.113883.3.8901.3.1.355803.8015",
+      "code" : "MX",
+      "display" : "MEDICARE A or B"
+    } ],
+    "text" : "MEDICARE A or B"
   } ],
   "name" : "BCBS OF TX GROUP",
   "ownedBy" : {
@@ -52,10 +59,10 @@
     "type" : {
       "coding" : [ {
         "system" : "urn:oid:2.16.840.1.113883.3.8901.3.1.355803.8009",
-        "code" : "40",
-        "display" : "PREFERRED PROVIDER ORGANIZATION (PPO)"
+        "code" : "83",
+        "display" : "MEDICARE ADVANTAGE"
       } ],
-      "text" : "PREFERRED PROVIDER ORGANIZATION (PPO)"
+      "text" : "MEDICARE ADVANTAGE"
     }
   } ]
 }

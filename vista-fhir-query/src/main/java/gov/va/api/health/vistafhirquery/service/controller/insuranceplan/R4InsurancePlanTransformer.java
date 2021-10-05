@@ -95,7 +95,7 @@ public class R4InsurancePlanTransformer {
                 entry.internal(GroupInsurancePlan.GROUP_NUMBER),
                 "urn:oid:2.16.840.1.113883.3.8901.3.1.355803.28002"),
             identifier(
-                entry.internal(GroupInsurancePlan.PLAN_ID),
+                entry.external(GroupInsurancePlan.PLAN_ID),
                 "urn:oid:2.16.840.1.113883.3.8901.3.1.355803.68001"),
             identifier(
                 entry.internal(GroupInsurancePlan.BANKING_IDENTIFICATION_NUMBER),

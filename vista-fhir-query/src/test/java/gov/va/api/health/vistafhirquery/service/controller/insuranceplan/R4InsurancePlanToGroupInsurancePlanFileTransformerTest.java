@@ -9,6 +9,7 @@ import gov.va.api.health.r4.api.elements.Extension;
 import gov.va.api.health.r4.api.resources.InsurancePlan;
 import gov.va.api.health.vistafhirquery.service.controller.ResourceExceptions;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Stream;
 import org.assertj.core.api.ThrowableAssert;
 import org.junit.jupiter.api.Test;
@@ -92,6 +93,15 @@ public class R4InsurancePlanToGroupInsurancePlanFileTransformerTest {
             .insurancePlan(InsurancePlanSamples.R4.create().insurancePlan().extension(extensions))
             .build();
     assertBadRequestBodyThrown(blankExtensionTransformer::toGroupInsurancePlanFile);
+  }
+
+  @Test
+  void planCategory() {
+    var codeableConcept =
+        CodeableConcept.builder()
+            .coding(List.of(Coding.builder().system("WRONG_SYSTEM").build()))
+            .build();
+    assertThat((_transformer().planCategory(List.of(codeableConcept)))).isEqualTo(Optional.empty());
   }
 
   @Test
