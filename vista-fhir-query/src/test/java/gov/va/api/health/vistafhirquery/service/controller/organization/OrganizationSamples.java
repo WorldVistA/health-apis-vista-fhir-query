@@ -62,7 +62,7 @@ public class OrganizationSamples {
       return Set.of(
           insuranceCompanyValue(InsuranceCompany.NAME, "SHANKS OF FL"),
           insuranceCompanyValue(InsuranceCompany.CITY, "SHANK CITY"),
-          insuranceCompanyValue(InsuranceCompany.STATE, "12"),
+          insuranceCompanyValue(InsuranceCompany.STATE, "FLORIDA"),
           insuranceCompanyValue(InsuranceCompany.STREET_ADDRESS_LINE_1_, "SHANKSVILLE LINE 1"),
           insuranceCompanyValue(InsuranceCompany.STREET_ADDRESS_LINE_2_, "SHANKSVILLE LINE 2"),
           insuranceCompanyValue(InsuranceCompany.STREET_ADDRESS_LINE_3_, "SHANKSVILLE LINE 3"),
@@ -120,7 +120,7 @@ public class OrganizationSamples {
           "#.113",
           LhsLighthouseRpcGatewayResponse.Values.of("SHANKSVILLE LINE 3", "SHANKSVILLE LINE 3"));
       fields.put("#.114", LhsLighthouseRpcGatewayResponse.Values.of("SHANK CITY", "SHANK CITY"));
-      fields.put("#.115", LhsLighthouseRpcGatewayResponse.Values.of("12", "12"));
+      fields.put("#.115", LhsLighthouseRpcGatewayResponse.Values.of("FLORIDA", "12"));
       fields.put("#.116", LhsLighthouseRpcGatewayResponse.Values.of("322310014", "322310014"));
       // Contact - Appeals
       fields.put(
@@ -139,7 +139,7 @@ public class OrganizationSamples {
           "#.144",
           LhsLighthouseRpcGatewayResponse.Values.of(
               "SHANK-APPEALS CITY: EXT", "SHANK-APPEALS CITY"));
-      fields.put("#.145", LhsLighthouseRpcGatewayResponse.Values.of("12", "12"));
+      fields.put("#.145", LhsLighthouseRpcGatewayResponse.Values.of("FLORIDA", "12"));
       fields.put(
           "#.146",
           LhsLighthouseRpcGatewayResponse.Values.of("SHANK-APPEALS ZIP: EXT", "SHANK-APPEALS ZIP"));
@@ -172,7 +172,7 @@ public class OrganizationSamples {
       fields.put(
           "#.194",
           LhsLighthouseRpcGatewayResponse.Values.of("SHANK-DENTAL CITY: EXT", "SHANK-DENTAL CITY"));
-      fields.put("#.195", LhsLighthouseRpcGatewayResponse.Values.of("12", "12"));
+      fields.put("#.195", LhsLighthouseRpcGatewayResponse.Values.of("FLORIDA", "12"));
       fields.put(
           "#.196",
           LhsLighthouseRpcGatewayResponse.Values.of("SHANK-DENTAL ZIP: EXT", "SHANK-DENTAL ZIP"));
@@ -199,7 +199,7 @@ public class OrganizationSamples {
       fields.put(
           "#.124",
           LhsLighthouseRpcGatewayResponse.Values.of("SHANK-INPT CITY: EXT", "SHANK-INPT CITY"));
-      fields.put("#.125", LhsLighthouseRpcGatewayResponse.Values.of("12", "12"));
+      fields.put("#.125", LhsLighthouseRpcGatewayResponse.Values.of("FLORIDA", "12"));
       fields.put(
           "#.126",
           LhsLighthouseRpcGatewayResponse.Values.of("SHANK-INPT ZIP: EXT", "SHANK-INPT ZIP"));
@@ -224,7 +224,7 @@ public class OrganizationSamples {
       fields.put(
           "#.164",
           LhsLighthouseRpcGatewayResponse.Values.of("SHANK-OPT CITY: EXT", "SHANK-OPT CITY"));
-      fields.put("#.165", LhsLighthouseRpcGatewayResponse.Values.of("12", "12"));
+      fields.put("#.165", LhsLighthouseRpcGatewayResponse.Values.of("FLORIDA", "12"));
       fields.put(
           "#.166",
           LhsLighthouseRpcGatewayResponse.Values.of("SHANK-OPT ZIP: EXT", "SHANK-OPT ZIP"));
@@ -246,7 +246,7 @@ public class OrganizationSamples {
       fields.put(
           "#.184",
           LhsLighthouseRpcGatewayResponse.Values.of("SHANK-RX CITY: EXT", "SHANK-RX CITY"));
-      fields.put("#.185", LhsLighthouseRpcGatewayResponse.Values.of("12", "12"));
+      fields.put("#.185", LhsLighthouseRpcGatewayResponse.Values.of("FLORIDA", "12"));
       fields.put(
           "#.186", LhsLighthouseRpcGatewayResponse.Values.of("SHANK-RX ZIP: EXT", "SHANK-RX ZIP"));
       fields.put(
@@ -274,7 +274,7 @@ public class OrganizationSamples {
           "#.154",
           LhsLighthouseRpcGatewayResponse.Values.of(
               "SHANK-INQUIRY CITY: EXT", "SHANK-INQUIRY CITY"));
-      fields.put("#.155", LhsLighthouseRpcGatewayResponse.Values.of("12", "12"));
+      fields.put("#.155", LhsLighthouseRpcGatewayResponse.Values.of("FLORIDA", "12"));
       fields.put(
           "#.156",
           LhsLighthouseRpcGatewayResponse.Values.of("SHANK-INQUIRY ZIP: EXT", "SHANK-INQUIRY ZIP"));
@@ -378,7 +378,7 @@ public class OrganizationSamples {
           Address.builder()
               .line(List.of("SHANKSVILLE LINE 1", "SHANKSVILLE LINE 2", "SHANKSVILLE LINE 3"))
               .city("SHANK CITY")
-              .state("12")
+              .state("FLORIDA")
               .postalCode("322310014")
               .build());
     }
@@ -398,7 +398,7 @@ public class OrganizationSamples {
                       List.of(
                           "SHANK-APPEALS LINE 1", "SHANK-APPEALS LINE 2", "SHANK-APPEALS LINE 3"))
                   .city("SHANK-APPEALS CITY")
-                  .state("12")
+                  .state("FLORIDA")
                   .postalCode("SHANK-APPEALS ZIP")
                   .build())
           .telecom(
@@ -465,7 +465,7 @@ public class OrganizationSamples {
               Address.builder()
                   .line(List.of("SHANK-DENTAL LINE 1", "SHANK-DENTAL LINE 2"))
                   .city("SHANK-DENTAL CITY")
-                  .state("12")
+                  .state("FLORIDA")
                   .postalCode("SHANK-DENTAL ZIP")
                   .build())
           .telecom(
@@ -504,7 +504,7 @@ public class OrganizationSamples {
               Address.builder()
                   .line(List.of("SHANK-INPT LINE 1", "SHANK-INPT LINE 2", "SHANK-INPT LINE 3"))
                   .city("SHANK-INPT CITY")
-                  .state("12")
+                  .state("FLORIDA")
                   .postalCode("SHANK-INPT ZIP")
                   .build())
           .telecom(
@@ -543,7 +543,7 @@ public class OrganizationSamples {
               Address.builder()
                   .line(List.of("SHANK-OPT LINE 1", "SHANK-OPT LINE 2", "SHANK-OPT LINE 3"))
                   .city("SHANK-OPT CITY")
-                  .state("12")
+                  .state("FLORIDA")
                   .postalCode("SHANK-OPT ZIP")
                   .build())
           .telecom(
@@ -582,7 +582,7 @@ public class OrganizationSamples {
               Address.builder()
                   .line(List.of("SHANK-RX LINE 1", "SHANK-RX LINE 2", "SHANK-RX LINE 3"))
                   .city("SHANK-RX CITY")
-                  .state("12")
+                  .state("FLORIDA")
                   .postalCode("SHANK-RX ZIP")
                   .build())
           .telecom(
@@ -895,7 +895,7 @@ public class OrganizationSamples {
                       List.of(
                           "SHANK-INQUIRY LINE 1", "SHANK-INQUIRY LINE 2", "SHANK-INQUIRY LINE 3"))
                   .city("SHANK-INQUIRY CITY")
-                  .state("12")
+                  .state("FLORIDA")
                   .postalCode("SHANK-INQUIRY ZIP")
                   .build())
           .telecom(
