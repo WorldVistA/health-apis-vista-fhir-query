@@ -135,6 +135,7 @@ public class CoverageSamples {
                                   .ien("4")
                                   .build()
                                   .toString())
+                      .display("BCBS OF FL")
                       .build()))
           .coverageClass(classes(station, patient))
           .order(1)

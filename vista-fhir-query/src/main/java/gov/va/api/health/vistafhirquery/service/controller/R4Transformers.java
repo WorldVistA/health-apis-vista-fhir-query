@@ -223,8 +223,15 @@ public class R4Transformers {
   }
 
   public static Reference toReference(
+      @NonNull String resourceType,
+      @NonNull RecordCoordinates coordinates,
+      Optional<String> maybeDisplay) {
+    return toReference(resourceType, coordinates.toString(), maybeDisplay.orElse(null));
+  }
+
+  public static Reference toReference(
       @NonNull String resourceType, @NonNull RecordCoordinates coordinates) {
-    return toReference(resourceType, coordinates.toString(), null);
+    return toReference(resourceType, coordinates, Optional.empty());
   }
 
   /** Build an Identifier Segment using patientId, siteId, and the recordId. */

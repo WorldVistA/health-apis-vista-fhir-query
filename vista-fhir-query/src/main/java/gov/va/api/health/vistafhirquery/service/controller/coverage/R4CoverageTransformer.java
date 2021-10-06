@@ -108,7 +108,7 @@ public class R4CoverageTransformer {
     // ToDo update urls (needs to substitute host/base-path per env) and use the correct host
     List<Extension> extensions = new ArrayList<>(2);
     entry
-        .internal(InsuranceType.PHARMACY_PERSON_CODE, Integer::valueOf)
+        .external(InsuranceType.PHARMACY_PERSON_CODE, Integer::valueOf)
         .map(
             value ->
                 Extension.builder()
@@ -160,7 +160,9 @@ public class R4CoverageTransformer {
                     .file(InsuranceCompany.FILE_NUMBER)
                     .ien(value)
                     .build())
-        .map(coords -> toReference("Organization", coords))
+        .map(
+            coords ->
+                toReference("Organization", coords, entry.external(InsuranceType.INSURANCE_TYPE)))
         .map(List::of)
         .orElse(null);
   }
