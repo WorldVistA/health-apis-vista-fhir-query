@@ -82,7 +82,7 @@ public class R4InsurancePlanToGroupInsurancePlanFileTransformerTest {
   @Test
   void insuranceCompany() {
     // Null
-    assertBadRequestBodyThrown(() -> _transformer().insuranceCompany(null));
+    assertThat((_transformer().insuranceCompany(null))).isEqualTo(Optional.empty());
   }
 
   @ParameterizedTest

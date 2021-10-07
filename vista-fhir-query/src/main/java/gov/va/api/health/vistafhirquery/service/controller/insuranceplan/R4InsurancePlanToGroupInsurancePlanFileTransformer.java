@@ -39,7 +39,9 @@ public class R4InsurancePlanToGroupInsurancePlanFileTransformer {
   Optional<WriteableFilemanValue> bankingIdentificationNumber(List<Identifier> identifiers) {
     return extractFromList(
         identifiers,
-        i -> identifierHasCodingSystem(i, "urn:oid:2.16.840.1.113883.3.8901.3.1.355803.68002"),
+        i ->
+            identifierHasCodingSystem(
+                i, InsurancePlanStructureDefinitions.BANKING_IDENTIFICATION_NUMBER),
         Identifier::value,
         GroupInsurancePlan.BANKING_IDENTIFICATION_NUMBER);
   }
@@ -48,10 +50,12 @@ public class R4InsurancePlanToGroupInsurancePlanFileTransformer {
     return extractFromListOrDie(
         "plan",
         codeableConcepts,
-        c -> codeableconceptHasCodingSystem(c, "urn:oid:2.16.840.1.113883.3.8901.3.1.355803.8015"),
+        c ->
+            codeableconceptHasCodingSystem(
+                c, InsurancePlanStructureDefinitions.ELECTRONIC_PLAN_TYPE),
         this::extractCodeFromCoding,
         GroupInsurancePlan.ELECTRONIC_PLAN_TYPE,
-        "system type 'urn:oid:2.16.840.1.113883.3.8901.3.1.355803.8015' not found");
+        InsurancePlanStructureDefinitions.ELECTRONIC_PLAN_TYPE + " system type not found");
   }
 
   @SuppressWarnings("DoNotCallSuggester")
@@ -103,6 +107,9 @@ public class R4InsurancePlanToGroupInsurancePlanFileTransformer {
 
   private WriteableFilemanValue groupInsurancePlanCoordinates(
       String field, Integer index, String value) {
+    if (isBlank(value)) {
+      return null;
+    }
     return WriteableFilemanValue.builder()
         .file(GroupInsurancePlan.FILE_NUMBER)
         .field(field)
@@ -122,29 +129,21 @@ public class R4InsurancePlanToGroupInsurancePlanFileTransformer {
     return extractFromListOrDie(
         "identifiers",
         identifiers,
-        i -> identifierHasCodingSystem(i, "urn:oid:2.16.840.1.113883.3.8901.3.1.355803.28002"),
+        i -> identifierHasCodingSystem(i, InsurancePlanStructureDefinitions.GROUP_NUMBER),
         Identifier::value,
         GroupInsurancePlan.GROUP_NUMBER,
-        "system type 'urn:oid:2.16.840.1.113883.3.8901.3.1.355803.28002' not found");
+        InsurancePlanStructureDefinitions.GROUP_NUMBER + " system type not found");
   }
 
-  WriteableFilemanValue insuranceCompany(Reference reference) {
-    if (isBlank(reference) || isBlank(reference.reference())) {
-      throw ResourceExceptions.BadRequestPayload.because(
-          GroupInsurancePlan.INSURANCE_COMPANY, "ownedBy is null");
-    }
-    var recordCoordinates = recordCoordinatesForReference(reference);
-    return recordCoordinates.isEmpty()
-        ? null
-        : pointer(InsuranceCompany.FILE_NUMBER, 1, recordCoordinates.get().ien());
+  Optional<WriteableFilemanValue> insuranceCompany(Reference reference) {
+    return recordCoordinatesForReference(reference)
+        .map(coordinates -> pointer(InsuranceCompany.FILE_NUMBER, 1, coordinates.ien()));
   }
 
   Optional<WriteableFilemanValue> planCategory(List<CodeableConcept> codeableConcepts) {
     return codeableConcepts.stream()
         .filter(
-            c ->
-                codeableconceptHasCodingSystem(
-                    c, "urn:oid:2.16.840.1.113883.3.8901.3.1.355803.8014"))
+            c -> codeableconceptHasCodingSystem(c, InsurancePlanStructureDefinitions.PLAN_CATEGORY))
         .map(this::extractCodeFromCoding)
         .filter(Objects::nonNull)
         .findFirst()
@@ -155,16 +154,20 @@ public class R4InsurancePlanToGroupInsurancePlanFileTransformer {
     return extractFromListOrDie(
         "identifiers",
         identifiers,
-        i -> identifierHasCodingSystem(i, "urn:oid:2.16.840.1.113883.3.8901.3.1.355803.68001"),
+        i -> identifierHasCodingSystem(i, InsurancePlanStructureDefinitions.PLAN_ID),
         Identifier::value,
         GroupInsurancePlan.PLAN_ID,
-        "system type 'urn:oid:2.16.840.1.113883.3.8901.3.1.355803.68001' not found");
+        InsurancePlanStructureDefinitions.PLAN_ID + " system type not found");
   }
 
   List<WriteableFilemanValue> planStandardFtf(Extension extension) {
     if (isBlank(extension) || isBlank(extension.valueQuantity())) {
       throw ResourceExceptions.BadRequestPayload.because(
           GroupInsurancePlan.PLAN_STANDARD_FTF, "extension is null or has no valueQuantity");
+    }
+    if (isBlank(extension.valueQuantity().unit()) || isBlank(extension.valueQuantity().value())) {
+      throw ResourceExceptions.BadRequestPayload.because(
+          GroupInsurancePlan.PLAN_STANDARD_FTF, "extension unit/value is null");
     }
     return List.of(
         groupInsurancePlanCoordinates(
@@ -190,7 +193,9 @@ public class R4InsurancePlanToGroupInsurancePlanFileTransformer {
   Optional<WriteableFilemanValue> processorControlNumber(List<Identifier> identifiers) {
     return extractFromList(
         identifiers,
-        i -> identifierHasCodingSystem(i, "urn:oid:2.16.840.1.113883.3.8901.3.1.355803.68003"),
+        i ->
+            identifierHasCodingSystem(
+                i, InsurancePlanStructureDefinitions.PROCESSOR_CONTROL_NUMBER_PCN),
         Identifier::value,
         GroupInsurancePlan.PROCESSOR_CONTROL_NUMBER_PCN_);
   }
@@ -198,62 +203,74 @@ public class R4InsurancePlanToGroupInsurancePlanFileTransformer {
   /** Create a set of writeable fileman values. */
   public Set<WriteableFilemanValue> toGroupInsurancePlanFile() {
     Set<WriteableFilemanValue> fields = new HashSet<>();
-    fields.add(insuranceCompany(insurancePlan().ownedBy()));
+    insuranceCompany(insurancePlan().ownedBy())
+        .ifPresentOrElse(
+            fields::add,
+            () -> {
+              throw ResourceExceptions.BadRequestPayload.because("ownedBy field not found");
+            });
     extensionForSystem(
             insurancePlan().extension(),
-            "http://va.gov/fhir/StructureDefinition/insuranceplan-isUtilizationReviewRequired")
+            InsurancePlanStructureDefinitions.IS_UTILIZATION_REVIEW_REQUIRED)
         .map(
             e ->
                 extensionToBooleanWriteableFilemanValue(
                     e, GroupInsurancePlan.IS_UTILIZATION_REVIEW_REQUIRED))
         .ifPresentOrElse(
             fields::add,
-            () -> extensionNotFound(GroupInsurancePlan.IS_UTILIZATION_REVIEW_REQUIRED));
+            () ->
+                extensionNotFound(
+                    InsurancePlanStructureDefinitions.IS_UTILIZATION_REVIEW_REQUIRED));
     extensionForSystem(
             insurancePlan().extension(),
-            "http://va.gov/fhir/StructureDefinition/insuranceplan-isPreCertificationRequired")
+            InsurancePlanStructureDefinitions.IS_PRE_CERTIFICATION_REQUIRED)
         .map(
             e ->
                 extensionToBooleanWriteableFilemanValue(
                     e, GroupInsurancePlan.IS_PRE_CERTIFICATION_REQUIRED_))
         .ifPresentOrElse(
             fields::add,
-            () -> extensionNotFound(GroupInsurancePlan.IS_PRE_CERTIFICATION_REQUIRED_));
+            () ->
+                extensionNotFound(InsurancePlanStructureDefinitions.IS_PRE_CERTIFICATION_REQUIRED));
     extensionForSystem(
             insurancePlan().extension(),
-            "http://va.gov/fhir/StructureDefinition/insuranceplan-excludePreexistingConditions")
+            InsurancePlanStructureDefinitions.EXCLUDE_PRE_EXISTING_CONDITION)
         .map(
             e ->
                 extensionToBooleanWriteableFilemanValue(
                     e, GroupInsurancePlan.EXCLUDE_PRE_EXISTING_CONDITION))
         .ifPresentOrElse(
             fields::add,
-            () -> extensionNotFound(GroupInsurancePlan.EXCLUDE_PRE_EXISTING_CONDITION));
+            () ->
+                extensionNotFound(
+                    InsurancePlanStructureDefinitions.EXCLUDE_PRE_EXISTING_CONDITION));
     extensionForSystem(
-            insurancePlan().extension(),
-            "http://va.gov/fhir/StructureDefinition/insuranceplan-areBenefitsAssignable")
+            insurancePlan().extension(), InsurancePlanStructureDefinitions.BENEFITS_ASSIGNABLE)
         .map(
             e ->
                 extensionToBooleanWriteableFilemanValue(e, GroupInsurancePlan.BENEFITS_ASSIGNABLE_))
         .ifPresentOrElse(
-            fields::add, () -> extensionNotFound(GroupInsurancePlan.BENEFITS_ASSIGNABLE_));
+            fields::add,
+            () -> extensionNotFound(InsurancePlanStructureDefinitions.BENEFITS_ASSIGNABLE));
     fields.add(typeOfPlan(insurancePlan().plan()));
     extensionForSystem(
             insurancePlan().extension(),
-            "http://va.gov/fhir/StructureDefinition/insuranceplan-areBenefitsAssignable")
+            InsurancePlanStructureDefinitions.AMBULATORY_CARE_CERTIFICATION)
         .map(
             e ->
                 extensionToBooleanWriteableFilemanValue(
                     e, GroupInsurancePlan.AMBULATORY_CARE_CERTIFICATION))
         .ifPresentOrElse(
-            fields::add, () -> extensionNotFound(GroupInsurancePlan.AMBULATORY_CARE_CERTIFICATION));
+            fields::add,
+            () ->
+                extensionNotFound(InsurancePlanStructureDefinitions.AMBULATORY_CARE_CERTIFICATION));
     fields.add(electronicPlanType(insurancePlan().type()));
     extensionForSystem(
-            insurancePlan().extension(),
-            "http://va.gov/fhir/StructureDefinition/insuranceplan-planStandardFilingTimeFrame")
+            insurancePlan().extension(), InsurancePlanStructureDefinitions.PLAN_STANDARD_FTF)
         .map(this::planStandardFtf)
         .ifPresentOrElse(
-            fields::addAll, () -> extensionNotFound(GroupInsurancePlan.PLAN_STANDARD_FTF));
+            fields::addAll,
+            () -> extensionNotFound(InsurancePlanStructureDefinitions.PLAN_STANDARD_FTF));
     fields.add(groupName(insurancePlan().name()));
     fields.add(groupNumber(insurancePlan().identifier()));
     fields.add(planId(insurancePlan().identifier()));
@@ -269,9 +286,9 @@ public class R4InsurancePlanToGroupInsurancePlanFileTransformer {
         plan,
         c ->
             codeableconceptHasCodingSystem(
-                c.type(), "urn:oid:2.16.840.1.113883.3.8901.3.1.355803.8009"),
+                c.type(), InsurancePlanStructureDefinitions.TYPE_OF_PLAN),
         c -> c.type().coding().stream().findFirst().map(Coding::display).orElse(null),
         GroupInsurancePlan.TYPE_OF_PLAN,
-        "system type 'urn:oid:2.16.840.1.113883.3.8901.3.1.355803.8009' not found");
+        InsurancePlanStructureDefinitions.TYPE_OF_PLAN + " system type not found");
   }
 }
