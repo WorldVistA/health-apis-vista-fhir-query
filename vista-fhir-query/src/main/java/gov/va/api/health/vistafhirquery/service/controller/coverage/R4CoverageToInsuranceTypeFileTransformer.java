@@ -2,6 +2,8 @@ package gov.va.api.health.vistafhirquery.service.controller.coverage;
 
 import static gov.va.api.health.vistafhirquery.service.controller.R4Transformers.isBlank;
 import static gov.va.api.health.vistafhirquery.service.controller.R4Transformers.recordCoordinatesForReference;
+import static gov.va.api.health.vistafhirquery.service.controller.WriteableFilemanValueFactory.autoincrement;
+import static gov.va.api.health.vistafhirquery.service.controller.WriteableFilemanValueFactory.index;
 
 import gov.va.api.health.r4.api.datatypes.CodeableConcept;
 import gov.va.api.health.r4.api.datatypes.Period;
@@ -11,6 +13,7 @@ import gov.va.api.health.r4.api.resources.Coverage;
 import gov.va.api.health.r4.api.resources.Coverage.CoverageClass;
 import gov.va.api.health.vistafhirquery.service.controller.PatientTypeCoordinates;
 import gov.va.api.health.vistafhirquery.service.controller.ResourceExceptions.BadRequestPayload;
+import gov.va.api.health.vistafhirquery.service.controller.WriteableFilemanValueFactory;
 import gov.va.api.lighthouse.charon.models.lhslighthouserpcgateway.GroupInsurancePlan;
 import gov.va.api.lighthouse.charon.models.lhslighthouserpcgateway.InsuranceCompany;
 import gov.va.api.lighthouse.charon.models.lhslighthouserpcgateway.InsuranceType;
@@ -32,6 +35,9 @@ import lombok.Value;
 
 @Value
 public class R4CoverageToInsuranceTypeFileTransformer {
+  private static final WriteableFilemanValueFactory filemanValue =
+      WriteableFilemanValueFactory.forFile(InsuranceType.FILE_NUMBER);
+
   @NonNull Coverage coverage;
 
   DateTimeFormatter vistaDateFormatter;
@@ -56,7 +62,7 @@ public class R4CoverageToInsuranceTypeFileTransformer {
           case 3 -> "TERTIARY";
           default -> throw new IllegalArgumentException("Unexpected order value: " + order);
         };
-    return insuranceTypeCoordinates(InsuranceType.COORDINATION_OF_BENEFITS, 1, priority);
+    return filemanValue.forString(InsuranceType.COORDINATION_OF_BENEFITS, 1, priority);
   }
 
   private Optional<Extension> extensionForSystem(String system) {
@@ -84,7 +90,7 @@ public class R4CoverageToInsuranceTypeFileTransformer {
                 recordCoordinatesForReference(Reference.builder().reference(c.value()).build())
                     .orElse(null))
         .findFirst()
-        .map(id -> pointer(GroupInsurancePlan.FILE_NUMBER, 1, id.ien()))
+        .map(filemanValue.recordCoordinatesToPointer(GroupInsurancePlan.FILE_NUMBER, index(1)))
         .orElseThrow(
             () ->
                 BadRequestPayload.because(
@@ -98,26 +104,16 @@ public class R4CoverageToInsuranceTypeFileTransformer {
     // Cardinality 1..* but vista expects a single pointer
     return IntStream.range(0, payors.size())
         .mapToObj(
-            index -> {
-              var recordCoordinates = recordCoordinatesForReference(payors.get(index));
-              return recordCoordinates.isEmpty()
-                  ? null
-                  : pointer(InsuranceCompany.FILE_NUMBER, index + 1, recordCoordinates.get().ien());
-            })
+            index ->
+                recordCoordinatesForReference(payors.get(index))
+                    .map(
+                        filemanValue.recordCoordinatesToPointer(
+                            InsuranceCompany.FILE_NUMBER, autoincrement()))
+                    .orElse(null))
         .filter(Objects::nonNull)
         .findFirst()
         .orElseThrow(
             () -> BadRequestPayload.because(InsuranceType.INSURANCE_TYPE, "payor not found"));
-  }
-
-  private WriteableFilemanValue insuranceTypeCoordinates(
-      String field, Integer index, String value) {
-    return WriteableFilemanValue.builder()
-        .file(InsuranceType.FILE_NUMBER)
-        .field(field)
-        .index(index)
-        .value(value)
-        .build();
   }
 
   WriteableFilemanValue patientId(Reference beneficiary) {
@@ -131,8 +127,7 @@ public class R4CoverageToInsuranceTypeFileTransformer {
     if (!isMemberId) {
       throw BadRequestPayload.because(InsuranceType.PATIENT_ID, "identifier of type MB not found");
     }
-    var memberId = beneficiary.identifier().value();
-    return insuranceTypeCoordinates(InsuranceType.PATIENT_ID, 1, memberId);
+    return filemanValue.forIdentifier(InsuranceType.PATIENT_ID, 1, beneficiary.identifier());
   }
 
   WriteableFilemanValue patientRelationshipHipaa(CodeableConcept relationship) {
@@ -144,35 +139,21 @@ public class R4CoverageToInsuranceTypeFileTransformer {
           InsuranceType.PT_RELATIONSHIP_HIPAA,
           "Unexpected relationship code count: " + relationship.coding().size());
     }
-    var maybeCode =
-        relationship.coding().stream()
-            .map(SubscriberToBeneficiaryRelationship::fromCoding)
-            .filter(Optional::isPresent)
-            .map(Optional::get)
-            .findFirst();
-    var relCode =
-        maybeCode.orElseThrow(
+    return relationship.coding().stream()
+        .map(SubscriberToBeneficiaryRelationship::fromCoding)
+        .filter(Optional::isPresent)
+        .map(Optional::get)
+        .findFirst()
+        .map(
+            filemanValue.toString(
+                InsuranceType.PT_RELATIONSHIP_HIPAA,
+                index(1),
+                SubscriberToBeneficiaryRelationship::display))
+        .orElseThrow(
             () ->
                 BadRequestPayload.because(
                     InsuranceType.PT_RELATIONSHIP_HIPAA,
                     "SubscriberToBeneficiary code not found."));
-    return insuranceTypeCoordinates(InsuranceType.PT_RELATIONSHIP_HIPAA, 1, relCode.display());
-  }
-
-  Optional<WriteableFilemanValue> pharmacyPersonCode(Extension pharmacyPersonCode) {
-    if (isBlank(pharmacyPersonCode)) {
-      return Optional.empty();
-    }
-    return Optional.ofNullable(
-        insuranceTypeCoordinates(
-            InsuranceType.PHARMACY_PERSON_CODE, 1, "" + pharmacyPersonCode.valueInteger()));
-  }
-
-  private WriteableFilemanValue pointer(@NonNull String file, int index, String ien) {
-    if (isBlank(ien)) {
-      return null;
-    }
-    return WriteableFilemanValue.builder().file(file).field("ien").index(index).value(ien).build();
   }
 
   List<WriteableFilemanValue> policyStartAndEndDates(Period period) {
@@ -183,7 +164,7 @@ public class R4CoverageToInsuranceTypeFileTransformer {
     List<WriteableFilemanValue> dates = new ArrayList<>(2);
     var start = Instant.parse(period.start());
     var effectiveDate =
-        insuranceTypeCoordinates(
+        filemanValue.forString(
             InsuranceType.EFFECTIVE_DATE_OF_POLICY, 1, vistaDateFormatter().format(start));
     dates.add(effectiveDate);
     if (isBlank(period.end())) {
@@ -194,25 +175,27 @@ public class R4CoverageToInsuranceTypeFileTransformer {
       throw BadRequestPayload.because("Coverage expiration Date is before start date.");
     }
     var expire =
-        insuranceTypeCoordinates(
+        filemanValue.forString(
             InsuranceType.INSURANCE_EXPIRATION_DATE, 1, vistaDateFormatter().format(end));
     dates.add(expire);
     return dates;
   }
 
   WriteableFilemanValue stopPolicyFromBilling(Extension extension) {
-    if (isBlank(extension) || isBlank(extension.valueBoolean())) {
-      throw BadRequestPayload.because(InsuranceType.STOP_POLICY_FROM_BILLING, "extension is null");
+    var wfv = filemanValue.forBoolean(InsuranceType.STOP_POLICY_FROM_BILLING, 1, extension);
+    if (isBlank(wfv)) {
+      throw BadRequestPayload.because(
+          InsuranceType.STOP_POLICY_FROM_BILLING,
+          "Could not map extension to fileman value: " + extension);
     }
-    return insuranceTypeCoordinates(
-        InsuranceType.STOP_POLICY_FROM_BILLING, 1, extension.valueBoolean() ? "YES" : "NO");
+    return wfv;
   }
 
   WriteableFilemanValue subscriberId(String subscriberId) {
     if (isBlank(subscriberId)) {
       throw BadRequestPayload.because(InsuranceType.SUBSCRIBER_ID, "subscriberId is null");
     }
-    return insuranceTypeCoordinates(InsuranceType.SUBSCRIBER_ID, 1, subscriberId);
+    return filemanValue.forString(InsuranceType.SUBSCRIBER_ID, 1, subscriberId);
   }
 
   /** Create a set of writeable fileman values. */
@@ -220,26 +203,27 @@ public class R4CoverageToInsuranceTypeFileTransformer {
     Set<WriteableFilemanValue> fields = new HashSet<>();
     Optional.ofNullable(coverage().id())
         .map(PatientTypeCoordinates::fromString)
-        .map(coordinates -> pointer(InsuranceType.FILE_NUMBER, 1, coordinates.recordId()))
+        .map(filemanValue.patientTypeCoordinatesToPointer(InsuranceType.FILE_NUMBER, index(1)))
         .ifPresent(fields::add);
     fields.add(insuranceType(coverage().payor()));
     fields.add(groupPlan(coverage().coverageClass()));
     fields.add(coordinationOfBenefits(coverage().order()));
-    extensionForSystem("http://va.gov/fhir/StructureDefinition/coverage-stopPolicyFromBilling")
+    extensionForSystem(CoverageStructureDefinitions.STOP_POLICY_FROM_BILLING)
         .map(this::stopPolicyFromBilling)
         .ifPresentOrElse(
             fields::add,
             () -> {
               throw BadRequestPayload.because(
-                  InsuranceType.STOP_POLICY_FROM_BILLING, "extension not found");
+                  InsuranceType.STOP_POLICY_FROM_BILLING,
+                  "extension not found: " + CoverageStructureDefinitions.STOP_POLICY_FROM_BILLING);
             });
     fields.add(patientRelationshipHipaa(coverage().relationship()));
-    extensionForSystem("http://va.gov/fhir/StructureDefinition/coverage-pharmacyPersonCode")
-        .flatMap(this::pharmacyPersonCode)
+    extensionForSystem(CoverageStructureDefinitions.PHARMACY_PERSON_CODE)
+        .map(filemanValue.extensionToInteger(InsuranceType.PHARMACY_PERSON_CODE, index(1)))
         .ifPresent(fields::add);
     fields.add(patientId(coverage().beneficiary()));
     fields.add(subscriberId(coverage().subscriberId()));
-    policyStartAndEndDates(coverage().period()).forEach(fields::add);
+    fields.addAll(policyStartAndEndDates(coverage().period()));
     return fields;
   }
 }

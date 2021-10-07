@@ -112,7 +112,7 @@ public class R4CoverageTransformer {
         .map(
             value ->
                 Extension.builder()
-                    .url("http://va.gov/fhir/StructureDefinition/coverage-pharmacyPersonCode")
+                    .url(CoverageStructureDefinitions.PHARMACY_PERSON_CODE)
                     .valueInteger(value)
                     .build())
         .ifPresent(extensions::add);
@@ -123,7 +123,7 @@ public class R4CoverageTransformer {
         .map(
             value ->
                 Extension.builder()
-                    .url("http://va.gov/fhir/StructureDefinition/coverage-stopPolicyFromBilling")
+                    .url(CoverageStructureDefinitions.STOP_POLICY_FROM_BILLING)
                     .valueBoolean(value)
                     .build())
         .ifPresent(extensions::add);

@@ -82,11 +82,6 @@ public class R4CoverageToInsuranceTypeFileTransformerTest {
   }
 
   @Test
-  void optionalFields() {
-    assertThat(_transformer().pharmacyPersonCode(null)).isEmpty();
-  }
-
-  @Test
   void patientId() {
     // Null
     assertBadRequestBodyThrown(() -> _transformer().patientId(null));
