@@ -63,24 +63,24 @@ public class R4InsurancePlanTransformer {
     return Stream.of(
             extensions.ofYesNoBoolean(
                 GroupInsurancePlan.IS_UTILIZATION_REVIEW_REQUIRED,
-                "http://va.gov/fhir/StructureDefinition/insuranceplan-isUtilizationReviewRequired"),
+                InsurancePlanStructureDefinitions.IS_UTILIZATION_REVIEW_REQUIRED),
             extensions.ofYesNoBoolean(
                 GroupInsurancePlan.IS_PRE_CERTIFICATION_REQUIRED_,
-                "http://va.gov/fhir/StructureDefinition/insuranceplan-isPreCertificationRequired"),
+                InsurancePlanStructureDefinitions.IS_PRE_CERTIFICATION_REQUIRED),
             extensions.ofYesNoBoolean(
                 GroupInsurancePlan.EXCLUDE_PRE_EXISTING_CONDITION,
-                "http://va.gov/fhir/StructureDefinition/insuranceplan-excludePreexistingConditions"),
+                InsurancePlanStructureDefinitions.EXCLUDE_PRE_EXISTING_CONDITION),
             extensions.ofYesNoBoolean(
                 GroupInsurancePlan.BENEFITS_ASSIGNABLE_,
-                "http://va.gov/fhir/StructureDefinition/insuranceplan-areBenefitsAssignable"),
+                InsurancePlanStructureDefinitions.BENEFITS_ASSIGNABLE),
             extensions.ofYesNoBoolean(
                 GroupInsurancePlan.AMBULATORY_CARE_CERTIFICATION,
-                "http://va.gov/fhir/StructureDefinition/insuranceplan-isCertificationRequiredForAmbulatoryCare"),
+                InsurancePlanStructureDefinitions.AMBULATORY_CARE_CERTIFICATION),
             extensions.ofQuantity(
                 GroupInsurancePlan.PLAN_STANDARD_FTF_VALUE,
                 entry.external(GroupInsurancePlan.PLAN_STANDARD_FTF).orElse(null),
-                "urn:oid:2.16.840.1.113883.3.8901.3.1.3558013",
-                "http://va.gov/fhir/StructureDefinition/insuranceplan-planStandardFilingTimeFrame"))
+                InsurancePlanStructureDefinitions.FILING_TIME_FRAME,
+                InsurancePlanStructureDefinitions.PLAN_STANDARD_FTF))
         .filter(Objects::nonNull)
         .toList();
   }
@@ -93,16 +93,16 @@ public class R4InsurancePlanTransformer {
     return Stream.of(
             identifier(
                 entry.external(GroupInsurancePlan.GROUP_NUMBER),
-                "urn:oid:2.16.840.1.113883.3.8901.3.1.355803.28002"),
+                InsurancePlanStructureDefinitions.GROUP_NUMBER),
             identifier(
                 entry.external(GroupInsurancePlan.PLAN_ID),
-                "urn:oid:2.16.840.1.113883.3.8901.3.1.355803.68001"),
+                InsurancePlanStructureDefinitions.PLAN_ID),
             identifier(
                 entry.external(GroupInsurancePlan.BANKING_IDENTIFICATION_NUMBER),
-                "urn:oid:2.16.840.1.113883.3.8901.3.1.355803.68002"),
+                InsurancePlanStructureDefinitions.BANKING_IDENTIFICATION_NUMBER),
             identifier(
                 entry.external(GroupInsurancePlan.PROCESSOR_CONTROL_NUMBER_PCN_),
-                "urn:oid:2.16.840.1.113883.3.8901.3.1.355803.68003"))
+                InsurancePlanStructureDefinitions.PROCESSOR_CONTROL_NUMBER_PCN))
         .filter(Objects::nonNull)
         .toList();
   }
@@ -127,9 +127,7 @@ public class R4InsurancePlanTransformer {
   private List<InsurancePlan.Plan> plan(LhsLighthouseRpcGatewayResponse.FilemanEntry entry) {
     CodeableConcept typeOfPlan =
         type(
-            entry,
-            GroupInsurancePlan.TYPE_OF_PLAN,
-            "urn:oid:2.16.840.1.113883.3.8901.3.1.355803.8009");
+            entry, GroupInsurancePlan.TYPE_OF_PLAN, InsurancePlanStructureDefinitions.TYPE_OF_PLAN);
     if (typeOfPlan == null) {
       return emptyList();
     }
@@ -187,11 +185,11 @@ public class R4InsurancePlanTransformer {
             type(
                 entry,
                 GroupInsurancePlan.PLAN_CATEGORY,
-                "urn:oid:2.16.840.1.113883.3.8901.3.1.355803.8014"),
+                InsurancePlanStructureDefinitions.PLAN_CATEGORY),
             type(
                 entry,
                 GroupInsurancePlan.ELECTRONIC_PLAN_TYPE,
-                "urn:oid:2.16.840.1.113883.3.8901.3.1.355803.8015"))
+                InsurancePlanStructureDefinitions.ELECTRONIC_PLAN_TYPE))
         .filter(Objects::nonNull)
         .toList();
   }

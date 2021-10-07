@@ -45,37 +45,32 @@ public class InsurancePlanSamples {
     private List<Extension> extensions() {
       return List.of(
           Extension.builder()
-              .url(
-                  "http://va.gov/fhir/StructureDefinition/insuranceplan-isUtilizationReviewRequired")
+              .url(InsurancePlanStructureDefinitions.IS_UTILIZATION_REVIEW_REQUIRED)
               .valueBoolean(true)
               .build(),
           Extension.builder()
-              .url(
-                  "http://va.gov/fhir/StructureDefinition/insuranceplan-isPreCertificationRequired")
+              .url(InsurancePlanStructureDefinitions.IS_PRE_CERTIFICATION_REQUIRED)
               .valueBoolean(true)
               .build(),
           Extension.builder()
-              .url(
-                  "http://va.gov/fhir/StructureDefinition/insuranceplan-excludePreexistingConditions")
+              .url(InsurancePlanStructureDefinitions.EXCLUDE_PRE_EXISTING_CONDITION)
               .valueBoolean(false)
               .build(),
           Extension.builder()
-              .url("http://va.gov/fhir/StructureDefinition/insuranceplan-areBenefitsAssignable")
+              .url(InsurancePlanStructureDefinitions.BENEFITS_ASSIGNABLE)
               .valueBoolean(true)
               .build(),
           Extension.builder()
-              .url(
-                  "http://va.gov/fhir/StructureDefinition/insuranceplan-isCertificationRequiredForAmbulatoryCare")
+              .url(InsurancePlanStructureDefinitions.AMBULATORY_CARE_CERTIFICATION)
               .valueBoolean(true)
               .build(),
           Extension.builder()
-              .url(
-                  "http://va.gov/fhir/StructureDefinition/insuranceplan-planStandardFilingTimeFrame")
+              .url(InsurancePlanStructureDefinitions.PLAN_STANDARD_FTF)
               .valueQuantity(
                   Quantity.builder()
                       .value(new BigDecimal("365"))
                       .unit("DAYS")
-                      .system("urn:oid:2.16.840.1.113883.3.8901.3.1.3558013")
+                      .system(InsurancePlanStructureDefinitions.FILING_TIME_FRAME)
                       .build())
               .build());
     }
@@ -83,19 +78,19 @@ public class InsurancePlanSamples {
     private List<Identifier> identifiers() {
       return List.of(
           Identifier.builder()
-              .system("urn:oid:2.16.840.1.113883.3.8901.3.1.355803.28002")
+              .system(InsurancePlanStructureDefinitions.GROUP_NUMBER)
               .value("GRP123456")
               .build(),
           Identifier.builder()
-              .system("urn:oid:2.16.840.1.113883.3.8901.3.1.355803.68001")
+              .system(InsurancePlanStructureDefinitions.PLAN_ID)
               .value("VA55555")
               .build(),
           Identifier.builder()
-              .system("urn:oid:2.16.840.1.113883.3.8901.3.1.355803.68002")
+              .system(InsurancePlanStructureDefinitions.BANKING_IDENTIFICATION_NUMBER)
               .value("88888888")
               .build(),
           Identifier.builder()
-              .system("urn:oid:2.16.840.1.113883.3.8901.3.1.355803.68003")
+              .system(InsurancePlanStructureDefinitions.PROCESSOR_CONTROL_NUMBER_PCN)
               .value("121212121212")
               .build());
     }
@@ -135,7 +130,7 @@ public class InsurancePlanSamples {
                       .coding(
                           List.of(
                               Coding.builder()
-                                  .system("urn:oid:2.16.840.1.113883.3.8901.3.1.355803.8009")
+                                  .system(InsurancePlanStructureDefinitions.TYPE_OF_PLAN)
                                   .code("40")
                                   .display("MEDICARE ADVANTAGE")
                                   .build()))
@@ -150,7 +145,7 @@ public class InsurancePlanSamples {
               .coding(
                   List.of(
                       Coding.builder()
-                          .system("urn:oid:2.16.840.1.113883.3.8901.3.1.355803.8014")
+                          .system(InsurancePlanStructureDefinitions.PLAN_CATEGORY)
                           .code("A")
                           .display("MEDICARE PART A")
                           .build()))
@@ -160,7 +155,7 @@ public class InsurancePlanSamples {
               .coding(
                   List.of(
                       Coding.builder()
-                          .system("urn:oid:2.16.840.1.113883.3.8901.3.1.355803.8015")
+                          .system(InsurancePlanStructureDefinitions.ELECTRONIC_PLAN_TYPE)
                           .code("MX")
                           .display("MEDICARE A or B")
                           .build()))

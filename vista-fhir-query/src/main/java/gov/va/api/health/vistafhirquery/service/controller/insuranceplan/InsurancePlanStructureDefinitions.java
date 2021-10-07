@@ -31,6 +31,8 @@ public interface InsurancePlanStructureDefinitions {
   String PLAN_STANDARD_FTF =
       "http://va.gov/fhir/StructureDefinition/insuranceplan-planStandardFilingTimeFrame";
 
+  String FILING_TIME_FRAME = "urn:oid:2.16.840.1.113883.3.8901.3.1.3558013";
+
   String PROCESSOR_CONTROL_NUMBER_PCN = "urn:oid:2.16.840.1.113883.3.8901.3.1.355803.68003";
 
   String TYPE_OF_PLAN = "urn:oid:2.16.840.1.113883.3.8901.3.1.355803.8009";
