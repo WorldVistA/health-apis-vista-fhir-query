@@ -4,6 +4,9 @@ import static gov.va.api.health.vistafhirquery.service.controller.R4Transformers
 import static gov.va.api.health.vistafhirquery.service.controller.R4Transformers.toBigDecimal;
 
 import gov.va.api.health.autoconfig.configuration.JacksonConfig;
+import gov.va.api.health.r4.api.bundle.AbstractBundle;
+import gov.va.api.health.r4.api.bundle.AbstractEntry;
+import gov.va.api.health.r4.api.bundle.BundleLink;
 import gov.va.api.health.r4.api.datatypes.Address;
 import gov.va.api.health.r4.api.datatypes.CodeableConcept;
 import gov.va.api.health.r4.api.datatypes.Coding;
@@ -11,6 +14,7 @@ import gov.va.api.health.r4.api.datatypes.ContactPoint;
 import gov.va.api.health.r4.api.datatypes.Identifier;
 import gov.va.api.health.r4.api.datatypes.Quantity;
 import gov.va.api.health.r4.api.elements.Extension;
+import gov.va.api.health.r4.api.elements.Meta;
 import gov.va.api.health.r4.api.elements.Reference;
 import gov.va.api.health.r4.api.resources.Organization;
 import gov.va.api.health.vistafhirquery.service.config.LinkProperties;
@@ -18,11 +22,14 @@ import gov.va.api.health.vistafhirquery.service.controller.RecordCoordinates;
 import gov.va.api.lighthouse.charon.models.lhslighthouserpcgateway.InsuranceCompany;
 import gov.va.api.lighthouse.charon.models.lhslighthouserpcgateway.LhsLighthouseRpcGatewayCoverageWrite.WriteableFilemanValue;
 import gov.va.api.lighthouse.charon.models.lhslighthouserpcgateway.LhsLighthouseRpcGatewayResponse;
+import java.util.Arrays;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
 import lombok.NoArgsConstructor;
 import lombok.SneakyThrows;
 import lombok.experimental.UtilityClass;
@@ -373,6 +380,33 @@ public class OrganizationSamples {
 
   @NoArgsConstructor(staticName = "create")
   public static class R4 {
+    public static Organization.Bundle asBundle(
+        String baseUrl, Collection<Organization> resources, int totalRecords, BundleLink... links) {
+      return Organization.Bundle.builder()
+          .resourceType("Bundle")
+          .type(AbstractBundle.BundleType.searchset)
+          .total(totalRecords)
+          .link(Arrays.asList(links))
+          .entry(
+              resources.stream()
+                  .map(
+                      resource ->
+                          Organization.Entry.builder()
+                              .fullUrl(baseUrl + "/Organization/" + resource.id())
+                              .resource(resource)
+                              .search(
+                                  AbstractEntry.Search.builder()
+                                      .mode(AbstractEntry.SearchMode.match)
+                                      .build())
+                              .build())
+                  .collect(Collectors.toList()))
+          .build();
+    }
+
+    public static BundleLink link(BundleLink.LinkRelation rel, String base, String query) {
+      return BundleLink.builder().relation(rel).url(base + "?" + query).build();
+    }
+
     private List<Address> address() {
       return List.of(
           Address.builder()
@@ -927,6 +961,7 @@ public class OrganizationSamples {
 
     Organization organization(String station, String ien) {
       return Organization.builder()
+          .meta(Meta.builder().source(station).build())
           .id(
               RecordCoordinates.builder()
                   .site(station)

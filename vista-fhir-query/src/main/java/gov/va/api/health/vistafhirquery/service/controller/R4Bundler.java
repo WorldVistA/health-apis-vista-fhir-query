@@ -47,25 +47,42 @@ public class R4Bundler<
   @Override
   public BundleT apply(RpcResponseT rpcResult) {
     List<ResourceT> resources = transformation.toResource().apply(rpcResult);
-    BundleT bundle = bundling.newBundle().get();
-    bundle.resourceType("Bundle");
-    bundle.type(AbstractBundle.BundleType.searchset);
-    bundle.total(resources.size());
-    bundle.link(toLinks());
-    int page = HttpRequestParameters.integer(request, "page", 1);
-    if (page <= 0) {
-      throw ResourceExceptions.BadSearchParameters.because("page value must be greater than 0");
+    BundleT bundle = newBundle(resources.size());
+    int count = countOrDie();
+    if (resources.size() > count) {
+      resources = resources.subList(0, count);
     }
+    bundle.entry(resources.stream().map(this::toEntry).collect(Collectors.toList()));
+    return bundle;
+  }
+
+  private int countOrDie() {
     int count =
         HttpRequestParameters.integer(request, "_count", linkProperties.getDefaultPageSize());
     if (count < 0) {
       throw ResourceExceptions.BadSearchParameters.because(
           "count value must be greater than or equal to 0");
     }
-    if (resources.size() > count) {
-      resources = resources.subList(0, count);
+    return count;
+  }
+
+  /** Return a new empty bundle. */
+  public BundleT empty() {
+    BundleT bundle = newBundle(0);
+    bundle.entry(new ArrayList<>(0));
+    return bundle;
+  }
+
+  private BundleT newBundle(int size) {
+    BundleT bundle = bundling.newBundle().get();
+    bundle.resourceType("Bundle");
+    bundle.type(AbstractBundle.BundleType.searchset);
+    bundle.total(size);
+    bundle.link(toLinks());
+    int page = HttpRequestParameters.integer(request, "page", 1);
+    if (page <= 0) {
+      throw ResourceExceptions.BadSearchParameters.because("page value must be greater than 0");
     }
-    bundle.entry(resources.stream().map(this::toEntry).collect(Collectors.toList()));
     return bundle;
   }
 

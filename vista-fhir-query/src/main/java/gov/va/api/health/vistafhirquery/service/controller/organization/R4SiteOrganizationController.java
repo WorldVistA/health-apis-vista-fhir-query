@@ -15,7 +15,9 @@ import gov.va.api.health.r4.api.resources.Organization;
 import gov.va.api.health.vistafhirquery.service.api.R4OrganizationApi;
 import gov.va.api.health.vistafhirquery.service.charonclient.CharonClient;
 import gov.va.api.health.vistafhirquery.service.charonclient.LhsGatewayErrorHandler;
+import gov.va.api.health.vistafhirquery.service.controller.R4Bundler;
 import gov.va.api.health.vistafhirquery.service.controller.R4BundlerFactory;
+import gov.va.api.health.vistafhirquery.service.controller.R4Bundling;
 import gov.va.api.health.vistafhirquery.service.controller.R4Transformation;
 import gov.va.api.health.vistafhirquery.service.controller.RecordCoordinates;
 import gov.va.api.health.vistafhirquery.service.controller.ResourceExceptions.NotFound;
@@ -25,15 +27,16 @@ import gov.va.api.lighthouse.charon.models.lhslighthouserpcgateway.LhsLighthouse
 import gov.va.api.lighthouse.charon.models.lhslighthouserpcgateway.LhsLighthouseRpcGatewayCoverageWrite.Request.CoverageWriteApi;
 import gov.va.api.lighthouse.charon.models.lhslighthouserpcgateway.LhsLighthouseRpcGatewayGetsManifest;
 import gov.va.api.lighthouse.charon.models.lhslighthouserpcgateway.LhsLighthouseRpcGatewayGetsManifest.Request.GetsManifestFlags;
+import gov.va.api.lighthouse.charon.models.lhslighthouserpcgateway.LhsLighthouseRpcGatewayListManifest;
 import gov.va.api.lighthouse.charon.models.lhslighthouserpcgateway.LhsLighthouseRpcGatewayResponse;
 import java.util.List;
+import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NonNull;
 import lombok.Setter;
-import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.validation.annotation.Validated;
@@ -42,6 +45,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 @Builder
@@ -107,7 +111,6 @@ public class R4SiteOrganizationController implements R4OrganizationApi {
 
   @Override
   @GetMapping(value = "/site/{site}/r4/Organization/{publicId}")
-  @SneakyThrows
   public Organization organizationRead(
       @PathVariable(value = "site") String site, @PathVariable(value = "publicId") String id) {
     var coordinates = witnessProtection.toRecordCoordinates(id);
@@ -125,6 +128,30 @@ public class R4SiteOrganizationController implements R4OrganizationApi {
     return verifyAndGetResult(resources, id);
   }
 
+  @Override
+  @GetMapping(value = "/site/{site}/r4/Organization")
+  public Organization.Bundle organizationSearch(
+      @Redact HttpServletRequest httpRequest,
+      @PathVariable(value = "site") String site,
+      @RequestParam(value = "type", required = false) String type,
+      @RequestParam(
+              value = "_count",
+              required = false,
+              defaultValue = "${vista-fhir-query.default-page-size}")
+          int count) {
+    var insTypeDetails =
+        LhsLighthouseRpcGatewayListManifest.Request.builder()
+            .file(InsuranceCompany.FILE_NUMBER)
+            .fields(R4OrganizationTransformer.REQUIRED_FIELDS)
+            .build();
+    var charonRequest = lighthouseRpcGatewayRequest(site, insTypeDetails);
+    if (type != null && !"ins".equals(type)) {
+      return toBundle(httpRequest, site).empty();
+    }
+    var charonResponse = charon.request(charonRequest);
+    return toBundle(httpRequest, site).apply(lighthouseRpcGatewayResponse(charonResponse));
+  }
+
   private LhsLighthouseRpcGatewayCoverageWrite.Request organizationWriteDetails(
       CoverageWriteApi operation, Organization body) {
     var fieldsToWrite =
@@ -135,6 +162,21 @@ public class R4SiteOrganizationController implements R4OrganizationApi {
     return LhsLighthouseRpcGatewayCoverageWrite.Request.builder()
         .api(operation)
         .fields(fieldsToWrite)
+        .build();
+  }
+
+  private R4Bundler<
+          LhsLighthouseRpcGatewayResponse, Organization, Organization.Entry, Organization.Bundle>
+      toBundle(HttpServletRequest request, String vista) {
+    return bundlerFactory
+        .forTransformation(transformation())
+        .site(vista)
+        .bundling(
+            R4Bundling.newBundle(Organization.Bundle::new)
+                .newEntry(Organization.Entry::new)
+                .build())
+        .resourceType("Organization")
+        .request(request)
         .build();
   }
 

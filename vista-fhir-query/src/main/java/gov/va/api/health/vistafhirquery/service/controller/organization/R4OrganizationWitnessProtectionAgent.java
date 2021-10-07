@@ -5,6 +5,7 @@ import gov.va.api.health.vistafhirquery.service.controller.witnessprotection.Pro
 import gov.va.api.health.vistafhirquery.service.controller.witnessprotection.ProtectedReferenceFactory;
 import gov.va.api.health.vistafhirquery.service.controller.witnessprotection.RequestPayloadModifier;
 import gov.va.api.health.vistafhirquery.service.controller.witnessprotection.WitnessProtectionAgent;
+import java.util.Objects;
 import java.util.stream.Stream;
 import javax.servlet.http.HttpServletRequest;
 import lombok.NonNull;
@@ -27,6 +28,19 @@ public class R4OrganizationWitnessProtectionAgent implements WitnessProtectionAg
         .addMeta(resource::meta)
         .build()
         .applyModifications();
-    return Stream.of(protectedReferenceFactory.forResource(resource, resource::id));
+    var referencesFromExtensions =
+        resource.extension().stream()
+            .filter(
+                extension ->
+                    OrganizationStructureDefinitions.VIA_INTERMEDIARY.equals(extension.url()))
+            .map(
+                extension ->
+                    protectedReferenceFactory
+                        .forReference(resource.meta().source(), extension.valueReference())
+                        .orElse(null))
+            .filter(Objects::nonNull);
+    return Stream.concat(
+        Stream.of(protectedReferenceFactory.forResource(resource, resource::id)),
+        referencesFromExtensions);
   }
 }

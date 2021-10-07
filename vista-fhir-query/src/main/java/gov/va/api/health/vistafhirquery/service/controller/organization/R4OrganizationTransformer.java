@@ -12,6 +12,7 @@ import gov.va.api.health.r4.api.datatypes.Coding;
 import gov.va.api.health.r4.api.datatypes.ContactPoint;
 import gov.va.api.health.r4.api.datatypes.Identifier;
 import gov.va.api.health.r4.api.elements.Extension;
+import gov.va.api.health.r4.api.elements.Meta;
 import gov.va.api.health.r4.api.elements.Reference;
 import gov.va.api.health.r4.api.resources.Organization;
 import gov.va.api.health.vistafhirquery.service.controller.ExtensionFactory;
@@ -478,7 +479,7 @@ public class R4OrganizationTransformer {
       return null;
     }
     return RecordCoordinates.builder()
-        .site(rpcResults.getKey())
+        .site(site())
         .file(Payer.FILE_NUMBER)
         .ien(value.get())
         .build()
@@ -512,6 +513,10 @@ public class R4OrganizationTransformer {
             .build());
   }
 
+  private String site() {
+    return rpcResults.getKey();
+  }
+
   /** Transform an RPC response to fhir. */
   public Stream<Organization> toFhir() {
     return rpcResults.getValue().results().stream()
@@ -526,9 +531,10 @@ public class R4OrganizationTransformer {
       return null;
     }
     return Organization.builder()
+        .meta(Meta.builder().source(site()).build())
         .id(
             RecordCoordinates.builder()
-                .site(rpcResults.getKey())
+                .site(site())
                 .file(InsuranceCompany.FILE_NUMBER)
                 .ien(entry.ien())
                 .build()
