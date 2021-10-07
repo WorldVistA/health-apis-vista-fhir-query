@@ -92,16 +92,16 @@ public class R4InsurancePlanTransformer {
   private List<Identifier> identifiers(LhsLighthouseRpcGatewayResponse.FilemanEntry entry) {
     return Stream.of(
             identifier(
-                entry.internal(GroupInsurancePlan.GROUP_NUMBER),
+                entry.external(GroupInsurancePlan.GROUP_NUMBER),
                 "urn:oid:2.16.840.1.113883.3.8901.3.1.355803.28002"),
             identifier(
                 entry.external(GroupInsurancePlan.PLAN_ID),
                 "urn:oid:2.16.840.1.113883.3.8901.3.1.355803.68001"),
             identifier(
-                entry.internal(GroupInsurancePlan.BANKING_IDENTIFICATION_NUMBER),
+                entry.external(GroupInsurancePlan.BANKING_IDENTIFICATION_NUMBER),
                 "urn:oid:2.16.840.1.113883.3.8901.3.1.355803.68002"),
             identifier(
-                entry.internal(GroupInsurancePlan.PROCESSOR_CONTROL_NUMBER_PCN_),
+                entry.external(GroupInsurancePlan.PROCESSOR_CONTROL_NUMBER_PCN_),
                 "urn:oid:2.16.840.1.113883.3.8901.3.1.355803.68003"))
         .filter(Objects::nonNull)
         .toList();
@@ -117,7 +117,10 @@ public class R4InsurancePlanTransformer {
                     .file(InsuranceCompany.FILE_NUMBER)
                     .ien(value)
                     .build())
-        .map(coords -> toReference("Organization", coords))
+        .map(
+            coords ->
+                toReference(
+                    "Organization", coords, entry.external(GroupInsurancePlan.INSURANCE_COMPANY)))
         .orElse(null);
   }
 
@@ -176,7 +179,7 @@ public class R4InsurancePlanTransformer {
       return null;
     }
     return asCodeableConcept(
-        Coding.builder().code(code.get()).display(display.get()).system(system).build());
+        Coding.builder().code(code.get()).display(display.orElse(null)).system(system).build());
   }
 
   private List<CodeableConcept> types(LhsLighthouseRpcGatewayResponse.FilemanEntry entry) {

@@ -117,7 +117,11 @@ public class InsurancePlanSamples {
           .extension(extensions())
           .identifier(identifiers())
           .name("BCBS OF SHANKSVILLE GROUP")
-          .ownedBy(Reference.builder().reference("Organization/" + station + ";36;8").build())
+          .ownedBy(
+              Reference.builder()
+                  .reference("Organization/" + station + ";36;8")
+                  .display("BCBS OF SHANKSVILLE")
+                  .build())
           .plan(plan())
           .type(type())
           .build();
