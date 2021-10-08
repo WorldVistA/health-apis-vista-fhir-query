@@ -1,5 +1,7 @@
 package gov.va.api.health.vistafhirquery.service.controller.organization;
 
+import static gov.va.api.health.fhir.api.Safe.stream;
+
 import gov.va.api.health.r4.api.resources.Organization;
 import gov.va.api.health.vistafhirquery.service.controller.witnessprotection.ProtectedReference;
 import gov.va.api.health.vistafhirquery.service.controller.witnessprotection.ProtectedReferenceFactory;
@@ -29,7 +31,7 @@ public class R4OrganizationWitnessProtectionAgent implements WitnessProtectionAg
         .build()
         .applyModifications();
     var referencesFromExtensions =
-        resource.extension().stream()
+        stream(resource.extension())
             .filter(
                 extension ->
                     OrganizationStructureDefinitions.VIA_INTERMEDIARY.equals(extension.url()))

@@ -221,6 +221,7 @@ public interface R4OrganizationApi {
       @Parameter(
               in = ParameterIn.QUERY,
               name = "type",
+              required = true,
               description = "The type of organization to return results for.")
           String type,
       @Parameter(

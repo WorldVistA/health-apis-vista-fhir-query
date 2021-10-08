@@ -24,9 +24,13 @@ import gov.va.api.lighthouse.charon.models.lhslighthouserpcgateway.LhsLighthouse
 import gov.va.api.lighthouse.charon.models.lhslighthouserpcgateway.LhsLighthouseRpcGatewayGetsManifest;
 import gov.va.api.lighthouse.charon.models.lhslighthouserpcgateway.LhsLighthouseRpcGatewayListManifest;
 import gov.va.api.lighthouse.charon.models.lhslighthouserpcgateway.LhsLighthouseRpcGatewayResponse;
+import gov.va.api.lighthouse.charon.models.lhslighthouserpcgateway.Payer;
 import java.util.List;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.NullSource;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.mock.web.MockHttpServletResponse;
@@ -146,32 +150,12 @@ class R4SiteOrganizationControllerTest {
     assertThat(json(actual)).isEqualTo(json(expected));
   }
 
-  @Test
-  void searchForNullTypeReturnsAllResults() {
-    var httpRequest = requestFromUri("?_count=10");
-    var samples = OrganizationSamples.VistaLhsLighthouseRpcGateway.create();
-    var results = samples.getsManifestResults("ien1");
-    var captor = requestCaptor(LhsLighthouseRpcGatewayListManifest.Request.class);
-    var answer =
-        answerFor(captor).value(results).invocationResult(_invocationResult(results)).build();
-    when(charon.request(captor.capture())).thenAnswer(answer);
-    var actual = _controller().organizationSearch(httpRequest, "123", null, 10);
-    var expected =
-        OrganizationSamples.R4.asBundle(
-            "http://fugazi.com/site/123/r4",
-            List.of(OrganizationSamples.R4.create().organization("123", "ien1")),
-            1,
-            link(
-                BundleLink.LinkRelation.self,
-                "http://fugazi.com/site/123/r4/Organization",
-                "_count=10"));
-    assertThat(captor.getValue().rpcRequest().file()).isEqualTo(InsuranceCompany.FILE_NUMBER);
-    assertThat(json(actual)).isEqualTo(json(expected));
-  }
-
-  @Test
-  void searchForUnknownTypeReturnsNoResults() {
-    var httpRequest = requestFromUri("?_count=10&type=NOPE");
+  @ParameterizedTest
+  @NullSource
+  @ValueSource(strings = "NOPE")
+  void searchForNullOrUnknownTypeReturnsNoResults(String type) {
+    var typeParam = type == null ? "" : "&type=" + type;
+    var httpRequest = requestFromUri("?_count=10" + typeParam);
     var actual = _controller().organizationSearch(httpRequest, "123", "NOPE", 10);
     var expected =
         OrganizationSamples.R4.asBundle(
@@ -181,7 +165,30 @@ class R4SiteOrganizationControllerTest {
             link(
                 BundleLink.LinkRelation.self,
                 "http://fugazi.com/site/123/r4/Organization",
-                "_count=10&type=NOPE"));
+                "_count=10" + typeParam));
+    assertThat(json(actual)).isEqualTo(json(expected));
+  }
+
+  @Test
+  void searchForPayTypeReturnsPayerResults() {
+    var httpRequest = requestFromUri("?_count=10&type=pay");
+    var samples = OrganizationPayerSamples.VistaLhsLighthouseRpcGateway.create();
+    var results = samples.getsManifestResults("ien1");
+    var captor = requestCaptor(LhsLighthouseRpcGatewayListManifest.Request.class);
+    var answer =
+        answerFor(captor).value(results).invocationResult(_invocationResult(results)).build();
+    when(charon.request(captor.capture())).thenAnswer(answer);
+    var actual = _controller().organizationSearch(httpRequest, "123", "pay", 10);
+    var expected =
+        OrganizationSamples.R4.asBundle(
+            "http://fugazi.com/site/123/r4",
+            List.of(OrganizationPayerSamples.R4.create().organization("123", "ien1")),
+            1,
+            link(
+                BundleLink.LinkRelation.self,
+                "http://fugazi.com/site/123/r4/Organization",
+                "_count=10&type=pay"));
+    assertThat(captor.getValue().rpcRequest().file()).isEqualTo(Payer.FILE_NUMBER);
     assertThat(json(actual)).isEqualTo(json(expected));
   }
 }

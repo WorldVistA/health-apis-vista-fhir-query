@@ -9,6 +9,7 @@ import static gov.va.api.health.vistafhirquery.service.controller.R4Controllers.
 import static gov.va.api.health.vistafhirquery.service.controller.R4Controllers.verifySiteSpecificVistaResponseOrDie;
 import static gov.va.api.health.vistafhirquery.service.controller.ResourceExceptions.ExpectationFailed;
 import static java.util.stream.Collectors.toList;
+import static org.apache.commons.lang3.StringUtils.isBlank;
 
 import gov.va.api.health.autoconfig.logging.Redact;
 import gov.va.api.health.r4.api.resources.Organization;
@@ -29,7 +30,9 @@ import gov.va.api.lighthouse.charon.models.lhslighthouserpcgateway.LhsLighthouse
 import gov.va.api.lighthouse.charon.models.lhslighthouserpcgateway.LhsLighthouseRpcGatewayGetsManifest.Request.GetsManifestFlags;
 import gov.va.api.lighthouse.charon.models.lhslighthouserpcgateway.LhsLighthouseRpcGatewayListManifest;
 import gov.va.api.lighthouse.charon.models.lhslighthouserpcgateway.LhsLighthouseRpcGatewayResponse;
+import gov.va.api.lighthouse.charon.models.lhslighthouserpcgateway.Payer;
 import java.util.List;
+import java.util.stream.Stream;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import lombok.AllArgsConstructor;
@@ -74,6 +77,27 @@ public class R4SiteOrganizationController implements R4OrganizationApi {
                 GetsManifestFlags.RETURN_INTERNAL_VALUES,
                 GetsManifestFlags.RETURN_EXTERNAL_VALUES))
         .build();
+  }
+
+  @SuppressWarnings("UnnecessaryParentheses")
+  private LhsLighthouseRpcGatewayListManifest.Request createRpcGatewayRequestForType(String type) {
+    if (isBlank(type)) {
+      return null;
+    }
+    switch (type) {
+      case "ins":
+        return LhsLighthouseRpcGatewayListManifest.Request.builder()
+            .file(InsuranceCompany.FILE_NUMBER)
+            .fields(R4OrganizationTransformer.REQUIRED_FIELDS)
+            .build();
+      case "pay":
+        return LhsLighthouseRpcGatewayListManifest.Request.builder()
+            .file(Payer.FILE_NUMBER)
+            .fields(R4OrganizationPayerTransformer.REQUIRED_FIELDS)
+            .build();
+      default:
+        return null;
+    }
   }
 
   private void insuranceFileOrDie(String id, RecordCoordinates recordCoordinates) {
@@ -133,21 +157,17 @@ public class R4SiteOrganizationController implements R4OrganizationApi {
   public Organization.Bundle organizationSearch(
       @Redact HttpServletRequest httpRequest,
       @PathVariable(value = "site") String site,
-      @RequestParam(value = "type", required = false) String type,
+      @RequestParam(value = "type") String type,
       @RequestParam(
               value = "_count",
               required = false,
               defaultValue = "${vista-fhir-query.default-page-size}")
           int count) {
-    var insTypeDetails =
-        LhsLighthouseRpcGatewayListManifest.Request.builder()
-            .file(InsuranceCompany.FILE_NUMBER)
-            .fields(R4OrganizationTransformer.REQUIRED_FIELDS)
-            .build();
-    var charonRequest = lighthouseRpcGatewayRequest(site, insTypeDetails);
-    if (type != null && !"ins".equals(type)) {
+    var rpcRequest = createRpcGatewayRequestForType(type);
+    if (rpcRequest == null) {
       return toBundle(httpRequest, site).empty();
     }
+    var charonRequest = lighthouseRpcGatewayRequest(site, rpcRequest);
     var charonResponse = charon.request(charonRequest);
     return toBundle(httpRequest, site).apply(lighthouseRpcGatewayResponse(charonResponse));
   }
@@ -187,10 +207,15 @@ public class R4SiteOrganizationController implements R4OrganizationApi {
                 rpcResponse.resultsByStation().entrySet().parallelStream()
                     .flatMap(
                         rpcResults ->
-                            R4OrganizationTransformer.builder()
-                                .rpcResults(rpcResults)
-                                .build()
-                                .toFhir())
+                            Stream.concat(
+                                R4OrganizationTransformer.builder()
+                                    .rpcResults(rpcResults)
+                                    .build()
+                                    .toFhir(),
+                                R4OrganizationPayerTransformer.builder()
+                                    .rpcResults(rpcResults)
+                                    .build()
+                                    .toFhir()))
                     .collect(toList()))
         .build();
   }
