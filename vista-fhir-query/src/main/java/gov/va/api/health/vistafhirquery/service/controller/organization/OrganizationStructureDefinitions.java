@@ -38,6 +38,12 @@ public interface OrganizationStructureDefinitions {
   String ATTENDING_RENDERING_PROVIDER_SECONDARY_IDPROFESIONAL_REQUIRED =
       "http://va.gov/fhir/StructureDefinition/organization-attendingRenderingProviderSecondaryIDProfesionalRequired";
 
+  String BIN_NUMBER_CODE = "BIN";
+
+  String EDI_ID_NUMBER_PROF_CODE = "PROFEDI";
+
+  String EDI_ID_NUMBER_INST_CODE = "INSTEDI";
+
   String ELECTRONIC_INSURANCE_TYPE =
       "http://va.gov/fhir/StructureDefinition/organization-electronicInsuranceType";
 

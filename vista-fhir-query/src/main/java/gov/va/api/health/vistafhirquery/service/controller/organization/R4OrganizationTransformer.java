@@ -433,18 +433,23 @@ public class R4OrganizationTransformer {
       return null;
     }
     return Identifier.builder()
+        .value(value.get())
         .type(
-            CodeableConcept.builder()
-                .coding(List.of(Coding.builder().id(value.get()).code(code).build()))
-                .build())
+            CodeableConcept.builder().coding(List.of(Coding.builder().code(code).build())).build())
         .build();
   }
 
   private List<Identifier> identifiers(LhsLighthouseRpcGatewayResponse.FilemanEntry entry) {
     return Stream.of(
-            identifier(entry.internal(InsuranceCompany.EDI_ID_NUMBER_PROF), "PROFEDI"),
-            identifier(entry.internal(InsuranceCompany.EDI_ID_NUMBER_INST), "INSTEDI"),
-            identifier(entry.internal(InsuranceCompany.BIN_NUMBER), "BIN"))
+            identifier(
+                entry.internal(InsuranceCompany.EDI_ID_NUMBER_PROF),
+                OrganizationStructureDefinitions.EDI_ID_NUMBER_PROF_CODE),
+            identifier(
+                entry.internal(InsuranceCompany.EDI_ID_NUMBER_INST),
+                OrganizationStructureDefinitions.EDI_ID_NUMBER_INST_CODE),
+            identifier(
+                entry.internal(InsuranceCompany.BIN_NUMBER),
+                OrganizationStructureDefinitions.BIN_NUMBER_CODE))
         .filter(Objects::nonNull)
         .collect(Collectors.toList());
   }

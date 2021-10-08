@@ -889,27 +889,36 @@ public class OrganizationSamples {
     List<Identifier> identifiers() {
       return List.of(
           Identifier.builder()
+              .value("55555")
               .type(
                   CodeableConcept.builder()
                       .coding(
                           Collections.singletonList(
-                              Coding.builder().id("55555").code("PROFEDI").build()))
+                              Coding.builder()
+                                  .code(OrganizationStructureDefinitions.EDI_ID_NUMBER_PROF_CODE)
+                                  .build()))
                       .build())
               .build(),
           Identifier.builder()
+              .value("66666")
               .type(
                   CodeableConcept.builder()
                       .coding(
                           Collections.singletonList(
-                              Coding.builder().id("66666").code("INSTEDI").build()))
+                              Coding.builder()
+                                  .code(OrganizationStructureDefinitions.EDI_ID_NUMBER_INST_CODE)
+                                  .build()))
                       .build())
               .build(),
           Identifier.builder()
+              .value("SHANKBIN")
               .type(
                   CodeableConcept.builder()
                       .coding(
                           Collections.singletonList(
-                              Coding.builder().id("SHANKBIN").code("BIN").build()))
+                              Coding.builder()
+                                  .code(OrganizationStructureDefinitions.BIN_NUMBER_CODE)
+                                  .build()))
                       .build())
               .build());
     }
