@@ -8,10 +8,10 @@
     <relativePath/>
   </parent>
   <artifactId>vista-fhir-query-ids-mapping</artifactId>
-  <version>1.0.114-SNAPSHOT</version>
+  <version>1.0.114</version>
   <packaging>jar</packaging>
   <properties>
-    <ids.version>4.0.6</ids.version>
+    <ids.version>4.0.7</ids.version>
   </properties>
   <dependencies>
     <dependency>
