@@ -68,9 +68,9 @@ public class R4SiteOrganizationController implements R4OrganizationApi {
   public static LhsLighthouseRpcGatewayGetsManifest.Request manifestRequest(
       RecordCoordinates coordinates) {
     return LhsLighthouseRpcGatewayGetsManifest.Request.builder()
-        .file(InsuranceCompany.FILE_NUMBER)
+        .file(coordinates.file())
         .iens(coordinates.ien())
-        .fields(R4OrganizationTransformer.REQUIRED_FIELDS)
+        .fields(requiredFieldsForFile(coordinates.file()))
         .flags(
             List.of(
                 GetsManifestFlags.OMIT_NULL_VALUES,
@@ -79,7 +79,18 @@ public class R4SiteOrganizationController implements R4OrganizationApi {
         .build();
   }
 
-  @SuppressWarnings("UnnecessaryParentheses")
+  private static List<String> requiredFieldsForFile(String fileNumber) {
+    switch (fileNumber) {
+      case InsuranceCompany.FILE_NUMBER:
+        return R4OrganizationTransformer.REQUIRED_FIELDS;
+      case Payer.FILE_NUMBER:
+        return R4OrganizationPayerTransformer.REQUIRED_FIELDS;
+      default:
+        throw new IllegalArgumentException(
+            "Unsupported file for Organization request: " + fileNumber);
+    }
+  }
+
   private LhsLighthouseRpcGatewayListManifest.Request createRpcGatewayRequestForType(String type) {
     if (isBlank(type)) {
       return null;
@@ -97,12 +108,6 @@ public class R4SiteOrganizationController implements R4OrganizationApi {
             .build();
       default:
         return null;
-    }
-  }
-
-  private void insuranceFileOrDie(String id, RecordCoordinates recordCoordinates) {
-    if (!InsuranceCompany.FILE_NUMBER.equals(recordCoordinates.file())) {
-      throw new NotFound(id);
     }
   }
 
@@ -138,7 +143,7 @@ public class R4SiteOrganizationController implements R4OrganizationApi {
   public Organization organizationRead(
       @PathVariable(value = "site") String site, @PathVariable(value = "publicId") String id) {
     var coordinates = witnessProtection.toRecordCoordinates(id);
-    insuranceFileOrDie(id, coordinates);
+    supportedVistaFileOrDie(id, coordinates);
     log.info(
         "Looking for record {} in file {} at site {}",
         coordinates.ien(),
@@ -183,6 +188,13 @@ public class R4SiteOrganizationController implements R4OrganizationApi {
         .api(operation)
         .fields(fieldsToWrite)
         .build();
+  }
+
+  private void supportedVistaFileOrDie(String id, RecordCoordinates recordCoordinates) {
+    if (!InsuranceCompany.FILE_NUMBER.equals(recordCoordinates.file())
+        && !Payer.FILE_NUMBER.equals(recordCoordinates.file())) {
+      throw new NotFound("Unsupported file for Organizations: " + id);
+    }
   }
 
   private R4Bundler<

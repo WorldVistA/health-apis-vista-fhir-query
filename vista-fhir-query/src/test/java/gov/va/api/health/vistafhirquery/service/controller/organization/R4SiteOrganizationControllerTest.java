@@ -88,7 +88,7 @@ class R4SiteOrganizationControllerTest {
   }
 
   @Test
-  void readReturnsKnownResource() {
+  void readReturnsInsuranceCompanyResource() {
     var samples = OrganizationSamples.VistaLhsLighthouseRpcGateway.create();
     var results = samples.getsManifestResults("ien1");
     var captor = requestCaptor(LhsLighthouseRpcGatewayGetsManifest.Request.class);
@@ -98,6 +98,20 @@ class R4SiteOrganizationControllerTest {
     witnessProtection.add("pub1", "s1;36;ien1");
     var actual = _controller().organizationRead("s1", "pub1");
     var expected = OrganizationSamples.R4.create().organization("s1", "ien1");
+    assertThat(json(actual)).isEqualTo(json(expected));
+  }
+
+  @Test
+  void readReturnsPayerResource() {
+    var samples = OrganizationPayerSamples.VistaLhsLighthouseRpcGateway.create();
+    var results = samples.getsManifestResults("ien1");
+    var captor = requestCaptor(LhsLighthouseRpcGatewayListManifest.Request.class);
+    var answer =
+        answerFor(captor).value(results).invocationResult(_invocationResult(results)).build();
+    when(charon.request(captor.capture())).thenAnswer(answer);
+    witnessProtection.add("pub1", "s1;365.12;ien1");
+    var actual = _controller().organizationRead("s1", "pub1");
+    var expected = OrganizationPayerSamples.R4.create().organization("s1", "ien1");
     assertThat(json(actual)).isEqualTo(json(expected));
   }
 
@@ -115,14 +129,15 @@ class R4SiteOrganizationControllerTest {
         .isThrownBy(() -> _controller().organizationRead("123", "wrong1"));
   }
 
-  @Test
-  void readThrowsNotFoundWhenNoResultsAreFound() {
+  @ParameterizedTest
+  @ValueSource(strings = {"s1;36;ien1", "s1;365.12;ien1"})
+  void readThrowsNotFoundWhenNoResultsAreFound(String privateId) {
     var results = LhsLighthouseRpcGatewayResponse.Results.builder().build();
     var captor = requestCaptor(LhsLighthouseRpcGatewayCoverageSearch.Request.class);
     var answer =
         answerFor(captor).value(results).invocationResult(_invocationResult(results)).build();
     when(charon.request(captor.capture())).thenAnswer(answer);
-    witnessProtection.add("pub1", "s1;36;ien1");
+    witnessProtection.add("pub1", privateId);
     assertThatExceptionOfType(NotFound.class)
         .isThrownBy(() -> _controller().organizationRead("123", "pub1"));
   }
