@@ -7,12 +7,12 @@ import gov.va.api.lighthouse.charon.models.lhslighthouserpcgateway.LhsLighthouse
 import java.util.Map;
 import org.junit.jupiter.api.Test;
 
-public class R4OrganizationTransformerTest {
+public class R4OrganizationInsuranceCompanyTransformerTest {
 
   @Test
   void empty() {
     assertThat(
-            R4OrganizationTransformer.builder()
+            R4OrganizationInsuranceCompanyTransformer.builder()
                 .rpcResults(
                     Map.entry("666", LhsLighthouseRpcGatewayResponse.Results.builder().build()))
                 .build()
@@ -24,7 +24,7 @@ public class R4OrganizationTransformerTest {
   void toFhir() {
     assertThat(
             json(
-                R4OrganizationTransformer.builder()
+                R4OrganizationInsuranceCompanyTransformer.builder()
                     .rpcResults(
                         Map.entry(
                             "666",

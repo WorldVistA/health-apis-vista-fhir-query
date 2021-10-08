@@ -32,7 +32,7 @@ import lombok.Builder;
 import lombok.NonNull;
 
 @Builder
-public class R4OrganizationTransformer {
+public class R4OrganizationInsuranceCompanyTransformer {
   // The following list can be generated using:
   // grep InsuranceCompany R4OrganizationTransformer.java \
   // | sed 's/.*\(InsuranceCompany\.[A-Z0-9_]\+\).*/\1,/' \
