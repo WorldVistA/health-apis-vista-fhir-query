@@ -213,7 +213,8 @@ public class R4SiteOrganizationController implements R4OrganizationApi {
                                     .build()
                                     .toFhir(),
                                 R4OrganizationPayerTransformer.builder()
-                                    .rpcResults(rpcResults)
+                                    .site(rpcResults.getKey())
+                                    .rpcResults(rpcResults.getValue())
                                     .build()
                                     .toFhir()))
                     .collect(toList()))
