@@ -6,6 +6,7 @@ import static gov.va.api.health.vistafhirquery.service.controller.R4Controllers.
 import static gov.va.api.health.vistafhirquery.service.controller.R4Controllers.verifyAndGetResult;
 import static gov.va.api.health.vistafhirquery.service.controller.R4Controllers.verifySiteSpecificVistaResponseOrDie;
 import static java.util.stream.Collectors.toList;
+import static org.apache.commons.lang3.StringUtils.isBlank;
 
 import gov.va.api.health.autoconfig.logging.Redact;
 import gov.va.api.health.r4.api.resources.InsurancePlan;
@@ -15,6 +16,7 @@ import gov.va.api.health.vistafhirquery.service.charonclient.LhsGatewayErrorHand
 import gov.va.api.health.vistafhirquery.service.controller.R4BundlerFactory;
 import gov.va.api.health.vistafhirquery.service.controller.R4Transformation;
 import gov.va.api.health.vistafhirquery.service.controller.RecordCoordinates;
+import gov.va.api.health.vistafhirquery.service.controller.ResourceExceptions.BadRequestPayload;
 import gov.va.api.health.vistafhirquery.service.controller.ResourceExceptions.ExpectationFailed;
 import gov.va.api.health.vistafhirquery.service.controller.ResourceExceptions.NotFound;
 import gov.va.api.health.vistafhirquery.service.controller.witnessprotection.WitnessProtection;
@@ -39,6 +41,7 @@ import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -122,6 +125,21 @@ public class R4SiteInsurancePlanController implements R4InsurancePlanApi {
     dieOnError(lhsResponse);
     var resources = transformation().toResource().apply(lhsResponse);
     return verifyAndGetResult(resources, id);
+  }
+
+  @Override
+  @PutMapping(
+      value = "/site/{site}/r4/InsurancePlan/{id}",
+      consumes = {"application/json", "application/fhir+json"})
+  public void insurancePlanUpdate(
+      @Redact HttpServletResponse response,
+      @PathVariable(value = "site") String site,
+      @PathVariable(value = "id") String id,
+      @Redact @RequestBody InsurancePlan body) {
+    if (isBlank(id)) {
+      throw BadRequestPayload.because("InsurancePlan is missing id");
+    }
+    response.setStatus(200);
   }
 
   private LhsLighthouseRpcGatewayCoverageWrite.Request insurancePlanWriteDetails(

@@ -116,4 +116,21 @@ class R4SiteInsurancePlanControllerTest {
     assertThatExceptionOfType(NotFound.class)
         .isThrownBy(() -> _controller().insurancePlanRead("123", "pub1"));
   }
+
+  @Test
+  void update() {
+    var response = new MockHttpServletResponse();
+    var samples = InsurancePlanSamples.VistaLhsLighthouseRpcGateway.create();
+    var results = samples.createInsurancePlanResults("ip1");
+    var captor = requestCaptor(LhsLighthouseRpcGatewayCoverageWrite.Request.class);
+    var answer =
+        answerFor(captor).value(results).invocationResult(_invocationResult(results)).build();
+    _controller()
+        .insurancePlanUpdate(
+            response,
+            "123",
+            "public-ip1",
+            InsurancePlanSamples.R4.create().insurancePlan("123", "ip1"));
+    assertThat(response.getStatus()).isEqualTo(200);
+  }
 }
