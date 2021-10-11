@@ -12,6 +12,7 @@ import gov.va.api.health.r4.api.datatypes.Identifier;
 import gov.va.api.health.r4.api.elements.Extension;
 import gov.va.api.health.r4.api.elements.Reference;
 import gov.va.api.health.r4.api.resources.InsurancePlan;
+import gov.va.api.health.vistafhirquery.service.controller.RecordCoordinates;
 import gov.va.api.health.vistafhirquery.service.controller.ResourceExceptions;
 import gov.va.api.lighthouse.charon.models.lhslighthouserpcgateway.GroupInsurancePlan;
 import gov.va.api.lighthouse.charon.models.lhslighthouserpcgateway.InsuranceCompany;
@@ -140,6 +141,12 @@ public class R4InsurancePlanToGroupInsurancePlanFileTransformer {
         .map(coordinates -> pointer(InsuranceCompany.FILE_NUMBER, 1, coordinates.ien()));
   }
 
+  Optional<WriteableFilemanValue> insurancePlanIen(String id) {
+    return Optional.ofNullable(id)
+        .map(RecordCoordinates::fromString)
+        .map(coordinates -> pointer(GroupInsurancePlan.FILE_NUMBER, 1, coordinates.ien()));
+  }
+
   Optional<WriteableFilemanValue> planCategory(List<CodeableConcept> codeableConcepts) {
     return codeableConcepts.stream()
         .filter(
@@ -203,6 +210,7 @@ public class R4InsurancePlanToGroupInsurancePlanFileTransformer {
   /** Create a set of writeable fileman values. */
   public Set<WriteableFilemanValue> toGroupInsurancePlanFile() {
     Set<WriteableFilemanValue> fields = new HashSet<>();
+    insurancePlanIen(insurancePlan().id()).ifPresent(fields::add);
     insuranceCompany(insurancePlan().ownedBy())
         .ifPresentOrElse(
             fields::add,

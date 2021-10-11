@@ -17,6 +17,7 @@ import gov.va.api.lighthouse.charon.models.lhslighthouserpcgateway.LhsLighthouse
 import gov.va.api.lighthouse.charon.models.lhslighthouserpcgateway.LhsLighthouseRpcGatewayResponse;
 import java.math.BigDecimal;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -170,6 +171,7 @@ public class InsurancePlanSamples {
     public Set<WriteableFilemanValue> createApiInput() {
       return Set.of(
           pointerTo(InsuranceCompany.FILE_NUMBER, "8"),
+          pointerTo(GroupInsurancePlan.FILE_NUMBER, "1,8"),
           insuranceValue(GroupInsurancePlan.IS_UTILIZATION_REVIEW_REQUIRED, "YES"),
           insuranceValue(GroupInsurancePlan.IS_PRE_CERTIFICATION_REQUIRED_, "YES"),
           insuranceValue(GroupInsurancePlan.EXCLUDE_PRE_EXISTING_CONDITION, "NO"),
@@ -281,6 +283,37 @@ public class InsurancePlanSamples {
 
     private WriteableFilemanValue pointerTo(String file, String ien) {
       return WriteableFilemanValue.builder().file(file).index(1).field("ien").value(ien).build();
+    }
+
+    public Set<WriteableFilemanValue> updateApiInput() {
+      var filemanValues = new HashSet<>(createApiInput());
+      filemanValues.add(pointerTo(GroupInsurancePlan.FILE_NUMBER, "1,8,"));
+      return Set.copyOf(filemanValues);
+    }
+
+    public LhsLighthouseRpcGatewayResponse.Results updateInsurancePlanWithNotExistsId() {
+      return LhsLighthouseRpcGatewayResponse.Results.builder()
+          .results(
+              List.of(
+                  LhsLighthouseRpcGatewayResponse.FilemanEntry.builder()
+                      .file("355.3")
+                      .ien("doesnt-exist")
+                      .index("1")
+                      .status("-1")
+                      .build()))
+          .errors(
+              List.of(
+                  LhsLighthouseRpcGatewayResponse.ResultsError.builder()
+                      .data(
+                          Map.of(
+                              "code",
+                              "601",
+                              "location",
+                              "FILE^LHSIBUTL",
+                              "text",
+                              "The entry does not exist."))
+                      .build()))
+          .build();
     }
   }
 }

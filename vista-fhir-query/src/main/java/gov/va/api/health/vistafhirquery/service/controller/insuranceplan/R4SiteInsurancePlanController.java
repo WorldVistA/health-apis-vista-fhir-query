@@ -16,7 +16,7 @@ import gov.va.api.health.vistafhirquery.service.charonclient.LhsGatewayErrorHand
 import gov.va.api.health.vistafhirquery.service.controller.R4BundlerFactory;
 import gov.va.api.health.vistafhirquery.service.controller.R4Transformation;
 import gov.va.api.health.vistafhirquery.service.controller.RecordCoordinates;
-import gov.va.api.health.vistafhirquery.service.controller.ResourceExceptions.BadRequestPayload;
+import gov.va.api.health.vistafhirquery.service.controller.ResourceExceptions;
 import gov.va.api.health.vistafhirquery.service.controller.ResourceExceptions.ExpectationFailed;
 import gov.va.api.health.vistafhirquery.service.controller.ResourceExceptions.NotFound;
 import gov.va.api.health.vistafhirquery.service.controller.witnessprotection.WitnessProtection;
@@ -136,9 +136,18 @@ public class R4SiteInsurancePlanController implements R4InsurancePlanApi {
       @PathVariable(value = "site") String site,
       @PathVariable(value = "id") String id,
       @Redact @RequestBody InsurancePlan body) {
-    if (isBlank(id)) {
-      throw BadRequestPayload.because("InsurancePlan is missing id");
+    var coordinates = witnessProtection.toRecordCoordinates(id);
+    insuranceFileOrDie(id, coordinates);
+    if (isBlank(body.id()) || !coordinates.toString().equals(body.id())) {
+      throw ResourceExceptions.CannotUpdateResourceWithMismatchedIds.because(
+          coordinates.toString(), body.id());
     }
+    updateOrCreate(
+        InsurancePlanWriteContext.builder()
+            .site(site)
+            .body(body)
+            .mode(CoverageWriteApi.UPDATE)
+            .build());
     response.setStatus(200);
   }
 

@@ -11,6 +11,7 @@ import gov.va.api.health.vistafhirquery.service.charonclient.CharonClient;
 import gov.va.api.health.vistafhirquery.service.config.LinkProperties;
 import gov.va.api.health.vistafhirquery.service.controller.MockWitnessProtection;
 import gov.va.api.health.vistafhirquery.service.controller.R4BundlerFactory;
+import gov.va.api.health.vistafhirquery.service.controller.ResourceExceptions;
 import gov.va.api.health.vistafhirquery.service.controller.ResourceExceptions.NotFound;
 import gov.va.api.health.vistafhirquery.service.controller.witnessprotection.AlternatePatientIds;
 import gov.va.api.lighthouse.charon.api.v1.RpcInvocationResultV1;
@@ -20,6 +21,9 @@ import gov.va.api.lighthouse.charon.models.lhslighthouserpcgateway.LhsLighthouse
 import gov.va.api.lighthouse.charon.models.lhslighthouserpcgateway.LhsLighthouseRpcGatewayResponse;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.NullAndEmptySource;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.HttpHeaders;
@@ -121,16 +125,71 @@ class R4SiteInsurancePlanControllerTest {
   void update() {
     var response = new MockHttpServletResponse();
     var samples = InsurancePlanSamples.VistaLhsLighthouseRpcGateway.create();
-    var results = samples.createInsurancePlanResults("ip1");
+    var results = samples.createInsurancePlanResults("ien1");
     var captor = requestCaptor(LhsLighthouseRpcGatewayCoverageWrite.Request.class);
     var answer =
         answerFor(captor).value(results).invocationResult(_invocationResult(results)).build();
+    when(charon.request(captor.capture())).thenAnswer(answer);
+    witnessProtection.add("pub1", "123;355.3;ien1");
     _controller()
         .insurancePlanUpdate(
-            response,
-            "123",
-            "public-ip1",
-            InsurancePlanSamples.R4.create().insurancePlan("123", "ip1"));
+            response, "123", "pub1", InsurancePlanSamples.R4.create().insurancePlan("123", "ien1"));
+    assertThat(captor.getValue().rpcRequest().api())
+        .isEqualTo(LhsLighthouseRpcGatewayCoverageWrite.Request.CoverageWriteApi.UPDATE);
     assertThat(response.getStatus()).isEqualTo(200);
+  }
+
+  @Test
+  void updateThrowsBadRequestPayloadForResourcesThatCannotBeProcessed() {
+    var response = new MockHttpServletResponse();
+    witnessProtection.add("pub1", "123;355.3;ien1");
+    assertThatExceptionOfType(ResourceExceptions.BadRequestPayload.class)
+        .isThrownBy(
+            () ->
+                _controller()
+                    .insurancePlanUpdate(
+                        response,
+                        "123",
+                        "pub1",
+                        InsurancePlanSamples.R4.create().insurancePlan("123", "ien1").type(null)));
+  }
+
+  @ParameterizedTest
+  @NullAndEmptySource
+  @ValueSource(strings = {"456"})
+  void updateThrowsCannotUpdateResourceWithMismatchedIdsWhenUrlAndPayloadIdsDoNotMatch(
+      String resourceId) {
+    var response = new MockHttpServletResponse();
+    witnessProtection.add("pub1", "123;355.3;ien1");
+    assertThatExceptionOfType(ResourceExceptions.CannotUpdateResourceWithMismatchedIds.class)
+        .isThrownBy(
+            () ->
+                _controller()
+                    .insurancePlanUpdate(
+                        response,
+                        "123",
+                        "pub1",
+                        InsurancePlanSamples.R4.create().insurancePlan().id(resourceId)));
+  }
+
+  @Test
+  void updateThrowsCannotUpdateUnknownResourceForUnknownResource() {
+    var response = new MockHttpServletResponse();
+    var samples = InsurancePlanSamples.VistaLhsLighthouseRpcGateway.create();
+    var results = samples.updateInsurancePlanWithNotExistsId();
+    var captor = requestCaptor(LhsLighthouseRpcGatewayCoverageWrite.Request.class);
+    var answer =
+        answerFor(captor).value(results).invocationResult(_invocationResult(results)).build();
+    when(charon.request(captor.capture())).thenAnswer(answer);
+    witnessProtection.add("pub1", "123;355.3;ien1");
+    assertThatExceptionOfType(ResourceExceptions.CannotUpdateUnknownResource.class)
+        .isThrownBy(
+            () ->
+                _controller()
+                    .insurancePlanUpdate(
+                        response,
+                        "123",
+                        "pub1",
+                        InsurancePlanSamples.R4.create().insurancePlan("123", "ien1")));
   }
 }
