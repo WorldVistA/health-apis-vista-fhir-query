@@ -20,7 +20,7 @@ public final class TestIds {
 
   @NonNull String insurancePlan;
 
-  @NonNull String organization;
+  @NonNull OrganizationIds organizations;
 
   @NonNull String observationVitalSign;
 
@@ -86,5 +86,12 @@ public final class TestIds {
       }
       return IcnAtSites.builder().icn(icn).vistas(vistas).build();
     }
+  }
+
+  @Value
+  @Builder
+  public static class OrganizationIds {
+    @NonNull String insTypeRead;
+    @NonNull String payTypeRead;
   }
 }

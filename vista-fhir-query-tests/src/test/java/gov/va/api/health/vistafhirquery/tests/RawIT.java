@@ -20,7 +20,8 @@ public class RawIT {
     TestIds testIds = VistaFhirQueryResourceVerifier.ids();
     return List.of(
         "/internal/raw/Coverage?icn=" + testIds.patient() + "&site=673",
-        "/internal/raw/Organization?id=" + testIds.organization());
+        "/internal/raw/Organization?id=" + testIds.organizations().insTypeRead(),
+        "/internal/raw/Organization?id=" + testIds.organizations().payTypeRead());
   }
 
   @ParameterizedTest
@@ -43,7 +44,7 @@ public class RawIT {
   @MethodSource
   void goodRequest(String requestUrl) {
     assumeEnvironmentIn(Environment.LOCAL);
-    log.info("Verify raw response for {} is [200]");
+    log.info("Verify raw response for {} is [200]", requestUrl);
     var response =
         RestAssured.given()
             .baseUri("http://localhost")

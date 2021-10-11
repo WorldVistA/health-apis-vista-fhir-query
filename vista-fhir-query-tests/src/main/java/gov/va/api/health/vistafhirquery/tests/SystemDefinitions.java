@@ -7,6 +7,7 @@ import gov.va.api.health.sentinel.ReducedSpamLogger;
 import gov.va.api.health.sentinel.SentinelProperties;
 import gov.va.api.health.sentinel.ServiceDefinition;
 import gov.va.api.health.vistafhirquery.tests.TestIds.IcnAtSites;
+import gov.va.api.health.vistafhirquery.tests.TestIds.OrganizationIds;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.util.List;
@@ -32,7 +33,11 @@ public final class SystemDefinitions {
     return TestIds.builder()
         .coverage("I3-4z05kjIPYEYQYLQmGck6nb")
         .insurancePlan("I3-1JeCN3qnboBvfJAeuA5VVg")
-        .organization("I3-450NAk1LKUAaaGqyCDA9S9")
+        .organizations(
+            OrganizationIds.builder()
+                .insTypeRead("I3-450NAk1LKUAaaGqyCDA9S9")
+                .payTypeRead("I3-1Rgkl3lKGiggGNsUfEj21yVdybD2jbbv4")
+                .build())
         .observationLaboratory("I3-KqbQBRfPz2QzBYOB9MoX6iis0i7kCY2n5Zn5RQssOEMCd96dST7kj4")
         .observationVitalSign("I3-nfcGFM5JEsuzapkk9xecju3QH0MrK6tqZKVY9rd7wSk")
         .patient("1011537977V693883")
@@ -44,7 +49,11 @@ public final class SystemDefinitions {
     return TestIds.builder()
         .coverage("TODO https://vajira.max.gov/browse/API-8891")
         .insurancePlan("TODO https://vajira.max.gov/browse/API-8891")
-        .organization("TODO https://vajira.max.gov/browse/API-8891")
+        .organizations(
+            OrganizationIds.builder()
+                .insTypeRead("TODO https://vajira.max.gov/browse/API-8891")
+                .payTypeRead("TODO https://vajira.max.gov/browse/API-8891")
+                .build())
         .observationLaboratory("TODO https://vajira.max.gov/browse/API-8891")
         .observationVitalSign("TODO https://vajira.max.gov/browse/API-8891")
         .patient("1011537977V693883")
@@ -56,7 +65,11 @@ public final class SystemDefinitions {
     return TestIds.builder()
         .coverage("I3-onSd2F0QCJnTLBUa2wtl7ghktwQt7TS4TXKJMwHzDo9")
         .insurancePlan("I3-35bba1Pto08dShHpQSSihU")
-        .organization("I3-27zyn3hOzdy6gvpo8Unwby")
+        .organizations(
+            OrganizationIds.builder()
+                .insTypeRead("I3-27zyn3hOzdy6gvpo8Unwby")
+                .payTypeRead("I3-27zyn3hOzdyErnwVlEaVkp")
+                .build())
         .observationLaboratory("I3-IbkbEJ3pceqVRMjceHtk9zfkaWo5B2hFH018sws2KYPDg98RU2fFQC")
         .observationVitalSign("I3-MzfzyZkSpl9HvWWWuN0JvxF6V2f0fwrUm4Cj381IfxH")
         .patient("1011537977V693883")

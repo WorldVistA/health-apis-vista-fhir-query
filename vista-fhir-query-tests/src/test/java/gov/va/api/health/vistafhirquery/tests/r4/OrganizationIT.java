@@ -26,13 +26,15 @@ public class OrganizationIT {
     assumeEnvironmentNotIn(Environment.STAGING, Environment.PROD);
     var path = "Organization/{id}";
     verifyAll(
-        test(200, Organization.class, path, testIds.organization()),
+        test(200, Organization.class, path, testIds.organizations().insTypeRead()),
+        test(200, Organization.class, path, testIds.organizations().payTypeRead()),
         test(404, OperationOutcome.class, path, "I3-404"));
   }
 
   @ParameterizedTest
   @ValueSource(strings = {"type=ins", "type=pay"})
   void search(String query) {
+    assumeEnvironmentNotIn(Environment.STAGING, Environment.PROD);
     var path = "Organization?" + query;
     verifyAll(test(200, Organization.Bundle.class, path));
   }

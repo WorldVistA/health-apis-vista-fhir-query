@@ -29,16 +29,6 @@
             },
             "file" : 365.12,
             "ien" : 1
-        },
-        {
-            "fields" : {
-                "#.01" : {
-                    "ext" : "ACORDIA NATIONAL-MOHWK/HCKRY SPRGS",
-                    "in" : "ACORDIA NATIONAL-MOHWK/HCKRY SPRGS"
-                }
-            },
-            "file" : 365.12,
-            "ien" : 2
         }
     ]
 }
