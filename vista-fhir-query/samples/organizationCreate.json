@@ -113,6 +113,53 @@
       "valueBoolean": true
     }
   ],
+  "identifier": [
+    {
+      "type":
+      {
+        "coding": [
+          {
+            "code": "PROFEDI"
+          }
+        ]
+      },
+      "value": "55555"
+    },
+    {
+      "type":
+      {
+        "coding": [
+          {
+            "code": "INSTEDI"
+          }
+        ]
+      },
+      "value": "66666"
+    },
+    {
+      "type":
+      {
+        "coding":
+        [
+          {
+            "code": "BIN"
+          }
+        ]
+      },
+      "value": "SHANKBIN"
+    },
+    {
+      "type":
+      {
+        "coding": [
+          {
+            "code": "277EDI"
+          }
+        ]
+      },
+      "value": "77777"
+    }
+  ],
   "active": true,
   "telecom": [
     {

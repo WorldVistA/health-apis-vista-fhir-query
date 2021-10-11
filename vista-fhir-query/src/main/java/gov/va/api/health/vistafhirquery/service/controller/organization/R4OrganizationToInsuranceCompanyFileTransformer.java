@@ -7,6 +7,7 @@ import gov.va.api.health.r4.api.datatypes.Address;
 import gov.va.api.health.r4.api.datatypes.CodeableConcept;
 import gov.va.api.health.r4.api.datatypes.Coding;
 import gov.va.api.health.r4.api.datatypes.ContactPoint;
+import gov.va.api.health.r4.api.datatypes.Identifier;
 import gov.va.api.health.r4.api.datatypes.Quantity;
 import gov.va.api.health.r4.api.elements.Extension;
 import gov.va.api.health.r4.api.elements.Reference;
@@ -223,6 +224,33 @@ public class R4OrganizationToInsuranceCompanyFileTransformer {
         fieldNumber, 1, YES_NO.get(extension.valueBoolean()), fieldName);
   }
 
+  WriteableFilemanValue identifier(String fieldName, String fieldNumber, String identifierCode) {
+    Identifier identifier =
+        identifierForCode(organization.identifier(), identifierCode)
+            .orElseThrow(
+                () -> BadRequestPayload.because(fieldNumber, fieldName + " identifier is null"));
+
+    if (identifier.value().isBlank()) {
+      throw BadRequestPayload.because(fieldNumber, fieldName + "identifier.value is null");
+    }
+    return insuranceCompanyCoordinatesOrDie(fieldNumber, 1, identifier.value(), fieldName);
+  }
+
+  Optional<Identifier> identifierForCode(List<Identifier> identifiers, String identifierCode) {
+    if (isBlank(identifiers)) {
+      return Optional.empty();
+    }
+    return identifiers.stream()
+        .filter(
+            i -> {
+              if (i.type().coding() == null) {
+                return false;
+              }
+              return i.type().coding().stream().anyMatch(c -> identifierCode.equals(c.code()));
+            })
+        .findFirst();
+  }
+
   private WriteableFilemanValue inquiryContact() {
     Organization.Contact verificationContact =
         contactForPurposeOrDie("INQUIRY", InsuranceCompany.INQUIRY_PHONE_NUMBER, "inquiry");
@@ -362,6 +390,21 @@ public class R4OrganizationToInsuranceCompanyFileTransformer {
             "print sec med claims w/o mra",
             InsuranceCompany.PRINT_SEC_MED_CLAIMS_W_O_MRA_,
             OrganizationStructureDefinitions.PRINT_SEC_MED_CLAIMS_WOMRALOCALLY));
+    fields.add(
+        identifier(
+            "edi id number inst",
+            InsuranceCompany.EDI_ID_NUMBER_INST,
+            OrganizationStructureDefinitions.EDI_ID_NUMBER_INST_CODE));
+    fields.add(
+        identifier(
+            "edi id number prof",
+            InsuranceCompany.EDI_ID_NUMBER_PROF,
+            OrganizationStructureDefinitions.EDI_ID_NUMBER_PROF_CODE));
+    fields.add(
+        identifier(
+            "bin number",
+            InsuranceCompany.BIN_NUMBER,
+            OrganizationStructureDefinitions.BIN_NUMBER_CODE));
     return fields;
   }
 

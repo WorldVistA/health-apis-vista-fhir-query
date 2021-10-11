@@ -95,7 +95,10 @@ public class OrganizationSamples {
           insuranceCompanyValue(InsuranceCompany.ATT_REND_ID_BILL_SEC_ID_PROF, "YES"),
           insuranceCompanyValue(InsuranceCompany.ATT_REND_ID_BILL_SEC_ID_INST, "YES"),
           insuranceCompanyValue(InsuranceCompany.PRINT_SEC_TERT_AUTO_CLAIMS_, "YES"),
-          insuranceCompanyValue(InsuranceCompany.PRINT_SEC_MED_CLAIMS_W_O_MRA_, "YES"));
+          insuranceCompanyValue(InsuranceCompany.PRINT_SEC_MED_CLAIMS_W_O_MRA_, "YES"),
+          insuranceCompanyValue(InsuranceCompany.BIN_NUMBER, "SHANKBIN"),
+          insuranceCompanyValue(InsuranceCompany.EDI_ID_NUMBER_INST, "66666"),
+          insuranceCompanyValue(InsuranceCompany.EDI_ID_NUMBER_PROF, "55555"));
     }
 
     public LhsLighthouseRpcGatewayResponse.Results createOrganizationResults(String id) {
