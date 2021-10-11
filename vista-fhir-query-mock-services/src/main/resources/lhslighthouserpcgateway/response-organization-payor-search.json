@@ -1,0 +1,44 @@
+{
+    "metadata" : [
+        {
+            "from" : {
+                "#1" : "",
+                "#2" : "",
+                "IEN" : ""
+            },
+            "maxRequested" : "*",
+            "moreFound" : false,
+            "numberFound" : 432
+        }
+    ],
+    "results" : [
+        {
+            "fields" : {
+                "#.01" : {
+                    "ext" : "AARP HEALTH PLAN",
+                    "in" : "AARP HEALTH PLAN"
+                },
+                "#.05" : {
+                    "ext" : 36273,
+                    "in" : 36273
+                },
+                "#.06" : {
+                    "ext" : 36273,
+                    "in" : 36273
+                }
+            },
+            "file" : 365.12,
+            "ien" : 1
+        },
+        {
+            "fields" : {
+                "#.01" : {
+                    "ext" : "ACORDIA NATIONAL-MOHWK/HCKRY SPRGS",
+                    "in" : "ACORDIA NATIONAL-MOHWK/HCKRY SPRGS"
+                }
+            },
+            "file" : 365.12,
+            "ien" : 2
+        }
+    ]
+}

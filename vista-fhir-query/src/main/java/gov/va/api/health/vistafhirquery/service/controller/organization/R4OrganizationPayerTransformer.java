@@ -91,7 +91,7 @@ public class R4OrganizationPayerTransformer {
                 .toString())
         .type(payer().asList())
         .name(entry.external(Payer.PAYER_NAME).orElse(null))
-        .active(entry.external(Payer.DEACTIVATED, "NO"::equals).orElse(null))
+        .active(entry.external(Payer.DEACTIVATED, "NO"::equals).orElse(false))
         .build();
   }
 }

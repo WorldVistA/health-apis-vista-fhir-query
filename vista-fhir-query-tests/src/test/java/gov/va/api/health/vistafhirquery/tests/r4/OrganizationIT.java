@@ -11,6 +11,8 @@ import gov.va.api.health.vistafhirquery.tests.VistaFhirQueryResourceVerifier;
 import lombok.experimental.Delegate;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 
 @Slf4j
 public class OrganizationIT {
@@ -26,5 +28,12 @@ public class OrganizationIT {
     verifyAll(
         test(200, Organization.class, path, testIds.organization()),
         test(404, OperationOutcome.class, path, "I3-404"));
+  }
+
+  @ParameterizedTest
+  @ValueSource(strings = {"type=ins", "type=pay"})
+  void search(String query) {
+    var path = "Organization?" + query;
+    verifyAll(test(200, Organization.Bundle.class, path));
   }
 }
