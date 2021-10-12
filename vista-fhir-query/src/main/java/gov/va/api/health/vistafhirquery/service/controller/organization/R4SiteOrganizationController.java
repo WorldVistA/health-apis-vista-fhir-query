@@ -6,8 +6,6 @@ import static gov.va.api.health.vistafhirquery.service.controller.R4Controllers.
 import static gov.va.api.health.vistafhirquery.service.controller.R4Controllers.ignoreIdForCreate;
 import static gov.va.api.health.vistafhirquery.service.controller.R4Controllers.updateResponseForCreatedResource;
 import static gov.va.api.health.vistafhirquery.service.controller.R4Controllers.verifyAndGetResult;
-import static gov.va.api.health.vistafhirquery.service.controller.R4Controllers.verifySiteSpecificVistaResponseOrDie;
-import static gov.va.api.health.vistafhirquery.service.controller.ResourceExceptions.ExpectationFailed;
 import static java.util.stream.Collectors.toList;
 import static org.apache.commons.lang3.StringUtils.isBlank;
 
@@ -15,7 +13,6 @@ import gov.va.api.health.autoconfig.logging.Redact;
 import gov.va.api.health.r4.api.resources.Organization;
 import gov.va.api.health.vistafhirquery.service.api.R4OrganizationApi;
 import gov.va.api.health.vistafhirquery.service.charonclient.CharonClient;
-import gov.va.api.health.vistafhirquery.service.charonclient.LhsGatewayErrorHandler;
 import gov.va.api.health.vistafhirquery.service.controller.R4Bundler;
 import gov.va.api.health.vistafhirquery.service.controller.R4BundlerFactory;
 import gov.va.api.health.vistafhirquery.service.controller.R4Bundling;
@@ -23,6 +20,8 @@ import gov.va.api.health.vistafhirquery.service.controller.R4Transformation;
 import gov.va.api.health.vistafhirquery.service.controller.RecordCoordinates;
 import gov.va.api.health.vistafhirquery.service.controller.ResourceExceptions.NotFound;
 import gov.va.api.health.vistafhirquery.service.controller.witnessprotection.WitnessProtection;
+import gov.va.api.health.vistafhirquery.service.controller.writes.CreateNonPatientRecordWriteContext;
+import gov.va.api.health.vistafhirquery.service.controller.writes.WriteContext;
 import gov.va.api.lighthouse.charon.models.lhslighthouserpcgateway.InsuranceCompany;
 import gov.va.api.lighthouse.charon.models.lhslighthouserpcgateway.LhsLighthouseRpcGatewayCoverageWrite;
 import gov.va.api.lighthouse.charon.models.lhslighthouserpcgateway.LhsLighthouseRpcGatewayCoverageWrite.Request.CoverageWriteApi;
@@ -37,9 +36,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
-import lombok.Getter;
 import lombok.NonNull;
-import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.validation.annotation.Validated;
@@ -122,10 +119,10 @@ public class R4SiteOrganizationController implements R4OrganizationApi {
     ignoreIdForCreate(body);
     var ctx =
         updateOrCreate(
-            OrganizationWriteContext.builder()
+            CreateNonPatientRecordWriteContext.<Organization>builder()
+                .fileNumber(InsuranceCompany.FILE_NUMBER)
                 .site(site)
                 .body(body)
-                .mode(CoverageWriteApi.CREATE)
                 .build());
     var newResourceUrl =
         bundlerFactory
@@ -233,59 +230,13 @@ public class R4SiteOrganizationController implements R4OrganizationApi {
         .build();
   }
 
-  private OrganizationWriteContext updateOrCreate(OrganizationWriteContext ctx) {
+  private <C extends WriteContext<Organization>> C updateOrCreate(C ctx) {
     var charonRequest =
-        lighthouseRpcGatewayRequest(ctx.site(), organizationWriteDetails(ctx.mode(), ctx.body()));
+        lighthouseRpcGatewayRequest(
+            ctx.site(), organizationWriteDetails(ctx.coverageWriteApi(), ctx.body()));
     var charonResponse = charon.request(charonRequest);
     var lhsResponse = lighthouseRpcGatewayResponse(charonResponse);
-    return ctx.result(lhsResponse);
-  }
-
-  @Getter
-  @Setter
-  private static class OrganizationWriteContext {
-    private final String site;
-
-    private final Organization body;
-
-    private final String fileNumber;
-
-    /** The CoverageWriteApi is used for organization writes as well. */
-    private final CoverageWriteApi mode;
-
-    private LhsLighthouseRpcGatewayResponse.FilemanEntry result;
-
-    @Builder
-    public OrganizationWriteContext(String site, Organization body, CoverageWriteApi mode) {
-      this.site = site;
-      this.body = body;
-      this.mode = mode;
-      this.fileNumber = InsuranceCompany.FILE_NUMBER;
-    }
-
-    String newResourceId() {
-      return RecordCoordinates.builder()
-          .site(site())
-          .ien(result().ien())
-          .file(fileNumber())
-          .build()
-          .toString();
-    }
-
-    OrganizationWriteContext result(LhsLighthouseRpcGatewayResponse response) {
-      verifySiteSpecificVistaResponseOrDie(site(), response);
-      var resultsForStation = response.resultsByStation().get(site());
-      LhsGatewayErrorHandler.of(resultsForStation).validateResults();
-      var results = resultsForStation.results();
-      var filemanEntries =
-          resultsForStation.results().stream()
-              .filter(entry -> fileNumber.equals(entry.file()))
-              .toList();
-      if (filemanEntries.size() != 1) {
-        throw ExpectationFailed.because("Unexpected number of results: " + results.size());
-      }
-      this.result = filemanEntries.get(0);
-      return this;
-    }
+    ctx.result(lhsResponse);
+    return ctx;
   }
 }

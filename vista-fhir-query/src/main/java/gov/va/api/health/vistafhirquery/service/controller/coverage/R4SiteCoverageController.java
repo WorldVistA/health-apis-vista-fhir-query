@@ -6,8 +6,7 @@ import static gov.va.api.health.vistafhirquery.service.controller.R4Controllers.
 import static gov.va.api.health.vistafhirquery.service.controller.R4Controllers.ignoreIdForCreate;
 import static gov.va.api.health.vistafhirquery.service.controller.R4Controllers.updateResponseForCreatedResource;
 import static gov.va.api.health.vistafhirquery.service.controller.R4Controllers.verifyAndGetResult;
-import static gov.va.api.health.vistafhirquery.service.controller.R4Controllers.verifySiteSpecificVistaResponseOrDie;
-import static gov.va.api.health.vistafhirquery.service.controller.R4Transformers.getReferenceId;
+import static gov.va.api.health.vistafhirquery.service.controller.R4Transformers.referenceIdFromUri;
 import static java.util.stream.Collectors.toList;
 import static org.apache.commons.lang3.StringUtils.isBlank;
 
@@ -18,7 +17,6 @@ import gov.va.api.health.r4.api.resources.Coverage.Entry;
 import gov.va.api.health.vistafhirquery.service.api.R4CoverageApi;
 import gov.va.api.health.vistafhirquery.service.charonclient.CharonClient;
 import gov.va.api.health.vistafhirquery.service.charonclient.CharonResponse;
-import gov.va.api.health.vistafhirquery.service.charonclient.LhsGatewayErrorHandler;
 import gov.va.api.health.vistafhirquery.service.controller.PatientTypeCoordinates;
 import gov.va.api.health.vistafhirquery.service.controller.R4Bundler;
 import gov.va.api.health.vistafhirquery.service.controller.R4BundlerFactory;
@@ -28,6 +26,9 @@ import gov.va.api.health.vistafhirquery.service.controller.ResourceExceptions.Ba
 import gov.va.api.health.vistafhirquery.service.controller.ResourceExceptions.CannotUpdateResourceWithMismatchedIds;
 import gov.va.api.health.vistafhirquery.service.controller.ResourceExceptions.ExpectationFailed;
 import gov.va.api.health.vistafhirquery.service.controller.witnessprotection.WitnessProtection;
+import gov.va.api.health.vistafhirquery.service.controller.writes.CreatePatientRecordWriteContext;
+import gov.va.api.health.vistafhirquery.service.controller.writes.PatientRecordWriteContext;
+import gov.va.api.health.vistafhirquery.service.controller.writes.UpdatePatientRecordWriteContext;
 import gov.va.api.lighthouse.charon.models.lhslighthouserpcgateway.InsuranceType;
 import gov.va.api.lighthouse.charon.models.lhslighthouserpcgateway.LhsLighthouseRpcGatewayCoverageSearch.Request;
 import gov.va.api.lighthouse.charon.models.lhslighthouserpcgateway.LhsLighthouseRpcGatewayCoverageWrite;
@@ -43,9 +44,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
-import lombok.Getter;
 import lombok.NonNull;
-import lombok.Setter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -69,6 +68,11 @@ public class R4SiteCoverageController implements R4CoverageApi {
 
   private final WitnessProtection witnessProtection;
 
+  private static String beneficiaryOrDie(Coverage body) {
+    return referenceIdFromUri(body.beneficiary())
+        .orElseThrow(() -> BadRequestPayload.because("Beneficiary reference not found."));
+  }
+
   public static Request coverageByPatientIcn(String patientIcn) {
     return Request.builder().id(PatientId.forIcn(patientIcn)).build();
   }
@@ -84,10 +88,11 @@ public class R4SiteCoverageController implements R4CoverageApi {
     ignoreIdForCreate(body);
     var ctx =
         updateOrCreate(
-            CoverageWriteContext.builder()
+            CreatePatientRecordWriteContext.<Coverage>builder()
+                .fileNumber(InsuranceType.FILE_NUMBER)
                 .site(site)
                 .body(body)
-                .mode(CoverageWriteApi.CREATE)
+                .patientIcn(beneficiaryOrDie(body))
                 .build());
     var newResourceUrl =
         bundlerFactory
@@ -146,12 +151,14 @@ public class R4SiteCoverageController implements R4CoverageApi {
       @PathVariable(value = "id") String id,
       @Redact @RequestBody Coverage body) {
     var privateId = witnessProtection.privateIdForResourceOrDie(id, Coverage.class);
+    PatientTypeCoordinates existingRecordCoordinates = PatientTypeCoordinates.fromString(privateId);
     var ctx =
-        CoverageWriteContext.builder()
-            .privateId(privateId)
+        UpdatePatientRecordWriteContext.<Coverage>builder()
+            .fileNumber(InsuranceType.FILE_NUMBER)
             .site(site)
             .body(body)
-            .mode(CoverageWriteApi.UPDATE)
+            .patientIcn(beneficiaryOrDie(body))
+            .existingRecord(existingRecordCoordinates)
             .build();
     updateValidationRules().forEach(rule -> rule.test(ctx));
     updateOrCreate(ctx);
@@ -216,34 +223,35 @@ public class R4SiteCoverageController implements R4CoverageApi {
         .build();
   }
 
-  private CoverageWriteContext updateOrCreate(CoverageWriteContext ctx) {
+  private <C extends PatientRecordWriteContext<Coverage>> C updateOrCreate(C ctx) {
     /*
      * ToDo File 2.312 SOURCE OF INFORMATION field #1.09 is 22 for the WellHive interface.
      *   https://vajira.max.gov/browse/API-10035
      */
     var charonRequest =
         lighthouseRpcGatewayRequest(
-            ctx.site(), coverageWriteDetails(ctx.mode(), ctx.patientIcn(), ctx.body()));
+            ctx.site(), coverageWriteDetails(ctx.coverageWriteApi(), ctx.patientIcn(), ctx.body()));
     var charonResponse = charon.request(charonRequest);
     var lhsResponse = lighthouseRpcGatewayResponse(charonResponse);
-    return ctx.result(lhsResponse);
+    ctx.result(lhsResponse);
+    return ctx;
   }
 
   private List<ContextValidationRule> updateValidationRules() {
     return List.of(this::validateIdsMatch, this::validatePatientsMatch, this::validateSitesMatch);
   }
 
-  private void validateIdsMatch(CoverageWriteContext ctx) {
+  private void validateIdsMatch(UpdatePatientRecordWriteContext<Coverage> ctx) {
     var idFromBody = ctx.body().id();
-    var idFromUrl = ctx.idCoordinates().toString();
+    var idFromUrl = ctx.existingRecord().toString();
     if (isBlank(idFromBody) || !idFromUrl.equals(idFromBody)) {
       throw CannotUpdateResourceWithMismatchedIds.because(idFromUrl, idFromBody);
     }
   }
 
-  private void validatePatientsMatch(CoverageWriteContext ctx) {
+  private void validatePatientsMatch(UpdatePatientRecordWriteContext<Coverage> ctx) {
     var icnFromBody = ctx.patientIcn();
-    var icnFromId = ctx.idCoordinates().icn();
+    var icnFromId = ctx.existingRecord().icn();
     if (!icnFromBody.equals(icnFromId)) {
       throw ExpectationFailed.because(
           "Patient ICNs do not match: IcnFromBody(%s), IcnFromIdCoordinates(%s)",
@@ -251,9 +259,9 @@ public class R4SiteCoverageController implements R4CoverageApi {
     }
   }
 
-  private void validateSitesMatch(CoverageWriteContext ctx) {
+  private void validateSitesMatch(UpdatePatientRecordWriteContext<Coverage> ctx) {
     var siteFromUrl = ctx.site();
-    var siteFromId = ctx.idCoordinates().siteId();
+    var siteFromId = ctx.existingRecord().siteId();
     if (!siteFromId.equals(siteFromUrl)) {
       throw ExpectationFailed.because(
           "Site ids do not match: SiteFromIdCoordinates(%s), SiteFromUrl(%s)",
@@ -263,59 +271,6 @@ public class R4SiteCoverageController implements R4CoverageApi {
 
   @FunctionalInterface
   interface ContextValidationRule {
-    void test(CoverageWriteContext ctx);
-  }
-
-  @Getter
-  @Setter
-  private static class CoverageWriteContext {
-    private final String site;
-
-    private final Coverage body;
-
-    private final CoverageWriteApi mode;
-
-    private final String patientIcn;
-
-    private final PatientTypeCoordinates idCoordinates;
-
-    private LhsLighthouseRpcGatewayResponse.FilemanEntry result;
-
-    @Builder
-    public CoverageWriteContext(
-        String site, Coverage body, CoverageWriteApi mode, String privateId) {
-      this.site = site;
-      this.body = body;
-      this.mode = mode;
-      this.patientIcn =
-          getReferenceId(body.beneficiary())
-              .orElseThrow(() -> BadRequestPayload.because("Beneficiary reference not found."));
-      this.idCoordinates = privateId == null ? null : PatientTypeCoordinates.fromString(privateId);
-    }
-
-    String newResourceId() {
-      return PatientTypeCoordinates.builder()
-          .siteId(site())
-          .icn(patientIcn())
-          .recordId(result().ien())
-          .build()
-          .toString();
-    }
-
-    CoverageWriteContext result(LhsLighthouseRpcGatewayResponse response) {
-      verifySiteSpecificVistaResponseOrDie(site(), response);
-      var resultsForStation = response.resultsByStation().get(site());
-      LhsGatewayErrorHandler.of(resultsForStation).validateResults();
-      var results = resultsForStation.results();
-      var insTypeResults =
-          resultsForStation.results().stream()
-              .filter(entry -> InsuranceType.FILE_NUMBER.equals(entry.file()))
-              .toList();
-      if (insTypeResults.size() != 1) {
-        throw ExpectationFailed.because("Unexpected number of results: " + results.size());
-      }
-      this.result = insTypeResults.get(0);
-      return this;
-    }
+    void test(UpdatePatientRecordWriteContext<Coverage> ctx);
   }
 }

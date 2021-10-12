@@ -1,6 +1,17 @@
 package gov.va.api.health.vistafhirquery.service.controller;
 
-import static gov.va.api.health.vistafhirquery.service.controller.R4Transformers.*;
+import static gov.va.api.health.vistafhirquery.service.controller.R4Transformers.allBlank;
+import static gov.va.api.health.vistafhirquery.service.controller.R4Transformers.codeableconceptHasCodingSystem;
+import static gov.va.api.health.vistafhirquery.service.controller.R4Transformers.extensionForSystem;
+import static gov.va.api.health.vistafhirquery.service.controller.R4Transformers.identifierHasCodingSystem;
+import static gov.va.api.health.vistafhirquery.service.controller.R4Transformers.ifPresent;
+import static gov.va.api.health.vistafhirquery.service.controller.R4Transformers.isBlank;
+import static gov.va.api.health.vistafhirquery.service.controller.R4Transformers.referenceIdFromUri;
+import static gov.va.api.health.vistafhirquery.service.controller.R4Transformers.toBigDecimal;
+import static gov.va.api.health.vistafhirquery.service.controller.R4Transformers.toHumanDateTime;
+import static gov.va.api.health.vistafhirquery.service.controller.R4Transformers.toIso8601;
+import static gov.va.api.health.vistafhirquery.service.controller.R4Transformers.toLocalDateMacroString;
+import static gov.va.api.health.vistafhirquery.service.controller.R4Transformers.valueOfValueOnlyXmlAttribute;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 
@@ -110,9 +121,9 @@ public class R4TransformersTest {
 
   @Test
   void getReferenceIds() {
-    assertThat(getReferenceId(Reference.builder().reference("Patient/p1").build()).get())
+    assertThat(referenceIdFromUri(Reference.builder().reference("Patient/p1").build()).get())
         .isEqualTo("p1");
-    assertThat(getReferenceId(Reference.builder().reference("p1").build())).isEmpty();
+    assertThat(referenceIdFromUri(Reference.builder().reference("p1").build())).isEmpty();
   }
 
   @Test

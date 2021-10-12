@@ -78,19 +78,6 @@ public class R4Transformers {
     return extensions.stream().filter(extension -> definingUrl.equals(extension.url())).findFirst();
   }
 
-  /** Given a reference, attempt to get the reference Id from the reference field. */
-  public static Optional<String> getReferenceId(IsReference maybeReference) {
-    if (maybeReference == null || maybeReference.reference() == null) {
-      return Optional.empty();
-    }
-    String reference = maybeReference.reference();
-    String[] referenceParts = reference.split("/", -1);
-    if (referenceParts.length <= 1) {
-      return Optional.empty();
-    }
-    return Optional.ofNullable(referenceParts[referenceParts.length - 1]);
-  }
-
   /** Checks if the given system value matches to the given Identifier's system field. */
   public static boolean identifierHasCodingSystem(Identifier i, String system) {
     if (i == null || isBlank(i.system())) {
@@ -158,7 +145,7 @@ public class R4Transformers {
   /** Given a reference, get the id and try to parse it as record coordinates. */
   public static Optional<RecordCoordinates> recordCoordinatesForReference(
       IsReference maybeReference) {
-    var refId = getReferenceId(maybeReference);
+    var refId = referenceIdFromUri(maybeReference);
     if (refId.isEmpty()) {
       return Optional.empty();
     }
@@ -167,6 +154,19 @@ public class R4Transformers {
     } catch (IllegalArgumentException e) {
       return Optional.empty();
     }
+  }
+
+  /** Given a reference, attempt to get the reference Id from the reference field. */
+  public static Optional<String> referenceIdFromUri(IsReference maybeReference) {
+    if (maybeReference == null || maybeReference.reference() == null) {
+      return Optional.empty();
+    }
+    String reference = maybeReference.reference();
+    String[] referenceParts = reference.split("/", -1);
+    if (referenceParts.length <= 1) {
+      return Optional.empty();
+    }
+    return Optional.ofNullable(referenceParts[referenceParts.length - 1]);
   }
 
   /** Creates a BigDecimal from a string if possible, otherwise returns null. */

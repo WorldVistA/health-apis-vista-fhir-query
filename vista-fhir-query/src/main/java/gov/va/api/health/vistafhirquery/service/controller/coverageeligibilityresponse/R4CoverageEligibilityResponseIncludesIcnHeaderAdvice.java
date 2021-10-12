@@ -1,6 +1,6 @@
 package gov.va.api.health.vistafhirquery.service.controller.coverageeligibilityresponse;
 
-import static gov.va.api.health.vistafhirquery.service.controller.R4Transformers.getReferenceId;
+import static gov.va.api.health.vistafhirquery.service.controller.R4Transformers.referenceIdFromUri;
 
 import gov.va.api.health.r4.api.bundle.AbstractEntry;
 import gov.va.api.health.r4.api.resources.CoverageEligibilityResponse;
@@ -30,7 +30,7 @@ public class R4CoverageEligibilityResponseIncludesIcnHeaderAdvice
             .extractResources(bundle -> bundle.entry().stream().map(AbstractEntry::resource))
             .extractIcns(
                 resource ->
-                    getReferenceId(resource.patient())
+                    referenceIdFromUri(resource.patient())
                         .map(alternatePatientIds::toPublicId)
                         .stream())
             .build();

@@ -4,7 +4,6 @@ import static gov.va.api.health.vistafhirquery.service.charonclient.CharonReques
 import static gov.va.api.health.vistafhirquery.service.charonclient.CharonRequests.lighthouseRpcGatewayResponse;
 import static gov.va.api.health.vistafhirquery.service.controller.R4Controllers.dieOnError;
 import static gov.va.api.health.vistafhirquery.service.controller.R4Controllers.verifyAndGetResult;
-import static gov.va.api.health.vistafhirquery.service.controller.R4Controllers.verifySiteSpecificVistaResponseOrDie;
 import static java.util.stream.Collectors.toList;
 import static org.apache.commons.lang3.StringUtils.isBlank;
 
@@ -12,14 +11,15 @@ import gov.va.api.health.autoconfig.logging.Redact;
 import gov.va.api.health.r4.api.resources.InsurancePlan;
 import gov.va.api.health.vistafhirquery.service.api.R4InsurancePlanApi;
 import gov.va.api.health.vistafhirquery.service.charonclient.CharonClient;
-import gov.va.api.health.vistafhirquery.service.charonclient.LhsGatewayErrorHandler;
 import gov.va.api.health.vistafhirquery.service.controller.R4BundlerFactory;
 import gov.va.api.health.vistafhirquery.service.controller.R4Transformation;
 import gov.va.api.health.vistafhirquery.service.controller.RecordCoordinates;
 import gov.va.api.health.vistafhirquery.service.controller.ResourceExceptions;
-import gov.va.api.health.vistafhirquery.service.controller.ResourceExceptions.ExpectationFailed;
 import gov.va.api.health.vistafhirquery.service.controller.ResourceExceptions.NotFound;
 import gov.va.api.health.vistafhirquery.service.controller.witnessprotection.WitnessProtection;
+import gov.va.api.health.vistafhirquery.service.controller.writes.CreateNonPatientRecordWriteContext;
+import gov.va.api.health.vistafhirquery.service.controller.writes.UpdateNonPatientRecordWriteContext;
+import gov.va.api.health.vistafhirquery.service.controller.writes.WriteContext;
 import gov.va.api.lighthouse.charon.models.lhslighthouserpcgateway.GroupInsurancePlan;
 import gov.va.api.lighthouse.charon.models.lhslighthouserpcgateway.LhsLighthouseRpcGatewayCoverageWrite;
 import gov.va.api.lighthouse.charon.models.lhslighthouserpcgateway.LhsLighthouseRpcGatewayCoverageWrite.Request.CoverageWriteApi;
@@ -30,9 +30,7 @@ import java.util.List;
 import javax.servlet.http.HttpServletResponse;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
-import lombok.Getter;
 import lombok.NonNull;
-import lombok.Setter;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -90,10 +88,10 @@ public class R4SiteInsurancePlanController implements R4InsurancePlanApi {
       @Redact @RequestBody InsurancePlan body) {
     var ctx =
         updateOrCreate(
-            InsurancePlanWriteContext.builder()
+            CreateNonPatientRecordWriteContext.<InsurancePlan>builder()
+                .fileNumber(GroupInsurancePlan.FILE_NUMBER)
                 .site(site)
                 .body(body)
-                .mode(CoverageWriteApi.CREATE)
                 .build());
     var newResourceUrl =
         bundlerFactory
@@ -136,17 +134,18 @@ public class R4SiteInsurancePlanController implements R4InsurancePlanApi {
       @PathVariable(value = "site") String site,
       @PathVariable(value = "id") String id,
       @Redact @RequestBody InsurancePlan body) {
-    var coordinates = witnessProtection.toRecordCoordinates(id);
-    insuranceFileOrDie(id, coordinates);
-    if (isBlank(body.id()) || !coordinates.toString().equals(body.id())) {
+    var existingRecordCoordinates = witnessProtection.toRecordCoordinates(id);
+    insuranceFileOrDie(id, existingRecordCoordinates);
+    if (isBlank(body.id()) || !existingRecordCoordinates.toString().equals(body.id())) {
       throw ResourceExceptions.CannotUpdateResourceWithMismatchedIds.because(
-          coordinates.toString(), body.id());
+          existingRecordCoordinates.toString(), body.id());
     }
     updateOrCreate(
-        InsurancePlanWriteContext.builder()
+        UpdateNonPatientRecordWriteContext.<InsurancePlan>builder()
+            .fileNumber(GroupInsurancePlan.FILE_NUMBER)
             .site(site)
             .body(body)
-            .mode(CoverageWriteApi.UPDATE)
+            .existingRecord(existingRecordCoordinates)
             .build());
     response.setStatus(200);
   }
@@ -179,62 +178,13 @@ public class R4SiteInsurancePlanController implements R4InsurancePlanApi {
         .build();
   }
 
-  private InsurancePlanWriteContext updateOrCreate(InsurancePlanWriteContext ctx) {
+  private <C extends WriteContext<InsurancePlan>> C updateOrCreate(C ctx) {
     var charonRequest =
-        lighthouseRpcGatewayRequest(ctx.site(), insurancePlanWriteDetails(ctx.mode(), ctx.body()));
+        lighthouseRpcGatewayRequest(
+            ctx.site(), insurancePlanWriteDetails(ctx.coverageWriteApi(), ctx.body()));
     var charonResponse = charon.request(charonRequest);
     var lhsResponse = lighthouseRpcGatewayResponse(charonResponse);
-    return ctx.result(lhsResponse);
-  }
-
-  @Getter
-  @Setter
-  private static class InsurancePlanWriteContext {
-    private final String site;
-
-    private final InsurancePlan body;
-
-    private final String fileNumber;
-
-    private final CoverageWriteApi mode;
-
-    private LhsLighthouseRpcGatewayResponse.FilemanEntry result;
-
-    @Builder
-    public InsurancePlanWriteContext(String site, InsurancePlan body, CoverageWriteApi mode) {
-      this.site = site;
-      this.body = body;
-      this.mode = mode;
-      this.fileNumber = GroupInsurancePlan.FILE_NUMBER;
-    }
-
-    String newResourceId() {
-      return RecordCoordinates.builder()
-          .site(site())
-          .ien(result().ien())
-          .file(fileNumber())
-          .build()
-          .toString();
-    }
-
-    InsurancePlanWriteContext result(LhsLighthouseRpcGatewayResponse response) {
-      verifySiteSpecificVistaResponseOrDie(site(), response);
-      var resultsForStation = response.resultsByStation().get(site());
-      LhsGatewayErrorHandler.of(resultsForStation).validateResults();
-      var results = resultsForStation.results();
-      var insTypeResults =
-          resultsForStation.results().stream()
-              .filter(entry -> fileNumber.equals(entry.file()))
-              .toList();
-      if (insTypeResults.size() != 1) {
-        throw ExpectationFailed.because("Unexpected number of results: " + results.size());
-      }
-      if ("1".equals(insTypeResults.get(0).status())) {
-        this.result = insTypeResults.get(0);
-        return this;
-      }
-      throw ExpectationFailed.because(
-          "Unexpected status code from results: " + insTypeResults.get(0).status());
-    }
+    ctx.result(lhsResponse);
+    return ctx;
   }
 }

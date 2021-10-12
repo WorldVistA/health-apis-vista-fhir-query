@@ -1,6 +1,6 @@
 package gov.va.api.health.vistafhirquery.service.controller.observation;
 
-import static gov.va.api.health.vistafhirquery.service.controller.R4Transformers.getReferenceId;
+import static gov.va.api.health.vistafhirquery.service.controller.R4Transformers.referenceIdFromUri;
 
 import gov.va.api.health.r4.api.bundle.AbstractEntry;
 import gov.va.api.health.r4.api.resources.Observation;
@@ -29,7 +29,7 @@ public class R4ObservationResponseIncludesIcnHeaderAdvice implements ResponseBod
             .extractResources(bundle -> bundle.entry().stream().map(AbstractEntry::resource))
             .extractIcns(
                 resource ->
-                    getReferenceId(resource.subject())
+                    referenceIdFromUri(resource.subject())
                         .map(alternatePatientIds::toPublicId)
                         .stream())
             .build();
