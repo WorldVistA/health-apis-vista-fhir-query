@@ -3,12 +3,12 @@ package gov.va.api.health.vistafhirquery.service.controller.coverage;
 import static gov.va.api.health.vistafhirquery.service.charonclient.CharonRequests.lighthouseRpcGatewayRequest;
 import static gov.va.api.health.vistafhirquery.service.charonclient.CharonRequests.lighthouseRpcGatewayResponse;
 import static gov.va.api.health.vistafhirquery.service.controller.R4Controllers.dieOnError;
-import static gov.va.api.health.vistafhirquery.service.controller.R4Controllers.ignoreIdForCreate;
 import static gov.va.api.health.vistafhirquery.service.controller.R4Controllers.updateResponseForCreatedResource;
+import static gov.va.api.health.vistafhirquery.service.controller.R4Controllers.updateResponseForUpdatedResource;
 import static gov.va.api.health.vistafhirquery.service.controller.R4Controllers.verifyAndGetResult;
 import static gov.va.api.health.vistafhirquery.service.controller.R4Transformers.referenceIdFromUri;
+import static gov.va.api.health.vistafhirquery.service.controller.recordcontext.Validations.patientRecordUpdateValidationRules;
 import static java.util.stream.Collectors.toList;
-import static org.apache.commons.lang3.StringUtils.isBlank;
 
 import gov.va.api.health.autoconfig.logging.Redact;
 import gov.va.api.health.r4.api.resources.Coverage;
@@ -23,12 +23,10 @@ import gov.va.api.health.vistafhirquery.service.controller.R4BundlerFactory;
 import gov.va.api.health.vistafhirquery.service.controller.R4Bundling;
 import gov.va.api.health.vistafhirquery.service.controller.R4Transformation;
 import gov.va.api.health.vistafhirquery.service.controller.ResourceExceptions.BadRequestPayload;
-import gov.va.api.health.vistafhirquery.service.controller.ResourceExceptions.CannotUpdateResourceWithMismatchedIds;
-import gov.va.api.health.vistafhirquery.service.controller.ResourceExceptions.ExpectationFailed;
+import gov.va.api.health.vistafhirquery.service.controller.recordcontext.CreatePatientRecordWriteContext;
+import gov.va.api.health.vistafhirquery.service.controller.recordcontext.PatientRecordWriteContext;
+import gov.va.api.health.vistafhirquery.service.controller.recordcontext.UpdatePatientRecordWriteContext;
 import gov.va.api.health.vistafhirquery.service.controller.witnessprotection.WitnessProtection;
-import gov.va.api.health.vistafhirquery.service.controller.writes.CreatePatientRecordWriteContext;
-import gov.va.api.health.vistafhirquery.service.controller.writes.PatientRecordWriteContext;
-import gov.va.api.health.vistafhirquery.service.controller.writes.UpdatePatientRecordWriteContext;
 import gov.va.api.lighthouse.charon.models.lhslighthouserpcgateway.InsuranceType;
 import gov.va.api.lighthouse.charon.models.lhslighthouserpcgateway.LhsLighthouseRpcGatewayCoverageSearch.Request;
 import gov.va.api.lighthouse.charon.models.lhslighthouserpcgateway.LhsLighthouseRpcGatewayCoverageWrite;
@@ -85,7 +83,6 @@ public class R4SiteCoverageController implements R4CoverageApi {
       @Redact HttpServletResponse response,
       @PathVariable(value = "site") String site,
       @Redact @RequestBody Coverage body) {
-    ignoreIdForCreate(body);
     var ctx =
         updateOrCreate(
             CreatePatientRecordWriteContext.<Coverage>builder()
@@ -109,9 +106,7 @@ public class R4SiteCoverageController implements R4CoverageApi {
   @GetMapping(value = "/site/{site}/r4/Coverage/{publicId}")
   public Coverage coverageRead(
       @PathVariable(value = "site") String site, @PathVariable(value = "publicId") String id) {
-    var coordinates =
-        PatientTypeCoordinates.fromString(
-            witnessProtection.privateIdForResourceOrDie(id, Coverage.class));
+    var coordinates = witnessProtection.toPatientTypeCoordinatesOrDie(id, Coverage.class);
     var request = lighthouseRpcGatewayRequest(site, manifestRequest(coordinates));
     var response = charon.request(request);
     var lhsResponse = lighthouseRpcGatewayResponse(response);
@@ -150,19 +145,18 @@ public class R4SiteCoverageController implements R4CoverageApi {
       @PathVariable(value = "site") String site,
       @PathVariable(value = "id") String id,
       @Redact @RequestBody Coverage body) {
-    var privateId = witnessProtection.privateIdForResourceOrDie(id, Coverage.class);
-    PatientTypeCoordinates existingRecordCoordinates = PatientTypeCoordinates.fromString(privateId);
     var ctx =
         UpdatePatientRecordWriteContext.<Coverage>builder()
             .fileNumber(InsuranceType.FILE_NUMBER)
             .site(site)
             .body(body)
             .patientIcn(beneficiaryOrDie(body))
-            .existingRecord(existingRecordCoordinates)
+            .existingRecordPublicId(id)
+            .existingRecord(witnessProtection.toPatientTypeCoordinatesOrDie(id, Coverage.class))
             .build();
-    updateValidationRules().forEach(rule -> rule.test(ctx));
+    patientRecordUpdateValidationRules().test(ctx);
     updateOrCreate(ctx);
-    response.setStatus(200);
+    updateResponseForUpdatedResource(response, id);
   }
 
   private LhsLighthouseRpcGatewayCoverageWrite.Request coverageWriteDetails(
@@ -235,42 +229,5 @@ public class R4SiteCoverageController implements R4CoverageApi {
     var lhsResponse = lighthouseRpcGatewayResponse(charonResponse);
     ctx.result(lhsResponse);
     return ctx;
-  }
-
-  private List<ContextValidationRule> updateValidationRules() {
-    return List.of(this::validateIdsMatch, this::validatePatientsMatch, this::validateSitesMatch);
-  }
-
-  private void validateIdsMatch(UpdatePatientRecordWriteContext<Coverage> ctx) {
-    var idFromBody = ctx.body().id();
-    var idFromUrl = ctx.existingRecord().toString();
-    if (isBlank(idFromBody) || !idFromUrl.equals(idFromBody)) {
-      throw CannotUpdateResourceWithMismatchedIds.because(idFromUrl, idFromBody);
-    }
-  }
-
-  private void validatePatientsMatch(UpdatePatientRecordWriteContext<Coverage> ctx) {
-    var icnFromBody = ctx.patientIcn();
-    var icnFromId = ctx.existingRecord().icn();
-    if (!icnFromBody.equals(icnFromId)) {
-      throw ExpectationFailed.because(
-          "Patient ICNs do not match: IcnFromBody(%s), IcnFromIdCoordinates(%s)",
-          icnFromBody, icnFromId);
-    }
-  }
-
-  private void validateSitesMatch(UpdatePatientRecordWriteContext<Coverage> ctx) {
-    var siteFromUrl = ctx.site();
-    var siteFromId = ctx.existingRecord().site();
-    if (!siteFromId.equals(siteFromUrl)) {
-      throw ExpectationFailed.because(
-          "Site ids do not match: SiteFromIdCoordinates(%s), SiteFromUrl(%s)",
-          siteFromId, siteFromUrl);
-    }
-  }
-
-  @FunctionalInterface
-  interface ContextValidationRule {
-    void test(UpdatePatientRecordWriteContext<Coverage> ctx);
   }
 }

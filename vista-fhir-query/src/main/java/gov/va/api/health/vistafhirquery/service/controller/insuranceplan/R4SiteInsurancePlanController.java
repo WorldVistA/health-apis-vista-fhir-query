@@ -3,10 +3,13 @@ package gov.va.api.health.vistafhirquery.service.controller.insuranceplan;
 import static gov.va.api.health.vistafhirquery.service.charonclient.CharonRequests.lighthouseRpcGatewayRequest;
 import static gov.va.api.health.vistafhirquery.service.charonclient.CharonRequests.lighthouseRpcGatewayResponse;
 import static gov.va.api.health.vistafhirquery.service.controller.R4Controllers.dieOnError;
+import static gov.va.api.health.vistafhirquery.service.controller.R4Controllers.updateResponseForCreatedResource;
+import static gov.va.api.health.vistafhirquery.service.controller.R4Controllers.updateResponseForUpdatedResource;
 import static gov.va.api.health.vistafhirquery.service.controller.R4Controllers.verifyAndGetResult;
 import static gov.va.api.health.vistafhirquery.service.controller.R4Transformers.isBlank;
+import static gov.va.api.health.vistafhirquery.service.controller.recordcontext.Validations.filesMatch;
+import static gov.va.api.health.vistafhirquery.service.controller.recordcontext.Validations.nonPatientRecordUpdateValidationRules;
 import static java.util.stream.Collectors.toList;
-import static org.apache.commons.lang3.StringUtils.isBlank;
 
 import gov.va.api.health.autoconfig.logging.Redact;
 import gov.va.api.health.r4.api.resources.InsurancePlan;
@@ -18,12 +21,10 @@ import gov.va.api.health.vistafhirquery.service.controller.R4BundlerFactory;
 import gov.va.api.health.vistafhirquery.service.controller.R4Bundling;
 import gov.va.api.health.vistafhirquery.service.controller.R4Transformation;
 import gov.va.api.health.vistafhirquery.service.controller.RecordCoordinates;
-import gov.va.api.health.vistafhirquery.service.controller.ResourceExceptions;
-import gov.va.api.health.vistafhirquery.service.controller.ResourceExceptions.NotFound;
+import gov.va.api.health.vistafhirquery.service.controller.recordcontext.CreateNonPatientRecordWriteContext;
+import gov.va.api.health.vistafhirquery.service.controller.recordcontext.UpdateNonPatientRecordWriteContext;
+import gov.va.api.health.vistafhirquery.service.controller.recordcontext.WriteContext;
 import gov.va.api.health.vistafhirquery.service.controller.witnessprotection.WitnessProtection;
-import gov.va.api.health.vistafhirquery.service.controller.writes.CreateNonPatientRecordWriteContext;
-import gov.va.api.health.vistafhirquery.service.controller.writes.UpdateNonPatientRecordWriteContext;
-import gov.va.api.health.vistafhirquery.service.controller.writes.WriteContext;
 import gov.va.api.lighthouse.charon.models.lhslighthouserpcgateway.GroupInsurancePlan;
 import gov.va.api.lighthouse.charon.models.lhslighthouserpcgateway.LhsLighthouseRpcGatewayCoverageWrite;
 import gov.va.api.lighthouse.charon.models.lhslighthouserpcgateway.LhsLighthouseRpcGatewayCoverageWrite.Request.CoverageWriteApi;
@@ -42,7 +43,6 @@ import lombok.NonNull;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpHeaders;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -105,12 +105,6 @@ public class R4SiteInsurancePlanController implements R4InsurancePlanApi {
         .build();
   }
 
-  private void insuranceFileOrDie(String id, RecordCoordinates recordCoordinates) {
-    if (!GroupInsurancePlan.FILE_NUMBER.equals(recordCoordinates.file())) {
-      throw new NotFound(id);
-    }
-  }
-
   @Override
   @PostMapping(
       value = "/site/{site}/r4/InsurancePlan",
@@ -134,8 +128,7 @@ public class R4SiteInsurancePlanController implements R4InsurancePlanApi {
                 site,
                 "InsurancePlan",
                 witnessProtection.toPublicId(InsurancePlan.class, ctx.newResourceId()));
-    response.addHeader(HttpHeaders.LOCATION, newResourceUrl);
-    response.setStatus(201);
+    updateResponseForCreatedResource(response, newResourceUrl);
   }
 
   @Override
@@ -143,8 +136,8 @@ public class R4SiteInsurancePlanController implements R4InsurancePlanApi {
   @SneakyThrows
   public InsurancePlan insurancePlanRead(
       @PathVariable(value = "site") String site, @PathVariable(value = "publicId") String id) {
-    var coordinates = witnessProtection.toRecordCoordinates(id);
-    insuranceFileOrDie(id, coordinates);
+    var coordinates = witnessProtection.toRecordCoordinatesOrDie(id, InsurancePlan.class);
+    filesMatch(id, coordinates, GroupInsurancePlan.FILE_NUMBER);
     log.info(
         "Looking for record {} in file {} at site {}",
         coordinates.ien(),
@@ -185,20 +178,17 @@ public class R4SiteInsurancePlanController implements R4InsurancePlanApi {
       @PathVariable(value = "site") String site,
       @PathVariable(value = "id") String id,
       @Redact @RequestBody InsurancePlan body) {
-    var existingRecordCoordinates = witnessProtection.toRecordCoordinates(id);
-    insuranceFileOrDie(id, existingRecordCoordinates);
-    if (isBlank(body.id()) || !existingRecordCoordinates.toString().equals(body.id())) {
-      throw ResourceExceptions.CannotUpdateResourceWithMismatchedIds.because(
-          existingRecordCoordinates.toString(), body.id());
-    }
-    updateOrCreate(
+    UpdateNonPatientRecordWriteContext<InsurancePlan> ctx =
         UpdateNonPatientRecordWriteContext.<InsurancePlan>builder()
             .fileNumber(GroupInsurancePlan.FILE_NUMBER)
             .site(site)
             .body(body)
-            .existingRecord(existingRecordCoordinates)
-            .build());
-    response.setStatus(200);
+            .existingRecordPublicId(id)
+            .existingRecord(witnessProtection.toRecordCoordinatesOrDie(id, InsurancePlan.class))
+            .build();
+    nonPatientRecordUpdateValidationRules().test(ctx);
+    updateOrCreate(ctx);
+    updateResponseForUpdatedResource(response, id);
   }
 
   private LhsLighthouseRpcGatewayCoverageWrite.Request insurancePlanWriteDetails(

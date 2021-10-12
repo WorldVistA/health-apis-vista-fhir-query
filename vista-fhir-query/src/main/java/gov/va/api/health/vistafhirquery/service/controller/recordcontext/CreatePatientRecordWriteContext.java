@@ -1,4 +1,6 @@
-package gov.va.api.health.vistafhirquery.service.controller.writes;
+package gov.va.api.health.vistafhirquery.service.controller.recordcontext;
+
+import static gov.va.api.health.vistafhirquery.service.controller.R4Controllers.unsetIdForCreate;
 
 import gov.va.api.health.fhir.api.IsResource;
 import gov.va.api.health.vistafhirquery.service.controller.PatientTypeCoordinates;
@@ -12,11 +14,13 @@ public class CreatePatientRecordWriteContext<BodyT extends IsResource>
 
   @Getter @NonNull private final String patientIcn;
 
+  /** Side effects: body.id will be unset. */
   @Builder
   public CreatePatientRecordWriteContext(
       String fileNumber, String site, BodyT body, String patientIcn) {
     super(fileNumber, site, body);
     this.patientIcn = patientIcn;
+    unsetIdForCreate(body);
   }
 
   @Override

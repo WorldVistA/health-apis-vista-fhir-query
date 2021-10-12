@@ -1,4 +1,4 @@
-package gov.va.api.health.vistafhirquery.service.controller.writes;
+package gov.va.api.health.vistafhirquery.service.controller.recordcontext;
 
 import gov.va.api.health.fhir.api.IsResource;
 import gov.va.api.health.vistafhirquery.service.controller.PatientTypeCoordinates;
@@ -8,11 +8,14 @@ import lombok.Getter;
 import lombok.NonNull;
 
 public class UpdatePatientRecordWriteContext<BodyT extends IsResource>
-    extends AbstractWriteContext<BodyT> implements PatientRecordWriteContext<BodyT>, UpdateContext {
+    extends AbstractWriteContext<BodyT>
+    implements PatientRecordWriteContext<BodyT>, UpdateContext<BodyT> {
 
   @Getter @NonNull private final String patientIcn;
 
   @Getter @NonNull private final PatientTypeCoordinates existingRecord;
+
+  @Getter @NonNull private final String existingRecordPublicId;
 
   /** New instance. */
   @Builder
@@ -21,9 +24,11 @@ public class UpdatePatientRecordWriteContext<BodyT extends IsResource>
       String site,
       BodyT body,
       String patientIcn,
+      String existingRecordPublicId,
       PatientTypeCoordinates existingRecord) {
     super(fileNumber, site, body);
     this.patientIcn = patientIcn;
+    this.existingRecordPublicId = existingRecordPublicId;
     this.existingRecord = existingRecord;
   }
 

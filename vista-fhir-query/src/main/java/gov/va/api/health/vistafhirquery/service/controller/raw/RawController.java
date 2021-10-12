@@ -2,6 +2,7 @@ package gov.va.api.health.vistafhirquery.service.controller.raw;
 
 import static gov.va.api.health.vistafhirquery.service.charonclient.CharonRequests.lighthouseRpcGatewayRequest;
 
+import gov.va.api.health.r4.api.resources.Organization;
 import gov.va.api.health.vistafhirquery.service.charonclient.CharonClient;
 import gov.va.api.health.vistafhirquery.service.controller.coverage.R4SiteCoverageController;
 import gov.va.api.health.vistafhirquery.service.controller.organization.R4SiteOrganizationController;
@@ -55,7 +56,7 @@ public class RawController {
       value = {"/Organization"},
       params = {"id"})
   public @NonNull RpcInvocationResultV1 organizationById(@RequestParam(name = "id") String id) {
-    var coordinates = witnessProtection.toRecordCoordinates(id);
+    var coordinates = witnessProtection.toRecordCoordinatesOrDie(id, Organization.class);
     return makeRequest(
         coordinates.site(), R4SiteOrganizationController.manifestRequest(coordinates));
   }

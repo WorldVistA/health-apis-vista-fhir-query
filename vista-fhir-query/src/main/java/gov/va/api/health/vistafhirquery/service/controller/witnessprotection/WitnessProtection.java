@@ -24,8 +24,13 @@ public interface WitnessProtection {
   <R extends Resource> String privateIdForResourceOrDie(String publicId, Class<R> resourceType);
 
   /** Try to parse patient type coordinates given a public id. */
-  default PatientTypeCoordinates toPatientTypeCoordinates(String publicId) {
-    return decodePrivateId(publicId, PatientTypeCoordinates::fromString);
+  default <R extends Resource> PatientTypeCoordinates toPatientTypeCoordinatesOrDie(
+      String publicId, Class<R> resourceType) {
+    try {
+      return PatientTypeCoordinates.fromString(privateIdForResourceOrDie(publicId, resourceType));
+    } catch (IdEncoder.BadId | IllegalArgumentException e) {
+      throw ResourceExceptions.NotFound.because("Unsupported id %s", publicId);
+    }
   }
 
   String toPrivateId(String publicId);
@@ -33,7 +38,12 @@ public interface WitnessProtection {
   <R extends Resource> String toPublicId(Class<R> resourceType, String privateId);
 
   /** Try to parse record coordinates given a public id. */
-  default RecordCoordinates toRecordCoordinates(String publicId) {
-    return decodePrivateId(publicId, RecordCoordinates::fromString);
+  default <R extends Resource> RecordCoordinates toRecordCoordinatesOrDie(
+      String publicId, Class<R> resourceType) {
+    try {
+      return RecordCoordinates.fromString(privateIdForResourceOrDie(publicId, resourceType));
+    } catch (IdEncoder.BadId | IllegalArgumentException e) {
+      throw ResourceExceptions.NotFound.because("Unsupported id %s", publicId);
+    }
   }
 }

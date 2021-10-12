@@ -3,9 +3,9 @@ package gov.va.api.health.vistafhirquery.service.controller.organization;
 import static gov.va.api.health.vistafhirquery.service.charonclient.CharonRequests.lighthouseRpcGatewayRequest;
 import static gov.va.api.health.vistafhirquery.service.charonclient.CharonRequests.lighthouseRpcGatewayResponse;
 import static gov.va.api.health.vistafhirquery.service.controller.R4Controllers.dieOnError;
-import static gov.va.api.health.vistafhirquery.service.controller.R4Controllers.ignoreIdForCreate;
 import static gov.va.api.health.vistafhirquery.service.controller.R4Controllers.updateResponseForCreatedResource;
 import static gov.va.api.health.vistafhirquery.service.controller.R4Controllers.verifyAndGetResult;
+import static gov.va.api.health.vistafhirquery.service.controller.recordcontext.Validations.filesMatch;
 import static java.util.stream.Collectors.toList;
 import static org.apache.commons.lang3.StringUtils.isBlank;
 
@@ -18,10 +18,9 @@ import gov.va.api.health.vistafhirquery.service.controller.R4BundlerFactory;
 import gov.va.api.health.vistafhirquery.service.controller.R4Bundling;
 import gov.va.api.health.vistafhirquery.service.controller.R4Transformation;
 import gov.va.api.health.vistafhirquery.service.controller.RecordCoordinates;
-import gov.va.api.health.vistafhirquery.service.controller.ResourceExceptions.NotFound;
+import gov.va.api.health.vistafhirquery.service.controller.recordcontext.CreateNonPatientRecordWriteContext;
+import gov.va.api.health.vistafhirquery.service.controller.recordcontext.WriteContext;
 import gov.va.api.health.vistafhirquery.service.controller.witnessprotection.WitnessProtection;
-import gov.va.api.health.vistafhirquery.service.controller.writes.CreateNonPatientRecordWriteContext;
-import gov.va.api.health.vistafhirquery.service.controller.writes.WriteContext;
 import gov.va.api.lighthouse.charon.models.lhslighthouserpcgateway.InsuranceCompany;
 import gov.va.api.lighthouse.charon.models.lhslighthouserpcgateway.LhsLighthouseRpcGatewayCoverageWrite;
 import gov.va.api.lighthouse.charon.models.lhslighthouserpcgateway.LhsLighthouseRpcGatewayCoverageWrite.Request.CoverageWriteApi;
@@ -116,7 +115,6 @@ public class R4SiteOrganizationController implements R4OrganizationApi {
       @Redact HttpServletResponse response,
       @PathVariable(value = "site") String site,
       @Redact @RequestBody Organization body) {
-    ignoreIdForCreate(body);
     var ctx =
         updateOrCreate(
             CreateNonPatientRecordWriteContext.<Organization>builder()
@@ -139,8 +137,8 @@ public class R4SiteOrganizationController implements R4OrganizationApi {
   @GetMapping(value = "/site/{site}/r4/Organization/{publicId}")
   public Organization organizationRead(
       @PathVariable(value = "site") String site, @PathVariable(value = "publicId") String id) {
-    var coordinates = witnessProtection.toRecordCoordinates(id);
-    supportedVistaFileOrDie(id, coordinates);
+    var coordinates = witnessProtection.toRecordCoordinatesOrDie(id, Organization.class);
+    filesMatch(id, coordinates, InsuranceCompany.FILE_NUMBER, Payer.FILE_NUMBER);
     log.info(
         "Looking for record {} in file {} at site {}",
         coordinates.ien(),
@@ -185,13 +183,6 @@ public class R4SiteOrganizationController implements R4OrganizationApi {
         .api(operation)
         .fields(fieldsToWrite)
         .build();
-  }
-
-  private void supportedVistaFileOrDie(String id, RecordCoordinates recordCoordinates) {
-    if (!InsuranceCompany.FILE_NUMBER.equals(recordCoordinates.file())
-        && !Payer.FILE_NUMBER.equals(recordCoordinates.file())) {
-      throw new NotFound("Unsupported file for Organizations: " + id);
-    }
   }
 
   private R4Bundler<

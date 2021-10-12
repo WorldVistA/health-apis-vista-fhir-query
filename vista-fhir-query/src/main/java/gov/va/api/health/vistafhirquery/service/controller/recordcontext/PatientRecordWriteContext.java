@@ -1,4 +1,4 @@
-package gov.va.api.health.vistafhirquery.service.controller.writes;
+package gov.va.api.health.vistafhirquery.service.controller.recordcontext;
 
 import gov.va.api.health.fhir.api.IsResource;
 

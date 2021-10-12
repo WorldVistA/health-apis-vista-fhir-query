@@ -4,6 +4,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 
 import gov.va.api.health.ids.client.IdEncoder.BadId;
+import gov.va.api.health.r4.api.resources.Patient;
 import gov.va.api.health.r4.api.resources.Resource;
 import gov.va.api.health.vistafhirquery.service.controller.PatientTypeCoordinates;
 import gov.va.api.health.vistafhirquery.service.controller.RecordCoordinates;
@@ -11,24 +12,26 @@ import gov.va.api.health.vistafhirquery.service.controller.ResourceExceptions.No
 import org.junit.jupiter.api.Test;
 
 class WitnessProtectionTest {
+
   @Test
   void toPatientTypeCoordinates() {
-    assertThat(new FugaziWP().toPatientTypeCoordinates("fugazi:123+456+789"))
+    assertThat(new FugaziWP().toPatientTypeCoordinatesOrDie("fugazi:123+456+789", Patient.class))
         .isEqualTo(PatientTypeCoordinates.fromString("123+456+789"));
     assertThatExceptionOfType(NotFound.class)
-        .isThrownBy(() -> new FugaziWP().toPatientTypeCoordinates("cannot-parse"));
+        .isThrownBy(
+            () -> new FugaziWP().toPatientTypeCoordinatesOrDie("cannot-parse", Patient.class));
     assertThatExceptionOfType(NotFound.class)
-        .isThrownBy(() -> new BadIdWP().toPatientTypeCoordinates("x"));
+        .isThrownBy(() -> new BadIdWP().toPatientTypeCoordinatesOrDie("x", Patient.class));
   }
 
   @Test
   void toProviderTypeCoordinates() {
-    assertThat(new FugaziWP().toRecordCoordinates("fugazi:ABC;123;456"))
+    assertThat(new FugaziWP().toRecordCoordinatesOrDie("fugazi:ABC;123;456", Patient.class))
         .isEqualTo(RecordCoordinates.fromString("ABC;123;456"));
     assertThatExceptionOfType(NotFound.class)
-        .isThrownBy(() -> new FugaziWP().toRecordCoordinates("cannot-parse"));
+        .isThrownBy(() -> new FugaziWP().toRecordCoordinatesOrDie("cannot-parse", Patient.class));
     assertThatExceptionOfType(NotFound.class)
-        .isThrownBy(() -> new BadIdWP().toRecordCoordinates("x"));
+        .isThrownBy(() -> new BadIdWP().toRecordCoordinatesOrDie("x", Patient.class));
   }
 
   static class BadIdWP implements WitnessProtection {

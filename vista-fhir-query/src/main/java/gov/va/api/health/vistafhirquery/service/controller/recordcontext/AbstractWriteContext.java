@@ -1,4 +1,4 @@
-package gov.va.api.health.vistafhirquery.service.controller.writes;
+package gov.va.api.health.vistafhirquery.service.controller.recordcontext;
 
 import static gov.va.api.health.vistafhirquery.service.controller.R4Controllers.verifySiteSpecificVistaResponseOrDie;
 

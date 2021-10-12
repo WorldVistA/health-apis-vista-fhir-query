@@ -97,9 +97,8 @@ public class R4SiteCoverageControllerTest {
     var answer =
         answerFor(captor).value(results).invocationResult(_invocationResult(results)).build();
     when(charon.request(captor.capture())).thenAnswer(answer);
-    when(witnessProtection.privateIdForResourceOrDie("pubCover1", Coverage.class))
-        .thenReturn(
-            PatientTypeCoordinates.builder().icn("p1").site("123").ien("ip1").build().toString());
+    when(witnessProtection.toPatientTypeCoordinatesOrDie("pubCover1", Coverage.class))
+        .thenReturn(PatientTypeCoordinates.builder().icn("p1").site("123").ien("ip1").build());
     var actual = _controller().coverageRead("123", "pubCover1");
     var expected = CoverageSamples.R4.create().coverage("123", "ip1", "p1");
     assertThat(json(actual)).isEqualTo(json(expected));
@@ -158,8 +157,8 @@ public class R4SiteCoverageControllerTest {
     var answer =
         answerFor(captor).value(results).invocationResult(_invocationResult(results)).build();
     when(charon.request(captor.capture())).thenAnswer(answer);
-    when(witnessProtection.privateIdForResourceOrDie("public-c1", Coverage.class))
-        .thenReturn("p1+123+ip1");
+    when(witnessProtection.toPatientTypeCoordinatesOrDie("public-c1", Coverage.class))
+        .thenReturn(PatientTypeCoordinates.builder().site("123").ien("ip1").icn("p1").build());
     _controller()
         .coverageUpdate(
             response, "123", "public-c1", CoverageSamples.R4.create().coverage("123", "ip1", "p1"));
@@ -170,8 +169,6 @@ public class R4SiteCoverageControllerTest {
   @Test
   void updateThrowsBadRequestPayloadForResourcesThatCannotBeProcessed() {
     var response = new MockHttpServletResponse();
-    when(witnessProtection.privateIdForResourceOrDie("public-c1", Coverage.class))
-        .thenReturn("p1+123+ip1");
     assertThatExceptionOfType(BadRequestPayload.class)
         .isThrownBy(
             () ->
@@ -192,8 +189,8 @@ public class R4SiteCoverageControllerTest {
   void updateThrowsCannotUpdateResourceWithMismatchedIdsWhenUrlAndPayloadIdsDoNotMatch(
       String resourceId) {
     var response = new MockHttpServletResponse();
-    when(witnessProtection.privateIdForResourceOrDie("public-c1", Coverage.class))
-        .thenReturn("p1+123+ip1");
+    when(witnessProtection.toPatientTypeCoordinatesOrDie("public-c1", Coverage.class))
+        .thenReturn(PatientTypeCoordinates.builder().site("123").ien("ip1").icn("p1").build());
     assertThatExceptionOfType(CannotUpdateResourceWithMismatchedIds.class)
         .isThrownBy(
             () ->
@@ -214,9 +211,8 @@ public class R4SiteCoverageControllerTest {
     var answer =
         answerFor(captor).value(results).invocationResult(_invocationResult(results)).build();
     when(charon.request(captor.capture())).thenAnswer(answer);
-    when(witnessProtection.privateIdForResourceOrDie("public-c1", Coverage.class))
-        .thenReturn(
-            PatientTypeCoordinates.builder().site("123").ien("ip1").icn("p1").build().toString());
+    when(witnessProtection.toPatientTypeCoordinatesOrDie("public-c1", Coverage.class))
+        .thenReturn(PatientTypeCoordinates.builder().site("123").ien("ip1").icn("p1").build());
     assertThatExceptionOfType(ResourceExceptions.CannotUpdateUnknownResource.class)
         .isThrownBy(
             () ->
@@ -231,9 +227,8 @@ public class R4SiteCoverageControllerTest {
   @Test
   void updateThrowsWhenPatientMismatch() {
     var sample = CoverageSamples.R4.create().coverage("123", "456", "p1");
-    when(witnessProtection.privateIdForResourceOrDie("public-c1", Coverage.class))
-        .thenReturn(
-            PatientTypeCoordinates.builder().site("123").ien("456").icn("p1").build().toString());
+    when(witnessProtection.toPatientTypeCoordinatesOrDie("public-c1", Coverage.class))
+        .thenReturn(PatientTypeCoordinates.builder().site("123").ien("456").icn("p1").build());
     sample.beneficiary().reference("Patient/p2");
     assertThatExceptionOfType(ResourceExceptions.ExpectationFailed.class)
         .isThrownBy(
@@ -245,9 +240,8 @@ public class R4SiteCoverageControllerTest {
   @Test
   void updateThrowsWhenSiteMismatch() {
     var sample = CoverageSamples.R4.create().coverage("123", "456", "p1");
-    when(witnessProtection.privateIdForResourceOrDie("public-c1", Coverage.class))
-        .thenReturn(
-            PatientTypeCoordinates.builder().site("123").ien("456").icn("p1").build().toString());
+    when(witnessProtection.toPatientTypeCoordinatesOrDie("public-c1", Coverage.class))
+        .thenReturn(PatientTypeCoordinates.builder().site("123").ien("456").icn("p1").build());
     assertThatExceptionOfType(ResourceExceptions.ExpectationFailed.class)
         .isThrownBy(
             () ->
