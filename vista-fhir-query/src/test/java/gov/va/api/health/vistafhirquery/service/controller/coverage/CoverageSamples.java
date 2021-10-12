@@ -113,8 +113,8 @@ public class CoverageSamples {
           .id(
               PatientTypeCoordinates.builder()
                   .icn(patient)
-                  .siteId(station)
-                  .recordId(ien)
+                  .site(station)
+                  .ien(ien)
                   .build()
                   .toString())
           .meta(Meta.builder().source(station).build())

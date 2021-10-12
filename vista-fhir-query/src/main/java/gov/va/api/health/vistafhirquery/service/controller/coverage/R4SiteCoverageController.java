@@ -183,7 +183,7 @@ public class R4SiteCoverageController implements R4CoverageApi {
       PatientTypeCoordinates coordinates) {
     return LhsLighthouseRpcGatewayGetsManifest.Request.builder()
         .file(InsuranceType.FILE_NUMBER)
-        .iens(coordinates.recordId())
+        .iens(coordinates.ien())
         .fields(R4CoverageTransformer.REQUIRED_FIELDS)
         .flags(
             List.of(
@@ -261,7 +261,7 @@ public class R4SiteCoverageController implements R4CoverageApi {
 
   private void validateSitesMatch(UpdatePatientRecordWriteContext<Coverage> ctx) {
     var siteFromUrl = ctx.site();
-    var siteFromId = ctx.existingRecord().siteId();
+    var siteFromId = ctx.existingRecord().site();
     if (!siteFromId.equals(siteFromUrl)) {
       throw ExpectationFailed.because(
           "Site ids do not match: SiteFromIdCoordinates(%s), SiteFromUrl(%s)",

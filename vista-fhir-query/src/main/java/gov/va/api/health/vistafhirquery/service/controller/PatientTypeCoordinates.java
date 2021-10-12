@@ -9,12 +9,12 @@ import lombok.Value;
 
 @Value
 @Builder
-public class PatientTypeCoordinates {
+public class PatientTypeCoordinates implements IsSiteCoordinates {
   @NonNull String icn;
 
-  @NonNull String siteId;
+  @NonNull String site;
 
-  @NonNull String recordId;
+  @NonNull String ien;
 
   /** Try to parse a string value to an identifier. */
   public static PatientTypeCoordinates fromString(String identifier) {
@@ -25,15 +25,11 @@ public class PatientTypeCoordinates {
               "Expected %s (%s) to have 3 '+' separated parts, but found %d.",
               PatientTypeCoordinates.class.getSimpleName(), identifier, parts.length));
     }
-    return PatientTypeCoordinates.builder()
-        .icn(parts[0])
-        .siteId(parts[1])
-        .recordId(parts[2])
-        .build();
+    return PatientTypeCoordinates.builder().icn(parts[0]).site(parts[1]).ien(parts[2]).build();
   }
 
   @Override
   public String toString() {
-    return join("+", icn(), siteId(), recordId());
+    return join("+", icn(), site(), ien());
   }
 }

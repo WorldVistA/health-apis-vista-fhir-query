@@ -21,6 +21,6 @@ public class R4CoverageEligibilityResponseSearchContext {
   private LhsLighthouseRpcGatewayResponse.Results planLimitationsResults;
 
   public PatientTypeCoordinates patientTypeCoordinatesFor(String ien) {
-    return PatientTypeCoordinates.builder().siteId(site()).icn(patientIcn()).recordId(ien).build();
+    return PatientTypeCoordinates.builder().site(site()).icn(patientIcn()).ien(ien).build();
   }
 }

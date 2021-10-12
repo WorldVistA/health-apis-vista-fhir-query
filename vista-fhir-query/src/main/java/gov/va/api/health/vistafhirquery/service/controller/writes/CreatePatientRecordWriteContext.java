@@ -27,9 +27,9 @@ public class CreatePatientRecordWriteContext<BodyT extends IsResource>
   @Override
   public String newResourceId() {
     return PatientTypeCoordinates.builder()
-        .siteId(site())
+        .site(site())
         .icn(patientIcn())
-        .recordId(result().ien())
+        .ien(result().ien())
         .build()
         .toString();
   }

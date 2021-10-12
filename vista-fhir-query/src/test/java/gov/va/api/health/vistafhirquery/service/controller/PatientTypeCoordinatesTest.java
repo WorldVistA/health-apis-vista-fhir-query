@@ -11,7 +11,7 @@ public class PatientTypeCoordinatesTest {
   @Test
   void identifierFromStringSuccess() {
     var sample = "p1+123+456";
-    var expected = PatientTypeCoordinates.builder().icn("p1").siteId("123").recordId("456").build();
+    var expected = PatientTypeCoordinates.builder().icn("p1").site("123").ien("456").build();
     assertThat(PatientTypeCoordinates.fromString(sample)).isEqualTo(expected);
   }
 
@@ -24,7 +24,7 @@ public class PatientTypeCoordinatesTest {
 
   @Test
   void identifierToString() {
-    var sample = PatientTypeCoordinates.builder().icn("p1").siteId("123").recordId("456").build();
+    var sample = PatientTypeCoordinates.builder().icn("p1").site("123").ien("456").build();
     var expected = "p1+123+456";
     assertThat(sample.toString()).isEqualTo(expected);
   }

@@ -98,7 +98,7 @@ public class WriteableFilemanValueFactory {
 
   public Function<PatientTypeCoordinates, WriteableFilemanValue> patientTypeCoordinatesToPointer(
       String file, Supplier<Integer> index) {
-    return coordinates -> forPointer(file, index.get(), coordinates.recordId());
+    return coordinates -> forPointer(file, index.get(), coordinates.ien());
   }
 
   public Function<RecordCoordinates, WriteableFilemanValue> recordCoordinatesToPointer(

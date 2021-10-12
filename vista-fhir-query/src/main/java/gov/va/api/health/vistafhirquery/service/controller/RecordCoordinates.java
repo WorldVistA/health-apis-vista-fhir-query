@@ -9,7 +9,7 @@ import lombok.Value;
 
 @Value
 @Builder
-public class RecordCoordinates {
+public class RecordCoordinates implements IsSiteCoordinates {
   @NonNull String site;
 
   @NonNull String file;

@@ -71,9 +71,9 @@ public class CoverageEligibilityResponseSamples {
           .meta(Meta.builder().source("123").build())
           .id(
               PatientTypeCoordinates.builder()
-                  .siteId("123")
+                  .site("123")
                   .icn(patient)
-                  .recordId(coverage)
+                  .ien(coverage)
                   .build()
                   .toString())
           .status(CoverageEligibilityResponse.Status.active)
@@ -104,9 +104,9 @@ public class CoverageEligibilityResponseSamples {
                   .reference(
                       "Coverage/"
                           + PatientTypeCoordinates.builder()
-                              .siteId("123")
+                              .site("123")
                               .icn(patient)
-                              .recordId(coverage)
+                              .ien(coverage)
                               .build()
                               .toString())
                   .build())

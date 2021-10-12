@@ -71,9 +71,9 @@ public class R4CoverageEligibilityResponseTransformer {
             toReference(
                 "Coverage",
                 PatientTypeCoordinates.builder()
-                    .siteId(searchContext().site())
+                    .site(searchContext().site())
                     .icn(searchContext().patientIcn())
-                    .recordId(coverage.ien())
+                    .ien(coverage.ien())
                     .build()))
         .inforce(
             isCoverageInForce(planLimitation.external(PlanCoverageLimitations.COVERAGE_STATUS)))

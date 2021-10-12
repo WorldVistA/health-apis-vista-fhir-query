@@ -99,11 +99,7 @@ public class WriteableFilemanValueFactoryTest {
             factory
                 .patientTypeCoordinatesToPointer("fugazi", () -> 3)
                 .apply(
-                    PatientTypeCoordinates.builder()
-                        .siteId("666")
-                        .icn("123V456")
-                        .recordId("123")
-                        .build()))
+                    PatientTypeCoordinates.builder().site("666").icn("123V456").ien("123").build()))
         .isEqualTo(writeableFilemanValue("ien", 3, "123"));
   }
 

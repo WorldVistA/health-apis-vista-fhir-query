@@ -99,12 +99,7 @@ public class R4SiteCoverageControllerTest {
     when(charon.request(captor.capture())).thenAnswer(answer);
     when(witnessProtection.privateIdForResourceOrDie("pubCover1", Coverage.class))
         .thenReturn(
-            PatientTypeCoordinates.builder()
-                .icn("p1")
-                .siteId("123")
-                .recordId("ip1")
-                .build()
-                .toString());
+            PatientTypeCoordinates.builder().icn("p1").site("123").ien("ip1").build().toString());
     var actual = _controller().coverageRead("123", "pubCover1");
     var expected = CoverageSamples.R4.create().coverage("123", "ip1", "p1");
     assertThat(json(actual)).isEqualTo(json(expected));
@@ -221,12 +216,7 @@ public class R4SiteCoverageControllerTest {
     when(charon.request(captor.capture())).thenAnswer(answer);
     when(witnessProtection.privateIdForResourceOrDie("public-c1", Coverage.class))
         .thenReturn(
-            PatientTypeCoordinates.builder()
-                .siteId("123")
-                .recordId("ip1")
-                .icn("p1")
-                .build()
-                .toString());
+            PatientTypeCoordinates.builder().site("123").ien("ip1").icn("p1").build().toString());
     assertThatExceptionOfType(ResourceExceptions.CannotUpdateUnknownResource.class)
         .isThrownBy(
             () ->
@@ -243,12 +233,7 @@ public class R4SiteCoverageControllerTest {
     var sample = CoverageSamples.R4.create().coverage("123", "456", "p1");
     when(witnessProtection.privateIdForResourceOrDie("public-c1", Coverage.class))
         .thenReturn(
-            PatientTypeCoordinates.builder()
-                .siteId("123")
-                .recordId("456")
-                .icn("p1")
-                .build()
-                .toString());
+            PatientTypeCoordinates.builder().site("123").ien("456").icn("p1").build().toString());
     sample.beneficiary().reference("Patient/p2");
     assertThatExceptionOfType(ResourceExceptions.ExpectationFailed.class)
         .isThrownBy(
@@ -262,12 +247,7 @@ public class R4SiteCoverageControllerTest {
     var sample = CoverageSamples.R4.create().coverage("123", "456", "p1");
     when(witnessProtection.privateIdForResourceOrDie("public-c1", Coverage.class))
         .thenReturn(
-            PatientTypeCoordinates.builder()
-                .siteId("123")
-                .recordId("456")
-                .icn("p1")
-                .build()
-                .toString());
+            PatientTypeCoordinates.builder().site("123").ien("456").icn("p1").build().toString());
     assertThatExceptionOfType(ResourceExceptions.ExpectationFailed.class)
         .isThrownBy(
             () ->

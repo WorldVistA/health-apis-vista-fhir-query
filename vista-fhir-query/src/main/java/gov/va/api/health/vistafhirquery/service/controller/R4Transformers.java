@@ -132,14 +132,8 @@ public class R4Transformers {
   }
 
   /** Build an identifier from a patient icn, site, and vista record id. */
-  public static String patientCoordinateStringFrom(
-      String patientIcn, String siteId, String recordId) {
-    return PatientTypeCoordinates.builder()
-        .icn(patientIcn)
-        .siteId(siteId)
-        .recordId(recordId)
-        .build()
-        .toString();
+  public static String patientCoordinateStringFrom(String patientIcn, String site, String ien) {
+    return PatientTypeCoordinates.builder().icn(patientIcn).site(site).ien(ien).build().toString();
   }
 
   /** Given a reference, get the id and try to parse it as record coordinates. */
