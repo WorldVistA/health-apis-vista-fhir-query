@@ -4,6 +4,7 @@ import static gov.va.api.health.vistafhirquery.service.charonclient.CharonReques
 import static gov.va.api.health.vistafhirquery.service.charonclient.CharonRequests.lighthouseRpcGatewayResponse;
 import static gov.va.api.health.vistafhirquery.service.controller.R4Controllers.dieOnError;
 import static gov.va.api.health.vistafhirquery.service.controller.R4Controllers.verifyAndGetResult;
+import static gov.va.api.health.vistafhirquery.service.controller.R4Transformers.isBlank;
 import static java.util.stream.Collectors.toList;
 import static org.apache.commons.lang3.StringUtils.isBlank;
 
@@ -11,7 +12,10 @@ import gov.va.api.health.autoconfig.logging.Redact;
 import gov.va.api.health.r4.api.resources.InsurancePlan;
 import gov.va.api.health.vistafhirquery.service.api.R4InsurancePlanApi;
 import gov.va.api.health.vistafhirquery.service.charonclient.CharonClient;
+import gov.va.api.health.vistafhirquery.service.charonclient.CharonResponse;
+import gov.va.api.health.vistafhirquery.service.controller.R4Bundler;
 import gov.va.api.health.vistafhirquery.service.controller.R4BundlerFactory;
+import gov.va.api.health.vistafhirquery.service.controller.R4Bundling;
 import gov.va.api.health.vistafhirquery.service.controller.R4Transformation;
 import gov.va.api.health.vistafhirquery.service.controller.RecordCoordinates;
 import gov.va.api.health.vistafhirquery.service.controller.ResourceExceptions;
@@ -25,8 +29,12 @@ import gov.va.api.lighthouse.charon.models.lhslighthouserpcgateway.LhsLighthouse
 import gov.va.api.lighthouse.charon.models.lhslighthouserpcgateway.LhsLighthouseRpcGatewayCoverageWrite.Request.CoverageWriteApi;
 import gov.va.api.lighthouse.charon.models.lhslighthouserpcgateway.LhsLighthouseRpcGatewayGetsManifest;
 import gov.va.api.lighthouse.charon.models.lhslighthouserpcgateway.LhsLighthouseRpcGatewayGetsManifest.Request.GetsManifestFlags;
+import gov.va.api.lighthouse.charon.models.lhslighthouserpcgateway.LhsLighthouseRpcGatewayListManifest;
 import gov.va.api.lighthouse.charon.models.lhslighthouserpcgateway.LhsLighthouseRpcGatewayResponse;
+import gov.va.api.lighthouse.charon.models.lhslighthouserpcgateway.LhsLighthouseRpcGatewayResponse.FilemanEntry;
 import java.util.List;
+import java.util.Optional;
+import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -42,6 +50,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 @Builder
@@ -69,6 +78,30 @@ public class R4SiteInsurancePlanController implements R4InsurancePlanApi {
                 GetsManifestFlags.OMIT_NULL_VALUES,
                 GetsManifestFlags.RETURN_INTERNAL_VALUES,
                 GetsManifestFlags.RETURN_EXTERNAL_VALUES))
+        .build();
+  }
+
+  private List<FilemanEntry> filterOutPartialMatches(
+      CharonResponse<
+              LhsLighthouseRpcGatewayListManifest.Request, LhsLighthouseRpcGatewayResponse.Results>
+          charonResponse,
+      String groupNumber) {
+    if (isBlank(charonResponse.value().results())) {
+      return charonResponse.value().results();
+    }
+    return charonResponse.value().results().stream()
+        .filter(
+            entry ->
+                groupNumber.equals(entry.external(GroupInsurancePlan.GROUP_NUMBER).orElse(null)))
+        .collect(toList());
+  }
+
+  private LhsLighthouseRpcGatewayListManifest.Request groupNumberSearchRequest(String groupNumber) {
+    return LhsLighthouseRpcGatewayListManifest.Request.builder()
+        .file(GroupInsurancePlan.FILE_NUMBER)
+        .fields(R4InsurancePlanTransformer.REQUIRED_FIELDS)
+        .index(Optional.of("E"))
+        .part(Optional.of(groupNumber))
         .build();
   }
 
@@ -125,6 +158,24 @@ public class R4SiteInsurancePlanController implements R4InsurancePlanApi {
     return verifyAndGetResult(resources, id);
   }
 
+  /** Search support. */
+  @Override
+  @GetMapping("/site/{site}/r4/InsurancePlan")
+  public InsurancePlan.Bundle insurancePlanSearch(
+      HttpServletRequest httpRequest,
+      @PathVariable(value = "site") String site,
+      @RequestParam(value = "identifier", required = true) String groupNumber,
+      @RequestParam(
+              value = "_count",
+              required = false,
+              defaultValue = "${vista-fhir-query.default-page-size}")
+          int count) {
+    var charonRequest = lighthouseRpcGatewayRequest(site, groupNumberSearchRequest(groupNumber));
+    var charonResponse = charon.request(charonRequest);
+    charonResponse.value().results(filterOutPartialMatches(charonResponse, groupNumber));
+    return toBundle(httpRequest, site).apply(lighthouseRpcGatewayResponse(charonResponse));
+  }
+
   @Override
   @PutMapping(
       value = "/site/{site}/r4/InsurancePlan/{id}",
@@ -160,6 +211,21 @@ public class R4SiteInsurancePlanController implements R4InsurancePlanApi {
     return LhsLighthouseRpcGatewayCoverageWrite.Request.builder()
         .api(operation)
         .fields(fieldsToWrite)
+        .build();
+  }
+
+  private R4Bundler<
+          LhsLighthouseRpcGatewayResponse, InsurancePlan, InsurancePlan.Entry, InsurancePlan.Bundle>
+      toBundle(HttpServletRequest request, String vista) {
+    return bundlerFactory
+        .forTransformation(transformation())
+        .site(vista)
+        .bundling(
+            R4Bundling.newBundle(InsurancePlan.Bundle::new)
+                .newEntry(InsurancePlan.Entry::new)
+                .build())
+        .resourceType("InsurancePlan")
+        .request(request)
         .build();
   }
 

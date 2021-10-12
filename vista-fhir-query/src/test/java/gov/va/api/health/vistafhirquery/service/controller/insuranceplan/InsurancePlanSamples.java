@@ -1,6 +1,9 @@
 package gov.va.api.health.vistafhirquery.service.controller.insuranceplan;
 
 import gov.va.api.health.autoconfig.configuration.JacksonConfig;
+import gov.va.api.health.r4.api.bundle.AbstractBundle;
+import gov.va.api.health.r4.api.bundle.AbstractEntry;
+import gov.va.api.health.r4.api.bundle.BundleLink;
 import gov.va.api.health.r4.api.datatypes.CodeableConcept;
 import gov.va.api.health.r4.api.datatypes.Coding;
 import gov.va.api.health.r4.api.datatypes.Identifier;
@@ -16,11 +19,14 @@ import gov.va.api.lighthouse.charon.models.lhslighthouserpcgateway.InsuranceComp
 import gov.va.api.lighthouse.charon.models.lhslighthouserpcgateway.LhsLighthouseRpcGatewayCoverageWrite.WriteableFilemanValue;
 import gov.va.api.lighthouse.charon.models.lhslighthouserpcgateway.LhsLighthouseRpcGatewayResponse;
 import java.math.BigDecimal;
+import java.util.Arrays;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
 import lombok.NoArgsConstructor;
 import lombok.SneakyThrows;
 import lombok.experimental.UtilityClass;
@@ -43,6 +49,36 @@ public class InsurancePlanSamples {
 
   @NoArgsConstructor(staticName = "create")
   public static class R4 {
+    public static InsurancePlan.Bundle asBundle(
+        String baseUrl,
+        Collection<InsurancePlan> resources,
+        int totalRecords,
+        BundleLink... links) {
+      return InsurancePlan.Bundle.builder()
+          .resourceType("Bundle")
+          .type(AbstractBundle.BundleType.searchset)
+          .total(totalRecords)
+          .link(Arrays.asList(links))
+          .entry(
+              resources.stream()
+                  .map(
+                      resource ->
+                          InsurancePlan.Entry.builder()
+                              .fullUrl(baseUrl + "/InsurancePlan/" + resource.id())
+                              .resource(resource)
+                              .search(
+                                  AbstractEntry.Search.builder()
+                                      .mode(AbstractEntry.SearchMode.match)
+                                      .build())
+                              .build())
+                  .collect(Collectors.toList()))
+          .build();
+    }
+
+    public static BundleLink link(BundleLink.LinkRelation rel, String base, String query) {
+      return BundleLink.builder().relation(rel).url(base + "?" + query).build();
+    }
+
     private List<Extension> extensions() {
       return List.of(
           Extension.builder()
@@ -167,7 +203,6 @@ public class InsurancePlanSamples {
 
   @NoArgsConstructor(staticName = "create")
   public static class VistaLhsLighthouseRpcGateway {
-
     public Set<WriteableFilemanValue> createApiInput() {
       return Set.of(
           pointerTo(InsuranceCompany.FILE_NUMBER, "8"),

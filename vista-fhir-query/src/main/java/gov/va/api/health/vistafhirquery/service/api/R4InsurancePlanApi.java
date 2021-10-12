@@ -10,6 +10,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.parameters.RequestBody;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
@@ -154,6 +155,79 @@ public interface R4InsurancePlanApi {
                   "The logical id of the resource. Once assigned, this value never changes.",
               example = "I3-iYUBEbvodmvCg3XYdjLHtoVJkL57MMRWNXkvtfAcg2Q")
           String id);
+
+  @Operation(
+      summary = "InsurancePlan Search",
+      description = "https://www.hl7.org/fhir/insuranceplan.html",
+      tags = {"InsurancePlan"})
+  @GET
+  @Path("/site/{site}/InsurancePlan")
+  @ApiResponses({
+    @ApiResponse(
+        responseCode = "200",
+        description = "Record(s) found",
+        content =
+            @Content(
+                mediaType = "application/fhir+json",
+                schema = @Schema(implementation = InsurancePlan.Bundle.class))),
+    @ApiResponse(
+        responseCode = "400",
+        description = "Bad request",
+        content =
+            @Content(
+                mediaType = "application/fhir+json",
+                schema = @Schema(implementation = OperationOutcome.class))),
+    @ApiResponse(
+        responseCode = "401",
+        description = "Unauthorized",
+        content = {
+          @Content(
+              mediaType = "application/fhir+json",
+              schema = @Schema(implementation = OperationOutcome.class))
+        }),
+    @ApiResponse(
+        responseCode = "403",
+        description = "Forbidden",
+        content = {
+          @Content(
+              mediaType = "application/fhir+json",
+              schema = @Schema(implementation = OperationOutcome.class))
+        }),
+    @ApiResponse(
+        responseCode = "404",
+        description = "Not found",
+        content =
+            @Content(
+                mediaType = "application/fhir+json",
+                schema = @Schema(implementation = OperationOutcome.class))),
+    @ApiResponse(
+        responseCode = "500",
+        description = "Server Error",
+        content = {
+          @Content(
+              mediaType = "application/fhir+json",
+              schema = @Schema(implementation = OperationOutcome.class))
+        })
+  })
+  InsurancePlan.Bundle insurancePlanSearch(
+      @Parameter(hidden = true) HttpServletRequest httpRequest,
+      @Parameter(
+              in = ParameterIn.PATH,
+              name = "site",
+              required = true,
+              description = "The id of the site where this resource can be found.")
+          String site,
+      @Parameter(
+              in = ParameterIn.QUERY,
+              name = "identifier",
+              required = true,
+              description = "An identifier of insurance plan to return results for.")
+          String identifier,
+      @Parameter(
+              in = ParameterIn.QUERY,
+              name = "_count",
+              description = "The number of resources that should be returned in a single page.")
+          int count);
 
   @PUT
   @Operation(

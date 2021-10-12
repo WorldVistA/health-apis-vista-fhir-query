@@ -3,10 +3,13 @@ package gov.va.api.health.vistafhirquery.service.controller.insuranceplan;
 import static gov.va.api.health.vistafhirquery.service.charonclient.CharonTestSupport.answerFor;
 import static gov.va.api.health.vistafhirquery.service.charonclient.CharonTestSupport.requestCaptor;
 import static gov.va.api.health.vistafhirquery.service.controller.MockRequests.json;
+import static gov.va.api.health.vistafhirquery.service.controller.MockRequests.requestFromUri;
+import static gov.va.api.health.vistafhirquery.service.controller.insuranceplan.InsurancePlanSamples.R4.link;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.mockito.Mockito.when;
 
+import gov.va.api.health.r4.api.bundle.BundleLink;
 import gov.va.api.health.vistafhirquery.service.charonclient.CharonClient;
 import gov.va.api.health.vistafhirquery.service.config.LinkProperties;
 import gov.va.api.health.vistafhirquery.service.controller.MockWitnessProtection;
@@ -15,10 +18,14 @@ import gov.va.api.health.vistafhirquery.service.controller.ResourceExceptions;
 import gov.va.api.health.vistafhirquery.service.controller.ResourceExceptions.NotFound;
 import gov.va.api.health.vistafhirquery.service.controller.witnessprotection.AlternatePatientIds;
 import gov.va.api.lighthouse.charon.api.v1.RpcInvocationResultV1;
+import gov.va.api.lighthouse.charon.models.lhslighthouserpcgateway.GroupInsurancePlan;
 import gov.va.api.lighthouse.charon.models.lhslighthouserpcgateway.LhsLighthouseRpcGatewayCoverageSearch;
 import gov.va.api.lighthouse.charon.models.lhslighthouserpcgateway.LhsLighthouseRpcGatewayCoverageWrite;
 import gov.va.api.lighthouse.charon.models.lhslighthouserpcgateway.LhsLighthouseRpcGatewayGetsManifest;
+import gov.va.api.lighthouse.charon.models.lhslighthouserpcgateway.LhsLighthouseRpcGatewayListManifest;
 import gov.va.api.lighthouse.charon.models.lhslighthouserpcgateway.LhsLighthouseRpcGatewayResponse;
+import java.util.Collections;
+import java.util.List;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -119,6 +126,51 @@ class R4SiteInsurancePlanControllerTest {
     witnessProtection.add("pub1", "s1;355.3;ien1");
     assertThatExceptionOfType(NotFound.class)
         .isThrownBy(() -> _controller().insurancePlanRead("123", "pub1"));
+  }
+
+  void searchForGroupNumberReturnsResults() {
+    var httpRequest = requestFromUri("?identifier=GRP123456");
+    var samples = InsurancePlanSamples.VistaLhsLighthouseRpcGateway.create();
+    var results = samples.getsManifestResults("ien1");
+    var captor = requestCaptor(LhsLighthouseRpcGatewayListManifest.Request.class);
+    var answer =
+        answerFor(captor).value(results).invocationResult(_invocationResult(results)).build();
+    when(charon.request(captor.capture())).thenAnswer(answer);
+    var actual = _controller().insurancePlanSearch(httpRequest, "123", "GRP123456", 1);
+    var expected =
+        InsurancePlanSamples.R4.asBundle(
+            "http://fugazi.com/site/123/r4",
+            List.of(InsurancePlanSamples.R4.create().insurancePlan("123", "ien1")),
+            1,
+            link(
+                BundleLink.LinkRelation.self,
+                "http://fugazi.com/site/123/r4/InsurancePlan",
+                "identifier=GRP123456"));
+    assertThat(captor.getValue().rpcRequest().file()).isEqualTo(GroupInsurancePlan.FILE_NUMBER);
+    assertThat(json(actual)).isEqualTo(json(expected));
+  }
+
+  @Test
+  void searchForPartialGroupNumberReturnsNoResults() {
+    var httpRequest = requestFromUri("?identifier=GRP12345");
+    var samples = InsurancePlanSamples.VistaLhsLighthouseRpcGateway.create();
+    var results = samples.getsManifestResults("ien1");
+    var captor = requestCaptor(LhsLighthouseRpcGatewayListManifest.Request.class);
+    var answer =
+        answerFor(captor).value(results).invocationResult(_invocationResult(results)).build();
+    when(charon.request(captor.capture())).thenAnswer(answer);
+    var actual = _controller().insurancePlanSearch(httpRequest, "123", "GRP12345", 1);
+    var expected =
+        InsurancePlanSamples.R4.asBundle(
+            "http://fugazi.com/site/123/r4",
+            Collections.emptyList(),
+            0,
+            link(
+                BundleLink.LinkRelation.self,
+                "http://fugazi.com/site/123/r4/InsurancePlan",
+                "identifier=GRP12345"));
+    assertThat(captor.getValue().rpcRequest().file()).isEqualTo(GroupInsurancePlan.FILE_NUMBER);
+    assertThat(json(actual)).isEqualTo(json(expected));
   }
 
   @Test

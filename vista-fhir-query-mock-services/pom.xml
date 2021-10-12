@@ -13,7 +13,7 @@
   <properties>
     <fhir-resources.version>8.0.19</fhir-resources.version>
     <mockserver.version>5.11.2</mockserver.version>
-    <charon.version>4.0.36</charon.version>
+    <charon.version>4.0.37</charon.version>
   </properties>
   <dependencies>
     <dependency>
