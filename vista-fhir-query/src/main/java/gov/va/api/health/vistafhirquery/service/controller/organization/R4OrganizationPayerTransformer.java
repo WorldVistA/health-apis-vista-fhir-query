@@ -25,9 +25,9 @@ import lombok.Value;
 @Builder
 public class R4OrganizationPayerTransformer {
   /** The fields needed by the transformer. */
+  // ToDo Payer.DEACTIVATED, -- https://vajira.max.gov/browse/API-10580
   public static final List<String> REQUIRED_FIELDS =
-      List.of(
-          Payer.DEACTIVATED, Payer.EDI_ID_NUMBER_INST, Payer.EDI_ID_NUMBER_PROF, Payer.PAYER_NAME);
+      List.of(Payer.EDI_ID_NUMBER_INST, Payer.EDI_ID_NUMBER_PROF, Payer.PAYER_NAME);
 
   @NonNull String site;
 
