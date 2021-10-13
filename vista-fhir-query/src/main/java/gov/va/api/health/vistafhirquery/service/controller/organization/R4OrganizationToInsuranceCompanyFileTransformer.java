@@ -2,6 +2,7 @@ package gov.va.api.health.vistafhirquery.service.controller.organization;
 
 import static gov.va.api.health.vistafhirquery.service.controller.R4Transformers.asCodeableConcept;
 import static gov.va.api.health.vistafhirquery.service.controller.R4Transformers.isBlank;
+import static gov.va.api.health.vistafhirquery.service.controller.WriteableFilemanValueFactory.index;
 
 import gov.va.api.health.r4.api.datatypes.Address;
 import gov.va.api.health.r4.api.datatypes.CodeableConcept;
@@ -12,7 +13,9 @@ import gov.va.api.health.r4.api.datatypes.Quantity;
 import gov.va.api.health.r4.api.elements.Extension;
 import gov.va.api.health.r4.api.elements.Reference;
 import gov.va.api.health.r4.api.resources.Organization;
+import gov.va.api.health.vistafhirquery.service.controller.RecordCoordinates;
 import gov.va.api.health.vistafhirquery.service.controller.ResourceExceptions.BadRequestPayload;
+import gov.va.api.health.vistafhirquery.service.controller.WriteableFilemanValueFactory;
 import gov.va.api.lighthouse.charon.models.lhslighthouserpcgateway.InsuranceCompany;
 import gov.va.api.lighthouse.charon.models.lhslighthouserpcgateway.LhsLighthouseRpcGatewayCoverageWrite.WriteableFilemanValue;
 import java.util.HashSet;
@@ -27,6 +30,9 @@ import lombok.Value;
 @Value
 public class R4OrganizationToInsuranceCompanyFileTransformer {
   static final Map<Boolean, String> YES_NO = Map.of(true, "YES", false, "NO");
+
+  private static final WriteableFilemanValueFactory filemanValue =
+      WriteableFilemanValueFactory.forFile(InsuranceCompany.FILE_NUMBER);
 
   @NonNull Organization organization;
 
@@ -229,7 +235,6 @@ public class R4OrganizationToInsuranceCompanyFileTransformer {
         identifierForCode(organization.identifier(), identifierCode)
             .orElseThrow(
                 () -> BadRequestPayload.because(fieldNumber, fieldName + " identifier is null"));
-
     if (identifier.value().isBlank()) {
       throw BadRequestPayload.because(fieldNumber, fieldName + "identifier.value is null");
     }
@@ -316,6 +321,10 @@ public class R4OrganizationToInsuranceCompanyFileTransformer {
   /** Create a set of writeable fileman values. */
   public Set<WriteableFilemanValue> toInsuranceCompanyFile() {
     Set<WriteableFilemanValue> fields = new HashSet<>();
+    Optional.ofNullable(organization().id())
+        .map(RecordCoordinates::fromString)
+        .map(filemanValue.recordCoordinatesToPointer(InsuranceCompany.FILE_NUMBER, index(1)))
+        .ifPresent(fields::add);
     fields.add(
         insuranceCompanyCoordinatesOrDie(InsuranceCompany.NAME, 1, organization.name(), "name"));
     fields.addAll(address());

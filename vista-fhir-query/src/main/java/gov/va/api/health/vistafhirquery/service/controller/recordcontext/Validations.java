@@ -6,7 +6,7 @@ import gov.va.api.health.fhir.api.IsResource;
 import gov.va.api.health.vistafhirquery.service.controller.RecordCoordinates;
 import gov.va.api.health.vistafhirquery.service.controller.ResourceExceptions.CannotUpdateResourceWithMismatchedIds;
 import gov.va.api.health.vistafhirquery.service.controller.ResourceExceptions.ExpectationFailed;
-import gov.va.api.health.vistafhirquery.service.controller.ResourceExceptions.NotFound;
+import gov.va.api.health.vistafhirquery.service.controller.ResourceExceptions.MismatchedFileCoordinates;
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
 
@@ -25,7 +25,7 @@ public class Validations {
         return;
       }
     }
-    throw new NotFound(publicId);
+    throw MismatchedFileCoordinates.because(publicId, expectedFileNumbers, requested.file());
   }
 
   /** Throw CannotUpdateResourceWithMismatchedIds if body and existing record ids do not match. */

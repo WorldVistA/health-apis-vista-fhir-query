@@ -15,6 +15,7 @@ import gov.va.api.health.vistafhirquery.service.charonclient.CharonClient;
 import gov.va.api.health.vistafhirquery.service.config.LinkProperties;
 import gov.va.api.health.vistafhirquery.service.controller.MockWitnessProtection;
 import gov.va.api.health.vistafhirquery.service.controller.R4BundlerFactory;
+import gov.va.api.health.vistafhirquery.service.controller.ResourceExceptions.MismatchedFileCoordinates;
 import gov.va.api.health.vistafhirquery.service.controller.ResourceExceptions.NotFound;
 import gov.va.api.health.vistafhirquery.service.controller.witnessprotection.AlternatePatientIds;
 import gov.va.api.lighthouse.charon.api.v1.RpcInvocationResultV1;
@@ -116,17 +117,17 @@ class R4SiteOrganizationControllerTest {
   }
 
   @Test
+  void readThrowsForWrongFile() {
+    witnessProtection.add("wrong1", "s1;wrong;ien1");
+    assertThatExceptionOfType(MismatchedFileCoordinates.class)
+        .isThrownBy(() -> _controller().organizationRead("123", "wrong1"));
+  }
+
+  @Test
   void readThrowsNotFoundForBadId() {
     witnessProtection.add("nope1", "nope1");
     assertThatExceptionOfType(NotFound.class)
         .isThrownBy(() -> _controller().organizationRead("123", "nope1"));
-  }
-
-  @Test
-  void readThrowsNotFoundForWrongFile() {
-    witnessProtection.add("wrong1", "s1;wrong;ien1");
-    assertThatExceptionOfType(NotFound.class)
-        .isThrownBy(() -> _controller().organizationRead("123", "wrong1"));
   }
 
   @ParameterizedTest
@@ -205,5 +206,38 @@ class R4SiteOrganizationControllerTest {
                 "_count=10&type=pay"));
     assertThat(captor.getValue().rpcRequest().file()).isEqualTo(Payer.FILE_NUMBER);
     assertThat(json(actual)).isEqualTo(json(expected));
+  }
+
+  @Test
+  void update() {
+    var response = new MockHttpServletResponse();
+    var samples = OrganizationSamples.VistaLhsLighthouseRpcGateway.create();
+    var results = samples.createOrganizationResults("ien1");
+    var captor = requestCaptor(LhsLighthouseRpcGatewayCoverageWrite.Request.class);
+    var answer =
+        answerFor(captor).value(results).invocationResult(_invocationResult(results)).build();
+    when(charon.request(captor.capture())).thenAnswer(answer);
+    witnessProtection.add("pub1", "123;36;ien1");
+    _controller()
+        .organizationUpdate(
+            response, "123", "pub1", OrganizationSamples.R4.create().organization("123", "ien1"));
+    assertThat(captor.getValue().rpcRequest().api())
+        .isEqualTo(LhsLighthouseRpcGatewayCoverageWrite.Request.CoverageWriteApi.UPDATE);
+    assertThat(response.getStatus()).isEqualTo(200);
+  }
+
+  @Test
+  void updateUnsupportedFileThrows() {
+    var response = new MockHttpServletResponse();
+    witnessProtection.add("pub1", "123;365.12;ien1");
+    assertThatExceptionOfType(MismatchedFileCoordinates.class)
+        .isThrownBy(
+            () ->
+                _controller()
+                    .organizationUpdate(
+                        response,
+                        "123",
+                        "pub1",
+                        OrganizationSamples.R4.create().organization("123", "ien1")));
   }
 }

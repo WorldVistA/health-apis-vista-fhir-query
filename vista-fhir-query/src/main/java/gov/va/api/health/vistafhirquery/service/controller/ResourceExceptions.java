@@ -4,6 +4,7 @@ import static java.lang.String.format;
 import static java.util.stream.Collectors.joining;
 
 import com.google.errorprone.annotations.FormatMethod;
+import java.util.Arrays;
 import java.util.List;
 import lombok.Getter;
 import lombok.NonNull;
@@ -85,6 +86,21 @@ public class ResourceExceptions {
     @FormatMethod
     public static ExpectationFailed because(String message, Object... values) {
       return because(format(message, values));
+    }
+  }
+
+  public static final class MismatchedFileCoordinates extends ResourceException {
+    public MismatchedFileCoordinates(String message) {
+      super(message);
+    }
+
+    /** Prewritten error message for a file and resource. */
+    public static MismatchedFileCoordinates because(
+        String publicId, String[] supportedFileNumbers, String requestedFile) {
+      return new MismatchedFileCoordinates(
+          format(
+              "%s contains mismatched site coordinates: Expected(%s) Received(%s)",
+              publicId, Arrays.toString(supportedFileNumbers), requestedFile));
     }
   }
 

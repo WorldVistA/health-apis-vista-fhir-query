@@ -15,6 +15,7 @@ import gov.va.api.health.vistafhirquery.service.config.LinkProperties;
 import gov.va.api.health.vistafhirquery.service.controller.MockWitnessProtection;
 import gov.va.api.health.vistafhirquery.service.controller.R4BundlerFactory;
 import gov.va.api.health.vistafhirquery.service.controller.ResourceExceptions;
+import gov.va.api.health.vistafhirquery.service.controller.ResourceExceptions.MismatchedFileCoordinates;
 import gov.va.api.health.vistafhirquery.service.controller.ResourceExceptions.NotFound;
 import gov.va.api.health.vistafhirquery.service.controller.witnessprotection.AlternatePatientIds;
 import gov.va.api.lighthouse.charon.api.v1.RpcInvocationResultV1;
@@ -103,17 +104,17 @@ class R4SiteInsurancePlanControllerTest {
   }
 
   @Test
+  void readThrowsForWrongFile() {
+    witnessProtection.add("wrong1", "s1;wrong;ien1");
+    assertThatExceptionOfType(MismatchedFileCoordinates.class)
+        .isThrownBy(() -> _controller().insurancePlanRead("123", "wrong1"));
+  }
+
+  @Test
   void readThrowsNotFoundForBadId() {
     witnessProtection.add("nope1", "nope1");
     assertThatExceptionOfType(NotFound.class)
         .isThrownBy(() -> _controller().insurancePlanRead("123", "nope1"));
-  }
-
-  @Test
-  void readThrowsNotFoundForWrongFile() {
-    witnessProtection.add("wrong1", "s1;wrong;ien1");
-    assertThatExceptionOfType(NotFound.class)
-        .isThrownBy(() -> _controller().insurancePlanRead("123", "wrong1"));
   }
 
   @Test

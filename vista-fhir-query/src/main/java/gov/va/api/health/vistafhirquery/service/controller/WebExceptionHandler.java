@@ -22,6 +22,7 @@ import gov.va.api.health.r4.api.elements.Narrative;
 import gov.va.api.health.r4.api.resources.OperationOutcome;
 import gov.va.api.health.vistafhirquery.service.controller.ResourceExceptions.CannotUpdateResourceWithMismatchedIds;
 import gov.va.api.health.vistafhirquery.service.controller.ResourceExceptions.CannotUpdateUnknownResource;
+import gov.va.api.health.vistafhirquery.service.controller.ResourceExceptions.MismatchedFileCoordinates;
 import gov.va.api.health.vistafhirquery.service.mpifhirqueryclient.MpiFhirQueryClientExceptions.MpiFhirQueryRequestFailed;
 import java.lang.reflect.UndeclaredThrowableException;
 import java.time.Instant;
@@ -246,7 +247,11 @@ public final class WebExceptionHandler {
     return responseFor("not-allowed", e, request, emptyList(), true, null);
   }
 
-  @ExceptionHandler({HttpClientErrorException.NotFound.class, ResourceExceptions.NotFound.class})
+  @ExceptionHandler({
+    MismatchedFileCoordinates.class,
+    HttpClientErrorException.NotFound.class,
+    ResourceExceptions.NotFound.class
+  })
   @ResponseStatus(HttpStatus.NOT_FOUND)
   OperationOutcome handleNotFound(Exception e, HttpServletRequest request) {
     return responseFor("not-found", e, request, emptyList(), true, null);

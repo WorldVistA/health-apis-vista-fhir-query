@@ -66,7 +66,17 @@ public class OrganizationSamples {
   @NoArgsConstructor(staticName = "create")
   public static class VistaLhsLighthouseRpcGateway {
     public Set<WriteableFilemanValue> createApiInput() {
+      return createApiInput("1,8");
+    }
+
+    public Set<WriteableFilemanValue> createApiInput(String ien) {
       return Set.of(
+          WriteableFilemanValue.builder()
+              .file(InsuranceCompany.FILE_NUMBER)
+              .field("ien")
+              .index(1)
+              .value(ien)
+              .build(),
           insuranceCompanyValue(InsuranceCompany.NAME, "SHANKS OF FL"),
           insuranceCompanyValue(InsuranceCompany.CITY, "SHANK CITY"),
           insuranceCompanyValue(InsuranceCompany.STATE, "FLORIDA"),

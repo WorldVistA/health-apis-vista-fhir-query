@@ -4,8 +4,10 @@ import static gov.va.api.health.vistafhirquery.service.charonclient.CharonReques
 import static gov.va.api.health.vistafhirquery.service.charonclient.CharonRequests.lighthouseRpcGatewayResponse;
 import static gov.va.api.health.vistafhirquery.service.controller.R4Controllers.dieOnError;
 import static gov.va.api.health.vistafhirquery.service.controller.R4Controllers.updateResponseForCreatedResource;
+import static gov.va.api.health.vistafhirquery.service.controller.R4Controllers.updateResponseForUpdatedResource;
 import static gov.va.api.health.vistafhirquery.service.controller.R4Controllers.verifyAndGetResult;
 import static gov.va.api.health.vistafhirquery.service.controller.recordcontext.Validations.filesMatch;
+import static gov.va.api.health.vistafhirquery.service.controller.recordcontext.Validations.nonPatientRecordUpdateValidationRules;
 import static java.util.stream.Collectors.toList;
 import static org.apache.commons.lang3.StringUtils.isBlank;
 
@@ -19,6 +21,7 @@ import gov.va.api.health.vistafhirquery.service.controller.R4Bundling;
 import gov.va.api.health.vistafhirquery.service.controller.R4Transformation;
 import gov.va.api.health.vistafhirquery.service.controller.RecordCoordinates;
 import gov.va.api.health.vistafhirquery.service.controller.recordcontext.CreateNonPatientRecordWriteContext;
+import gov.va.api.health.vistafhirquery.service.controller.recordcontext.UpdateNonPatientRecordWriteContext;
 import gov.va.api.health.vistafhirquery.service.controller.recordcontext.WriteContext;
 import gov.va.api.health.vistafhirquery.service.controller.witnessprotection.WitnessProtection;
 import gov.va.api.lighthouse.charon.models.lhslighthouserpcgateway.InsuranceCompany;
@@ -42,6 +45,7 @@ import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -170,6 +174,30 @@ public class R4SiteOrganizationController implements R4OrganizationApi {
     var charonRequest = lighthouseRpcGatewayRequest(site, rpcRequest);
     var charonResponse = charon.request(charonRequest);
     return toBundle(httpRequest, site).apply(lighthouseRpcGatewayResponse(charonResponse));
+  }
+
+  @Override
+  @PutMapping(
+      value = "/site/{site}/r4/Organization/{id}",
+      consumes = {"application/json", "application/fhir+json"})
+  public void organizationUpdate(
+      @Redact HttpServletResponse response,
+      @PathVariable(value = "site") String site,
+      @PathVariable(value = "id") String id,
+      @Redact @RequestBody Organization body) {
+    var coordinates = witnessProtection.toRecordCoordinatesOrDie(id, Organization.class);
+    filesMatch(id, coordinates, InsuranceCompany.FILE_NUMBER);
+    var ctx =
+        UpdateNonPatientRecordWriteContext.<Organization>builder()
+            .fileNumber(InsuranceCompany.FILE_NUMBER)
+            .site(site)
+            .existingRecord(coordinates)
+            .existingRecordPublicId(id)
+            .body(body)
+            .build();
+    nonPatientRecordUpdateValidationRules().test(ctx);
+    updateOrCreate(ctx);
+    updateResponseForUpdatedResource(response, id);
   }
 
   private LhsLighthouseRpcGatewayCoverageWrite.Request organizationWriteDetails(
