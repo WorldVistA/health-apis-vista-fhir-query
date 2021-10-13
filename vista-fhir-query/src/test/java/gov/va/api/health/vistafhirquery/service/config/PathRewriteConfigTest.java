@@ -12,14 +12,17 @@ import org.springframework.boot.web.server.LocalServerPort;
     webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT,
     properties = {
       "metadata.statement-type=patient",
+      "spring.jpa.properties.hibernate.globally_quoted_identifiers=false",
       "spring.datasource.driver-class-name=org.h2.Driver",
-      "spring.datasource.url=jdbc:h2:mem:db;DB_CLOSE_DELAY=-1;INIT=CREATE SCHEMA app",
+      "spring.datasource.url=jdbc:h2:mem:db"
+          + ";DB_CLOSE_DELAY=-1"
+          + ";INIT=CREATE SCHEMA IF NOT EXISTS app;",
       "spring.datasource.username=sa",
       "spring.datasource.password=sa",
-      "spring.datasource.initialization-mode=always",
-      "spring.jpa.hibernate.ddl-auto=none",
+      "spring.datasource.initialization-mode=never",
+      "spring.jpa.hibernate.ddl-auto=update",
       "vista-fhir-query.public-web-exception-key=set",
-      "vista-fhir-query.rpc-principals.file=src/test/resources/principals.json",
+      "vista-fhir-query.rpc-principals.file=src/test/resources/principals.json"
     })
 public class PathRewriteConfigTest {
   @Autowired TestRestTemplate restTemplate;

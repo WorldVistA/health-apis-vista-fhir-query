@@ -7,6 +7,7 @@ import java.util.Objects;
 import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
+import javax.annotation.PostConstruct;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NonNull;
@@ -52,6 +53,7 @@ public class VitalVuidMapper {
   /**
    * Retrieve Vital VUID mappings from a database, map them to a reusable format, and cache them.
    */
+  @PostConstruct
   @Cacheable("vitalVuidMapping")
   public List<VitalVuidMapping> mappings() {
     List<VitalVuidMappingEntity> vitalVuidEntities =
