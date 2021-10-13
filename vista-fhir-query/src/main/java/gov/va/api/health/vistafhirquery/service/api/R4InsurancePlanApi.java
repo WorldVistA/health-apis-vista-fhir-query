@@ -221,7 +221,8 @@ public interface R4InsurancePlanApi {
               in = ParameterIn.QUERY,
               name = "identifier",
               required = true,
-              description = "An identifier of insurance plan to return results for.")
+              description = "An identifier of insurance plan to return results for.",
+              example = "GRP8675309")
           String identifier,
       @Parameter(
               in = ParameterIn.QUERY,

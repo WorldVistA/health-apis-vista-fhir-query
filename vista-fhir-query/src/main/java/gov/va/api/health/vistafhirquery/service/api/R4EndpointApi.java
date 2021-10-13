@@ -145,8 +145,7 @@ public interface R4EndpointApi {
               name = "_count",
               description =
                   "The number of resources that should be returned in a single page. "
-                      + "The maximum count size is 100.",
-              example = "100")
+                      + "The maximum count size is 100.")
           @DefaultValue("100")
           int count,
       @Parameter(
@@ -160,7 +159,6 @@ public interface R4EndpointApi {
       @Parameter(
               in = ParameterIn.QUERY,
               name = "status",
-              description = "The availability of the endpoint for use.",
-              example = "active")
+              description = "The availability of the endpoint for use.")
           String status);
 }
