@@ -19,7 +19,7 @@ public interface R4CoverageEligibilityResponseApi {
       summary = "CoverageEligibilityResponse Search",
       description = "http://hl7.org/fhir/R4/coverageeligibilityresponse.html",
       tags = {"CoverageEligibilityResponse"})
-  @Path("/site/{site}/CoverageEligibilityResponse")
+  @Path("/hcs/{site}/CoverageEligibilityResponse")
   @ApiResponse(
       responseCode = "200",
       description = "Record found",

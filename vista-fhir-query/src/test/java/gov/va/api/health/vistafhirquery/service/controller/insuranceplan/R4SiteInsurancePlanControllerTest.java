@@ -52,7 +52,7 @@ class R4SiteInsurancePlanControllerTest {
                         .defaultPageSize(15)
                         .maxPageSize(100)
                         .publicUrl("http://fugazi.com")
-                        .publicR4BasePath("site/{site}/r4")
+                        .publicR4BasePath("hcs/{site}/r4")
                         .build())
                 .alternatePatientIds(new AlternatePatientIds.DisabledAlternatePatientIds())
                 .build())
@@ -86,7 +86,7 @@ class R4SiteInsurancePlanControllerTest {
         .isEqualTo(LhsLighthouseRpcGatewayCoverageWrite.Request.CoverageWriteApi.CREATE);
     assertThat(response.getStatus()).isEqualTo(201);
     assertThat(response.getHeader(HttpHeaders.LOCATION))
-        .isEqualTo("http://fugazi.com/site/123/r4/InsurancePlan/pub1");
+        .isEqualTo("http://fugazi.com/hcs/123/r4/InsurancePlan/pub1");
   }
 
   @Test
@@ -140,12 +140,12 @@ class R4SiteInsurancePlanControllerTest {
     var actual = _controller().insurancePlanSearch(httpRequest, "123", "GRP123456", 1);
     var expected =
         InsurancePlanSamples.R4.asBundle(
-            "http://fugazi.com/site/123/r4",
+            "http://fugazi.com/hcs/123/r4",
             List.of(InsurancePlanSamples.R4.create().insurancePlan("123", "ien1")),
             1,
             link(
                 BundleLink.LinkRelation.self,
-                "http://fugazi.com/site/123/r4/InsurancePlan",
+                "http://fugazi.com/hcs/123/r4/InsurancePlan",
                 "identifier=GRP123456"));
     assertThat(captor.getValue().rpcRequest().file()).isEqualTo(GroupInsurancePlan.FILE_NUMBER);
     assertThat(json(actual)).isEqualTo(json(expected));
@@ -163,12 +163,12 @@ class R4SiteInsurancePlanControllerTest {
     var actual = _controller().insurancePlanSearch(httpRequest, "123", "GRP12345", 1);
     var expected =
         InsurancePlanSamples.R4.asBundle(
-            "http://fugazi.com/site/123/r4",
+            "http://fugazi.com/hcs/123/r4",
             Collections.emptyList(),
             0,
             link(
                 BundleLink.LinkRelation.self,
-                "http://fugazi.com/site/123/r4/InsurancePlan",
+                "http://fugazi.com/hcs/123/r4/InsurancePlan",
                 "identifier=GRP12345"));
     assertThat(captor.getValue().rpcRequest().file()).isEqualTo(GroupInsurancePlan.FILE_NUMBER);
     assertThat(json(actual)).isEqualTo(json(expected));

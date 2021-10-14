@@ -24,7 +24,7 @@ public interface R4OrganizationApi {
       description =
           "https://build.fhir.org/ig/HL7/US-Core-R4/StructureDefinition-us-core-organization.html",
       tags = {"Organization"})
-  @Path("/site/{site}/Organization")
+  @Path("/hcs/{site}/Organization")
   @ApiResponses({
     @ApiResponse(responseCode = "201", description = "Record created"),
     @ApiResponse(
@@ -93,7 +93,7 @@ public interface R4OrganizationApi {
           "https://build.fhir.org/ig/HL7/US-Core-R4/StructureDefinition-us-core-organization.html",
       tags = {"Organization"})
   @GET
-  @Path("/site/{site}/Organization/{id}")
+  @Path("/hcs/{site}/Organization/{id}")
   @ApiResponses({
     @ApiResponse(
         responseCode = "200",
@@ -163,7 +163,7 @@ public interface R4OrganizationApi {
           "https://build.fhir.org/ig/HL7/US-Core-R4/StructureDefinition-us-core-organization.html",
       tags = {"Organization"})
   @GET
-  @Path("/site/{site}/Organization")
+  @Path("/hcs/{site}/Organization")
   @ApiResponses({
     @ApiResponse(
         responseCode = "200",
@@ -237,7 +237,7 @@ public interface R4OrganizationApi {
       description =
           "https://build.fhir.org/ig/HL7/US-Core-R4/StructureDefinition-us-core-organization.html",
       tags = {"Organization"})
-  @Path("/site/{site}/Organization/{id}")
+  @Path("/hcs/{site}/Organization/{id}")
   @ApiResponses({
     @ApiResponse(responseCode = "200", description = "Record updated."),
     @ApiResponse(

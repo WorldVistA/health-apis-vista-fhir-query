@@ -23,7 +23,7 @@ public interface R4InsurancePlanApi {
       summary = "InsurancePlan Create",
       description = "https://www.hl7.org/fhir/insuranceplan.html",
       tags = {"InsurancePlan"})
-  @Path("/site/{site}/InsurancePlan")
+  @Path("/hcs/{site}/InsurancePlan")
   @ApiResponses({
     @ApiResponse(responseCode = "201", description = "Record created"),
     @ApiResponse(
@@ -91,7 +91,7 @@ public interface R4InsurancePlanApi {
       summary = "InsurancePlan Read",
       description = "https://www.hl7.org/fhir/insuranceplan.html",
       tags = {"InsurancePlan"})
-  @Path("/site/{site}/InsurancePlan/{id}")
+  @Path("/hcs/{site}/InsurancePlan/{id}")
   @ApiResponses({
     @ApiResponse(
         responseCode = "200",
@@ -161,7 +161,7 @@ public interface R4InsurancePlanApi {
       description = "https://www.hl7.org/fhir/insuranceplan.html",
       tags = {"InsurancePlan"})
   @GET
-  @Path("/site/{site}/InsurancePlan")
+  @Path("/hcs/{site}/InsurancePlan")
   @ApiResponses({
     @ApiResponse(
         responseCode = "200",
@@ -235,7 +235,7 @@ public interface R4InsurancePlanApi {
       summary = "InsurancePlan Update",
       description = "https://www.hl7.org/fhir/insuranceplan.html",
       tags = {"InsurancePlan"})
-  @Path("/site/{site}/InsurancePlan/{id}")
+  @Path("/hcs/{site}/InsurancePlan/{id}")
   @ApiResponses({
     @ApiResponse(responseCode = "200", description = "Record updated"),
     @ApiResponse(

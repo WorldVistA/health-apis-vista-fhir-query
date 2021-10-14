@@ -65,7 +65,11 @@ public class R4SiteCoverageEligibilityResponseController
 
   /** Search support. */
   @Override
-  @GetMapping("/site/{site}/r4/CoverageEligibilityResponse")
+  @GetMapping(
+      value = {
+        "/hcs/{site}/r4/CoverageEligibilityResponse",
+        "/site/{site}/r4/CoverageEligibilityResponse"
+      })
   public CoverageEligibilityResponse.Bundle coverageEligibilityResponseSearch(
       @Redact HttpServletRequest httpRequest,
       @NonNull @PathVariable(value = "site") String site,

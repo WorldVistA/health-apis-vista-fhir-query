@@ -11,8 +11,7 @@ public class VistaFhirQueryResourceVerifier {
 
   public static ResourceVerifier r4ForSite(String site) {
     return ResourceVerifier.builder()
-        .apiPath(
-            SystemDefinitions.systemDefinition().basePath().apiPath() + "site/" + site + "/r4/")
+        .apiPath(SystemDefinitions.systemDefinition().basePath().apiPath() + "hcs/" + site + "/r4/")
         .bundleClass(gov.va.api.health.r4.api.bundle.AbstractBundle.class)
         .testClient(TestClients.basePath())
         .operationOutcomeClass(gov.va.api.health.r4.api.resources.OperationOutcome.class)
