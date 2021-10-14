@@ -1,0 +1,118 @@
+package gov.va.api.health.vistafhirquery.service.controller.extensionprocessing;
+
+import static gov.va.api.health.vistafhirquery.service.controller.extensionprocessing.AbstractExtensionHandler.IsRequired.OPTIONAL;
+import static gov.va.api.health.vistafhirquery.service.controller.extensionprocessing.AbstractExtensionHandler.IsRequired.REQUIRED;
+import static gov.va.api.lighthouse.charon.models.lhslighthouserpcgateway.LhsLighthouseRpcGatewayCoverageWrite.WriteableFilemanValue;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
+
+import gov.va.api.health.r4.api.elements.Extension;
+import gov.va.api.health.vistafhirquery.service.controller.ResourceExceptions;
+import gov.va.api.health.vistafhirquery.service.controller.WriteableFilemanValueFactory;
+import java.util.ArrayList;
+import java.util.List;
+import lombok.Builder;
+import org.junit.jupiter.api.Test;
+
+public class R4ExtensionProcessorTest {
+  List<Extension> extensions() {
+    ArrayList<Extension> extensions = new ArrayList<>();
+    extensions.add(Extension.builder().url("TACOS").valueCode("MEXICAN").build());
+    extensions.add(Extension.builder().url("FRENCH TOAST").valueCode("FRENCH").build());
+    extensions.add(Extension.builder().url("SUSHI").valueCode("JAPANESE").build());
+    return extensions;
+  }
+
+  @Test
+  void process() {
+    R4ExtensionProcessor processor = processor();
+    assertThat(processor.process(extensions()))
+        .containsExactlyInAnyOrder(
+            WriteableFilemanValue.builder()
+                .file("FOODS")
+                .value("MEXICAN")
+                .index(1)
+                .field("#.LUNCH")
+                .build(),
+            WriteableFilemanValue.builder()
+                .file("FOODS")
+                .value("JAPANESE")
+                .index(1)
+                .field("#.DINNER")
+                .build(),
+            WriteableFilemanValue.builder()
+                .file("FOODS")
+                .value("FRENCH")
+                .index(1)
+                .field("#.BREAKFAST")
+                .build());
+  }
+
+  @Test
+  void processThrowsBadPayloadWhenDuplicateExtensionIsFound() {
+    var extensions = extensions();
+    extensions.add(Extension.builder().url("SUSHI").valueCode("JAPANESE").build());
+    assertThatExceptionOfType(ResourceExceptions.BadRequestPayload.class)
+        .isThrownBy(() -> processor().process(extensions));
+  }
+
+  @Test
+  void processThrowsBadPayloadWhenExtensionHasBadDefiningUrl() {
+    assertThatExceptionOfType(ResourceExceptions.BadRequestPayload.class)
+        .isThrownBy(() -> processor().process(Extension.builder().build().asList()));
+  }
+
+  @Test
+  void processThrowsBadPayloadWhenMissingRequiredExtension() {
+    var extensions = extensions();
+    extensions.remove(0);
+    assertThatExceptionOfType(ResourceExceptions.BadRequestPayload.class)
+        .isThrownBy(() -> processor().process(extensions));
+  }
+
+  @Test
+  void processThrowsBadPayloadWhenNoMatchingHandlerIsFound() {
+    assertThatExceptionOfType(ResourceExceptions.BadRequestPayload.class)
+        .isThrownBy(() -> processor().process(Extension.builder().url("DOENER").build().asList()));
+  }
+
+  private R4ExtensionProcessor processor() {
+    WriteableFilemanValueFactory filemanFactory = WriteableFilemanValueFactory.forFile("FOODS");
+    return R4ExtensionProcessor.of(
+        FugaziExtensionHandler.builder()
+            .filemanFactory(filemanFactory)
+            .definingUrl("TACOS")
+            .required(REQUIRED)
+            .fieldNumber("#.LUNCH")
+            .build(),
+        FugaziExtensionHandler.builder()
+            .filemanFactory(filemanFactory)
+            .definingUrl("FRENCH TOAST")
+            .required(OPTIONAL)
+            .fieldNumber("#.BREAKFAST")
+            .build(),
+        FugaziExtensionHandler.builder()
+            .filemanFactory(filemanFactory)
+            .definingUrl("SUSHI")
+            .required(REQUIRED)
+            .fieldNumber("#.DINNER")
+            .build());
+  }
+
+  static class FugaziExtensionHandler extends AbstractExtensionHandler {
+
+    @Builder
+    protected FugaziExtensionHandler(
+        String definingUrl,
+        IsRequired required,
+        String fieldNumber,
+        WriteableFilemanValueFactory filemanFactory) {
+      super(definingUrl, required, fieldNumber, filemanFactory);
+    }
+
+    @Override
+    public WriteableFilemanValue handle(Extension extension) {
+      return filemanFactory().forString(fieldNumber(), 1, extension.valueCode());
+    }
+  }
+}

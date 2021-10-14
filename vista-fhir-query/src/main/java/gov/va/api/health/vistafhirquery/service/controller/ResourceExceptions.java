@@ -14,7 +14,7 @@ import org.springframework.lang.Nullable;
 @SuppressWarnings("DoNotCallSuggester")
 public class ResourceExceptions {
 
-  public static final class BadRequestPayload extends ResourceException {
+  public static class BadRequestPayload extends ResourceException {
     public BadRequestPayload(String message) {
       super(message);
     }
@@ -25,6 +25,21 @@ public class ResourceExceptions {
 
     public static BadRequestPayload because(String vistaField, String reason) {
       return because(format("Could not populate vista field %s: %s", vistaField, reason));
+    }
+
+    public static final class BadExtension extends BadRequestPayload {
+
+      public BadExtension(String message) {
+        super(message);
+      }
+
+      public static BadExtension because(String message) {
+        return new BadExtension(message);
+      }
+
+      public static BadExtension because(String definingUrl, String reason) {
+        return new BadExtension(format("Could not process extension %s: %s", definingUrl, reason));
+      }
     }
   }
 

@@ -13,9 +13,13 @@ import gov.va.api.health.r4.api.datatypes.Quantity;
 import gov.va.api.health.r4.api.elements.Extension;
 import gov.va.api.health.r4.api.elements.Reference;
 import gov.va.api.health.r4.api.resources.Organization;
+import gov.va.api.health.vistafhirquery.service.controller.ExtensionProcessor;
 import gov.va.api.health.vistafhirquery.service.controller.RecordCoordinates;
 import gov.va.api.health.vistafhirquery.service.controller.ResourceExceptions.BadRequestPayload;
 import gov.va.api.health.vistafhirquery.service.controller.WriteableFilemanValueFactory;
+import gov.va.api.health.vistafhirquery.service.controller.extensionprocessing.AbstractExtensionHandler.IsRequired;
+import gov.va.api.health.vistafhirquery.service.controller.extensionprocessing.CodeableConceptExtensionHandler;
+import gov.va.api.health.vistafhirquery.service.controller.extensionprocessing.R4ExtensionProcessor;
 import gov.va.api.lighthouse.charon.models.lhslighthouserpcgateway.InsuranceCompany;
 import gov.va.api.lighthouse.charon.models.lhslighthouserpcgateway.LhsLighthouseRpcGatewayCoverageWrite.WriteableFilemanValue;
 import java.util.HashSet;
@@ -31,14 +35,116 @@ import lombok.Value;
 public class R4OrganizationToInsuranceCompanyFileTransformer {
   static final Map<Boolean, String> YES_NO = Map.of(true, "YES", false, "NO");
 
-  private static final WriteableFilemanValueFactory filemanValue =
+  private static final WriteableFilemanValueFactory filemanFactory =
       WriteableFilemanValueFactory.forFile(InsuranceCompany.FILE_NUMBER);
 
   @NonNull Organization organization;
 
+  ExtensionProcessor extensionProcessor =
+      R4ExtensionProcessor.of(
+          CodeableConceptExtensionHandler.forDefiningUrl(
+                  OrganizationStructureDefinitions.TYPE_OF_COVERAGE)
+              .filemanFactory(filemanFactory)
+              .fieldNumber(InsuranceCompany.TYPE_OF_COVERAGE)
+              .codingSystem(OrganizationStructureDefinitions.TYPE_OF_COVERAGE_URN_OID)
+              .required(IsRequired.REQUIRED)
+              .build());
+
   @Builder
   R4OrganizationToInsuranceCompanyFileTransformer(Organization organization) {
     this.organization = organization;
+  }
+
+  private void addRequiredFields(Set<WriteableFilemanValue> fields) {
+    fields.add(
+        insuranceCompanyCoordinatesOrDie(InsuranceCompany.NAME, 1, organization.name(), "name"));
+    fields.addAll(address());
+    fields.addAll(contacts());
+    fields.add(
+        contactPoint(
+            organization.telecom(),
+            InsuranceCompany.FAX_NUMBER,
+            "organization",
+            ContactPoint.ContactPointSystem.fax));
+    fields.add(
+        contactPoint(
+            organization.telecom(),
+            InsuranceCompany.PHONE_NUMBER,
+            "organization",
+            ContactPoint.ContactPointSystem.phone));
+    fields.addAll(standardFtf());
+    fields.add(
+        extensionCodeableConcept(
+            "type of coverage",
+            InsuranceCompany.TYPE_OF_COVERAGE,
+            OrganizationStructureDefinitions.TYPE_OF_COVERAGE,
+            OrganizationStructureDefinitions.TYPE_OF_COVERAGE_URN_OID));
+    fields.add(
+        extensionCodeableConcept(
+            "reimburse",
+            InsuranceCompany.REIMBURSE_,
+            OrganizationStructureDefinitions.WILL_REIMBURSE_FOR_CARE,
+            OrganizationStructureDefinitions.WILL_REIMBURSE_FOR_CARE_URN_OID));
+    fields.add(
+        extensionYesNoBoolean(
+            "signature required on bill",
+            InsuranceCompany.SIGNATURE_REQUIRED_ON_BILL_,
+            OrganizationStructureDefinitions.SIGNATURE_REQUIRED_ON_BILL));
+    fields.add(
+        extensionCodeableConcept(
+            "transmit electronically",
+            InsuranceCompany.TRANSMIT_ELECTRONICALLY,
+            OrganizationStructureDefinitions.ELECTRONIC_TRANSMISSION_MODE,
+            OrganizationStructureDefinitions.ELECTRONIC_TRANSMISSION_MODE_URN_OID));
+    fields.add(
+        extensionCodeableConcept(
+            "electronic insurance type",
+            InsuranceCompany.ELECTRONIC_INSURANCE_TYPE,
+            OrganizationStructureDefinitions.ELECTRONIC_INSURANCE_TYPE,
+            OrganizationStructureDefinitions.ELECTRONIC_INSURANCE_TYPE_URN_OID));
+    fields.add(
+        extensionCodeableConcept(
+            "ref prov sec id req on claims",
+            InsuranceCompany.REF_PROV_SEC_ID_REQ_ON_CLAIMS,
+            OrganizationStructureDefinitions.REFERRNG_PROVIDER_SECOND_IDTYPE_UB_04,
+            OrganizationStructureDefinitions.REFERRNG_PROVIDER_SECOND_IDTYPE_UB_04_URN_OID));
+    fields.add(
+        extensionYesNoBoolean(
+            "att/rend id bill sec id prof",
+            InsuranceCompany.ATT_REND_ID_BILL_SEC_ID_PROF,
+            OrganizationStructureDefinitions
+                .ATTENDING_RENDERING_PROVIDER_SECONDARY_IDPROFESIONAL_REQUIRED));
+    fields.add(
+        extensionYesNoBoolean(
+            "att rend id bill sec id inst",
+            InsuranceCompany.ATT_REND_ID_BILL_SEC_ID_INST,
+            OrganizationStructureDefinitions
+                .ATTENDING_RENDERING_PROVIDER_SECONDARY_IDINSTITUTIONAL_REQUIRED));
+    fields.add(
+        extensionYesNoBoolean(
+            "print sec tert auto claims",
+            InsuranceCompany.PRINT_SEC_TERT_AUTO_CLAIMS_,
+            OrganizationStructureDefinitions.PRINT_SEC_TERT_AUTO_CLAIMS_LOCALLY));
+    fields.add(
+        extensionYesNoBoolean(
+            "print sec med claims w/o mra",
+            InsuranceCompany.PRINT_SEC_MED_CLAIMS_W_O_MRA_,
+            OrganizationStructureDefinitions.PRINT_SEC_MED_CLAIMS_WOMRALOCALLY));
+    fields.add(
+        identifier(
+            "edi id number inst",
+            InsuranceCompany.EDI_ID_NUMBER_INST,
+            OrganizationStructureDefinitions.EDI_ID_NUMBER_INST_CODE));
+    fields.add(
+        identifier(
+            "edi id number prof",
+            InsuranceCompany.EDI_ID_NUMBER_PROF,
+            OrganizationStructureDefinitions.EDI_ID_NUMBER_PROF_CODE));
+    fields.add(
+        identifier(
+            "bin number",
+            InsuranceCompany.BIN_NUMBER,
+            OrganizationStructureDefinitions.BIN_NUMBER_CODE));
   }
 
   private Set<WriteableFilemanValue> address() {
@@ -321,99 +427,11 @@ public class R4OrganizationToInsuranceCompanyFileTransformer {
   /** Create a set of writeable fileman values. */
   public Set<WriteableFilemanValue> toInsuranceCompanyFile() {
     Set<WriteableFilemanValue> fields = new HashSet<>();
+    addRequiredFields(fields);
     Optional.ofNullable(organization().id())
         .map(RecordCoordinates::fromString)
-        .map(filemanValue.recordCoordinatesToPointer(InsuranceCompany.FILE_NUMBER, index(1)))
+        .map(filemanFactory.recordCoordinatesToPointer(InsuranceCompany.FILE_NUMBER, index(1)))
         .ifPresent(fields::add);
-    fields.add(
-        insuranceCompanyCoordinatesOrDie(InsuranceCompany.NAME, 1, organization.name(), "name"));
-    fields.addAll(address());
-    fields.addAll(contacts());
-    fields.add(
-        contactPoint(
-            organization.telecom(),
-            InsuranceCompany.FAX_NUMBER,
-            "organization",
-            ContactPoint.ContactPointSystem.fax));
-    fields.add(
-        extensionCodeableConcept(
-            "type of coverage",
-            InsuranceCompany.TYPE_OF_COVERAGE,
-            OrganizationStructureDefinitions.TYPE_OF_COVERAGE,
-            OrganizationStructureDefinitions.TYPE_OF_COVERAGE_URN_OID));
-    fields.add(
-        contactPoint(
-            organization.telecom(),
-            InsuranceCompany.PHONE_NUMBER,
-            "organization",
-            ContactPoint.ContactPointSystem.phone));
-    fields.addAll(standardFtf());
-    fields.add(
-        extensionCodeableConcept(
-            "reimburse",
-            InsuranceCompany.REIMBURSE_,
-            OrganizationStructureDefinitions.WILL_REIMBURSE_FOR_CARE,
-            OrganizationStructureDefinitions.WILL_REIMBURSE_FOR_CARE_URN_OID));
-    fields.add(
-        extensionYesNoBoolean(
-            "signature required on bill",
-            InsuranceCompany.SIGNATURE_REQUIRED_ON_BILL_,
-            OrganizationStructureDefinitions.SIGNATURE_REQUIRED_ON_BILL));
-    fields.add(
-        extensionCodeableConcept(
-            "transmit electronically",
-            InsuranceCompany.TRANSMIT_ELECTRONICALLY,
-            OrganizationStructureDefinitions.ELECTRONIC_TRANSMISSION_MODE,
-            OrganizationStructureDefinitions.ELECTRONIC_TRANSMISSION_MODE_URN_OID));
-    fields.add(
-        extensionCodeableConcept(
-            "electronic insurance type",
-            InsuranceCompany.ELECTRONIC_INSURANCE_TYPE,
-            OrganizationStructureDefinitions.ELECTRONIC_INSURANCE_TYPE,
-            OrganizationStructureDefinitions.ELECTRONIC_INSURANCE_TYPE_URN_OID));
-    fields.add(
-        extensionCodeableConcept(
-            "ref prov sec id req on claims",
-            InsuranceCompany.REF_PROV_SEC_ID_REQ_ON_CLAIMS,
-            OrganizationStructureDefinitions.REFERRNG_PROVIDER_SECOND_IDTYPE_UB_04,
-            OrganizationStructureDefinitions.REFERRNG_PROVIDER_SECOND_IDTYPE_UB_04_URN_OID));
-    fields.add(
-        extensionYesNoBoolean(
-            "att/rend id bill sec id prof",
-            InsuranceCompany.ATT_REND_ID_BILL_SEC_ID_PROF,
-            OrganizationStructureDefinitions
-                .ATTENDING_RENDERING_PROVIDER_SECONDARY_IDPROFESIONAL_REQUIRED));
-    fields.add(
-        extensionYesNoBoolean(
-            "att rend id bill sec id inst",
-            InsuranceCompany.ATT_REND_ID_BILL_SEC_ID_INST,
-            OrganizationStructureDefinitions
-                .ATTENDING_RENDERING_PROVIDER_SECONDARY_IDINSTITUTIONAL_REQUIRED));
-    fields.add(
-        extensionYesNoBoolean(
-            "print sec tert auto claims",
-            InsuranceCompany.PRINT_SEC_TERT_AUTO_CLAIMS_,
-            OrganizationStructureDefinitions.PRINT_SEC_TERT_AUTO_CLAIMS_LOCALLY));
-    fields.add(
-        extensionYesNoBoolean(
-            "print sec med claims w/o mra",
-            InsuranceCompany.PRINT_SEC_MED_CLAIMS_W_O_MRA_,
-            OrganizationStructureDefinitions.PRINT_SEC_MED_CLAIMS_WOMRALOCALLY));
-    fields.add(
-        identifier(
-            "edi id number inst",
-            InsuranceCompany.EDI_ID_NUMBER_INST,
-            OrganizationStructureDefinitions.EDI_ID_NUMBER_INST_CODE));
-    fields.add(
-        identifier(
-            "edi id number prof",
-            InsuranceCompany.EDI_ID_NUMBER_PROF,
-            OrganizationStructureDefinitions.EDI_ID_NUMBER_PROF_CODE));
-    fields.add(
-        identifier(
-            "bin number",
-            InsuranceCompany.BIN_NUMBER,
-            OrganizationStructureDefinitions.BIN_NUMBER_CODE));
     return fields;
   }
 

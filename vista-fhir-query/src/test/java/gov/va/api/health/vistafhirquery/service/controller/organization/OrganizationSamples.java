@@ -696,18 +696,7 @@ public class OrganizationSamples {
               .valueBoolean(Boolean.TRUE)
               .url(OrganizationStructureDefinitions.ANOTHER_COMPANY_PROCESSES_INPAT_CLAIMS)
               .build(),
-          Extension.builder()
-              .valueCodeableConcept(
-                  CodeableConcept.builder()
-                      .coding(
-                          Collections.singletonList(
-                              Coding.builder()
-                                  .code("HEALTH INSURANCE")
-                                  .system(OrganizationStructureDefinitions.TYPE_OF_COVERAGE_URN_OID)
-                                  .build()))
-                      .build())
-              .url(OrganizationStructureDefinitions.TYPE_OF_COVERAGE)
-              .build(),
+          typeOfCoverage(),
           Extension.builder()
               .valueBoolean(Boolean.TRUE)
               .url(OrganizationStructureDefinitions.ANOTHER_COMPANY_PROCESSES_APPEALS)
@@ -1046,6 +1035,21 @@ public class OrganizationSamples {
                   .display("Insurance Company")
                   .system("http://hl7.org/fhir/ValueSet/organization-type")
                   .build()));
+    }
+
+    public Extension typeOfCoverage() {
+      return Extension.builder()
+          .valueCodeableConcept(
+              CodeableConcept.builder()
+                  .coding(
+                      Collections.singletonList(
+                          Coding.builder()
+                              .code("HEALTH INSURANCE")
+                              .system(OrganizationStructureDefinitions.TYPE_OF_COVERAGE_URN_OID)
+                              .build()))
+                  .build())
+          .url(OrganizationStructureDefinitions.TYPE_OF_COVERAGE)
+          .build();
     }
 
     private Organization.Contact verificationContact() {
