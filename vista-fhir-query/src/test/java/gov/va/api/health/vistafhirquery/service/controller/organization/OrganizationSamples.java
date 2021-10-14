@@ -99,9 +99,9 @@ public class OrganizationSamples {
           insuranceCompanyValue(InsuranceCompany.STANDARD_FTF_VALUE, "365"),
           insuranceCompanyValue(InsuranceCompany.REIMBURSE_, "WILL REIMBURSE"),
           insuranceCompanyValue(InsuranceCompany.SIGNATURE_REQUIRED_ON_BILL_, "YES"),
-          insuranceCompanyValue(InsuranceCompany.TRANSMIT_ELECTRONICALLY, "2"),
-          insuranceCompanyValue(InsuranceCompany.ELECTRONIC_INSURANCE_TYPE, "OTHER"),
-          insuranceCompanyValue(InsuranceCompany.REF_PROV_SEC_ID_REQ_ON_CLAIMS, "REF PROV 04"),
+          insuranceCompanyValue(InsuranceCompany.TRANSMIT_ELECTRONICALLY, "YES-TEST"),
+          insuranceCompanyValue(InsuranceCompany.ELECTRONIC_INSURANCE_TYPE, "GROUP POLICY"),
+          insuranceCompanyValue(InsuranceCompany.REF_PROV_SEC_ID_REQ_ON_CLAIMS, "NONE"),
           insuranceCompanyValue(InsuranceCompany.ATT_REND_ID_BILL_SEC_ID_PROF, "YES"),
           insuranceCompanyValue(InsuranceCompany.ATT_REND_ID_BILL_SEC_ID_INST, "YES"),
           insuranceCompanyValue(InsuranceCompany.PRINT_SEC_TERT_AUTO_CLAIMS_, "YES"),
@@ -332,9 +332,7 @@ public class OrganizationSamples {
           LhsLighthouseRpcGatewayResponse.Values.of(
               "FILING SHANKTOTIME FRAME: EX", "FILING SHANKTOTIME FRAME"));
       fields.put("#.128", LhsLighthouseRpcGatewayResponse.Values.of("TRUE", "1"));
-      fields.put(
-          "#.13",
-          LhsLighthouseRpcGatewayResponse.Values.of("HEALTH INSURANCE", "HEALTH INSURANCE"));
+      fields.put("#.13", LhsLighthouseRpcGatewayResponse.Values.of("HEALTH INSURANCE", "1"));
       fields.put("#.148", LhsLighthouseRpcGatewayResponse.Values.of("TRUE", "1"));
       fields.put(
           "#.15",
@@ -347,12 +345,10 @@ public class OrganizationSamples {
       fields.put("#.198", LhsLighthouseRpcGatewayResponse.Values.of("TRUE", "1"));
       fields.put("#.18", LhsLighthouseRpcGatewayResponse.Values.of("DAYS", "DAYS"));
       fields.put("#.19", LhsLighthouseRpcGatewayResponse.Values.of("365", "365"));
-      fields.put(
-          "#1",
-          LhsLighthouseRpcGatewayResponse.Values.of("SHANK REIMBURSE: EXT", "WILL REIMBURSE"));
+      fields.put("#1", LhsLighthouseRpcGatewayResponse.Values.of("WILL REIMBURSE", "Y"));
       fields.put("#2", LhsLighthouseRpcGatewayResponse.Values.of("TRUE", "1"));
-      fields.put("#3.01", LhsLighthouseRpcGatewayResponse.Values.of("2", "2"));
-      fields.put("#3.09", LhsLighthouseRpcGatewayResponse.Values.of("OTHER", "OTHER"));
+      fields.put("#3.01", LhsLighthouseRpcGatewayResponse.Values.of("YES-TEST", "2"));
+      fields.put("#3.09", LhsLighthouseRpcGatewayResponse.Values.of("GROUP POLICY", "5"));
       fields.put(
           "#3.1", LhsLighthouseRpcGatewayResponse.Values.of("SHANK PAYER: EXT", "SHANK PAYER"));
       fields.put(
@@ -362,7 +358,7 @@ public class OrganizationSamples {
       fields.put(
           "#4.04",
           LhsLighthouseRpcGatewayResponse.Values.of("REF PROV CMS 1500", "REF PROV CMS 1500"));
-      fields.put("#4.05", LhsLighthouseRpcGatewayResponse.Values.of("REF PROV 04", "REF PROV 04"));
+      fields.put("#4.05", LhsLighthouseRpcGatewayResponse.Values.of("NONE", "0"));
       fields.put("#4.06", LhsLighthouseRpcGatewayResponse.Values.of("TRUE", "1"));
       fields.put("#4.08", LhsLighthouseRpcGatewayResponse.Values.of("TRUE", "1"));
       fields.put("#6.09", LhsLighthouseRpcGatewayResponse.Values.of("TRUE", "1"));
@@ -788,7 +784,7 @@ public class OrganizationSamples {
                                   .system(
                                       OrganizationStructureDefinitions
                                           .ELECTRONIC_TRANSMISSION_MODE_URN_OID)
-                                  .code("2")
+                                  .code("YES-TEST")
                                   .build()))
                       .build())
               .build(),
@@ -799,7 +795,7 @@ public class OrganizationSamples {
                       .coding(
                           Collections.singletonList(
                               Coding.builder()
-                                  .code("OTHER")
+                                  .code("GROUP POLICY")
                                   .system(
                                       OrganizationStructureDefinitions
                                           .ELECTRONIC_INSURANCE_TYPE_URN_OID)
@@ -870,7 +866,7 @@ public class OrganizationSamples {
                       .coding(
                           Collections.singletonList(
                               Coding.builder()
-                                  .code("REF PROV 04")
+                                  .code("NONE")
                                   .system(
                                       OrganizationStructureDefinitions
                                           .REFERRNG_PROVIDER_SECOND_IDTYPE_UB_04_URN_OID)

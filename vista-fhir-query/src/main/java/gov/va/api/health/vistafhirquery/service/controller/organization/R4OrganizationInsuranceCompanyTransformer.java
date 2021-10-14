@@ -339,7 +339,7 @@ public class R4OrganizationInsuranceCompanyTransformer {
             extensions.ofYesNoBoolean(
                 InsuranceCompany.ONE_OPT_VISIT_ON_BILL_ONLY,
                 OrganizationStructureDefinitions.ONE_OUTPAT_VISIT_ON_BILL_ONLY),
-            extensions.ofCodeableConcept(
+            extensions.ofCodeableConceptFromInternalValue(
                 InsuranceCompany.AMBULATORY_SURG_REV_CODE,
                 OrganizationStructureDefinitions.AMBULATORY_SURGERY_REVENUE_CODE_URN_OID,
                 OrganizationStructureDefinitions.AMBULATORY_SURGERY_REVENUE_CODE),
@@ -349,14 +349,14 @@ public class R4OrganizationInsuranceCompanyTransformer {
             extensions.ofYesNoBoolean(
                 InsuranceCompany.ANOTHER_CO_PROCESS_IP_CLAIMS_,
                 OrganizationStructureDefinitions.ANOTHER_COMPANY_PROCESSES_INPAT_CLAIMS),
-            extensions.ofCodeableConcept(
+            extensions.ofCodeableConceptFromExternalValue(
                 InsuranceCompany.TYPE_OF_COVERAGE,
                 OrganizationStructureDefinitions.TYPE_OF_COVERAGE_URN_OID,
                 OrganizationStructureDefinitions.TYPE_OF_COVERAGE),
             extensions.ofYesNoBoolean(
                 InsuranceCompany.ANOTHER_CO_PROCESS_APPEALS_,
                 OrganizationStructureDefinitions.ANOTHER_COMPANY_PROCESSES_APPEALS),
-            extensions.ofCodeableConcept(
+            extensions.ofCodeableConceptFromInternalValue(
                 InsuranceCompany.PRESCRIPTION_REFILL_REV_CODE,
                 OrganizationStructureDefinitions.PRESCRIPTION_REVENUE_CODE_URN_OID,
                 OrganizationStructureDefinitions.PRESCRIPTION_REVENUE_CODE),
@@ -380,36 +380,36 @@ public class R4OrganizationInsuranceCompanyTransformer {
                 entry.external(InsuranceCompany.STANDARD_FTF).orElse(null),
                 OrganizationStructureDefinitions.PLAN_STANDARD_FILING_TIME_FRAME_URN_OID,
                 OrganizationStructureDefinitions.PLAN_STANDARD_FILING_TIME_FRAME),
-            extensions.ofCodeableConcept(
+            extensions.ofCodeableConceptFromExternalValue(
                 InsuranceCompany.REIMBURSE_,
                 OrganizationStructureDefinitions.WILL_REIMBURSE_FOR_CARE_URN_OID,
                 OrganizationStructureDefinitions.WILL_REIMBURSE_FOR_CARE),
             extensions.ofYesNoBoolean(
                 InsuranceCompany.SIGNATURE_REQUIRED_ON_BILL_,
                 OrganizationStructureDefinitions.SIGNATURE_REQUIRED_ON_BILL),
-            extensions.ofCodeableConcept(
+            extensions.ofCodeableConceptFromExternalValue(
                 InsuranceCompany.TRANSMIT_ELECTRONICALLY,
                 OrganizationStructureDefinitions.ELECTRONIC_TRANSMISSION_MODE_URN_OID,
                 OrganizationStructureDefinitions.ELECTRONIC_TRANSMISSION_MODE),
-            extensions.ofCodeableConcept(
+            extensions.ofCodeableConceptFromExternalValue(
                 InsuranceCompany.ELECTRONIC_INSURANCE_TYPE,
                 OrganizationStructureDefinitions.ELECTRONIC_INSURANCE_TYPE_URN_OID,
                 OrganizationStructureDefinitions.ELECTRONIC_INSURANCE_TYPE),
             extensions.ofReference(
                 "Organization", payerId(entry), OrganizationStructureDefinitions.VIA_INTERMEDIARY),
-            extensions.ofCodeableConcept(
+            extensions.ofCodeableConceptFromInternalValue(
                 InsuranceCompany.PERF_PROV_SECOND_ID_TYPE_1500,
                 OrganizationStructureDefinitions.PERFORMING_PROVIDER_SECOND_IDTYPE_CMS_1500_URN_OID,
                 OrganizationStructureDefinitions.PERFORMING_PROVIDER_SECOND_IDTYPE_CMS_1500),
-            extensions.ofCodeableConcept(
+            extensions.ofCodeableConceptFromInternalValue(
                 InsuranceCompany.PERF_PROV_SECOND_ID_TYPE_UB,
                 OrganizationStructureDefinitions.PERFORMING_PROVIDER_SECOND_IDTYPE_UB_04_URN_OID,
                 OrganizationStructureDefinitions.PERFORMING_PROVIDER_SECOND_IDTYPE_UB_04),
-            extensions.ofCodeableConcept(
+            extensions.ofCodeableConceptFromInternalValue(
                 InsuranceCompany.REF_PROV_SEC_ID_DEF_CMS_1500,
                 OrganizationStructureDefinitions.REFERRNG_PROVIDER_SECOND_IDTYPE_CMS_1500_URN_OID,
                 OrganizationStructureDefinitions.REFERRNG_PROVIDER_SECOND_IDTYPE_CMS_1500),
-            extensions.ofCodeableConcept(
+            extensions.ofCodeableConceptFromExternalValue(
                 InsuranceCompany.REF_PROV_SEC_ID_REQ_ON_CLAIMS,
                 OrganizationStructureDefinitions.REFERRNG_PROVIDER_SECOND_IDTYPE_UB_04_URN_OID,
                 OrganizationStructureDefinitions.REFERRNG_PROVIDER_SECOND_IDTYPE_UB_04),

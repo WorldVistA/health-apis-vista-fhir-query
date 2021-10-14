@@ -1,7 +1,7 @@
 package gov.va.api.health.vistafhirquery.service.controller;
 
-import static java.util.Collections.singletonList;
 import static org.apache.commons.lang3.StringUtils.isAnyBlank;
+import static org.apache.commons.lang3.StringUtils.isBlank;
 
 import gov.va.api.health.r4.api.datatypes.CodeableConcept;
 import gov.va.api.health.r4.api.datatypes.Coding;
@@ -19,19 +19,39 @@ public class ExtensionFactory {
 
   Map<String, Boolean> yesNo;
 
-  /** Creates a valueCodeableConcept extension. */
-  public Extension ofCodeableConcept(String fieldNumber, String system, String url) {
-    var value = entry.internal(fieldNumber);
-    if (value.isEmpty()) {
-      return null;
-    }
+  /** Builds an extension with a valueCodeableConcept. */
+  private Extension buildExtensionWithCodeableConcept(String value, String system, String url) {
     return Extension.builder()
         .valueCodeableConcept(
             CodeableConcept.builder()
-                .coding(singletonList(Coding.builder().code(value.get()).system(system).build()))
+                .coding(Coding.builder().code(value).system(system).build().asList())
                 .build())
         .url(url)
         .build();
+  }
+
+  /** Creates a valueCodeableConcept extension with an external value. */
+  public Extension ofCodeableConceptFromExternalValue(
+      String fieldNumber, String system, String url) {
+    if (isBlank(fieldNumber)) {
+      return null;
+    }
+    return entry
+        .external(fieldNumber)
+        .map(value -> buildExtensionWithCodeableConcept(value, system, url))
+        .orElse(null);
+  }
+
+  /** Creates a valueCodeableConcept extension with an internal value. */
+  public Extension ofCodeableConceptFromInternalValue(
+      String fieldNumber, String system, String url) {
+    if (isBlank(fieldNumber)) {
+      return null;
+    }
+    return entry
+        .internal(fieldNumber)
+        .map(value -> buildExtensionWithCodeableConcept(value, system, url))
+        .orElse(null);
   }
 
   /** Creates a valueQuantity extension. */
