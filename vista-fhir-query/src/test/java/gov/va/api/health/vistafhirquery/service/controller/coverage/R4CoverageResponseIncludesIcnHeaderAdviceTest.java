@@ -42,7 +42,7 @@ public class R4CoverageResponseIncludesIcnHeaderAdviceTest {
             any(HttpServletRequest.class), eq("123"), eq("p1"), eq(1), eq(15)))
         .thenReturn(Coverage.Bundle.builder().entry(List.of()).build());
     mockMvc
-        .perform(get("/site/123/r4/Coverage?patient=p1&page=1&_count=15"))
+        .perform(get("/hcs/123/r4/Coverage?patient=p1&page=1&_count=15"))
         .andExpect(MockMvcResultMatchers.header().string("X-VA-INCLUDES-ICN", "NONE"));
   }
 
@@ -61,7 +61,7 @@ public class R4CoverageResponseIncludesIcnHeaderAdviceTest {
                 .build());
     when(alternatePatientIds.toPublicId(eq("p1"))).thenReturn("p1");
     mockMvc
-        .perform(get("/site/123/r4/Coverage?patient=p1&page=1&_count=15"))
+        .perform(get("/hcs/123/r4/Coverage?patient=p1&page=1&_count=15"))
         .andExpect(MockMvcResultMatchers.header().string("X-VA-INCLUDES-ICN", "p1"));
   }
 
@@ -80,7 +80,7 @@ public class R4CoverageResponseIncludesIcnHeaderAdviceTest {
                 .build());
     when(alternatePatientIds.toPublicId(eq("p1"))).thenReturn("p99");
     mockMvc
-        .perform(get("/site/123/r4/Coverage?patient=p1&page=1&_count=15"))
+        .perform(get("/hcs/123/r4/Coverage?patient=p1&page=1&_count=15"))
         .andExpect(MockMvcResultMatchers.header().string("X-VA-INCLUDES-ICN", "p99"));
   }
 }

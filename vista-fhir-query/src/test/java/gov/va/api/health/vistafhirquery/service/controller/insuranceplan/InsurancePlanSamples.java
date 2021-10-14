@@ -41,7 +41,7 @@ public class InsurancePlanSamples {
   public static LinkProperties linkProperties() {
     return LinkProperties.builder()
         .publicUrl("http://fugazi.com")
-        .publicR4BasePath("site/{site}/r4")
+        .publicR4BasePath("hcs/{site}/r4")
         .defaultPageSize(10)
         .maxPageSize(100)
         .build();

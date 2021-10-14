@@ -35,6 +35,8 @@ public class AlternatePatientIdConfig {
     registration.addUrlPatterns(
         "/r4/*",
         PathRewriteConfig.leadingPath() + "r4/*",
+        "/hcs/*",
+        PathRewriteConfig.leadingPath() + "hcs/*",
         "/site/*",
         PathRewriteConfig.leadingPath() + "site/*");
     return registration;

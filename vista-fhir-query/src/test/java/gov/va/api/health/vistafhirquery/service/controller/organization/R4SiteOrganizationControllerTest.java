@@ -51,7 +51,7 @@ class R4SiteOrganizationControllerTest {
                         .defaultPageSize(15)
                         .maxPageSize(100)
                         .publicUrl("http://fugazi.com")
-                        .publicR4BasePath("site/{site}/r4")
+                        .publicR4BasePath("hcs/{site}/r4")
                         .build())
                 .alternatePatientIds(new AlternatePatientIds.DisabledAlternatePatientIds())
                 .build())
@@ -85,7 +85,7 @@ class R4SiteOrganizationControllerTest {
         .isEqualTo(LhsLighthouseRpcGatewayCoverageWrite.Request.CoverageWriteApi.CREATE);
     assertThat(response.getStatus()).isEqualTo(201);
     assertThat(response.getHeader("Location"))
-        .isEqualTo("http://fugazi.com/site/123/r4/Organization/pub1");
+        .isEqualTo("http://fugazi.com/hcs/123/r4/Organization/pub1");
   }
 
   @Test
@@ -155,12 +155,12 @@ class R4SiteOrganizationControllerTest {
     var actual = _controller().organizationSearch(httpRequest, "123", "ins", 10);
     var expected =
         OrganizationSamples.R4.asBundle(
-            "http://fugazi.com/site/123/r4",
+            "http://fugazi.com/hcs/123/r4",
             List.of(OrganizationSamples.R4.create().organization("123", "ien1")),
             1,
             link(
                 BundleLink.LinkRelation.self,
-                "http://fugazi.com/site/123/r4/Organization",
+                "http://fugazi.com/hcs/123/r4/Organization",
                 "_count=10&type=ins"));
     assertThat(captor.getValue().rpcRequest().file()).isEqualTo(InsuranceCompany.FILE_NUMBER);
     assertThat(json(actual)).isEqualTo(json(expected));
@@ -175,12 +175,12 @@ class R4SiteOrganizationControllerTest {
     var actual = _controller().organizationSearch(httpRequest, "123", "NOPE", 10);
     var expected =
         OrganizationSamples.R4.asBundle(
-            "http://fugazi.com/site/123/r4",
+            "http://fugazi.com/hcs/123/r4",
             emptyList(),
             0,
             link(
                 BundleLink.LinkRelation.self,
-                "http://fugazi.com/site/123/r4/Organization",
+                "http://fugazi.com/hcs/123/r4/Organization",
                 "_count=10" + typeParam));
     assertThat(json(actual)).isEqualTo(json(expected));
   }
@@ -197,12 +197,12 @@ class R4SiteOrganizationControllerTest {
     var actual = _controller().organizationSearch(httpRequest, "123", "pay", 10);
     var expected =
         OrganizationSamples.R4.asBundle(
-            "http://fugazi.com/site/123/r4",
+            "http://fugazi.com/hcs/123/r4",
             List.of(OrganizationPayerSamples.R4.create().organization("123", "ien1")),
             1,
             link(
                 BundleLink.LinkRelation.self,
-                "http://fugazi.com/site/123/r4/Organization",
+                "http://fugazi.com/hcs/123/r4/Organization",
                 "_count=10&type=pay"));
     assertThat(captor.getValue().rpcRequest().file()).isEqualTo(Payer.FILE_NUMBER);
     assertThat(json(actual)).isEqualTo(json(expected));

@@ -26,7 +26,7 @@ public class R4InsurancePlanResponseIncludesIcnHeaderAdviceTest {
     when(controller.insurancePlanRead("123", "o1"))
         .thenReturn(InsurancePlan.builder().id("123").build());
     mockMvc
-        .perform(get("/site/123/r4/InsurancePlan/o1"))
+        .perform(get("/hcs/123/r4/InsurancePlan/o1"))
         .andExpect(MockMvcResultMatchers.header().string("X-VA-INCLUDES-ICN", "NONE"));
   }
 

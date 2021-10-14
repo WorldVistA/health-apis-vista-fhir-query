@@ -27,13 +27,13 @@ class LinkPropertiesTest {
             Immunization.builder().id("i1").build(), "http://also-custom.com/bar/Immunization/i1"),
         arguments(
             Condition.builder().id("c1").meta(Meta.builder().source("123").build()).build(),
-            "http://default.com/site/123/r4/Condition/c1"));
+            "http://default.com/hcs/123/r4/Condition/c1"));
   }
 
   Links _links() {
     return LinkProperties.builder()
         .publicUrl("http://default.com")
-        .publicR4BasePath("site/{site}/r4")
+        .publicR4BasePath("hcs/{site}/r4")
         .customR4UrlAndPath(
             Map.of(
                 "Patient", "http://custom.com/foo",

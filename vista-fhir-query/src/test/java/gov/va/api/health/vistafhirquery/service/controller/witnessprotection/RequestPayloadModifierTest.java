@@ -33,11 +33,11 @@ class RequestPayloadModifierTest {
 
   static Stream<Arguments> modificationsAppliedWhenPostOrPutToSiteSpecificRequestUri() {
     return Stream.of(
-        arguments("POST", "/site/123/r4/Coverage/999", _coverageWithoutMeta()),
-        arguments("PUT", "/foo/site/123/r4/Coverage/999", _coverageWithEmptyMeta()),
-        arguments("POST", "/foo/bar/site/123/r4/Coverage", _coverageWithMetaSource("")),
-        arguments("PUT", "/site/123/r4/Coverage", _coverageWithMetaSource("666")),
-        arguments("POST", "/site/site/123/r4/Coverage", _coverageWithMetaSource("123")));
+        arguments("POST", "/hcs/123/r4/Coverage/999", _coverageWithoutMeta()),
+        arguments("PUT", "/foo/hcs/123/r4/Coverage/999", _coverageWithEmptyMeta()),
+        arguments("POST", "/foo/bar/hcs/123/r4/Coverage", _coverageWithMetaSource("")),
+        arguments("PUT", "/hcs/123/r4/Coverage", _coverageWithMetaSource("666")),
+        arguments("POST", "/hcs/123/r4/Coverage", _coverageWithMetaSource("123")));
   }
 
   private MockHttpServletRequest _request(String method, String uri) {
@@ -66,14 +66,14 @@ class RequestPayloadModifierTest {
     var payload = _coverageWithoutMeta();
     RequestPayloadModifier.forPayload(payload)
         .addMeta(payload::meta)
-        .request(_request(method, "/site/123/r4/Coverage"))
+        .request(_request(method, "/hcs/123/r4/Coverage"))
         .build()
         .applyModifications();
     assertThat(payload.meta()).isNull();
   }
 
   @ParameterizedTest
-  @ValueSource(strings = {"", "/r4/Coverage", "/nope/123/r4/Coverage", "/site/123"})
+  @ValueSource(strings = {"", "/r4/Coverage", "/nope/123/r4/Coverage", "/hcs/123"})
   @NullSource
   void modificationsNotAppliedWhenNotSiteSpecificRequestUri(String uri) {
     var payload = _coverageWithoutMeta();

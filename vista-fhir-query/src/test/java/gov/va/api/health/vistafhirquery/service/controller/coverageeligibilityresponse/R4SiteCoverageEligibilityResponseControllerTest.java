@@ -42,7 +42,7 @@ public class R4SiteCoverageEligibilityResponseControllerTest {
                         .defaultPageSize(15)
                         .maxPageSize(100)
                         .publicUrl("http://fugazi.com")
-                        .publicR4BasePath("site/{site}/r4")
+                        .publicR4BasePath("hcs/{site}/r4")
                         .build())
                 .alternatePatientIds(new AlternatePatientIds.DisabledAlternatePatientIds())
                 .build())
@@ -111,12 +111,12 @@ public class R4SiteCoverageEligibilityResponseControllerTest {
     var actual = _controller().coverageEligibilityResponseSearch(httpRequest, "123", "p1", 15);
     var expected =
         CoverageEligibilityResponseSamples.R4.asBundle(
-            "http://fugazi.com/site/123/r4",
+            "http://fugazi.com/hcs/123/r4",
             List.of(CoverageEligibilityResponseSamples.R4.create().coverageEligibilityResponse()),
             1,
             link(
                 BundleLink.LinkRelation.self,
-                "http://fugazi.com/site/123/r4/CoverageEligibilityResponse",
+                "http://fugazi.com/hcs/123/r4/CoverageEligibilityResponse",
                 "_count=15&patient=p1"));
     actual.entry().forEach(e -> e.resource().created("ignored"));
     assertThat(json(actual)).isEqualTo(json(expected));

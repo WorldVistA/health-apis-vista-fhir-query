@@ -53,7 +53,7 @@ public class R4SiteCoverageControllerTest {
                         .defaultPageSize(15)
                         .maxPageSize(100)
                         .publicUrl("http://fugazi.com")
-                        .publicR4BasePath("site/{site}/r4")
+                        .publicR4BasePath("hcs/{site}/r4")
                         .build())
                 .alternatePatientIds(new AlternatePatientIds.DisabledAlternatePatientIds())
                 .build())
@@ -86,7 +86,7 @@ public class R4SiteCoverageControllerTest {
     assertThat(captor.getValue().rpcRequest().api()).isEqualTo(CoverageWriteApi.CREATE);
     assertThat(response.getStatus()).isEqualTo(201);
     assertThat(response.getHeader("Location"))
-        .isEqualTo("http://fugazi.com/site/123/r4/Coverage/public-ip1");
+        .isEqualTo("http://fugazi.com/hcs/123/r4/Coverage/public-ip1");
   }
 
   @Test
@@ -117,12 +117,12 @@ public class R4SiteCoverageControllerTest {
     var actual = _controller().coverageSearch(httpRequest, "123", "p1", 1, 10);
     var expected =
         CoverageSamples.R4.asBundle(
-            "http://fugazi.com/site/123/r4",
+            "http://fugazi.com/hcs/123/r4",
             List.of(CoverageSamples.R4.create().coverage("123", "1,8,", "p1")),
             1,
             link(
                 BundleLink.LinkRelation.self,
-                "http://fugazi.com/site/123/r4/Coverage",
+                "http://fugazi.com/hcs/123/r4/Coverage",
                 "_count=10&patient=p1"));
     assertThat(json(actual)).isEqualTo(json(expected));
   }
@@ -138,12 +138,12 @@ public class R4SiteCoverageControllerTest {
     var actual = _controller().coverageSearch(httpRequest, "123", "p1", 1, 10);
     var expected =
         CoverageSamples.R4.asBundle(
-            "http://fugazi.com/site/123/r4",
+            "http://fugazi.com/hcs/123/r4",
             List.of(),
             0,
             link(
                 BundleLink.LinkRelation.self,
-                "http://fugazi.com/site/123/r4/Coverage",
+                "http://fugazi.com/hcs/123/r4/Coverage",
                 "page=1&_count=10&patient=p1"));
     assertThat(json(actual)).isEqualTo(json(expected));
   }
