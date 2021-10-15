@@ -22,7 +22,7 @@ public interface R4OrganizationApi {
   @Operation(
       summary = "Organization Create",
       description =
-          "https://build.fhir.org/ig/HL7/US-Core-R4/StructureDefinition-us-core-organization.html",
+          "https://hl7.org/fhir/us/core/STU4/StructureDefinition-us-core-organization.html",
       tags = {"Organization"})
   @Path("/hcs/{site}/Organization")
   @ApiResponses({
@@ -90,7 +90,7 @@ public interface R4OrganizationApi {
   @Operation(
       summary = "Organization Read",
       description =
-          "https://build.fhir.org/ig/HL7/US-Core-R4/StructureDefinition-us-core-organization.html",
+          "https://hl7.org/fhir/us/core/STU4/StructureDefinition-us-core-organization.html",
       tags = {"Organization"})
   @GET
   @Path("/hcs/{site}/Organization/{id}")
@@ -160,7 +160,7 @@ public interface R4OrganizationApi {
   @Operation(
       summary = "Organization Search",
       description =
-          "https://build.fhir.org/ig/HL7/US-Core-R4/StructureDefinition-us-core-organization.html",
+          "https://hl7.org/fhir/us/core/STU4/StructureDefinition-us-core-organization.html",
       tags = {"Organization"})
   @GET
   @Path("/hcs/{site}/Organization")
@@ -235,7 +235,7 @@ public interface R4OrganizationApi {
   @Operation(
       summary = "Organization Update",
       description =
-          "https://build.fhir.org/ig/HL7/US-Core-R4/StructureDefinition-us-core-organization.html",
+          "https://hl7.org/fhir/us/core/STU4/StructureDefinition-us-core-organization.html",
       tags = {"Organization"})
   @Path("/hcs/{site}/Organization/{id}")
   @ApiResponses({
