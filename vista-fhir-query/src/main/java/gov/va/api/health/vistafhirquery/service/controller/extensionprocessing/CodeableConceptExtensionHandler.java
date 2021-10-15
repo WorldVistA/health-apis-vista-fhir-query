@@ -19,11 +19,11 @@ public class CodeableConceptExtensionHandler extends AbstractExtensionHandler {
 
   @Builder
   public CodeableConceptExtensionHandler(
-      WriteableFilemanValueFactory filemanFactory,
-      String definingUrl,
-      IsRequired required,
-      String fieldNumber,
-      String codingSystem) {
+      @NonNull WriteableFilemanValueFactory filemanFactory,
+      @NonNull String definingUrl,
+      @NonNull IsRequired required,
+      @NonNull String fieldNumber,
+      @NonNull String codingSystem) {
     super(definingUrl, required, fieldNumber, filemanFactory);
     this.codingSystem = codingSystem;
   }

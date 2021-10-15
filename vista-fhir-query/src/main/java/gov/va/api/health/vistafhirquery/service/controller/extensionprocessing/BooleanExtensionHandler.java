@@ -18,10 +18,10 @@ public class BooleanExtensionHandler extends AbstractExtensionHandler {
 
   @Builder
   public BooleanExtensionHandler(
-      WriteableFilemanValueFactory filemanFactory,
-      String definingUrl,
-      IsRequired required,
-      String fieldNumber,
+      @NonNull WriteableFilemanValueFactory filemanFactory,
+      @NonNull String definingUrl,
+      @NonNull IsRequired required,
+      @NonNull String fieldNumber,
       @NonNull Map<Boolean, String> booleanStringMapping) {
     super(definingUrl, required, fieldNumber, filemanFactory);
     this.booleanStringMapping = booleanStringMapping;
