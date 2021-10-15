@@ -20,6 +20,7 @@ public class R4ExtensionProcessorTest {
     extensions.add(Extension.builder().url("TACOS").valueCode("MEXICAN").build());
     extensions.add(Extension.builder().url("FRENCH TOAST").valueCode("FRENCH").build());
     extensions.add(Extension.builder().url("SUSHI").valueCode("JAPANESE").build());
+    extensions.add(Extension.builder().url("HUNGRY").valueBoolean(true).build());
     return extensions;
   }
 
@@ -28,6 +29,12 @@ public class R4ExtensionProcessorTest {
     R4ExtensionProcessor processor = processor();
     assertThat(processor.process(extensions()))
         .containsExactlyInAnyOrder(
+            WriteableFilemanValue.builder()
+                .file("FOODS")
+                .value("true")
+                .index(1)
+                .field("#.ALLDAY")
+                .build(),
             WriteableFilemanValue.builder()
                 .file("FOODS")
                 .value("MEXICAN")
@@ -79,6 +86,12 @@ public class R4ExtensionProcessorTest {
   private R4ExtensionProcessor processor() {
     WriteableFilemanValueFactory filemanFactory = WriteableFilemanValueFactory.forFile("FOODS");
     return R4ExtensionProcessor.of(
+        FoobarExtensionHandler.builder()
+            .filemanFactory(filemanFactory)
+            .definingUrl("HUNGRY")
+            .required(REQUIRED)
+            .fieldNumber("#.ALLDAY")
+            .build(),
         FugaziExtensionHandler.builder()
             .filemanFactory(filemanFactory)
             .definingUrl("TACOS")
@@ -113,6 +126,23 @@ public class R4ExtensionProcessorTest {
     @Override
     public WriteableFilemanValue handle(Extension extension) {
       return filemanFactory().forString(fieldNumber(), 1, extension.valueCode());
+    }
+  }
+
+  static class FoobarExtensionHandler extends AbstractExtensionHandler {
+
+    @Builder
+    protected FoobarExtensionHandler(
+        String definingUrl,
+        IsRequired required,
+        String fieldNumber,
+        WriteableFilemanValueFactory filemanFactory) {
+      super(definingUrl, required, fieldNumber, filemanFactory);
+    }
+
+    @Override
+    public WriteableFilemanValue handle(Extension extension) {
+      return filemanFactory().forString(fieldNumber(), 1, extension.valueBoolean().toString());
     }
   }
 }

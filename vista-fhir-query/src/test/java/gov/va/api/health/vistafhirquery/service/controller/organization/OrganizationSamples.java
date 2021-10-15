@@ -759,10 +759,7 @@ public class OrganizationSamples {
                                   .build()))
                       .build())
               .build(),
-          Extension.builder()
-              .url(OrganizationStructureDefinitions.SIGNATURE_REQUIRED_ON_BILL)
-              .valueBoolean(Boolean.TRUE)
-              .build(),
+          signatureRequiredOnBill(),
           Extension.builder()
               .url(OrganizationStructureDefinitions.ELECTRONIC_TRANSMISSION_MODE)
               .valueCodeableConcept(
@@ -1012,6 +1009,13 @@ public class OrganizationSamples {
                               .display("PRECERT")
                               .build()))
                   .build())
+          .build();
+    }
+
+    public Extension signatureRequiredOnBill() {
+      return Extension.builder()
+          .url(OrganizationStructureDefinitions.SIGNATURE_REQUIRED_ON_BILL)
+          .valueBoolean(true)
           .build();
     }
 

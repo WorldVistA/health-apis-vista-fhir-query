@@ -18,6 +18,7 @@ import gov.va.api.health.vistafhirquery.service.controller.RecordCoordinates;
 import gov.va.api.health.vistafhirquery.service.controller.ResourceExceptions.BadRequestPayload;
 import gov.va.api.health.vistafhirquery.service.controller.WriteableFilemanValueFactory;
 import gov.va.api.health.vistafhirquery.service.controller.extensionprocessing.AbstractExtensionHandler.IsRequired;
+import gov.va.api.health.vistafhirquery.service.controller.extensionprocessing.BooleanExtensionHandler;
 import gov.va.api.health.vistafhirquery.service.controller.extensionprocessing.CodeableConceptExtensionHandler;
 import gov.va.api.health.vistafhirquery.service.controller.extensionprocessing.R4ExtensionProcessor;
 import gov.va.api.health.vistafhirquery.service.controller.extensionprocessing.ReferenceExtensionHandler;
@@ -44,6 +45,13 @@ public class R4OrganizationToInsuranceCompanyFileTransformer {
 
   ExtensionProcessor extensionProcessor =
       R4ExtensionProcessor.of(
+          BooleanExtensionHandler.forDefiningUrl(
+                  OrganizationStructureDefinitions.SIGNATURE_REQUIRED_ON_BILL)
+              .filemanFactory(filemanFactory)
+              .fieldNumber(InsuranceCompany.SIGNATURE_REQUIRED_ON_BILL_)
+              .required(IsRequired.REQUIRED)
+              .booleanStringMapping(YES_NO)
+              .build(),
           CodeableConceptExtensionHandler.forDefiningUrl(
                   OrganizationStructureDefinitions.TYPE_OF_COVERAGE)
               .filemanFactory(filemanFactory)
