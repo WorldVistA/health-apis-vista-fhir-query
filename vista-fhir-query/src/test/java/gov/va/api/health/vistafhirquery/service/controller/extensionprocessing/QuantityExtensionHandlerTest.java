@@ -4,13 +4,13 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.junit.jupiter.params.provider.Arguments.arguments;
 
+import gov.va.api.health.r4.api.datatypes.Quantity;
 import gov.va.api.health.r4.api.elements.Extension;
-import gov.va.api.health.r4.api.elements.Reference;
-import gov.va.api.health.vistafhirquery.service.controller.IsSiteCoordinates;
 import gov.va.api.health.vistafhirquery.service.controller.ResourceExceptions.BadRequestPayload.BadExtension;
 import gov.va.api.health.vistafhirquery.service.controller.WriteableFilemanValueFactory;
 import gov.va.api.health.vistafhirquery.service.controller.extensionprocessing.AbstractExtensionHandler.IsRequired;
 import gov.va.api.lighthouse.charon.models.lhslighthouserpcgateway.LhsLighthouseRpcGatewayCoverageWrite.WriteableFilemanValue;
+import java.math.BigDecimal;
 import java.util.stream.Stream;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -18,57 +18,49 @@ import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 import org.junit.jupiter.params.provider.NullSource;
 
-public class ReferenceExtensionHandlerTest {
-  static Stream<Arguments> badExtensionReference() {
+public class QuantityExtensionHandlerTest {
+  static Stream<Arguments> badExtensionQuantity() {
     return Stream.of(
-        arguments(Reference.builder().build()),
-        arguments(Reference.builder().display("SHANKTOPUS").build()));
+        arguments(Quantity.builder().build()),
+        arguments(Quantity.builder().value(new BigDecimal("8.88")).build()),
+        arguments(Quantity.builder().unit("SHANKS").build()));
   }
 
-  private ReferenceExtensionHandler _handler() {
-    return ReferenceExtensionHandler.forDefiningUrl("http://fugazi.com/reference")
+  private QuantityExtensionHandler _handler() {
+    return QuantityExtensionHandler.builder()
+        .definingUrl("http://fugazi.com/quantity")
         .required(IsRequired.REQUIRED)
+        .valueFieldNumber("1")
+        .unitFieldNumber("2")
         .filemanFactory(WriteableFilemanValueFactory.forFile("888"))
-        .fieldNumber("#.88")
-        .referenceFile("123")
-        .toCoordinates(s -> new FugaziSiteCoordinates())
         .build();
   }
 
   @ParameterizedTest
   @NullSource
   @MethodSource
-  void badExtensionReference(Reference reference) {
-    var sample = extensionWithReference(reference);
+  void badExtensionQuantity(Quantity quantity) {
+    var sample = extensionWithQuantity(quantity);
     assertThatExceptionOfType(BadExtension.class).isThrownBy(() -> _handler().handle(sample));
   }
 
-  private Extension extensionWithReference(Reference reference) {
-    return Extension.builder().url("http://fugazi.com/reference").valueReference(reference).build();
+  private Extension extensionWithQuantity(Quantity quantity) {
+    return Extension.builder().url("http://fugazi.com/quantity").valueQuantity(quantity).build();
   }
 
   @Test
-  void handleReference() {
-    var sample = extensionWithReference(Reference.builder().reference("Fugazi/123").build());
+  void handleQuantity() {
+    var sample =
+        extensionWithQuantity(
+            Quantity.builder().value(new BigDecimal("7.88")).unit("SHANKS").build());
     assertThat(_handler().handle(sample))
-        .containsOnly(
+        .containsExactlyInAnyOrder(
+            WriteableFilemanValue.builder().file("888").index(1).field("1").value("7.88").build(),
             WriteableFilemanValue.builder()
-                .file("123")
+                .file("888")
                 .index(1)
-                .field("ien")
-                .value("ien8")
+                .field("2")
+                .value("SHANKS")
                 .build());
-  }
-
-  public static class FugaziSiteCoordinates implements IsSiteCoordinates {
-    @Override
-    public String ien() {
-      return "ien8";
-    }
-
-    @Override
-    public String site() {
-      return "888";
-    }
   }
 }

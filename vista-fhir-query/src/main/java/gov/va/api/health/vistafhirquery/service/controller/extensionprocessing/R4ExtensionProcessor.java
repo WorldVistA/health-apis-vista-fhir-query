@@ -66,7 +66,7 @@ public class R4ExtensionProcessor implements ExtensionProcessor {
     for (Extension ex : extensions) {
       var matchingHandler = findMatchingHandler(ex);
       uniqueExtensionOrDie(matchingHandler);
-      values.add(matchingHandler.handle(ex));
+      values.addAll(matchingHandler.handle(ex));
     }
     allRequiredExtensionsPresentOrDie();
     return values;

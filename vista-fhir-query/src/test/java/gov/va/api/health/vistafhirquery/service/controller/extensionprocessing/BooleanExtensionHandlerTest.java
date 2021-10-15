@@ -24,7 +24,7 @@ public class BooleanExtensionHandlerTest {
                 .booleanStringMapping(Map.of(true, "YES", false, "NO"))
                 .build()
                 .handle(Extension.builder().url("defining url").valueBoolean(true).build()))
-        .isEqualTo(
+        .containsOnly(
             LhsLighthouseRpcGatewayCoverageWrite.WriteableFilemanValue.builder()
                 .file("file number")
                 .field("field number")
@@ -42,7 +42,7 @@ public class BooleanExtensionHandlerTest {
                 .booleanStringMapping(Map.of(false, "NO"))
                 .build()
                 .handle(Extension.builder().url("defining url").valueBoolean(true).build()))
-        .isNull();
+        .isEmpty();
   }
 
   @Test

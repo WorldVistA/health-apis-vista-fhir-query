@@ -5,6 +5,7 @@ import static gov.va.api.health.vistafhirquery.service.controller.extensionproce
 import gov.va.api.health.r4.api.elements.Extension;
 import gov.va.api.health.vistafhirquery.service.controller.WriteableFilemanValueFactory;
 import gov.va.api.lighthouse.charon.models.lhslighthouserpcgateway.LhsLighthouseRpcGatewayCoverageWrite.WriteableFilemanValue;
+import java.util.List;
 
 public interface ExtensionHandler {
   String definingUrl();
@@ -13,7 +14,7 @@ public interface ExtensionHandler {
 
   WriteableFilemanValueFactory filemanFactory();
 
-  WriteableFilemanValue handle(Extension extension);
+  List<WriteableFilemanValue> handle(Extension extension);
 
   IsRequired required();
 }

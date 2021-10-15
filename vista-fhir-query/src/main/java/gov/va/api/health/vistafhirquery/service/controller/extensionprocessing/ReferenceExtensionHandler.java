@@ -9,6 +9,7 @@ import gov.va.api.health.vistafhirquery.service.controller.ResourceExceptions.Ba
 import gov.va.api.health.vistafhirquery.service.controller.WriteableFilemanValueFactory;
 import gov.va.api.health.vistafhirquery.service.controller.extensionprocessing.AbstractExtensionHandler.IsRequired;
 import gov.va.api.lighthouse.charon.models.lhslighthouserpcgateway.LhsLighthouseRpcGatewayCoverageWrite.WriteableFilemanValue;
+import java.util.List;
 import java.util.function.Function;
 import lombok.Builder;
 import lombok.Getter;
@@ -38,7 +39,7 @@ public class ReferenceExtensionHandler extends AbstractExtensionHandler {
   }
 
   @Override
-  public WriteableFilemanValue handle(Extension extension) {
+  public List<WriteableFilemanValue> handle(Extension extension) {
     if (isBlank(extension.valueReference())) {
       throw BadExtension.because(extension.url(), ".valueReference is null");
     }
@@ -50,6 +51,10 @@ public class ReferenceExtensionHandler extends AbstractExtensionHandler {
                         extension.url(),
                         "Cannot determine reference id from .valueReference.reference"));
     var siteCoordinates = toCoordinates().apply(referenceId);
-    return filemanFactory().forPointer(referenceFile(), 1, siteCoordinates.ien());
+    if (siteCoordinates == null) {
+      throw BadExtension.because(
+          extension.url(), ".valueReference.reference could not be resolved to an id");
+    }
+    return List.of(filemanFactory().forPointer(referenceFile(), 1, siteCoordinates.ien()));
   }
 }

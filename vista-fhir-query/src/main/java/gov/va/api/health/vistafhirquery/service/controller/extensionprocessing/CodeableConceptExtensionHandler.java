@@ -7,7 +7,7 @@ import gov.va.api.health.r4.api.datatypes.Coding;
 import gov.va.api.health.r4.api.elements.Extension;
 import gov.va.api.health.vistafhirquery.service.controller.ResourceExceptions.BadRequestPayload.BadExtension;
 import gov.va.api.health.vistafhirquery.service.controller.WriteableFilemanValueFactory;
-import gov.va.api.lighthouse.charon.models.lhslighthouserpcgateway.LhsLighthouseRpcGatewayCoverageWrite;
+import gov.va.api.lighthouse.charon.models.lhslighthouserpcgateway.LhsLighthouseRpcGatewayCoverageWrite.WriteableFilemanValue;
 import java.util.List;
 import lombok.Builder;
 import lombok.Getter;
@@ -52,11 +52,11 @@ public class CodeableConceptExtensionHandler extends AbstractExtensionHandler {
   }
 
   @Override
-  public LhsLighthouseRpcGatewayCoverageWrite.WriteableFilemanValue handle(Extension extension) {
+  public List<WriteableFilemanValue> handle(Extension extension) {
     if (isBlank(extension.valueCodeableConcept())) {
       throw BadExtension.because(extension.url(), ".valueCodeableConcept is null");
     }
     var code = findCodeOrDie(extension.url(), extension.valueCodeableConcept().coding());
-    return filemanFactory().forString(fieldNumber(), 1, code);
+    return List.of(filemanFactory().forString(fieldNumber(), 1, code));
   }
 }

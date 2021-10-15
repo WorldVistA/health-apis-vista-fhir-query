@@ -66,7 +66,7 @@ public class CodeableConceptExtensionHandlerTest {
                         .asList())
                 .build());
     assertThat(_handler().handle(sample))
-        .isEqualTo(
+        .containsOnly(
             LhsLighthouseRpcGatewayCoverageWrite.WriteableFilemanValue.builder()
                 .file("888")
                 .field("#.88")
