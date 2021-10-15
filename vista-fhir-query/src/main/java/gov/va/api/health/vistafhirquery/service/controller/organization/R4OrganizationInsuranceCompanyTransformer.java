@@ -257,12 +257,11 @@ public class R4OrganizationInsuranceCompanyTransformer {
     if (isBlank(companyName)) {
       return emptyList();
     }
-    return List.of(
-        Extension.builder()
-            .valueReference(Reference.builder().display(companyName).build())
-            .url(
-                "http://hl7.org/fhir/us/davinci-pdex-plan-net/StructureDefinition/via-intermediary")
-            .build());
+    return Extension.builder()
+        .valueReference(Reference.builder().display(companyName).build())
+        .url(OrganizationStructureDefinitions.VIA_INTERMEDIARY)
+        .build()
+        .asList();
   }
 
   private Organization.Contact contact(

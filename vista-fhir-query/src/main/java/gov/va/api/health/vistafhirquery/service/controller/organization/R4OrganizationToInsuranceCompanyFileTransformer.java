@@ -20,8 +20,10 @@ import gov.va.api.health.vistafhirquery.service.controller.WriteableFilemanValue
 import gov.va.api.health.vistafhirquery.service.controller.extensionprocessing.AbstractExtensionHandler.IsRequired;
 import gov.va.api.health.vistafhirquery.service.controller.extensionprocessing.CodeableConceptExtensionHandler;
 import gov.va.api.health.vistafhirquery.service.controller.extensionprocessing.R4ExtensionProcessor;
+import gov.va.api.health.vistafhirquery.service.controller.extensionprocessing.ReferenceExtensionHandler;
 import gov.va.api.lighthouse.charon.models.lhslighthouserpcgateway.InsuranceCompany;
 import gov.va.api.lighthouse.charon.models.lhslighthouserpcgateway.LhsLighthouseRpcGatewayCoverageWrite.WriteableFilemanValue;
+import gov.va.api.lighthouse.charon.models.lhslighthouserpcgateway.Payer;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -48,6 +50,14 @@ public class R4OrganizationToInsuranceCompanyFileTransformer {
               .fieldNumber(InsuranceCompany.TYPE_OF_COVERAGE)
               .codingSystem(OrganizationStructureDefinitions.TYPE_OF_COVERAGE_URN_OID)
               .required(IsRequired.REQUIRED)
+              .build(),
+          ReferenceExtensionHandler.forDefiningUrl(
+                  OrganizationStructureDefinitions.VIA_INTERMEDIARY)
+              .required(IsRequired.REQUIRED)
+              .fieldNumber(InsuranceCompany.PAYER)
+              .referenceFile(Payer.FILE_NUMBER)
+              .toCoordinates(RecordCoordinates::fromString)
+              .filemanFactory(filemanFactory)
               .build());
 
   @Builder
