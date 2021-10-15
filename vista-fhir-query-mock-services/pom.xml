@@ -8,12 +8,12 @@
     <relativePath/>
   </parent>
   <artifactId>vista-fhir-query-mock-services</artifactId>
-  <version>1.0.139-SNAPSHOT</version>
+  <version>1.0.139</version>
   <packaging>jar</packaging>
   <properties>
     <fhir-resources.version>8.0.20</fhir-resources.version>
     <mockserver.version>5.11.2</mockserver.version>
-    <charon.version>4.0.37</charon.version>
+    <charon.version>4.0.38</charon.version>
   </properties>
   <dependencies>
     <dependency>
