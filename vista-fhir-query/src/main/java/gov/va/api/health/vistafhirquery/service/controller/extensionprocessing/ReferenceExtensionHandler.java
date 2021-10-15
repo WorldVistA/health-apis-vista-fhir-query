@@ -33,8 +33,7 @@ public class ReferenceExtensionHandler extends AbstractExtensionHandler {
     this.toCoordinates = toCoordinates;
   }
 
-  public static ReferenceExtensionHandlerBuilder forDefiningUrl(
-      String definingUrl) {
+  public static ReferenceExtensionHandlerBuilder forDefiningUrl(String definingUrl) {
     return ReferenceExtensionHandler.builder().definingUrl(definingUrl);
   }
 
