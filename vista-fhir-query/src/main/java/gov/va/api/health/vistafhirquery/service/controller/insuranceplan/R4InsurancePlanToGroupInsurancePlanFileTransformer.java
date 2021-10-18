@@ -5,6 +5,8 @@ import static gov.va.api.health.vistafhirquery.service.controller.R4Transformers
 import static gov.va.api.health.vistafhirquery.service.controller.R4Transformers.identifierHasCodingSystem;
 import static gov.va.api.health.vistafhirquery.service.controller.R4Transformers.isBlank;
 import static gov.va.api.health.vistafhirquery.service.controller.R4Transformers.recordCoordinatesForReference;
+import static gov.va.api.health.vistafhirquery.service.controller.WriteableFilemanValueFactory.index;
+import static java.util.function.Function.identity;
 
 import gov.va.api.health.r4.api.datatypes.CodeableConcept;
 import gov.va.api.health.r4.api.datatypes.Coding;
@@ -14,6 +16,7 @@ import gov.va.api.health.r4.api.elements.Reference;
 import gov.va.api.health.r4.api.resources.InsurancePlan;
 import gov.va.api.health.vistafhirquery.service.controller.RecordCoordinates;
 import gov.va.api.health.vistafhirquery.service.controller.ResourceExceptions;
+import gov.va.api.health.vistafhirquery.service.controller.WriteableFilemanValueFactory;
 import gov.va.api.lighthouse.charon.models.lhslighthouserpcgateway.GroupInsurancePlan;
 import gov.va.api.lighthouse.charon.models.lhslighthouserpcgateway.InsuranceCompany;
 import gov.va.api.lighthouse.charon.models.lhslighthouserpcgateway.LhsLighthouseRpcGatewayCoverageWrite.WriteableFilemanValue;
@@ -30,6 +33,9 @@ import lombok.Value;
 
 @Value
 public class R4InsurancePlanToGroupInsurancePlanFileTransformer {
+  private static final WriteableFilemanValueFactory filemanFactory =
+      WriteableFilemanValueFactory.forFile(GroupInsurancePlan.FILE_NUMBER);
+
   @NonNull InsurancePlan insurancePlan;
 
   @Builder
@@ -65,11 +71,12 @@ public class R4InsurancePlanToGroupInsurancePlanFileTransformer {
   }
 
   WriteableFilemanValue extensionToBooleanWriteableFilemanValue(Extension extension, String field) {
-    if (isBlank(extension) || isBlank(extension.valueBoolean())) {
+    var wfv = filemanFactory.forBoolean(field, 1, extension);
+    if (isBlank(wfv)) {
       throw ResourceExceptions.BadRequestPayload.because(
           field, "extension is null or has no boolean value");
     }
-    return groupInsurancePlanCoordinates(field, 1, extension.valueBoolean() ? "YES" : "NO");
+    return wfv;
   }
 
   String extractCodeFromCoding(CodeableConcept c) {
@@ -89,7 +96,7 @@ public class R4InsurancePlanToGroupInsurancePlanFileTransformer {
         .map(mapper)
         .filter(Objects::nonNull)
         .findFirst()
-        .map(value -> groupInsurancePlanCoordinates(field, 1, (String) value));
+        .map(filemanFactory.toString(field, index(1), value -> (String) value));
   }
 
   <T, R> WriteableFilemanValue extractFromListOrDie(
@@ -106,24 +113,11 @@ public class R4InsurancePlanToGroupInsurancePlanFileTransformer {
         .orElseThrow(() -> ResourceExceptions.BadRequestPayload.because(field, error));
   }
 
-  private WriteableFilemanValue groupInsurancePlanCoordinates(
-      String field, Integer index, String value) {
-    if (isBlank(value)) {
-      return null;
-    }
-    return WriteableFilemanValue.builder()
-        .file(GroupInsurancePlan.FILE_NUMBER)
-        .field(field)
-        .index(index)
-        .value(value)
-        .build();
-  }
-
   WriteableFilemanValue groupName(String name) {
     if (isBlank(name)) {
       throw ResourceExceptions.BadRequestPayload.because("name is null");
     }
-    return groupInsurancePlanCoordinates(GroupInsurancePlan.GROUP_NAME, 1, name);
+    return filemanFactory.forString(GroupInsurancePlan.GROUP_NAME, 1, name);
   }
 
   WriteableFilemanValue groupNumber(List<Identifier> identifiers) {
@@ -138,13 +132,13 @@ public class R4InsurancePlanToGroupInsurancePlanFileTransformer {
 
   Optional<WriteableFilemanValue> insuranceCompany(Reference reference) {
     return recordCoordinatesForReference(reference)
-        .map(coordinates -> pointer(InsuranceCompany.FILE_NUMBER, 1, coordinates.ien()));
+        .map(filemanFactory.recordCoordinatesToPointer(InsuranceCompany.FILE_NUMBER, index(1)));
   }
 
   Optional<WriteableFilemanValue> insurancePlanIen(String id) {
     return Optional.ofNullable(id)
         .map(RecordCoordinates::fromString)
-        .map(coordinates -> pointer(GroupInsurancePlan.FILE_NUMBER, 1, coordinates.ien()));
+        .map(filemanFactory.recordCoordinatesToPointer(GroupInsurancePlan.FILE_NUMBER, index(1)));
   }
 
   Optional<WriteableFilemanValue> planCategory(List<CodeableConcept> codeableConcepts) {
@@ -154,7 +148,7 @@ public class R4InsurancePlanToGroupInsurancePlanFileTransformer {
         .map(this::extractCodeFromCoding)
         .filter(Objects::nonNull)
         .findFirst()
-        .map(value -> groupInsurancePlanCoordinates(GroupInsurancePlan.PLAN_CATEGORY, 1, value));
+        .map(filemanFactory.toString(GroupInsurancePlan.PLAN_CATEGORY, index(1), identity()));
   }
 
   WriteableFilemanValue planId(List<Identifier> identifiers) {
@@ -177,24 +171,12 @@ public class R4InsurancePlanToGroupInsurancePlanFileTransformer {
           GroupInsurancePlan.PLAN_STANDARD_FTF, "extension unit/value is null");
     }
     return List.of(
-        groupInsurancePlanCoordinates(
+        filemanFactory.forString(
             GroupInsurancePlan.PLAN_STANDARD_FTF, 1, extension.valueQuantity().unit()),
-        groupInsurancePlanCoordinates(
+        filemanFactory.forString(
             GroupInsurancePlan.PLAN_STANDARD_FTF_VALUE,
             1,
             extension.valueQuantity().value().toString()));
-  }
-
-  private WriteableFilemanValue pointer(String fileNumber, int index, String ien) {
-    if (isBlank(ien)) {
-      return null;
-    }
-    return WriteableFilemanValue.builder()
-        .file(fileNumber)
-        .field("ien")
-        .index(index)
-        .value(ien)
-        .build();
   }
 
   Optional<WriteableFilemanValue> processorControlNumber(List<Identifier> identifiers) {
