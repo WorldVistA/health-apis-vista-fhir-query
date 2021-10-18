@@ -1,5 +1,6 @@
 package gov.va.api.health.vistafhirquery.service.controller.extensionprocessing;
 
+import static gov.va.api.health.vistafhirquery.service.controller.extensionprocessing.ExtensionHandler.Required.REQUIRED;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.junit.jupiter.params.provider.Arguments.arguments;
@@ -9,7 +10,6 @@ import gov.va.api.health.r4.api.datatypes.Coding;
 import gov.va.api.health.r4.api.elements.Extension;
 import gov.va.api.health.vistafhirquery.service.controller.ResourceExceptions.BadRequestPayload.BadExtension;
 import gov.va.api.health.vistafhirquery.service.controller.WriteableFilemanValueFactory;
-import gov.va.api.health.vistafhirquery.service.controller.extensionprocessing.AbstractExtensionHandler.IsRequired;
 import gov.va.api.lighthouse.charon.models.lhslighthouserpcgateway.LhsLighthouseRpcGatewayCoverageWrite;
 import java.util.List;
 import java.util.stream.Stream;
@@ -31,7 +31,7 @@ public class CodeableConceptExtensionHandlerTest {
 
   private CodeableConceptExtensionHandler _handler() {
     return CodeableConceptExtensionHandler.forDefiningUrl("http://fugazi.com/codeableConcept")
-        .required(IsRequired.REQUIRED)
+        .required(REQUIRED)
         .filemanFactory(WriteableFilemanValueFactory.forFile("888"))
         .fieldNumber("#.88")
         .codingSystem("http://fugazi.com/coding")

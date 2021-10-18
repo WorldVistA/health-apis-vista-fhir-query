@@ -20,7 +20,7 @@ public class BooleanExtensionHandler extends AbstractExtensionHandler {
   public BooleanExtensionHandler(
       @NonNull WriteableFilemanValueFactory filemanFactory,
       @NonNull String definingUrl,
-      @NonNull IsRequired required,
+      @NonNull ExtensionHandler.Required required,
       @NonNull String fieldNumber,
       @NonNull Map<Boolean, String> booleanStringMapping) {
     super(definingUrl, required, fieldNumber, filemanFactory);

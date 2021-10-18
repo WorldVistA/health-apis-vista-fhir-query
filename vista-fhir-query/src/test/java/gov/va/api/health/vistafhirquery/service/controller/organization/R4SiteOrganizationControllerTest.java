@@ -5,6 +5,7 @@ import static gov.va.api.health.vistafhirquery.service.charonclient.CharonTestSu
 import static gov.va.api.health.vistafhirquery.service.controller.MockRequests.json;
 import static gov.va.api.health.vistafhirquery.service.controller.MockRequests.requestFromUri;
 import static gov.va.api.health.vistafhirquery.service.controller.coverage.CoverageSamples.R4.link;
+import static gov.va.api.health.vistafhirquery.service.controller.organization.OrganizationSamples.R4.sortExtensions;
 import static java.util.Collections.emptyList;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
@@ -99,7 +100,7 @@ class R4SiteOrganizationControllerTest {
     witnessProtection.add("pub1", "s1;36;ien1");
     var actual = _controller().organizationRead("s1", "pub1");
     var expected = OrganizationSamples.R4.create().organization("s1", "ien1");
-    assertThat(json(actual)).isEqualTo(json(expected));
+    assertThat(json(sortExtensions(actual))).isEqualTo(json(sortExtensions(expected)));
   }
 
   @Test
@@ -152,16 +153,17 @@ class R4SiteOrganizationControllerTest {
     var answer =
         answerFor(captor).value(results).invocationResult(_invocationResult(results)).build();
     when(charon.request(captor.capture())).thenAnswer(answer);
-    var actual = _controller().organizationSearch(httpRequest, "123", "ins", 10);
+    var actual = sortExtensions(_controller().organizationSearch(httpRequest, "123", "ins", 10));
     var expected =
-        OrganizationSamples.R4.asBundle(
-            "http://fugazi.com/hcs/123/r4",
-            List.of(OrganizationSamples.R4.create().organization("123", "ien1")),
-            1,
-            link(
-                BundleLink.LinkRelation.self,
-                "http://fugazi.com/hcs/123/r4/Organization",
-                "_count=10&type=ins"));
+        sortExtensions(
+            OrganizationSamples.R4.asBundle(
+                "http://fugazi.com/hcs/123/r4",
+                List.of(OrganizationSamples.R4.create().organization("123", "ien1")),
+                1,
+                link(
+                    BundleLink.LinkRelation.self,
+                    "http://fugazi.com/hcs/123/r4/Organization",
+                    "_count=10&type=ins")));
     assertThat(captor.getValue().rpcRequest().file()).isEqualTo(InsuranceCompany.FILE_NUMBER);
     assertThat(json(actual)).isEqualTo(json(expected));
   }

@@ -7,7 +7,6 @@ import gov.va.api.health.r4.api.elements.Extension;
 import gov.va.api.health.vistafhirquery.service.controller.IsSiteCoordinates;
 import gov.va.api.health.vistafhirquery.service.controller.ResourceExceptions.BadRequestPayload.BadExtension;
 import gov.va.api.health.vistafhirquery.service.controller.WriteableFilemanValueFactory;
-import gov.va.api.health.vistafhirquery.service.controller.extensionprocessing.AbstractExtensionHandler.IsRequired;
 import gov.va.api.lighthouse.charon.models.lhslighthouserpcgateway.LhsLighthouseRpcGatewayCoverageWrite.WriteableFilemanValue;
 import java.util.List;
 import java.util.function.Function;
@@ -25,7 +24,7 @@ public class ReferenceExtensionHandler extends AbstractExtensionHandler {
   ReferenceExtensionHandler(
       @NonNull WriteableFilemanValueFactory filemanFactory,
       @NonNull String definingUrl,
-      @NonNull IsRequired required,
+      @NonNull ExtensionHandler.Required required,
       @NonNull String fieldNumber,
       @NonNull String referenceFile,
       @NonNull Function<String, IsSiteCoordinates> toCoordinates) {

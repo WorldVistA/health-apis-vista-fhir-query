@@ -1,7 +1,7 @@
 package gov.va.api.health.vistafhirquery.service.controller.extensionprocessing;
 
-import static gov.va.api.health.vistafhirquery.service.controller.extensionprocessing.AbstractExtensionHandler.IsRequired.OPTIONAL;
-import static gov.va.api.health.vistafhirquery.service.controller.extensionprocessing.AbstractExtensionHandler.IsRequired.REQUIRED;
+import static gov.va.api.health.vistafhirquery.service.controller.extensionprocessing.ExtensionHandler.Required.OPTIONAL;
+import static gov.va.api.health.vistafhirquery.service.controller.extensionprocessing.ExtensionHandler.Required.REQUIRED;
 import static gov.va.api.lighthouse.charon.models.lhslighthouserpcgateway.LhsLighthouseRpcGatewayCoverageWrite.WriteableFilemanValue;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
@@ -117,7 +117,7 @@ public class R4ExtensionProcessorTest {
     @Builder
     protected FugaziExtensionHandler(
         String definingUrl,
-        IsRequired required,
+        Required required,
         String fieldNumber,
         WriteableFilemanValueFactory filemanFactory) {
       super(definingUrl, required, fieldNumber, filemanFactory);
@@ -134,7 +134,7 @@ public class R4ExtensionProcessorTest {
     @Builder
     protected FoobarExtensionHandler(
         String definingUrl,
-        IsRequired required,
+        Required required,
         String fieldNumber,
         WriteableFilemanValueFactory filemanFactory) {
       super(definingUrl, required, fieldNumber, filemanFactory);

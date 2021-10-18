@@ -16,7 +16,7 @@ import lombok.NonNull;
 @Builder
 public class RequestPayloadModifier<ResourceT extends Resource> {
 
-  private static final Pattern SITE_IN_PATH_PATTERN = Pattern.compile(".*/hcs/([-\\w]+)/.*");
+  private static final Pattern SITE_IN_PATH_PATTERN = Pattern.compile(".*/(hcs|site)/([-\\w]+)/.*");
 
   @NonNull private final HttpServletRequest request;
 
@@ -57,7 +57,7 @@ public class RequestPayloadModifier<ResourceT extends Resource> {
     if (!matcher.matches()) {
       return Optional.empty();
     }
-    return Optional.ofNullable(matcher.group(1));
+    return Optional.ofNullable(matcher.group(2));
   }
 
   boolean isPostOrPut() {

@@ -1,21 +1,24 @@
 package gov.va.api.health.vistafhirquery.service.controller.extensionprocessing;
 
-import static gov.va.api.health.vistafhirquery.service.controller.ResourceExceptions.BadRequestPayload.BadExtension;
-import static gov.va.api.health.vistafhirquery.service.controller.extensionprocessing.AbstractExtensionHandler.IsRequired.REQUIRED;
-import static gov.va.api.lighthouse.charon.models.lhslighthouserpcgateway.LhsLighthouseRpcGatewayCoverageWrite.WriteableFilemanValue;
-import static java.util.stream.Collectors.toMap;
-import static java.util.stream.Collectors.toSet;
-import static org.apache.commons.lang3.StringUtils.isBlank;
-
 import gov.va.api.health.r4.api.elements.Extension;
 import gov.va.api.health.vistafhirquery.service.controller.ExtensionProcessor;
+import lombok.AllArgsConstructor;
+import lombok.NonNull;
+
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import lombok.AllArgsConstructor;
+import java.util.function.Function;
+
+import static gov.va.api.health.vistafhirquery.service.controller.ResourceExceptions.BadRequestPayload.BadExtension;
+import static gov.va.api.health.vistafhirquery.service.controller.extensionprocessing.ExtensionHandler.Required.REQUIRED;
+import static gov.va.api.lighthouse.charon.models.lhslighthouserpcgateway.LhsLighthouseRpcGatewayCoverageWrite.WriteableFilemanValue;
+import static java.util.stream.Collectors.toMap;
+import static java.util.stream.Collectors.toSet;
+import static org.apache.commons.lang3.StringUtils.isBlank;
 
 @AllArgsConstructor
 public class R4ExtensionProcessor implements ExtensionProcessor {
@@ -26,9 +29,14 @@ public class R4ExtensionProcessor implements ExtensionProcessor {
   private final Set<ExtensionHandler> usedHandlers;
 
   /** Get an extension processor that will use the given handlers. */
-  public static R4ExtensionProcessor of(AbstractExtensionHandler... handlers) {
+  public static R4ExtensionProcessor of(@NonNull ExtensionHandler... handlers) {
+    return of(Arrays.asList(handlers));
+  }
+
+  /** Get an extension processor that will use the given list of handlers. */
+  public static R4ExtensionProcessor of(@NonNull List<ExtensionHandler> handlers) {
     Map<String, ExtensionHandler> handlerMap =
-        Arrays.stream(handlers).collect(toMap(AbstractExtensionHandler::definingUrl, h -> h));
+        handlers.stream().collect(toMap(ExtensionHandler::definingUrl, Function.identity()));
     Set<ExtensionHandler> requiredHandlers =
         handlerMap.values().stream().filter(e -> REQUIRED.equals(e.required())).collect(toSet());
     return new R4ExtensionProcessor(handlerMap, requiredHandlers, new HashSet<>());

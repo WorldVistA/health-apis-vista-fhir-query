@@ -3,10 +3,6 @@
   "id": "I3-450NAk1LKUAU1WUhmEuHLf",
   "extension": [
     {
-      "url": "http://va.gov/fhir/StructureDefinition/organization-allowMultipleBedsections",
-      "valueBoolean": true
-    },
-    {
       "url": "http://va.gov/fhir/StructureDefinition/organization-typeOfCoverage",
       "valueCodeableConcept": {
         "coding": [
@@ -35,10 +31,6 @@
         "unit": "DAYS",
         "system": "urn:oid:2.16.840.1.113883.3.8901.3.3558013"
       }
-    },
-    {
-      "url": "http://va.gov/fhir/StructureDefinition/organization-signatureRequiredOnBill",
-      "valueBoolean": true
     },
     {
       "url": "http://va.gov/fhir/StructureDefinition/organization-electronicTransmissionMode",
@@ -74,26 +66,6 @@
       }
     },
     {
-      "url": "http://va.gov/fhir/StructureDefinition/organization-attendingRenderingProviderSecondaryIDProfesionalRequired",
-      "valueBoolean": true
-    },
-    {
-      "url": "http://va.gov/fhir/StructureDefinition/organization-attendingRenderingProviderSecondaryIDInstitutionalRequired",
-      "valueBoolean": true
-    },
-    {
-      "url": "http://va.gov/fhir/StructureDefinition/organization-printSecTertAutoClaimsLocally",
-      "valueBoolean": true
-    },
-    {
-      "url": "http://va.gov/fhir/StructureDefinition/organization-printSecMedClaimsWOMRALocally",
-      "valueBoolean": true
-    },
-    {
-      "url": "http://va.gov/fhir/StructureDefinition/organization-oneOutpatVisitOnBillOnly",
-      "valueBoolean": false
-    },
-    {
       "url": "http://va.gov/fhir/StructureDefinition/organization-ambulatorySurgeryRevenueCode",
       "valueCodeableConcept": {
         "coding": [
@@ -105,18 +77,119 @@
       }
     },
     {
+      "url": "http://va.gov/fhir/StructureDefinition/organization-prescriptionRevenueCode",
+      "valueCodeableConcept": {
+        "coding": [
+          {
+            "system": "urn:oid:2.16.840.1.113883.6.301.3",
+            "code": "332"
+          }
+        ]
+      }
+    },
+    {
+      "url": "http://va.gov/fhir/StructureDefinition/organization-performingProviderSecondIDTypeCMS1500",
+      "valueCodeableConcept": {
+        "coding": [
+          {
+            "system": "urn:oid:2.16.840.1.113883.3.8901.3.1.3558097.8001",
+            "code": "UPIN"
+          }
+        ]
+      }
+    },
+    {
+      "url": "http://va.gov/fhir/StructureDefinition/organization-performingProviderSecondIDTypeUB04",
+      "valueCodeableConcept": {
+        "coding": [
+          {
+            "system": "urn:oid:2.16.840.1.113883.3.8901.3.1.3558097.8001",
+            "code": "BLUE CROSS"
+          }
+        ]
+      }
+    },
+    {
+      "url": "http://va.gov/fhir/StructureDefinition/organization-referrngProviderSecondIDTypeCMS1500",
+      "valueCodeableConcept": {
+        "coding": [
+          {
+            "system": "urn:oid:2.16.840.1.113883.3.8901.3.1.3558097.8001",
+            "code": "BLUE SHIELD"
+          }
+        ]
+      }
+    },
+    {
+      "url": "http://va.gov/fhir/StructureDefinition/organization-signatureRequiredOnBill",
+      "valueBoolean": true
+    },
+    {
+      "url": "http://va.gov/fhir/StructureDefinition/organization-attendingRenderingProviderSecondaryIDProfesionalRequired",
+      "valueBoolean": false
+    },
+    {
+      "url": "http://va.gov/fhir/StructureDefinition/organization-allowMultipleBedsections",
+      "valueBoolean": true
+    },
+    {
+      "url": "http://va.gov/fhir/StructureDefinition/organization-attendingRenderingProviderSecondaryIDInstitutionalRequired",
+      "valueBoolean": false
+    },
+    {
+      "url": "http://va.gov/fhir/StructureDefinition/organization-printSecTertAutoClaimsLocally",
+      "valueBoolean": false
+    },
+    {
+      "url": "http://va.gov/fhir/StructureDefinition/organization-printSecMedClaimsWOMRALocally",
+      "valueBoolean": false
+    },
+    {
+      "url": "http://va.gov/fhir/StructureDefinition/organization-oneOutpatVisitOnBillOnly",
+      "valueBoolean": false
+    },
+    {
+      "url": "http://va.gov/fhir/StructureDefinition/organization-anotherCompanyProcessesInpatClaims",
+      "valueBoolean": false
+    },
+    {
+      "url": "http://va.gov/fhir/StructureDefinition/organization-anotherCompanyProcessesAppeals",
+      "valueBoolean": false
+    },
+    {
+      "url": "http://va.gov/fhir/StructureDefinition/organization-anotherCompanyProcessesInquiries",
+      "valueBoolean": false
+    },
+    {
+      "url": "http://va.gov/fhir/StructureDefinition/organization-anotherCompanyProcessesOutpatClaims",
+      "valueBoolean": false
+    },
+    {
+      "url": "http://va.gov/fhir/StructureDefinition/organization-anotherCompanyProcessesDentalClaims",
+      "valueBoolean": false
+    },
+    {
+      "url": "http://va.gov/fhir/StructureDefinition/organization-anotherCompanyProcessesPrecert",
+      "valueBoolean": false
+    },
+    {
+      "url": "http://va.gov/fhir/StructureDefinition/organization-anotherCompanyProcessesRxClaims",
+      "valueBoolean": false
+    },
+    {
       "url": "http://va.gov/fhir/StructureDefinition/organization-filingTimeFrame",
       "valueString": "12 MONTHS"
     },
     {
-      "url": "http://va.gov/fhir/StructureDefinition/organization-anotherCompanyProcessesInpatClaims",
-      "valueBoolean": true
+      "url": "http://hl7.org/fhir/us/davinci-pdex-plan-net/StructureDefinition/via-intermediary",
+      "valueReference": {
+        "reference": "Organization/I3-450NAk1LKUAXKzQ35A62U1"
+      }
     }
   ],
   "identifier": [
     {
-      "type":
-      {
+      "type": {
         "coding": [
           {
             "code": "PROFEDI"
@@ -126,8 +199,7 @@
       "value": "55555"
     },
     {
-      "type":
-      {
+      "type": {
         "coding": [
           {
             "code": "INSTEDI"
@@ -137,10 +209,8 @@
       "value": "66666"
     },
     {
-      "type":
-      {
-        "coding":
-        [
+      "type": {
+        "coding": [
           {
             "code": "BIN"
           }
@@ -149,8 +219,7 @@
       "value": "SHANKBIN"
     },
     {
-      "type":
-      {
+      "type": {
         "coding": [
           {
             "code": "277EDI"

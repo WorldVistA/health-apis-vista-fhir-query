@@ -22,7 +22,7 @@ public class BooleanExtensionHandlerTest {
                 .filemanFactory(filemanFactory)
                 .fieldNumber("field number")
                 .booleanStringMapping(Map.of(true, "YES", false, "NO"))
-                .required(AbstractExtensionHandler.IsRequired.REQUIRED)
+                .required(ExtensionHandler.Required.REQUIRED)
                 .build()
                 .handle(Extension.builder().url("defining url").valueBoolean(true).build()))
         .containsOnly(
@@ -41,7 +41,7 @@ public class BooleanExtensionHandlerTest {
                 .filemanFactory(filemanFactory)
                 .fieldNumber("field number")
                 .booleanStringMapping(Map.of(false, "NO"))
-                .required(AbstractExtensionHandler.IsRequired.REQUIRED)
+                .required(ExtensionHandler.Required.REQUIRED)
                 .build()
                 .handle(Extension.builder().url("defining url").valueBoolean(true).build()))
         .isEmpty();
@@ -56,7 +56,7 @@ public class BooleanExtensionHandlerTest {
                     .filemanFactory(filemanFactory)
                     .fieldNumber("field number")
                     .booleanStringMapping(Map.of(true, "YES", false, ""))
-                    .required(AbstractExtensionHandler.IsRequired.REQUIRED)
+                    .required(ExtensionHandler.Required.REQUIRED)
                     .build()
                     .handle(Extension.builder().url("defining url").valueBoolean(null).build()));
   }

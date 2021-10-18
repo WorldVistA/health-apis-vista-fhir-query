@@ -10,14 +10,9 @@ public abstract class AbstractExtensionHandler implements ExtensionHandler {
 
   @Getter private final String definingUrl;
 
-  @Getter private final IsRequired required;
+  @Getter private final Required required;
 
   @Getter private final String fieldNumber;
 
   @Getter private final WriteableFilemanValueFactory filemanFactory;
-
-  public enum IsRequired {
-    REQUIRED,
-    OPTIONAL
-  }
 }

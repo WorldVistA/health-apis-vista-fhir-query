@@ -16,7 +16,7 @@ public class StringExtensionHandler extends AbstractExtensionHandler {
   public StringExtensionHandler(
       @NonNull WriteableFilemanValueFactory filemanFactory,
       @NonNull String definingUrl,
-      @NonNull AbstractExtensionHandler.IsRequired required,
+      @NonNull ExtensionHandler.Required required,
       @NonNull String fieldNumber) {
     super(definingUrl, required, fieldNumber, filemanFactory);
   }

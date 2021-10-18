@@ -1,5 +1,6 @@
 package gov.va.api.health.vistafhirquery.service.controller.extensionprocessing;
 
+import static gov.va.api.health.vistafhirquery.service.controller.extensionprocessing.ExtensionHandler.Required.REQUIRED;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.junit.jupiter.params.provider.Arguments.arguments;
@@ -8,7 +9,6 @@ import gov.va.api.health.r4.api.datatypes.Quantity;
 import gov.va.api.health.r4.api.elements.Extension;
 import gov.va.api.health.vistafhirquery.service.controller.ResourceExceptions.BadRequestPayload.BadExtension;
 import gov.va.api.health.vistafhirquery.service.controller.WriteableFilemanValueFactory;
-import gov.va.api.health.vistafhirquery.service.controller.extensionprocessing.AbstractExtensionHandler.IsRequired;
 import gov.va.api.lighthouse.charon.models.lhslighthouserpcgateway.LhsLighthouseRpcGatewayCoverageWrite.WriteableFilemanValue;
 import java.math.BigDecimal;
 import java.util.stream.Stream;
@@ -29,7 +29,7 @@ public class QuantityExtensionHandlerTest {
   private QuantityExtensionHandler _handler() {
     return QuantityExtensionHandler.builder()
         .definingUrl("http://fugazi.com/quantity")
-        .required(IsRequired.REQUIRED)
+        .required(REQUIRED)
         .valueFieldNumber("1")
         .unitFieldNumber("2")
         .filemanFactory(WriteableFilemanValueFactory.forFile("888"))

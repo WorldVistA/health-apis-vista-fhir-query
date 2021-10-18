@@ -21,7 +21,7 @@ public class CodeableConceptExtensionHandler extends AbstractExtensionHandler {
   public CodeableConceptExtensionHandler(
       @NonNull WriteableFilemanValueFactory filemanFactory,
       @NonNull String definingUrl,
-      @NonNull IsRequired required,
+      @NonNull ExtensionHandler.Required required,
       @NonNull String fieldNumber,
       @NonNull String codingSystem) {
     super(definingUrl, required, fieldNumber, filemanFactory);

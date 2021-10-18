@@ -22,6 +22,7 @@ import gov.va.api.health.vistafhirquery.service.controller.RecordCoordinates;
 import gov.va.api.lighthouse.charon.models.lhslighthouserpcgateway.InsuranceCompany;
 import gov.va.api.lighthouse.charon.models.lhslighthouserpcgateway.LhsLighthouseRpcGatewayCoverageWrite.WriteableFilemanValue;
 import gov.va.api.lighthouse.charon.models.lhslighthouserpcgateway.LhsLighthouseRpcGatewayResponse;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
@@ -30,6 +31,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import lombok.NoArgsConstructor;
 import lombok.SneakyThrows;
 import lombok.experimental.UtilityClass;
@@ -38,7 +40,7 @@ import lombok.experimental.UtilityClass;
 public class OrganizationSamples {
   @SneakyThrows
   public static String json(Object o) {
-    return JacksonConfig.createMapper().writeValueAsString(o);
+    return JacksonConfig.createMapper().writerWithDefaultPrettyPrinter().writeValueAsString(o);
   }
 
   public static LinkProperties linkProperties() {
@@ -95,8 +97,6 @@ public class OrganizationSamples {
           insuranceCompanyValue(InsuranceCompany.CLAIMS_OPT_PHONE_NUMBER, "800-555-6666"),
           insuranceCompanyValue(InsuranceCompany.APPEALS_PHONE_NUMBER, "1-800-SHANK-APPEALS"),
           insuranceCompanyValue(InsuranceCompany.INQUIRY_PHONE_NUMBER, "1-800-SHANK-INQUIRY"),
-          insuranceCompanyValue(InsuranceCompany.STANDARD_FTF, "DAYS"),
-          insuranceCompanyValue(InsuranceCompany.STANDARD_FTF_VALUE, "365"),
           insuranceCompanyValue(InsuranceCompany.REIMBURSE_, "WILL REIMBURSE"),
           insuranceCompanyValue(InsuranceCompany.SIGNATURE_REQUIRED_ON_BILL_, "YES"),
           insuranceCompanyValue(InsuranceCompany.TRANSMIT_ELECTRONICALLY, "YES-TEST"),
@@ -108,7 +108,26 @@ public class OrganizationSamples {
           insuranceCompanyValue(InsuranceCompany.PRINT_SEC_MED_CLAIMS_W_O_MRA_, "YES"),
           insuranceCompanyValue(InsuranceCompany.BIN_NUMBER, "SHANKBIN"),
           insuranceCompanyValue(InsuranceCompany.EDI_ID_NUMBER_INST, "66666"),
-          insuranceCompanyValue(InsuranceCompany.EDI_ID_NUMBER_PROF, "55555"));
+          insuranceCompanyValue(InsuranceCompany.EDI_ID_NUMBER_PROF, "55555"),
+          insuranceCompanyValue(InsuranceCompany.REF_PROV_SEC_ID_DEF_CMS_1500, "REF PROV CMS 1500"),
+          insuranceCompanyValue(
+              InsuranceCompany.PRESCRIPTION_REFILL_REV_CODE, "SHANK PRESCRIPTION REV CODE"),
+          insuranceCompanyValue(InsuranceCompany.ANOTHER_CO_PROCESS_INQUIRIES_, "YES"),
+          insuranceCompanyValue(InsuranceCompany.AMBULATORY_SURG_REV_CODE, "994"),
+          insuranceCompanyValue(InsuranceCompany.ONE_OPT_VISIT_ON_BILL_ONLY, "YES"),
+          insuranceCompanyValue(InsuranceCompany.PERF_PROV_SECOND_ID_TYPE_1500, "PERF PROV 1500"),
+          insuranceCompanyValue(InsuranceCompany.ANOTHER_CO_PROCESS_RX_CLAIMS_, "YES"),
+          pointerTo("365.12", "SHANK PAYER"),
+          insuranceCompanyValue(InsuranceCompany.ALLOW_MULTIPLE_BEDSECTIONS, "YES"),
+          insuranceCompanyValue(InsuranceCompany.ANOTHER_CO_PROCESS_OP_CLAIMS_, "YES"),
+          insuranceCompanyValue(InsuranceCompany.ANOTHER_CO_PROCESS_APPEALS_, "YES"),
+          insuranceCompanyValue(InsuranceCompany.PERF_PROV_SECOND_ID_TYPE_UB, "PERF PROV 04"),
+          insuranceCompanyValue(InsuranceCompany.ANOTHER_CO_PROC_DENT_CLAIMS_, "YES"),
+          insuranceCompanyValue(InsuranceCompany.ANOTHER_CO_PROCESS_IP_CLAIMS_, "YES"),
+          insuranceCompanyValue(InsuranceCompany.ANOTHER_CO_PROCESS_PRECERTS_, "YES"),
+          insuranceCompanyValue(InsuranceCompany.STANDARD_FTF, "DAYS"),
+          insuranceCompanyValue(InsuranceCompany.STANDARD_FTF_VALUE, "365"),
+          insuranceCompanyValue(InsuranceCompany.FILING_TIME_FRAME, "FILING SHANKTOTIME FRAME"));
     }
 
     public LhsLighthouseRpcGatewayResponse.Results createOrganizationResults(String id) {
@@ -416,6 +435,18 @@ public class OrganizationSamples {
       return BundleLink.builder().relation(rel).url(base + "?" + query).build();
     }
 
+    public static Organization sortExtensions(Organization org) {
+      var sorted = new ArrayList<>(org.extension());
+      sorted.sort((e1, e2) -> String.CASE_INSENSITIVE_ORDER.compare(e1.url(), e2.url()));
+      org.extension(sorted);
+      return org;
+    }
+
+    public static Organization.Bundle sortExtensions(Organization.Bundle bundle) {
+      bundle.entry().forEach(entry -> sortExtensions(entry.resource()));
+      return bundle;
+    }
+
     private List<Address> address() {
       return List.of(
           Address.builder()
@@ -665,220 +696,224 @@ public class OrganizationSamples {
     }
 
     private List<Extension> extensions(String station) {
-      return List.of(
-          Extension.builder()
-              .valueBoolean(Boolean.TRUE)
-              .url(OrganizationStructureDefinitions.ALLOW_MULTIPLE_BEDSECTIONS)
-              .build(),
-          Extension.builder()
-              .url(OrganizationStructureDefinitions.ONE_OUTPAT_VISIT_ON_BILL_ONLY)
-              .valueBoolean(Boolean.TRUE)
-              .build(),
-          Extension.builder()
-              .valueCodeableConcept(
-                  CodeableConcept.builder()
-                      .coding(
-                          Collections.singletonList(
-                              Coding.builder()
-                                  .code("994")
-                                  .system(
-                                      OrganizationStructureDefinitions
-                                          .AMBULATORY_SURGERY_REVENUE_CODE_URN_OID)
-                                  .build()))
-                      .build())
-              .url(OrganizationStructureDefinitions.AMBULATORY_SURGERY_REVENUE_CODE)
-              .build(),
-          Extension.builder()
-              .valueString("FILING SHANKTOTIME FRAME")
-              .url(OrganizationStructureDefinitions.FILING_TIME_FRAME)
-              .build(),
-          Extension.builder()
-              .valueBoolean(Boolean.TRUE)
-              .url(OrganizationStructureDefinitions.ANOTHER_COMPANY_PROCESSES_INPAT_CLAIMS)
-              .build(),
-          typeOfCoverage(),
-          Extension.builder()
-              .valueBoolean(Boolean.TRUE)
-              .url(OrganizationStructureDefinitions.ANOTHER_COMPANY_PROCESSES_APPEALS)
-              .build(),
-          Extension.builder()
-              .url(OrganizationStructureDefinitions.PRESCRIPTION_REVENUE_CODE)
-              .valueCodeableConcept(
-                  CodeableConcept.builder()
-                      .coding(
-                          Collections.singletonList(
-                              Coding.builder()
-                                  .system(
-                                      OrganizationStructureDefinitions
-                                          .PRESCRIPTION_REVENUE_CODE_URN_OID)
-                                  .code("SHANK PRESCRIPTION REV CODE")
-                                  .build()))
-                      .build())
-              .build(),
-          Extension.builder()
-              .valueBoolean(Boolean.TRUE)
-              .url(OrganizationStructureDefinitions.ANOTHER_COMPANY_PROCESSES_INQUIRIES)
-              .build(),
-          Extension.builder()
-              .url(OrganizationStructureDefinitions.ANOTHER_COMPANY_PROCESSES_OUTPAT_CLAIMS)
-              .valueBoolean(Boolean.TRUE)
-              .build(),
-          Extension.builder()
-              .url(OrganizationStructureDefinitions.ANOTHER_COMPANY_PROCESSES_PRECERT)
-              .valueBoolean(Boolean.TRUE)
-              .build(),
-          Extension.builder()
-              .url(OrganizationStructureDefinitions.ANOTHER_COMPANY_PROCESSES_RX_CLAIMS)
-              .valueBoolean(Boolean.TRUE)
-              .build(),
-          Extension.builder()
-              .url(OrganizationStructureDefinitions.ANOTHER_COMPANY_PROCESSES_DENTAL_CLAIMS)
-              .valueBoolean(Boolean.TRUE)
-              .build(),
-          Extension.builder()
-              .valueQuantity(
-                  Quantity.builder()
-                      .value(toBigDecimal("365"))
-                      .unit("DAYS")
-                      .system(
-                          OrganizationStructureDefinitions.PLAN_STANDARD_FILING_TIME_FRAME_URN_OID)
-                      .build())
-              .url(OrganizationStructureDefinitions.PLAN_STANDARD_FILING_TIME_FRAME)
-              .build(),
-          Extension.builder()
-              .url(OrganizationStructureDefinitions.WILL_REIMBURSE_FOR_CARE)
-              .valueCodeableConcept(
-                  CodeableConcept.builder()
-                      .coding(
-                          Collections.singletonList(
-                              Coding.builder()
-                                  .code("WILL REIMBURSE")
-                                  .system(
-                                      OrganizationStructureDefinitions
-                                          .WILL_REIMBURSE_FOR_CARE_URN_OID)
-                                  .build()))
-                      .build())
-              .build(),
-          signatureRequiredOnBill(),
-          Extension.builder()
-              .url(OrganizationStructureDefinitions.ELECTRONIC_TRANSMISSION_MODE)
-              .valueCodeableConcept(
-                  CodeableConcept.builder()
-                      .coding(
-                          Collections.singletonList(
-                              Coding.builder()
-                                  .system(
-                                      OrganizationStructureDefinitions
-                                          .ELECTRONIC_TRANSMISSION_MODE_URN_OID)
-                                  .code("YES-TEST")
-                                  .build()))
-                      .build())
-              .build(),
-          Extension.builder()
-              .url(OrganizationStructureDefinitions.ELECTRONIC_INSURANCE_TYPE)
-              .valueCodeableConcept(
-                  CodeableConcept.builder()
-                      .coding(
-                          Collections.singletonList(
-                              Coding.builder()
-                                  .code("GROUP POLICY")
-                                  .system(
-                                      OrganizationStructureDefinitions
-                                          .ELECTRONIC_INSURANCE_TYPE_URN_OID)
-                                  .build()))
-                      .build())
-              .build(),
-          Extension.builder()
-              .url(
-                  "http://hl7.org/fhir/us/davinci-pdex-plan-net/StructureDefinition/via-intermediary")
-              .valueReference(
-                  Reference.builder()
-                      .reference(
-                          "Organization/"
-                              + RecordCoordinates.builder()
-                                  .site(station)
-                                  .file("365.12")
-                                  .ien("SHANK PAYER")
-                                  .build()
-                                  .toString())
-                      .build())
-              .build(),
-          Extension.builder()
-              .url(OrganizationStructureDefinitions.PERFORMING_PROVIDER_SECOND_IDTYPE_CMS_1500)
-              .valueCodeableConcept(
-                  CodeableConcept.builder()
-                      .coding(
-                          Collections.singletonList(
-                              Coding.builder()
-                                  .system(
-                                      OrganizationStructureDefinitions
-                                          .PERFORMING_PROVIDER_SECOND_IDTYPE_CMS_1500_URN_OID)
-                                  .code("PERF PROV 1500")
-                                  .build()))
-                      .build())
-              .build(),
-          Extension.builder()
-              .url(OrganizationStructureDefinitions.PERFORMING_PROVIDER_SECOND_IDTYPE_UB_04)
-              .valueCodeableConcept(
-                  CodeableConcept.builder()
-                      .coding(
-                          Collections.singletonList(
-                              Coding.builder()
-                                  .system(
-                                      OrganizationStructureDefinitions
-                                          .PERFORMING_PROVIDER_SECOND_IDTYPE_UB_04_URN_OID)
-                                  .code("PERF PROV 04")
-                                  .build()))
-                      .build())
-              .build(),
-          Extension.builder()
-              .url(OrganizationStructureDefinitions.REFERRNG_PROVIDER_SECOND_IDTYPE_CMS_1500)
-              .valueCodeableConcept(
-                  CodeableConcept.builder()
-                      .coding(
-                          Collections.singletonList(
-                              Coding.builder()
-                                  .code("REF PROV CMS 1500")
-                                  .system(
-                                      OrganizationStructureDefinitions
-                                          .REFERRNG_PROVIDER_SECOND_IDTYPE_CMS_1500_URN_OID)
-                                  .build()))
-                      .build())
-              .build(),
-          Extension.builder()
-              .url(OrganizationStructureDefinitions.REFERRNG_PROVIDER_SECOND_IDTYPE_UB_04)
-              .valueCodeableConcept(
-                  CodeableConcept.builder()
-                      .coding(
-                          Collections.singletonList(
-                              Coding.builder()
-                                  .code("NONE")
-                                  .system(
-                                      OrganizationStructureDefinitions
-                                          .REFERRNG_PROVIDER_SECOND_IDTYPE_UB_04_URN_OID)
-                                  .build()))
-                      .build())
-              .build(),
-          Extension.builder()
-              .url(
-                  OrganizationStructureDefinitions
-                      .ATTENDING_RENDERING_PROVIDER_SECONDARY_IDPROFESIONAL_REQUIRED)
-              .valueBoolean(Boolean.TRUE)
-              .build(),
-          Extension.builder()
-              .url(
-                  OrganizationStructureDefinitions
-                      .ATTENDING_RENDERING_PROVIDER_SECONDARY_IDINSTITUTIONAL_REQUIRED)
-              .valueBoolean(Boolean.TRUE)
-              .build(),
-          Extension.builder()
-              .url(OrganizationStructureDefinitions.PRINT_SEC_TERT_AUTO_CLAIMS_LOCALLY)
-              .valueBoolean(Boolean.TRUE)
-              .build(),
-          Extension.builder()
-              .url(OrganizationStructureDefinitions.PRINT_SEC_MED_CLAIMS_WOMRALOCALLY)
-              .valueBoolean(Boolean.TRUE)
-              .build());
+      return Stream.of(
+              Extension.builder()
+                  .valueBoolean(Boolean.TRUE)
+                  .url(OrganizationStructureDefinitions.ALLOW_MULTIPLE_BEDSECTIONS)
+                  .build(),
+              Extension.builder()
+                  .url(OrganizationStructureDefinitions.ONE_OUTPAT_VISIT_ON_BILL_ONLY)
+                  .valueBoolean(Boolean.TRUE)
+                  .build(),
+              Extension.builder()
+                  .valueCodeableConcept(
+                      CodeableConcept.builder()
+                          .coding(
+                              Collections.singletonList(
+                                  Coding.builder()
+                                      .code("994")
+                                      .system(
+                                          OrganizationStructureDefinitions
+                                              .AMBULATORY_SURGERY_REVENUE_CODE_URN_OID)
+                                      .build()))
+                          .build())
+                  .url(OrganizationStructureDefinitions.AMBULATORY_SURGERY_REVENUE_CODE)
+                  .build(),
+              Extension.builder()
+                  .valueBoolean(Boolean.TRUE)
+                  .url(OrganizationStructureDefinitions.ANOTHER_COMPANY_PROCESSES_INPAT_CLAIMS)
+                  .build(),
+              typeOfCoverage(),
+              Extension.builder()
+                  .valueBoolean(Boolean.TRUE)
+                  .url(OrganizationStructureDefinitions.ANOTHER_COMPANY_PROCESSES_APPEALS)
+                  .build(),
+              Extension.builder()
+                  .url(OrganizationStructureDefinitions.PRESCRIPTION_REVENUE_CODE)
+                  .valueCodeableConcept(
+                      CodeableConcept.builder()
+                          .coding(
+                              Collections.singletonList(
+                                  Coding.builder()
+                                      .system(
+                                          OrganizationStructureDefinitions
+                                              .PRESCRIPTION_REVENUE_CODE_URN_OID)
+                                      .code("SHANK PRESCRIPTION REV CODE")
+                                      .build()))
+                          .build())
+                  .build(),
+              Extension.builder()
+                  .valueBoolean(Boolean.TRUE)
+                  .url(OrganizationStructureDefinitions.ANOTHER_COMPANY_PROCESSES_INQUIRIES)
+                  .build(),
+              Extension.builder()
+                  .url(OrganizationStructureDefinitions.ANOTHER_COMPANY_PROCESSES_OUTPAT_CLAIMS)
+                  .valueBoolean(Boolean.TRUE)
+                  .build(),
+              Extension.builder()
+                  .url(OrganizationStructureDefinitions.ANOTHER_COMPANY_PROCESSES_PRECERT)
+                  .valueBoolean(Boolean.TRUE)
+                  .build(),
+              Extension.builder()
+                  .url(OrganizationStructureDefinitions.ANOTHER_COMPANY_PROCESSES_RX_CLAIMS)
+                  .valueBoolean(Boolean.TRUE)
+                  .build(),
+              Extension.builder()
+                  .url(OrganizationStructureDefinitions.ANOTHER_COMPANY_PROCESSES_DENTAL_CLAIMS)
+                  .valueBoolean(Boolean.TRUE)
+                  .build(),
+              Extension.builder()
+                  .url(OrganizationStructureDefinitions.WILL_REIMBURSE_FOR_CARE)
+                  .valueCodeableConcept(
+                      CodeableConcept.builder()
+                          .coding(
+                              Collections.singletonList(
+                                  Coding.builder()
+                                      .code("WILL REIMBURSE")
+                                      .system(
+                                          OrganizationStructureDefinitions
+                                              .WILL_REIMBURSE_FOR_CARE_URN_OID)
+                                      .build()))
+                          .build())
+                  .build(),
+              signatureRequiredOnBill(),
+              Extension.builder()
+                  .url(OrganizationStructureDefinitions.ELECTRONIC_TRANSMISSION_MODE)
+                  .valueCodeableConcept(
+                      CodeableConcept.builder()
+                          .coding(
+                              Collections.singletonList(
+                                  Coding.builder()
+                                      .system(
+                                          OrganizationStructureDefinitions
+                                              .ELECTRONIC_TRANSMISSION_MODE_URN_OID)
+                                      .code("YES-TEST")
+                                      .build()))
+                          .build())
+                  .build(),
+              Extension.builder()
+                  .url(OrganizationStructureDefinitions.ELECTRONIC_INSURANCE_TYPE)
+                  .valueCodeableConcept(
+                      CodeableConcept.builder()
+                          .coding(
+                              Collections.singletonList(
+                                  Coding.builder()
+                                      .code("GROUP POLICY")
+                                      .system(
+                                          OrganizationStructureDefinitions
+                                              .ELECTRONIC_INSURANCE_TYPE_URN_OID)
+                                      .build()))
+                          .build())
+                  .build(),
+              Extension.builder()
+                  .url(
+                      "http://hl7.org/fhir/us/davinci-pdex-plan-net/StructureDefinition/via-intermediary")
+                  .valueReference(
+                      Reference.builder()
+                          .reference(
+                              "Organization/"
+                                  + RecordCoordinates.builder()
+                                      .site(station)
+                                      .file("365.12")
+                                      .ien("SHANK PAYER")
+                                      .build()
+                                      .toString())
+                          .build())
+                  .build(),
+              Extension.builder()
+                  .url(OrganizationStructureDefinitions.PERFORMING_PROVIDER_SECOND_IDTYPE_CMS_1500)
+                  .valueCodeableConcept(
+                      CodeableConcept.builder()
+                          .coding(
+                              Collections.singletonList(
+                                  Coding.builder()
+                                      .system(
+                                          OrganizationStructureDefinitions
+                                              .PERFORMING_PROVIDER_SECOND_IDTYPE_CMS_1500_URN_OID)
+                                      .code("PERF PROV 1500")
+                                      .build()))
+                          .build())
+                  .build(),
+              Extension.builder()
+                  .url("http://va.gov/fhir/StructureDefinition/organization-filingTimeFrame")
+                  .valueString("FILING SHANKTOTIME FRAME")
+                  .build(),
+              Extension.builder()
+                  .url(OrganizationStructureDefinitions.PERFORMING_PROVIDER_SECOND_IDTYPE_UB_04)
+                  .valueCodeableConcept(
+                      CodeableConcept.builder()
+                          .coding(
+                              Collections.singletonList(
+                                  Coding.builder()
+                                      .system(
+                                          OrganizationStructureDefinitions
+                                              .PERFORMING_PROVIDER_SECOND_IDTYPE_UB_04_URN_OID)
+                                      .code("PERF PROV 04")
+                                      .build()))
+                          .build())
+                  .build(),
+              Extension.builder()
+                  .url(OrganizationStructureDefinitions.REFERRNG_PROVIDER_SECOND_IDTYPE_CMS_1500)
+                  .valueCodeableConcept(
+                      CodeableConcept.builder()
+                          .coding(
+                              Collections.singletonList(
+                                  Coding.builder()
+                                      .code("REF PROV CMS 1500")
+                                      .system(
+                                          OrganizationStructureDefinitions
+                                              .REFERRNG_PROVIDER_SECOND_IDTYPE_CMS_1500_URN_OID)
+                                      .build()))
+                          .build())
+                  .build(),
+              Extension.builder()
+                  .url(OrganizationStructureDefinitions.REFERRNG_PROVIDER_SECOND_IDTYPE_UB_04)
+                  .valueCodeableConcept(
+                      CodeableConcept.builder()
+                          .coding(
+                              Collections.singletonList(
+                                  Coding.builder()
+                                      .code("NONE")
+                                      .system(
+                                          OrganizationStructureDefinitions
+                                              .REFERRNG_PROVIDER_SECOND_IDTYPE_UB_04_URN_OID)
+                                      .build()))
+                          .build())
+                  .build(),
+              Extension.builder()
+                  .url(
+                      OrganizationStructureDefinitions
+                          .ATTENDING_RENDERING_PROVIDER_SECONDARY_IDPROFESIONAL_REQUIRED)
+                  .valueBoolean(Boolean.TRUE)
+                  .build(),
+              Extension.builder()
+                  .url(
+                      OrganizationStructureDefinitions
+                          .ATTENDING_RENDERING_PROVIDER_SECONDARY_IDINSTITUTIONAL_REQUIRED)
+                  .valueBoolean(Boolean.TRUE)
+                  .build(),
+              Extension.builder()
+                  .url(OrganizationStructureDefinitions.PRINT_SEC_TERT_AUTO_CLAIMS_LOCALLY)
+                  .valueBoolean(Boolean.TRUE)
+                  .build(),
+              Extension.builder()
+                  .url(OrganizationStructureDefinitions.PRINT_SEC_MED_CLAIMS_WOMRALOCALLY)
+                  .valueBoolean(Boolean.TRUE)
+                  .build(),
+              ftfExtension())
+          .toList();
+    }
+
+    Extension ftfExtension() {
+      return Extension.builder()
+          .valueQuantity(
+              Quantity.builder()
+                  .value(toBigDecimal("365"))
+                  .unit("DAYS")
+                  .system(OrganizationStructureDefinitions.PLAN_STANDARD_FILING_TIME_FRAME_URN_OID)
+                  .build())
+          .url(OrganizationStructureDefinitions.PLAN_STANDARD_FILING_TIME_FRAME)
+          .build();
     }
 
     List<Identifier> identifiers() {

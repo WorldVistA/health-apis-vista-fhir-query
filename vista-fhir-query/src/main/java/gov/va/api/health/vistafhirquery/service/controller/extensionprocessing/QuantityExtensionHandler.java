@@ -19,7 +19,7 @@ public class QuantityExtensionHandler extends AbstractExtensionHandler {
   QuantityExtensionHandler(
       @NonNull WriteableFilemanValueFactory filemanFactory,
       @NonNull String definingUrl,
-      @NonNull AbstractExtensionHandler.IsRequired required,
+      @NonNull ExtensionHandler.Required required,
       @NonNull String valueFieldNumber,
       @NonNull String unitFieldNumber) {
     super(definingUrl, required, valueFieldNumber, filemanFactory);

@@ -1,5 +1,6 @@
 package gov.va.api.health.vistafhirquery.service.controller.extensionprocessing;
 
+import static gov.va.api.health.vistafhirquery.service.controller.extensionprocessing.ExtensionHandler.Required.REQUIRED;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.junit.jupiter.params.provider.Arguments.arguments;
@@ -9,7 +10,6 @@ import gov.va.api.health.r4.api.elements.Reference;
 import gov.va.api.health.vistafhirquery.service.controller.IsSiteCoordinates;
 import gov.va.api.health.vistafhirquery.service.controller.ResourceExceptions.BadRequestPayload.BadExtension;
 import gov.va.api.health.vistafhirquery.service.controller.WriteableFilemanValueFactory;
-import gov.va.api.health.vistafhirquery.service.controller.extensionprocessing.AbstractExtensionHandler.IsRequired;
 import gov.va.api.lighthouse.charon.models.lhslighthouserpcgateway.LhsLighthouseRpcGatewayCoverageWrite.WriteableFilemanValue;
 import java.util.stream.Stream;
 import org.junit.jupiter.api.Test;
@@ -27,7 +27,7 @@ public class ReferenceExtensionHandlerTest {
 
   private ReferenceExtensionHandler _handler() {
     return ReferenceExtensionHandler.forDefiningUrl("http://fugazi.com/reference")
-        .required(IsRequired.REQUIRED)
+        .required(REQUIRED)
         .filemanFactory(WriteableFilemanValueFactory.forFile("888"))
         .fieldNumber("#.88")
         .referenceFile("123")
