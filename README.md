@@ -35,6 +35,15 @@ For example,
 
 ![observation-components](vista-fhir-query/src/plantuml/observation-components.png)
 
+# Local Development
+
+### Config
+- Execute `src/scripts/make-configs.sh` (requires `secrets.conf` from a team member)
+
+### Dependencies
+- [lighthouse-charon](https://github.com/department-of-veterans-affairs/lighthouse-charon)
+- [lighthouse-vista-docker](https://github.com/department-of-veterans-affairs/lighthouse-vista-docker)
+- [datamart-synthetic-records](https://github.com/department-of-veterans-affairs/health-apis-datamart-synthetic-records)
 
 # Testing
 `vista-fhir-query-tests` provides the integration test suite that can be ran locally. It will automatically start Mock services.

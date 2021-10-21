@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<results version="1.13" timeZone="-0500">
+  <appointments total="1">
+    <appointment>
+      <apptStatus value="NO-SHOW"/>
+      <clinicStop code="301" name="GENERAL INTERNAL MEDICINE"/>
+      <dateTime value="2931013.07"/>
+      <facility code="673" name="TAMPA (JAH VAH)"/>
+      <id value="A;2931013.07;23"/>
+      <location value="GENERAL MEDICINE"/>
+      <patientClass value="AMB"/>
+      <service value="MEDICINE"/>
+      <serviceCategory code="A" name="AMBULATORY"/>
+      <type code="9" name="REGULAR"/>
+      <visitString value="23;2931013.07;A"/>
+    </appointment>
+  </appointments>
+</results>

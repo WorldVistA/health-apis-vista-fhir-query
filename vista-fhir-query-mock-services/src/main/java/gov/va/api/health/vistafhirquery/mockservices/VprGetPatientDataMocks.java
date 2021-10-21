@@ -2,8 +2,10 @@ package gov.va.api.health.vistafhirquery.mockservices;
 
 import static gov.va.api.health.vistafhirquery.mockservices.MockServiceRequests.contentTypeApplicationJson;
 import static gov.va.api.health.vistafhirquery.mockservices.MockServiceRequests.json;
-import static gov.va.api.health.vistafhirquery.mockservices.MockServiceRequests.rpcQueryWithExpectedRpcDetails;
-import static gov.va.api.health.vistafhirquery.mockservices.MockServiceRequests.rpcResponseOkWithContent;
+import static gov.va.api.health.vistafhirquery.mockservices.MockServiceRequests.rpcInvocationResultV1_OkWithContent;
+import static gov.va.api.health.vistafhirquery.mockservices.MockServiceRequests.rpcQueryV1_WithExpectedRpcDetails;
+import static gov.va.api.health.vistafhirquery.mockservices.MockServiceRequests.rpcQuery_WithExpectedRpcDetails;
+import static gov.va.api.health.vistafhirquery.mockservices.MockServiceRequests.rpcResponse_OkWithContent;
 import static org.mockserver.model.HttpResponse.response;
 
 import gov.va.api.lighthouse.charon.api.RpcDetails;
@@ -17,7 +19,7 @@ import lombok.Data;
 import lombok.RequiredArgsConstructor;
 import org.mockserver.client.MockServerClient;
 
-/** Mocked Observations from VPRGETPATIENTDATA. */
+/** Mocked responses for VPRGETPATIENTDATA. */
 @Data
 @RequiredArgsConstructor(staticName = "using")
 public class VprGetPatientDataMocks implements MockService {
@@ -26,11 +28,36 @@ public class VprGetPatientDataMocks implements MockService {
   private List<String> supportedQueries = new ArrayList<>();
 
   private List<Consumer<MockServerClient>> supportedRequests =
-      List.of(this::observationReadVitals, this::observationReadLabs, this::observationSearch);
+      List.of(
+          this::appointmentSearch,
+          this::observationReadLabs,
+          this::observationReadVitals,
+          this::observationSearch);
 
   private void addSupportedQuery(RpcDetails body) {
     supportedQueries.add(
         "[POST] http://localhost:" + port() + "/rpc with RPC Details like " + json(body));
+  }
+
+  void appointmentSearch(MockServerClient mock) {
+    var details =
+        VprGetPatientData.Request.builder()
+            .context(Optional.of("MOCKSERVICES"))
+            .dfn(VprGetPatientData.Request.PatientId.forIcn("1011537977V693883"))
+            .type(Set.of(VprGetPatientData.Domains.appointments))
+            .build()
+            .asDetails();
+
+    supportedQueries.add(
+        "[POST] http://localhost:" + port() + "/v1/rpc with RPC Details like " + json(details));
+    mock.when(rpcQueryV1_WithExpectedRpcDetails(port(), details))
+        .respond(
+            response()
+                .withStatusCode(200)
+                .withHeader(contentTypeApplicationJson())
+                .withBody(
+                    rpcInvocationResultV1_OkWithContent(
+                        "/vistalinkapi-vprgetpatientdata-appointment-searchresponse.xml")));
   }
 
   void observationReadLabs(MockServerClient mock) {
@@ -43,13 +70,13 @@ public class VprGetPatientDataMocks implements MockService {
             .build()
             .asDetails();
     addSupportedQuery(body);
-    mock.when(rpcQueryWithExpectedRpcDetails(port(), body))
+    mock.when(rpcQuery_WithExpectedRpcDetails(port(), body))
         .respond(
             response()
                 .withStatusCode(200)
                 .withHeader(contentTypeApplicationJson())
                 .withBody(
-                    rpcResponseOkWithContent(
+                    rpcResponse_OkWithContent(
                         "/vistalinkapi-vprgetpatientdata-read-labs-response.xml")));
   }
 
@@ -63,25 +90,25 @@ public class VprGetPatientDataMocks implements MockService {
             .build()
             .asDetails();
     addSupportedQuery(body);
-    mock.when(rpcQueryWithExpectedRpcDetails(port(), body))
+    mock.when(rpcQuery_WithExpectedRpcDetails(port(), body))
         .respond(
             response()
                 .withStatusCode(200)
                 .withHeader(contentTypeApplicationJson())
                 .withBody(
-                    rpcResponseOkWithContent(
+                    rpcResponse_OkWithContent(
                         "/vistalinkapi-vprgetpatientdata-read-vitals-response.xml")));
   }
 
   void observationSearch(MockServerClient mock) {
     supportedQueries.add("[POST] http://localhost:" + port() + "/rpc with _any_ RPC Details");
-    mock.when(rpcQueryWithExpectedRpcDetails(port(), null))
+    mock.when(rpcQuery_WithExpectedRpcDetails(port(), null))
         .respond(
             response()
                 .withStatusCode(200)
                 .withHeader(contentTypeApplicationJson())
                 .withBody(
-                    rpcResponseOkWithContent(
-                        "/vistalinkapi-vprgetpatientdata-searchresponse.xml")));
+                    rpcResponse_OkWithContent(
+                        "/vistalinkapi-vprgetpatientdata-observation-searchresponse.xml")));
   }
 }

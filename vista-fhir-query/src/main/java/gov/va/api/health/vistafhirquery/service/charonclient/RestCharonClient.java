@@ -1,12 +1,15 @@
 package gov.va.api.health.vistafhirquery.service.charonclient;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.dataformat.xml.XmlMapper;
 import gov.va.api.health.vistafhirquery.service.config.VistaApiConfig;
 import gov.va.api.health.vistafhirquery.service.controller.ResourceExceptions;
 import gov.va.api.lighthouse.charon.api.v1.RpcInvocationResultV1;
 import gov.va.api.lighthouse.charon.api.v1.RpcPrincipalLookupV1;
 import gov.va.api.lighthouse.charon.api.v1.RpcRequestV1;
+import gov.va.api.lighthouse.charon.models.RpcModelExceptions;
 import gov.va.api.lighthouse.charon.models.TypeSafeRpcRequest;
 import java.net.URI;
 import lombok.AllArgsConstructor;
@@ -15,6 +18,7 @@ import lombok.NonNull;
 import lombok.SneakyThrows;
 import lombok.Value;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.http.RequestEntity;
@@ -31,11 +35,27 @@ public class RestCharonClient implements CharonClient {
 
   private static final ObjectMapper MAPPER = new ObjectMapper();
 
+  private static final ObjectMapper XML_MAPPER =
+      new XmlMapper().configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+
   RestTemplate restTemplate;
 
   VistaApiConfig config;
 
   RpcPrincipalLookupV1 rpcPrincipalLookup;
+
+  /** Determine which type of input data to process. */
+  @SneakyThrows
+  static <T> T deserialize(String input, Class<T> type) {
+    if (StringUtils.isEmpty(input)) {
+      throw new RpcModelExceptions.InvalidRpcResponse("Vista response is null");
+    }
+    if (input.charAt(0) == '<') {
+      return fromXml(input, type);
+    } else {
+      return fromJson(input, type);
+    }
+  }
 
   /** Quietly unmarshal the JSON to the object type. */
   @SneakyThrows
@@ -43,7 +63,18 @@ public class RestCharonClient implements CharonClient {
     try {
       return MAPPER.readValue(json, type);
     } catch (JsonProcessingException e) {
-      log.error("Failed to read {}: {}", type.getName(), e.getMessage());
+      log.error("Failed to deserialize JSON to {}: {}", type.getName(), e.getMessage());
+      throw e;
+    }
+  }
+
+  /** Quietly unmarshal the XML to the object type. */
+  @SneakyThrows
+  static <T> T fromXml(String xml, Class<T> type) {
+    try {
+      return XML_MAPPER.readValue(xml, type);
+    } catch (JsonProcessingException e) {
+      log.error("Failed to deserialize XML to {}: {}", type.getName(), e.getMessage());
       throw e;
     }
   }
@@ -116,7 +147,7 @@ public class RestCharonClient implements CharonClient {
         CharonResponse.<I, O>builder()
             .request(request)
             .invocationResult(invocationResult)
-            .value(fromJson(invocationResult.response(), request.responseType()))
+            .value(deserialize(invocationResult.response(), request.responseType()))
             .build();
     debugResponse(response);
     return response;

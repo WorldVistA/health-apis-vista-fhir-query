@@ -14,7 +14,6 @@ import org.junit.jupiter.params.provider.MethodSource;
 
 @Slf4j
 public class ConformanceIT {
-
   static Stream<Arguments> conformance() {
     String apiPath = SystemDefinitions.systemDefinition().internal().apiPath();
     return Stream.of(

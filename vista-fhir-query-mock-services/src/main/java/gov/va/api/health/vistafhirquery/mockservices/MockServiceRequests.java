@@ -8,6 +8,8 @@ import gov.va.api.lighthouse.charon.api.RpcDetails;
 import gov.va.api.lighthouse.charon.api.RpcInvocationResult;
 import gov.va.api.lighthouse.charon.api.RpcRequest;
 import gov.va.api.lighthouse.charon.api.RpcResponse;
+import gov.va.api.lighthouse.charon.api.v1.RpcInvocationResultV1;
+import gov.va.api.lighthouse.charon.api.v1.RpcRequestV1;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
@@ -38,10 +40,29 @@ public class MockServiceRequests {
     return JacksonConfig.createMapper().writeValueAsString(o);
   }
 
-  /** Create an HTTP Request for mocking a Vistalink API /rpc endpoint. */
+  /** Return a json string representation of an RPC Response with an OK status. */
+  public static String rpcInvocationResultV1_OkWithContent(String rpcResponseFile) {
+    String response =
+        json(
+            RpcInvocationResultV1.builder()
+                .vista("673")
+                .timezone("America/New_York")
+                .response(fileContent(rpcResponseFile))
+                .build());
+    log.info("Respond with: {}", response);
+    return response;
+  }
+
+  /** Create an HTTP Request for mocking a Vistalink API /v1/rpc endpoint. */
+  public static HttpRequest rpcQueryV1_WithExpectedRpcDetails(int port, RpcDetails rpcDetails) {
+    return rpcQueryWithPathAndRequest(
+        port,
+        "/v1/rpc",
+        rpcDetails == null ? null : RpcRequestV1.builder().vista("673").rpc(rpcDetails).build());
+  }
+
   @SneakyThrows
-  public static HttpRequest rpcQueryWithExpectedRpcDetails(int port, RpcDetails rpcDetails) {
-    var path = "/rpc";
+  private static HttpRequest rpcQueryWithPathAndRequest(int port, String path, Object rpcRequest) {
     log.info("Support Query [POST]: http://localhost:{}{}", port, path);
     URL url = new URL("http://localhost" + path);
     var request =
@@ -49,8 +70,8 @@ public class MockServiceRequests {
             .withMethod("POST")
             .withPath(url.getPath())
             .withHeader(contentTypeApplicationJson());
-    if (rpcDetails != null) {
-      String body = json(RpcRequest.builder().rpc(rpcDetails).build());
+    if (rpcRequest != null) {
+      String body = json(rpcRequest);
       log.info("With RPC Details like: {}", body);
       request =
           request.withBody(
@@ -59,8 +80,14 @@ public class MockServiceRequests {
     return request;
   }
 
+  /** Create an HTTP Request for mocking a Vistalink API /rpc endpoint. */
+  public static HttpRequest rpcQuery_WithExpectedRpcDetails(int port, RpcDetails rpcDetails) {
+    return rpcQueryWithPathAndRequest(
+        port, "/rpc", rpcDetails == null ? null : RpcRequest.builder().rpc(rpcDetails).build());
+  }
+
   /** Return a json string representation of an RPC Response with an OK status. */
-  public static String rpcResponseOkWithContent(String rpcResponseFile) {
+  public static String rpcResponse_OkWithContent(String rpcResponseFile) {
     String response =
         json(
             RpcResponse.builder()

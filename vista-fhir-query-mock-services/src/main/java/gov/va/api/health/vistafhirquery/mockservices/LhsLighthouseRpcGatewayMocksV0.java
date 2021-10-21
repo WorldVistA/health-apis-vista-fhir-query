@@ -2,8 +2,8 @@ package gov.va.api.health.vistafhirquery.mockservices;
 
 import static gov.va.api.health.vistafhirquery.mockservices.MockServiceRequests.contentTypeApplicationJson;
 import static gov.va.api.health.vistafhirquery.mockservices.MockServiceRequests.json;
-import static gov.va.api.health.vistafhirquery.mockservices.MockServiceRequests.rpcQueryWithExpectedRpcDetails;
-import static gov.va.api.health.vistafhirquery.mockservices.MockServiceRequests.rpcResponseOkWithContent;
+import static gov.va.api.health.vistafhirquery.mockservices.MockServiceRequests.rpcQuery_WithExpectedRpcDetails;
+import static gov.va.api.health.vistafhirquery.mockservices.MockServiceRequests.rpcResponse_OkWithContent;
 import static org.mockserver.model.HttpResponse.response;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -25,8 +25,8 @@ import org.mockserver.model.HttpResponse;
 
 /** Mock requests/results from the Lighthouse RPC Gateway. */
 @Data
-@RequiredArgsConstructor(staticName = "using")
 @Slf4j
+@RequiredArgsConstructor(staticName = "using")
 public class LhsLighthouseRpcGatewayMocksV0 implements MockService {
   private final int port;
 
@@ -34,25 +34,20 @@ public class LhsLighthouseRpcGatewayMocksV0 implements MockService {
 
   private List<Consumer<MockServerClient>> supportedRequests = List.of(this::respondByFile);
 
-  private void addSupportedQuery(RpcDetails body) {
-    supportedQueries.add(
-        "[POST] http://localhost:" + port() + "/rpc with RPC Details like " + json(body));
-  }
-
-  @SuppressWarnings("UnnecessaryParentheses")
   @SneakyThrows
-  private HttpResponse chooseResponseBasedOnFile(HttpRequest request) {
+  @SuppressWarnings("UnnecessaryParentheses")
+  private static HttpResponse chooseResponseBasedOnFile(HttpRequest request) {
     ObjectMapper mapper = JacksonConfig.createMapper();
-    RpcRequest rpcRequest = mapper.readValue(request.getBodyAsString(), RpcRequest.class);
+    var rpcRequest = mapper.readValue(request.getBodyAsString(), RpcRequest.class);
     log.info("PROCESSING RPC REQUEST: {}", rpcRequest);
     Parameter ap = rpcRequest.rpc().parameters().get(0);
     // Looking for param^FILE^literal^2.312
+    // File 2 only works here because the request is for fields of subfile .312
     var response =
         ap.array().stream()
             .filter(p -> p.startsWith("param^FILE^literal^") || "api^search^coverage".equals(p))
             .map(p -> p.replace("param^FILE^literal^", ""))
             .map(p -> p.replace("api^search^", ""))
-            // File 2 only works here because the request is for fields of subfile .312
             .map(
                 matcher ->
                     switch (matcher) {
@@ -63,15 +58,11 @@ public class LhsLighthouseRpcGatewayMocksV0 implements MockService {
                     })
             .findFirst()
             .orElseThrow(() -> new IllegalStateException("No response for: " + ap));
-    return ok(response);
-  }
-
-  private HttpResponse ok(String resultsFile) {
-    log.info("Responding with {}", resultsFile);
+    log.info("Responding with {}", response);
     return response()
         .withStatusCode(200)
         .withHeader(contentTypeApplicationJson())
-        .withBody(rpcResponseOkWithContent(resultsFile));
+        .withBody(rpcResponse_OkWithContent(response));
   }
 
   void respondByFile(MockServerClient mock) {
@@ -80,8 +71,9 @@ public class LhsLighthouseRpcGatewayMocksV0 implements MockService {
             .name(LhsLighthouseRpcGatewayGetsManifest.RPC_NAME)
             .context("LHS RPC CONTEXT")
             .build();
-    addSupportedQuery(details);
-    mock.when(rpcQueryWithExpectedRpcDetails(port(), details))
-        .respond(this::chooseResponseBasedOnFile);
+    supportedQueries.add(
+        "[POST] http://localhost:" + port() + "/rpc with RPC Details like " + json(details));
+    mock.when(rpcQuery_WithExpectedRpcDetails(port(), details))
+        .respond(LhsLighthouseRpcGatewayMocksV0::chooseResponseBasedOnFile);
   }
 }
