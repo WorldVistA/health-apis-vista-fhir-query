@@ -1,462 +1,462 @@
 {
-  "resourceType": "Organization",
-  "id": "I3-450NAk1LKUAU1WUhmEuHLf",
-  "extension": [
+  "resourceType" : "Organization",
+  "id" : "I3-450NAk1LKUAU1WUhmEuHLf",
+  "extension" : [
     {
-      "url": "http://va.gov/fhir/StructureDefinition/organization-typeOfCoverage",
-      "valueCodeableConcept": {
-        "coding": [
+      "url" : "http://va.gov/fhir/StructureDefinition/organization-typeOfCoverage",
+      "valueCodeableConcept" : {
+        "coding" : [
           {
-            "system": "urn:oid:2.16.840.1.113883.3.8901.3.36.8013",
-            "code": "HEALTH INSURANCE"
+            "system" : "urn:oid:2.16.840.1.113883.3.8901.3.36.8013",
+            "code" : "HEALTH INSURANCE"
           }
         ]
       }
     },
     {
-      "url": "http://va.gov/fhir/StructureDefinition/organization-willReimburseForCare",
-      "valueCodeableConcept": {
-        "coding": [
+      "url" : "http://va.gov/fhir/StructureDefinition/organization-willReimburseForCare",
+      "valueCodeableConcept" : {
+        "coding" : [
           {
-            "system": "urn:oid:2.16.840.1.113883.3.8901.3.1.36.1",
-            "code": "WILL REIMBURSE"
+            "system" : "urn:oid:2.16.840.1.113883.3.8901.3.1.36.1",
+            "code" : "WILL REIMBURSE"
           }
         ]
       }
     },
     {
-      "url": "http://va.gov/fhir/StructureDefinition/organization-planStandardFilingTimeFrame",
-      "valueQuantity": {
-        "value": 365,
-        "unit": "DAYS",
-        "system": "urn:oid:2.16.840.1.113883.3.8901.3.3558013"
+      "url" : "http://va.gov/fhir/StructureDefinition/organization-planStandardFilingTimeFrame",
+      "valueQuantity" : {
+        "value" : 365,
+        "unit" : "DAYS",
+        "system" : "urn:oid:2.16.840.1.113883.3.8901.3.3558013"
       }
     },
     {
-      "url": "http://va.gov/fhir/StructureDefinition/organization-electronicTransmissionMode",
-      "valueCodeableConcept": {
-        "coding": [
+      "url" : "http://va.gov/fhir/StructureDefinition/organization-electronicTransmissionMode",
+      "valueCodeableConcept" : {
+        "coding" : [
           {
-            "system": "urn:oid:2.16.840.1.113883.3.8901.3.1.36.38001",
-            "code": "YES-LIVE"
+            "system" : "urn:oid:2.16.840.1.113883.3.8901.3.1.36.38001",
+            "code" : "YES-LIVE"
           }
         ]
       }
     },
     {
-      "url": "http://va.gov/fhir/StructureDefinition/organization-electronicInsuranceType",
-      "valueCodeableConcept": {
-        "coding": [
+      "url" : "http://va.gov/fhir/StructureDefinition/organization-electronicInsuranceType",
+      "valueCodeableConcept" : {
+        "coding" : [
           {
-            "system": "urn:oid:2.16.840.1.113883.3.8901.3.1.36.38009",
-            "code": "MEDICARE"
+            "system" : "urn:oid:2.16.840.1.113883.3.8901.3.1.36.38009",
+            "code" : "MEDICARE"
           }
         ]
       }
     },
     {
-      "url": "http://va.gov/fhir/StructureDefinition/organization-referrngProviderSecondIDTypeUB04",
-      "valueCodeableConcept": {
-        "coding": [
+      "url" : "http://va.gov/fhir/StructureDefinition/organization-referrngProviderSecondIDTypeUB04",
+      "valueCodeableConcept" : {
+        "coding" : [
           {
-            "system": "urn:oid:2.16.840.1.113883.3.8901.3.1.3558097.8001",
-            "code": "CMS-1500"
+            "system" : "urn:oid:2.16.840.1.113883.3.8901.3.1.3558097.8001",
+            "code" : "CMS-1500"
           }
         ]
       }
     },
     {
-      "url": "http://va.gov/fhir/StructureDefinition/organization-ambulatorySurgeryRevenueCode",
-      "valueCodeableConcept": {
-        "coding": [
+      "url" : "http://va.gov/fhir/StructureDefinition/organization-ambulatorySurgeryRevenueCode",
+      "valueCodeableConcept" : {
+        "coding" : [
           {
-            "system": "urn:oid:2.16.840.1.113883.6.301.3",
-            "code": "331"
+            "system" : "urn:oid:2.16.840.1.113883.6.301.3",
+            "code" : "331"
           }
         ]
       }
     },
     {
-      "url": "http://va.gov/fhir/StructureDefinition/organization-prescriptionRevenueCode",
-      "valueCodeableConcept": {
-        "coding": [
+      "url" : "http://va.gov/fhir/StructureDefinition/organization-prescriptionRevenueCode",
+      "valueCodeableConcept" : {
+        "coding" : [
           {
-            "system": "urn:oid:2.16.840.1.113883.6.301.3",
-            "code": "332"
+            "system" : "urn:oid:2.16.840.1.113883.6.301.3",
+            "code" : "332"
           }
         ]
       }
     },
     {
-      "url": "http://va.gov/fhir/StructureDefinition/organization-performingProviderSecondIDTypeCMS1500",
-      "valueCodeableConcept": {
-        "coding": [
+      "url" : "http://va.gov/fhir/StructureDefinition/organization-performingProviderSecondIDTypeCMS1500",
+      "valueCodeableConcept" : {
+        "coding" : [
           {
-            "system": "urn:oid:2.16.840.1.113883.3.8901.3.1.3558097.8001",
-            "code": "UPIN"
+            "system" : "urn:oid:2.16.840.1.113883.3.8901.3.1.3558097.8001",
+            "code" : "UPIN"
           }
         ]
       }
     },
     {
-      "url": "http://va.gov/fhir/StructureDefinition/organization-performingProviderSecondIDTypeUB04",
-      "valueCodeableConcept": {
-        "coding": [
+      "url" : "http://va.gov/fhir/StructureDefinition/organization-performingProviderSecondIDTypeUB04",
+      "valueCodeableConcept" : {
+        "coding" : [
           {
-            "system": "urn:oid:2.16.840.1.113883.3.8901.3.1.3558097.8001",
-            "code": "BLUE CROSS"
+            "system" : "urn:oid:2.16.840.1.113883.3.8901.3.1.3558097.8001",
+            "code" : "BLUE CROSS"
           }
         ]
       }
     },
     {
-      "url": "http://va.gov/fhir/StructureDefinition/organization-referrngProviderSecondIDTypeCMS1500",
-      "valueCodeableConcept": {
-        "coding": [
+      "url" : "http://va.gov/fhir/StructureDefinition/organization-referrngProviderSecondIDTypeCMS1500",
+      "valueCodeableConcept" : {
+        "coding" : [
           {
-            "system": "urn:oid:2.16.840.1.113883.3.8901.3.1.3558097.8001",
-            "code": "BLUE SHIELD"
+            "system" : "urn:oid:2.16.840.1.113883.3.8901.3.1.3558097.8001",
+            "code" : "BLUE SHIELD"
           }
         ]
       }
     },
     {
-      "url": "http://va.gov/fhir/StructureDefinition/organization-signatureRequiredOnBill",
-      "valueBoolean": true
+      "url" : "http://va.gov/fhir/StructureDefinition/organization-signatureRequiredOnBill",
+      "valueBoolean" : true
     },
     {
-      "url": "http://va.gov/fhir/StructureDefinition/organization-attendingRenderingProviderSecondaryIDProfesionalRequired",
-      "valueBoolean": false
+      "url" : "http://va.gov/fhir/StructureDefinition/organization-attendingRenderingProviderSecondaryIDProfesionalRequired",
+      "valueBoolean" : false
     },
     {
-      "url": "http://va.gov/fhir/StructureDefinition/organization-allowMultipleBedsections",
-      "valueBoolean": true
+      "url" : "http://va.gov/fhir/StructureDefinition/organization-allowMultipleBedsections",
+      "valueBoolean" : true
     },
     {
-      "url": "http://va.gov/fhir/StructureDefinition/organization-attendingRenderingProviderSecondaryIDInstitutionalRequired",
-      "valueBoolean": false
+      "url" : "http://va.gov/fhir/StructureDefinition/organization-attendingRenderingProviderSecondaryIDInstitutionalRequired",
+      "valueBoolean" : false
     },
     {
-      "url": "http://va.gov/fhir/StructureDefinition/organization-printSecTertAutoClaimsLocally",
-      "valueBoolean": false
+      "url" : "http://va.gov/fhir/StructureDefinition/organization-printSecTertAutoClaimsLocally",
+      "valueBoolean" : false
     },
     {
-      "url": "http://va.gov/fhir/StructureDefinition/organization-printSecMedClaimsWOMRALocally",
-      "valueBoolean": false
+      "url" : "http://va.gov/fhir/StructureDefinition/organization-printSecMedClaimsWOMRALocally",
+      "valueBoolean" : false
     },
     {
-      "url": "http://va.gov/fhir/StructureDefinition/organization-oneOutpatVisitOnBillOnly",
-      "valueBoolean": false
+      "url" : "http://va.gov/fhir/StructureDefinition/organization-oneOutpatVisitOnBillOnly",
+      "valueBoolean" : false
     },
     {
-      "url": "http://va.gov/fhir/StructureDefinition/organization-anotherCompanyProcessesInpatClaims",
-      "valueBoolean": false
+      "url" : "http://va.gov/fhir/StructureDefinition/organization-anotherCompanyProcessesInpatClaims",
+      "valueBoolean" : false
     },
     {
-      "url": "http://va.gov/fhir/StructureDefinition/organization-anotherCompanyProcessesAppeals",
-      "valueBoolean": false
+      "url" : "http://va.gov/fhir/StructureDefinition/organization-anotherCompanyProcessesAppeals",
+      "valueBoolean" : false
     },
     {
-      "url": "http://va.gov/fhir/StructureDefinition/organization-anotherCompanyProcessesInquiries",
-      "valueBoolean": false
+      "url" : "http://va.gov/fhir/StructureDefinition/organization-anotherCompanyProcessesInquiries",
+      "valueBoolean" : false
     },
     {
-      "url": "http://va.gov/fhir/StructureDefinition/organization-anotherCompanyProcessesOutpatClaims",
-      "valueBoolean": false
+      "url" : "http://va.gov/fhir/StructureDefinition/organization-anotherCompanyProcessesOutpatClaims",
+      "valueBoolean" : false
     },
     {
-      "url": "http://va.gov/fhir/StructureDefinition/organization-anotherCompanyProcessesDentalClaims",
-      "valueBoolean": false
+      "url" : "http://va.gov/fhir/StructureDefinition/organization-anotherCompanyProcessesDentalClaims",
+      "valueBoolean" : false
     },
     {
-      "url": "http://va.gov/fhir/StructureDefinition/organization-anotherCompanyProcessesPrecert",
-      "valueBoolean": false
+      "url" : "http://va.gov/fhir/StructureDefinition/organization-anotherCompanyProcessesPrecert",
+      "valueBoolean" : false
     },
     {
-      "url": "http://va.gov/fhir/StructureDefinition/organization-anotherCompanyProcessesRxClaims",
-      "valueBoolean": false
+      "url" : "http://va.gov/fhir/StructureDefinition/organization-anotherCompanyProcessesRxClaims",
+      "valueBoolean" : false
     },
     {
-      "url": "http://va.gov/fhir/StructureDefinition/organization-filingTimeFrame",
-      "valueString": "12 MONTHS"
+      "url" : "http://va.gov/fhir/StructureDefinition/organization-filingTimeFrame",
+      "valueString" : "12 MONTHS"
     },
     {
-      "url": "http://hl7.org/fhir/us/davinci-pdex-plan-net/StructureDefinition/via-intermediary",
-      "valueReference": {
-        "reference": "Organization/I3-450NAk1LKUAXKzQ35A62U1"
+      "url" : "http://hl7.org/fhir/us/davinci-pdex-plan-net/StructureDefinition/via-intermediary",
+      "valueReference" : {
+        "reference" : "Organization/I3-450NAk1LKUAXKzQ35A62U1"
       }
     }
   ],
-  "identifier": [
+  "identifier" : [
     {
-      "type": {
-        "coding": [
+      "type" : {
+        "coding" : [
           {
-            "code": "PROFEDI"
+            "code" : "PROFEDI"
           }
         ]
       },
-      "value": "55555"
+      "value" : "55555"
     },
     {
-      "type": {
-        "coding": [
+      "type" : {
+        "coding" : [
           {
-            "code": "INSTEDI"
+            "code" : "INSTEDI"
           }
         ]
       },
-      "value": "66666"
+      "value" : "66666"
     },
     {
-      "type": {
-        "coding": [
+      "type" : {
+        "coding" : [
           {
-            "code": "BIN"
+            "code" : "BIN"
           }
         ]
       },
-      "value": "SHANKBIN"
+      "value" : "SHANKBIN"
     },
     {
-      "type": {
-        "coding": [
+      "type" : {
+        "coding" : [
           {
-            "code": "277EDI"
+            "code" : "277EDI"
           }
         ]
       },
-      "value": "77777"
+      "value" : "77777"
     }
   ],
-  "active": true,
-  "telecom": [
+  "active" : true,
+  "telecom" : [
     {
-      "system": "phone",
-      "value": "777-999-4444"
+      "system" : "phone",
+      "value" : "777-999-4444"
     },
     {
-      "system": "fax",
-      "value": "555-333-4444"
+      "system" : "fax",
+      "value" : "555-333-4444"
     }
   ],
-  "type": [
+  "type" : [
     {
-      "coding": [
+      "coding" : [
         {
-          "system": "http://hl7.org/fhir/ValueSet/organization-type",
-          "code": "ins",
-          "display": "Insurance Company"
+          "system" : "http://hl7.org/fhir/ValueSet/organization-type",
+          "code" : "ins",
+          "display" : "Insurance Company"
         }
       ],
-      "text": "Insurance Company"
+      "text" : "Insurance Company"
     }
   ],
-  "name": "BCBS OF FL",
-  "address": [
+  "name" : "BCBS OF FL",
+  "address" : [
     {
-      "line": [
+      "line" : [
         "PO BOX 1798",
         "REGIONAL CLAIMS OFFICE",
         "ATTN: MICHAEL"
       ],
-      "city": "JACKSONVILLE",
-      "state": "12",
-      "postalCode": "322310014"
+      "city" : "JACKSONVILLE",
+      "state" : "12",
+      "postalCode" : "322310014"
     }
   ],
-  "contact": [
+  "contact" : [
     {
-      "purpose": {
-        "coding": [
+      "purpose" : {
+        "coding" : [
           {
-            "system": "http://terminology.hl7.org/CodeSystem/contactentity-type",
-            "code": "BILL",
-            "display": "BILL"
+            "system" : "http://terminology.hl7.org/CodeSystem/contactentity-type",
+            "code" : "BILL",
+            "display" : "BILL"
           }
         ],
-        "text": "BILL"
+        "text" : "BILL"
       },
-      "extension": [
+      "extension" : [
         {
-          "url": "http://hl7.org/fhir/us/davinci-pdex-plan-net/StructureDefinition/via-intermediary",
-          "valueReference": {
-            "display": "SHANK-BILLING NAME: IN"
+          "url" : "http://hl7.org/fhir/us/davinci-pdex-plan-net/StructureDefinition/via-intermediary",
+          "valueReference" : {
+            "display" : "SHANK-BILLING NAME: IN"
           }
         }
       ],
-      "telecom": [
+      "telecom" : [
         {
-          "system": "phone",
-          "value": "800-727-222"
+          "system" : "phone",
+          "value" : "800-727-222"
         }
       ]
     },
     {
-      "purpose": {
-        "coding": [
+      "purpose" : {
+        "coding" : [
           {
-            "system": "http://terminology.hl7.org/CodeSystem/contactentity-type",
-            "code": "APPEAL",
-            "display": "APPEAL"
+            "system" : "http://terminology.hl7.org/CodeSystem/contactentity-type",
+            "code" : "APPEAL",
+            "display" : "APPEAL"
           }
         ],
-        "text": "APPEAL"
+        "text" : "APPEAL"
       },
-      "telecom": [
+      "telecom" : [
         {
-          "system": "phone",
-          "value": "800-727-2220"
+          "system" : "phone",
+          "value" : "800-727-2220"
         }
       ]
     },
     {
-      "purpose": {
-        "coding": [
+      "purpose" : {
+        "coding" : [
           {
-            "system": "http://terminology.hl7.org/CodeSystem/contactentity-type",
-            "code": "INQUIRY",
-            "display": "INQUIRY"
+            "system" : "http://terminology.hl7.org/CodeSystem/contactentity-type",
+            "code" : "INQUIRY",
+            "display" : "INQUIRY"
           }
         ],
-        "text": "INQUIRY"
+        "text" : "INQUIRY"
       },
-      "telecom": [
+      "telecom" : [
         {
-          "system": "phone",
-          "value": "800-727-2221"
+          "system" : "phone",
+          "value" : "800-727-2221"
         }
       ]
     },
     {
-      "purpose": {
-        "coding": [
+      "purpose" : {
+        "coding" : [
           {
-            "system": "http://terminology.hl7.org/CodeSystem/contactentity-type",
-            "code": "VERIFY",
-            "display": "VERIFY"
+            "system" : "http://terminology.hl7.org/CodeSystem/contactentity-type",
+            "code" : "VERIFY",
+            "display" : "VERIFY"
           }
         ],
-        "text": "VERIFY"
+        "text" : "VERIFY"
       },
-      "telecom": [
+      "telecom" : [
         {
-          "system": "phone",
-          "value": "800-727-2223"
+          "system" : "phone",
+          "value" : "800-727-2223"
         }
       ]
     },
     {
-      "purpose": {
-        "coding": [
+      "purpose" : {
+        "coding" : [
           {
-            "system": "http://terminology.hl7.org/CodeSystem/contactentity-type",
-            "code": "DENTALCLAIM",
-            "display": "DENTALCLAIM"
+            "system" : "http://terminology.hl7.org/CodeSystem/contactentity-type",
+            "code" : "DENTALCLAIM",
+            "display" : "DENTALCLAIM"
           }
         ],
-        "text": "DENTALCLAIM"
+        "text" : "DENTALCLAIM"
       }
     },
     {
-      "purpose": {
-        "coding": [
+      "purpose" : {
+        "coding" : [
           {
-            "system": "http://terminology.hl7.org/CodeSystem/contactentity-type",
-            "code": "INPTCLAIMS",
-            "display": "INPTCLAIMS"
+            "system" : "http://terminology.hl7.org/CodeSystem/contactentity-type",
+            "code" : "INPTCLAIMS",
+            "display" : "INPTCLAIMS"
           }
         ],
-        "text": "INPTCLAIMS"
+        "text" : "INPTCLAIMS"
       },
-      "telecom": [
+      "telecom" : [
         {
-          "system": "phone",
-          "value": "813.626.1101"
+          "system" : "phone",
+          "value" : "813.626.1101"
         },
         {
-          "system": "fax",
-          "value": "800-255-6065"
+          "system" : "fax",
+          "value" : "800-255-6065"
         }
       ],
-      "address": {
-        "line": [
+      "address" : {
+        "line" : [
           "P.O. BOX 6003"
         ],
-        "city": "JACKSONVILLE",
-        "state": "12",
-        "postalCode": "322310014"
+        "city" : "JACKSONVILLE",
+        "state" : "12",
+        "postalCode" : "322310014"
       }
     },
     {
-      "purpose": {
-        "coding": [
+      "purpose" : {
+        "coding" : [
           {
-            "system": "http://terminology.hl7.org/CodeSystem/contactentity-type",
-            "code": "OUTPTCLAIMS",
-            "display": "OUTPTCLAIMS"
+            "system" : "http://terminology.hl7.org/CodeSystem/contactentity-type",
+            "code" : "OUTPTCLAIMS",
+            "display" : "OUTPTCLAIMS"
           }
         ],
-        "text": "OUTPTCLAIMS"
+        "text" : "OUTPTCLAIMS"
       },
-      "telecom": [
+      "telecom" : [
         {
-          "system": "phone",
-          "value": "(787)751-5656"
+          "system" : "phone",
+          "value" : "(787)751-5656"
         }
       ],
-      "address": {
-        "line": [
+      "address" : {
+        "line" : [
           "PO BOX 2832"
         ],
-        "city": "NEW YORK",
-        "state": "36",
-        "postalCode": "101162832"
+        "city" : "NEW YORK",
+        "state" : "36",
+        "postalCode" : "101162832"
       }
     },
     {
-      "purpose": {
-        "coding": [
+      "purpose" : {
+        "coding" : [
           {
-            "system": "http://terminology.hl7.org/CodeSystem/contactentity-type",
-            "code": "RXCLAIMS",
-            "display": "RXCLAIMS"
+            "system" : "http://terminology.hl7.org/CodeSystem/contactentity-type",
+            "code" : "RXCLAIMS",
+            "display" : "RXCLAIMS"
           }
         ],
-        "text": "RXCLAIMS"
+        "text" : "RXCLAIMS"
       },
-      "address": {
-        "line": [
+      "address" : {
+        "line" : [
           "PO BOX 14610"
         ],
-        "city": "LEXINGTON",
-        "state": "21",
-        "postalCode": "405121234"
+        "city" : "LEXINGTON",
+        "state" : "21",
+        "postalCode" : "405121234"
       }
     },
     {
-      "telecom": [
+      "telecom" : [
         {
-          "system": "phone",
-          "value": "1-800-410-7778"
+          "system" : "phone",
+          "value" : "1-800-410-7778"
         }
       ]
     },
     {
-      "purpose": {
-        "coding": [
+      "purpose" : {
+        "coding" : [
           {
-            "system": "http://terminology.hl7.org/CodeSystem/contactentity-type",
-            "code": "PRECERT",
-            "display": "PRECERT"
+            "system" : "http://terminology.hl7.org/CodeSystem/contactentity-type",
+            "code" : "PRECERT",
+            "display" : "PRECERT"
           }
         ],
-        "text": "PRECERT"
+        "text" : "PRECERT"
       },
-      "telecom": [
+      "telecom" : [
         {
-          "system": "phone",
-          "value": "800-955-5692"
+          "system" : "phone",
+          "value" : "800-955-5692"
         }
       ]
     }

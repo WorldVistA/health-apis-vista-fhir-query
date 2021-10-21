@@ -1,61 +1,81 @@
 {
   "resourceType" : "InsurancePlan",
-  "extension" : [ {
-    "url" : "http://va.gov/fhir/StructureDefinition/insuranceplan-isUtilizationReviewRequired",
-    "valueBoolean" : true
-  }, {
-    "url" : "http://va.gov/fhir/StructureDefinition/insuranceplan-isPreCertificationRequired",
-    "valueBoolean" : true
-  }, {
-    "url" : "http://va.gov/fhir/StructureDefinition/insuranceplan-excludePreexistingConditions",
-    "valueBoolean" : false
-  }, {
-    "url" : "http://va.gov/fhir/StructureDefinition/insuranceplan-areBenefitsAssignable",
-    "valueBoolean" : true
-  }, {
-    "url" : "http://va.gov/fhir/StructureDefinition/insuranceplan-isCertificationRequiredForAmbulatoryCare",
-    "valueBoolean" : true
-  }, {
-    "url" : "http://va.gov/fhir/StructureDefinition/insuranceplan-planStandardFilingTimeFrame",
-    "valueQuantity" : {
-      "value" : 365,
-      "unit" : "DAYS",
-      "system" : "urn:oid:2.16.840.1.113883.3.8901.3.1.3558013"
+  "extension" : [
+    {
+      "url" : "http://va.gov/fhir/StructureDefinition/insuranceplan-isUtilizationReviewRequired",
+      "valueBoolean" : true
+    },
+    {
+      "url" : "http://va.gov/fhir/StructureDefinition/insuranceplan-isPreCertificationRequired",
+      "valueBoolean" : true
+    },
+    {
+      "url" : "http://va.gov/fhir/StructureDefinition/insuranceplan-excludePreexistingConditions",
+      "valueBoolean" : false
+    },
+    {
+      "url" : "http://va.gov/fhir/StructureDefinition/insuranceplan-areBenefitsAssignable",
+      "valueBoolean" : true
+    },
+    {
+      "url" : "http://va.gov/fhir/StructureDefinition/insuranceplan-isCertificationRequiredForAmbulatoryCare",
+      "valueBoolean" : true
+    },
+    {
+      "url" : "http://va.gov/fhir/StructureDefinition/insuranceplan-planStandardFilingTimeFrame",
+      "valueQuantity" : {
+        "value" : 365,
+        "unit" : "DAYS",
+        "system" : "urn:oid:2.16.840.1.113883.3.8901.3.1.3558013"
+      }
     }
-  } ],
-  "identifier" : [ {
-    "system" : "urn:oid:2.16.840.1.113883.3.8901.3.1.355803.28002",
-    "value" : "GRP123456"
-  }, {
-    "system" : "urn:oid:2.16.840.1.113883.3.8901.3.1.355803.68001",
-    "value" : "VA96554"
-  }, {
-    "system" : "urn:oid:2.16.840.1.113883.3.8901.3.1.355803.68002",
-    "value" : "88888888"
-  }, {
-    "system" : "urn:oid:2.16.840.1.113883.3.8901.3.1.355803.68003",
-    "value" : "121212121212"
-  } ],
-  "type" : [ {
-    "coding" : [ {
-      "system" : "urn:oid:2.16.840.1.113883.3.8901.3.1.355803.8015",
-      "code" : "CI",
-      "display" : "COMMERCIAL"
-    } ],
-    "text" : "COMMERCIAL"
-  } ],
+  ],
+  "identifier" : [
+    {
+      "system" : "urn:oid:2.16.840.1.113883.3.8901.3.1.355803.28002",
+      "value" : "GRP123456"
+    },
+    {
+      "system" : "urn:oid:2.16.840.1.113883.3.8901.3.1.355803.68001",
+      "value" : "VA96554"
+    },
+    {
+      "system" : "urn:oid:2.16.840.1.113883.3.8901.3.1.355803.68002",
+      "value" : "88888888"
+    },
+    {
+      "system" : "urn:oid:2.16.840.1.113883.3.8901.3.1.355803.68003",
+      "value" : "121212121212"
+    }
+  ],
+  "type" : [
+    {
+      "coding" : [
+        {
+          "system" : "urn:oid:2.16.840.1.113883.3.8901.3.1.355803.8015",
+          "code" : "CI",
+          "display" : "COMMERCIAL"
+        }
+      ],
+      "text" : "COMMERCIAL"
+    }
+  ],
   "name" : "BCBS OF TX GROUP",
   "ownedBy" : {
     "reference" : "Organization/I3-450NAk1LKUAaaGqyCDA9S9"
   },
-  "plan" : [ {
-    "type" : {
-      "coding" : [ {
-        "system" : "urn:oid:2.16.840.1.113883.3.8901.3.1.355803.8009",
-        "code" : "40",
-        "display" : "PREFERRED PROVIDER ORGANIZATION (PPO)"
-      } ],
-      "text" : "PREFERRED PROVIDER ORGANIZATION (PPO)"
+  "plan" : [
+    {
+      "type" : {
+        "coding" : [
+          {
+            "system" : "urn:oid:2.16.840.1.113883.3.8901.3.1.355803.8009",
+            "code" : "40",
+            "display" : "PREFERRED PROVIDER ORGANIZATION (PPO)"
+          }
+        ],
+        "text" : "PREFERRED PROVIDER ORGANIZATION (PPO)"
+      }
     }
-  } ]
+  ]
 }

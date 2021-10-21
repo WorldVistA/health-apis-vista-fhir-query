@@ -1,5 +1,5 @@
 {
-    "accessCode" : "fake:ac1",
-    "verifyCode" : "fake:vc1",
-    "applicationProxyUser" : "fake:apu1"
+  "accessCode" : "fake:ac1",
+  "verifyCode" : "fake:vc1",
+  "applicationProxyUser" : "fake:apu1"
 }

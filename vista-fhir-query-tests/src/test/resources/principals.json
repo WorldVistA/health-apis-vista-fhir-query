@@ -1,21 +1,21 @@
 {
-    "entries" : [
+  "entries" : [
+    {
+      "rpcNames" : [
+        "LHS CHECK OPTION ACCESS",
+        "LHS LIGHTHOUSE RPC GATEWAY",
+        "VPR GET PATIENT DATA"
+      ],
+      "applicationProxyUser" : "LHS,APPLICATION PROXY",
+      "codes" : [
         {
-            "rpcNames" : [
-                "LHS CHECK OPTION ACCESS",
-                "LHS LIGHTHOUSE RPC GATEWAY",
-                "VPR GET PATIENT DATA"
-            ],
-            "applicationProxyUser" : "LHS,APPLICATION PROXY",
-            "codes" : [
-                {
-                    "sites" : [
-                        "673"
-                    ],
-                    "accessCode" : "fugazi-access-code",
-                    "verifyCode" : "fugazi-verify-code"
-                }
-            ]
+          "sites" : [
+            "673"
+          ],
+          "accessCode" : "fugazi-access-code",
+          "verifyCode" : "fugazi-verify-code"
         }
-    ]
+      ]
+    }
+  ]
 }
