@@ -3,15 +3,18 @@ package gov.va.api.health.vistafhirquery.service.controller.coverageeligibilityr
 import static gov.va.api.health.vistafhirquery.service.charonclient.CharonRequests.lighthouseRpcGatewayRequest;
 import static gov.va.api.health.vistafhirquery.service.charonclient.CharonRequests.lighthouseRpcGatewayResponse;
 import static gov.va.api.health.vistafhirquery.service.controller.coverage.R4SiteCoverageController.coverageByPatientIcn;
+import static gov.va.api.lighthouse.charon.models.lhslighthouserpcgateway.PatientId.forIcn;
 
 import gov.va.api.health.autoconfig.logging.Redact;
 import gov.va.api.health.r4.api.resources.CoverageEligibilityResponse;
 import gov.va.api.health.vistafhirquery.service.api.R4CoverageEligibilityResponseApi;
 import gov.va.api.health.vistafhirquery.service.charonclient.CharonClient;
+import gov.va.api.health.vistafhirquery.service.controller.PatientTypeCoordinates;
 import gov.va.api.health.vistafhirquery.service.controller.R4Bundler;
 import gov.va.api.health.vistafhirquery.service.controller.R4BundlerFactory;
 import gov.va.api.health.vistafhirquery.service.controller.R4Bundling;
 import gov.va.api.health.vistafhirquery.service.controller.R4Transformation;
+import gov.va.api.lighthouse.charon.models.lhslighthouserpcgateway.LhsLighthouseRpcGatewayCoverageEligibilityResponse;
 import gov.va.api.lighthouse.charon.models.lhslighthouserpcgateway.LhsLighthouseRpcGatewayListManifest;
 import gov.va.api.lighthouse.charon.models.lhslighthouserpcgateway.PlanCoverageLimitations;
 import java.util.ArrayList;
@@ -39,6 +42,15 @@ public class R4SiteCoverageEligibilityResponseController
 
   private final CharonClient charon;
 
+  /** Create A request based off of record coordinates. */
+  public static LhsLighthouseRpcGatewayCoverageEligibilityResponse.Request manifestRequest(
+      PatientTypeCoordinates coordinates) {
+    return LhsLighthouseRpcGatewayCoverageEligibilityResponse.Request.read()
+        .iens(coordinates.ien())
+        .patientId(forIcn(coordinates.icn()))
+        .build();
+  }
+
   private void addCoverageResultsToContext(R4CoverageEligibilityResponseSearchContext ctx) {
     var charonRequest =
         lighthouseRpcGatewayRequest(ctx.site(), coverageByPatientIcn(ctx.patientIcn()));
@@ -49,9 +61,7 @@ public class R4SiteCoverageEligibilityResponseController
 
   private void addPlanLimitationsToContext(R4CoverageEligibilityResponseSearchContext ctx) {
     List<String> fields = new ArrayList<>();
-    fields.add("@");
-    fields.addAll(
-        internalAndExternalFieldsFor(R4CoverageEligibilityResponseTransformer.REQUIRED_FIELDS));
+    fields.addAll(R4CoverageEligibilityResponseTransformer.REQUIRED_FIELDS);
     var details =
         LhsLighthouseRpcGatewayListManifest.Request.builder()
             .file(PlanCoverageLimitations.FILE_NUMBER)
@@ -84,10 +94,6 @@ public class R4SiteCoverageEligibilityResponseController
     addCoverageResultsToContext(searchCtx);
     addPlanLimitationsToContext(searchCtx);
     return toBundle(httpRequest, site).apply(searchCtx);
-  }
-
-  private List<String> internalAndExternalFieldsFor(List<String> requiredFields) {
-    return requiredFields.stream().map(f -> f + "IE").toList();
   }
 
   private R4Bundler<

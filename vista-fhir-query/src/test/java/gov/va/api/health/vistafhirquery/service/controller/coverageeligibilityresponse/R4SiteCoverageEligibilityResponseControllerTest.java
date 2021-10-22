@@ -23,7 +23,6 @@ import gov.va.api.lighthouse.charon.models.lhslighthouserpcgateway.LhsLighthouse
 import gov.va.api.lighthouse.charon.models.lhslighthouserpcgateway.PatientId;
 import gov.va.api.lighthouse.charon.models.lhslighthouserpcgateway.PlanCoverageLimitations;
 import java.util.List;
-import java.util.stream.Stream;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
@@ -96,12 +95,7 @@ public class R4SiteCoverageEligibilityResponseControllerTest {
         charonRequestFor(
             LhsLighthouseRpcGatewayListManifest.Request.builder()
                 .file(PlanCoverageLimitations.FILE_NUMBER)
-                .fields(
-                    Stream.concat(
-                            Stream.of("@"),
-                            R4CoverageEligibilityResponseTransformer.REQUIRED_FIELDS.stream()
-                                .map(s -> s + "IE"))
-                        .toList())
+                .fields(R4CoverageEligibilityResponseTransformer.REQUIRED_FIELDS)
                 .build());
     var limitationsResults =
         CoverageEligibilityResponseSamples.VistaLhsLighthouseRpcGateway.create()
