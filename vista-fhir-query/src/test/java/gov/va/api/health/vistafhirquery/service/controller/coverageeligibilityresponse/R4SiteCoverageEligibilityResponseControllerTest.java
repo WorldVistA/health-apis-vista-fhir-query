@@ -8,6 +8,7 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
 
 import gov.va.api.health.r4.api.bundle.BundleLink;
+import gov.va.api.health.r4.api.resources.CoverageEligibilityResponse;
 import gov.va.api.health.vistafhirquery.service.charonclient.CharonClient;
 import gov.va.api.health.vistafhirquery.service.charonclient.CharonRequest;
 import gov.va.api.health.vistafhirquery.service.charonclient.CharonResponse;
@@ -27,6 +28,8 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.http.HttpHeaders;
+import org.springframework.mock.web.MockHttpServletResponse;
 
 @ExtendWith(MockitoExtension.class)
 public class R4SiteCoverageEligibilityResponseControllerTest {
@@ -75,6 +78,16 @@ public class R4SiteCoverageEligibilityResponseControllerTest {
         .invocationResult(_invocationResult(results))
         .value(results)
         .build();
+  }
+
+  @Test
+  void createResource() {
+    var response = new MockHttpServletResponse();
+    _controller()
+        .coverageEligibilityResponseCreate(
+            response, "123", CoverageEligibilityResponse.builder().build());
+    assertThat(response.getStatus()).isEqualTo(201);
+    assertThat(response.getHeader(HttpHeaders.LOCATION)).isNotBlank();
   }
 
   @Test

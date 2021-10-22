@@ -2,6 +2,7 @@ package gov.va.api.health.vistafhirquery.service.controller.coverageeligibilityr
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
+import static org.mockito.Mockito.mock;
 
 import gov.va.api.health.ids.api.ResourceIdentity;
 import gov.va.api.health.r4.api.elements.Meta;
@@ -15,6 +16,7 @@ import gov.va.api.health.vistafhirquery.service.controller.coverage.R4CoverageWi
 import gov.va.api.health.vistafhirquery.service.controller.witnessprotection.ProtectedReferenceFactory;
 import java.util.List;
 import java.util.stream.Collectors;
+import javax.servlet.http.HttpServletRequest;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
@@ -46,7 +48,7 @@ public class R4CoverageEligibilityResponseWitnessProtectionAgentTest {
             .build();
     var wpa =
         new R4CoverageEligibilityResponseWitnessProtectionAgent(
-            new ProtectedReferenceFactory(linkProperties));
+            new ProtectedReferenceFactory(linkProperties), mock(HttpServletRequest.class));
     // By transforming to resource identity, we can test the advice gets all the references correct
     assertThat(
             wpa.referencesOf(cer)

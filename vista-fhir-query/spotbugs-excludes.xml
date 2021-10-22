@@ -33,6 +33,8 @@
   <Match>
     <Or>
       <Class name="gov.va.api.health.vistafhirquery.service.controller.coverage.R4SiteCoverageController"/>
+      <Class
+              name="gov.va.api.health.vistafhirquery.service.controller.coverageeligibilityresponse.R4SiteCoverageEligibilityResponseController"/>
       <Class name="gov.va.api.health.vistafhirquery.service.controller.insuranceplan.R4SiteInsurancePlanController"/>
       <Class name="gov.va.api.health.vistafhirquery.service.controller.organization.R4SiteOrganizationController"/>
       <Class name="gov.va.api.health.vistafhirquery.service.controller.R4Controllers"/>
