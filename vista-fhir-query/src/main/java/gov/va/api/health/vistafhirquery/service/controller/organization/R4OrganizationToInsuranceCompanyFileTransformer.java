@@ -1,19 +1,22 @@
 package gov.va.api.health.vistafhirquery.service.controller.organization;
 
-import static gov.va.api.health.vistafhirquery.service.controller.R4Transformers.asCodeableConcept;
 import static gov.va.api.health.vistafhirquery.service.controller.R4Transformers.isBlank;
 import static gov.va.api.health.vistafhirquery.service.controller.WriteableFilemanValueFactory.index;
 import static gov.va.api.health.vistafhirquery.service.controller.extensionprocessing.ExtensionHandler.Required.OPTIONAL;
 import static gov.va.api.health.vistafhirquery.service.controller.extensionprocessing.ExtensionHandler.Required.REQUIRED;
+import static java.util.Collections.emptyList;
+import static java.util.Collections.emptySet;
 
 import gov.va.api.health.r4.api.datatypes.Address;
 import gov.va.api.health.r4.api.datatypes.CodeableConcept;
 import gov.va.api.health.r4.api.datatypes.Coding;
 import gov.va.api.health.r4.api.datatypes.ContactPoint;
+import gov.va.api.health.r4.api.datatypes.ContactPoint.ContactPointSystem;
 import gov.va.api.health.r4.api.datatypes.Identifier;
 import gov.va.api.health.r4.api.elements.Extension;
 import gov.va.api.health.r4.api.elements.Reference;
 import gov.va.api.health.r4.api.resources.Organization;
+import gov.va.api.health.r4.api.resources.Organization.Contact;
 import gov.va.api.health.vistafhirquery.service.controller.ExtensionProcessor;
 import gov.va.api.health.vistafhirquery.service.controller.RecordCoordinates;
 import gov.va.api.health.vistafhirquery.service.controller.ResourceExceptions.BadRequestPayload;
@@ -34,6 +37,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import java.util.function.Predicate;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import lombok.Builder;
 import lombok.NonNull;
@@ -58,83 +63,176 @@ public class R4OrganizationToInsuranceCompanyFileTransformer {
   private void addRequiredFields(Set<WriteableFilemanValue> fields) {
     fields.add(
         insuranceCompanyCoordinatesOrDie(InsuranceCompany.NAME, 1, organization.name(), "name"));
-    fields.addAll(address());
+    fields.addAll(
+        address(
+            InsuranceCompany.STREET_ADDRESS_LINE_1_,
+            InsuranceCompany.STREET_ADDRESS_LINE_2_,
+            InsuranceCompany.STREET_ADDRESS_LINE_3_,
+            InsuranceCompany.CITY,
+            InsuranceCompany.STATE,
+            InsuranceCompany.ZIP_CODE,
+            addressOrDie(organization.address())));
     fields.addAll(contacts());
     fields.add(
         contactPoint(
             organization.telecom(),
             InsuranceCompany.FAX_NUMBER,
             "organization",
-            ContactPoint.ContactPointSystem.fax));
+            ContactPointSystem.fax));
     fields.add(
         contactPoint(
             organization.telecom(),
             InsuranceCompany.PHONE_NUMBER,
             "organization",
-            ContactPoint.ContactPointSystem.phone));
+            ContactPointSystem.phone));
     fields.addAll(extensionProcessor.process(organization.extension()));
     fields.add(
         identifier(
-            "edi id number inst",
-            InsuranceCompany.EDI_ID_NUMBER_INST,
-            OrganizationStructureDefinitions.EDI_ID_NUMBER_INST_CODE));
+                "edi id number inst",
+                InsuranceCompany.EDI_ID_NUMBER_INST,
+                OrganizationStructureDefinitions.EDI_ID_NUMBER_INST_CODE,
+                true)
+            .orElseThrow(
+                () ->
+                    BadRequestPayload.because(
+                        InsuranceCompany.EDI_ID_NUMBER_INST,
+                        "edi id number inst is a required identifier.")));
     fields.add(
         identifier(
-            "edi id number prof",
-            InsuranceCompany.EDI_ID_NUMBER_PROF,
-            OrganizationStructureDefinitions.EDI_ID_NUMBER_PROF_CODE));
-    fields.add(
-        identifier(
+                "edi id number prof",
+                InsuranceCompany.EDI_ID_NUMBER_PROF,
+                OrganizationStructureDefinitions.EDI_ID_NUMBER_PROF_CODE,
+                true)
+            .orElseThrow(
+                () ->
+                    BadRequestPayload.because(
+                        InsuranceCompany.EDI_ID_NUMBER_PROF,
+                        "edi id number prof is a required identifier.")));
+    identifier(
             "bin number",
             InsuranceCompany.BIN_NUMBER,
-            OrganizationStructureDefinitions.BIN_NUMBER_CODE));
+            OrganizationStructureDefinitions.BIN_NUMBER_CODE,
+            false)
+        .ifPresent(fields::add);
+    identifier(
+            "edi id number - dental",
+            InsuranceCompany.EDI_ID_NUMBER_DENTAL,
+            OrganizationStructureDefinitions.EDI_ID_NUMBER_DENTAL_CODE,
+            false)
+        .ifPresent(fields::add);
+    fields.addAll(
+        identifierSlice(
+            "edi inst secondary id (1)",
+            InsuranceCompany.EDI_INST_SECONDARY_ID_1_,
+            InsuranceCompany.EDI_INST_SECONDARY_ID_QUAL_1_,
+            OrganizationStructureDefinitions.EDI_INST_SECONDARY_ID_QUAL_1,
+            false));
+    fields.addAll(
+        identifierSlice(
+            "edi id inst secondary id (2)",
+            InsuranceCompany.EDI_INST_SECONDARY_ID_2_,
+            InsuranceCompany.EDI_INST_SECONDARY_ID_QUAL_2_,
+            OrganizationStructureDefinitions.EDI_INST_SECONDARY_ID_QUAL_2,
+            false));
+    fields.addAll(
+        identifierSlice(
+            "edi prof secondary id (1)",
+            InsuranceCompany.EDI_PROF_SECONDARY_ID_1_,
+            InsuranceCompany.EDI_PROF_SECONDARY_ID_QUAL_1_,
+            OrganizationStructureDefinitions.EDI_PROF_SECONDARY_ID_QUAL_1,
+            false));
+    fields.addAll(
+        identifierSlice(
+            "edi prof inst secondary id (2)",
+            InsuranceCompany.EDI_PROF_SECONDARY_ID_2_,
+            InsuranceCompany.EDI_PROF_SECONDARY_ID_QUAL_2_,
+            OrganizationStructureDefinitions.EDI_PROF_SECONDARY_ID_QUAL_2,
+            false));
   }
 
-  private Set<WriteableFilemanValue> address() {
-    if (isBlank(organization.address())) {
-      throw BadRequestPayload.because(
-          InsuranceCompany.STREET_ADDRESS_LINE_1_, "address is empty or null");
+  private Set<WriteableFilemanValue> address(
+      String streetLine1,
+      String streetLine2,
+      String streetLine3,
+      String city,
+      String state,
+      String zipcode,
+      Address address) {
+    if (isBlank(address)) {
+      return emptySet();
     }
-    /* Address is a list but vista expects a single address. */
-    Address firstAddress = organization.address().get(0);
-    List<String> lines = firstAddress.line();
-    if (isBlank(lines) && lines.size() >= 3) {
-      throw BadRequestPayload.because(
-          InsuranceCompany.STREET_ADDRESS_LINE_1_, "one or more address lines are null");
+    Set<WriteableFilemanValue> addressValues = new HashSet<>();
+    List<String> lines = address.line();
+    String[] arrayLines = new String[] {streetLine1, streetLine2, streetLine3};
+    if (isBlank(lines)) {
+      lines = emptyList();
     }
-    return Set.of(
-        insuranceCompanyCoordinatesOrDie(
-            InsuranceCompany.STREET_ADDRESS_LINE_1_, 1, lines.get(0), "address line 1"),
-        insuranceCompanyCoordinatesOrDie(
-            InsuranceCompany.STREET_ADDRESS_LINE_2_, 1, lines.get(1), "address line 2"),
-        insuranceCompanyCoordinatesOrDie(
-            InsuranceCompany.STREET_ADDRESS_LINE_3_, 1, lines.get(2), "address line 3"),
-        insuranceCompanyCoordinatesOrDie(InsuranceCompany.CITY, 1, firstAddress.city(), "city"),
-        insuranceCompanyCoordinatesOrDie(InsuranceCompany.STATE, 1, firstAddress.state(), "state"),
-        insuranceCompanyCoordinatesOrDie(
-            InsuranceCompany.ZIP_CODE, 1, firstAddress.postalCode(), "zip code"));
+    for (int i = 0; i < lines.size(); i++) {
+      addressValues.add(filemanFactory.forString(arrayLines[i], 1, lines.get(i)));
+    }
+    addressValues.add(filemanFactory.forString(city, 1, address.city()));
+    addressValues.add(filemanFactory.forString(state, 1, address.state()));
+    addressValues.add(filemanFactory.forString(zipcode, 1, address.postalCode()));
+    return addressValues;
   }
 
-  private WriteableFilemanValue appealsContact() {
-    Organization.Contact verificationContact =
-        contactForPurposeOrDie("APPEAL", InsuranceCompany.APPEALS_PHONE_NUMBER, "appeals");
-    return contactPoint(
-        verificationContact.telecom(),
-        InsuranceCompany.APPEALS_PHONE_NUMBER,
-        "appeals",
-        ContactPoint.ContactPointSystem.phone);
+  private Address addressOrDie(List<Address> address) {
+    if (address.size() != 1) {
+      throw BadRequestPayload.because("Organization.address is required.");
+    }
+    return address.get(0);
   }
 
-  private Set<WriteableFilemanValue> billingContact() {
-    Organization.Contact billingContact =
-        contactForPurposeOrDie("BILL", InsuranceCompany.BILLING_COMPANY_NAME, "billing");
-    return Set.of(
-        companyName(billingContact, InsuranceCompany.BILLING_COMPANY_NAME, "billing"),
-        contactPoint(
-            billingContact.telecom(),
-            InsuranceCompany.BILLING_PHONE_NUMBER,
-            "billing",
-            ContactPoint.ContactPointSystem.phone));
+  private Set<WriteableFilemanValue> appealsContact(Contact contact) {
+    Set<WriteableFilemanValue> contactDetails = new HashSet<>();
+    companyName(contact, InsuranceCompany.APPEALS_COMPANY_NAME).ifPresent(contactDetails::add);
+    contactPointForSystem(contact.telecom(), ContactPointSystem.phone)
+        .map(
+            filemanFactory.toString(
+                InsuranceCompany.APPEALS_PHONE_NUMBER, index(1), ContactPoint::value))
+        .ifPresentOrElse(
+            contactDetails::add,
+            () -> {
+              throw BadRequestPayload.because(
+                  InsuranceCompany.APPEALS_PHONE_NUMBER,
+                  "Unable to populate phone for APPEAL contact.");
+            });
+    contactPointForSystem(contact.telecom(), ContactPointSystem.fax)
+        .map(filemanFactory.toString(InsuranceCompany.APPEALS_FAX, index(1), ContactPoint::value))
+        .ifPresent(contactDetails::add);
+    contactDetails.addAll(
+        address(
+            InsuranceCompany.APPEALS_ADDRESS_ST_LINE_1_,
+            InsuranceCompany.APPEALS_ADDRESS_ST_LINE_2_,
+            InsuranceCompany.APPEALS_ADDRESS_ST_LINE_3_,
+            InsuranceCompany.APPEALS_ADDRESS_CITY,
+            InsuranceCompany.APPEALS_ADDRESS_STATE,
+            InsuranceCompany.APPEALS_ADDRESS_ZIP,
+            contact.address()));
+    return contactDetails;
+  }
+
+  private Set<WriteableFilemanValue> billingContact(Contact contact) {
+    Set<WriteableFilemanValue> contactDetails = new HashSet<>();
+    companyName(contact, InsuranceCompany.BILLING_COMPANY_NAME)
+        .ifPresentOrElse(
+            contactDetails::add,
+            () -> {
+              throw BadRequestPayload.because(
+                  InsuranceCompany.BILLING_COMPANY_NAME,
+                  "Cannot populate name field for BILL contact.");
+            });
+    contactPointForSystem(contact.telecom(), ContactPointSystem.phone)
+        .map(
+            filemanFactory.toString(
+                InsuranceCompany.BILLING_PHONE_NUMBER, index(1), ContactPoint::value))
+        .ifPresentOrElse(
+            contactDetails::add,
+            () -> {
+              throw BadRequestPayload.because(
+                  InsuranceCompany.BILLING_PHONE_NUMBER, "Cannot populate phone for BILL contact.");
+            });
+    return contactDetails;
   }
 
   private Set<ExtensionHandler> booleanHandlers() {
@@ -241,26 +339,65 @@ public class R4OrganizationToInsuranceCompanyFileTransformer {
             .build());
   }
 
-  private WriteableFilemanValue claimsInptContact() {
-    Organization.Contact verificationContact =
-        contactForPurposeOrDie(
-            "INPTCLAIMS", InsuranceCompany.CLAIMS_INPT_PHONE_NUMBER, "claims inpt");
-    return contactPoint(
-        verificationContact.telecom(),
-        InsuranceCompany.CLAIMS_INPT_PHONE_NUMBER,
-        "claims inpt",
-        ContactPoint.ContactPointSystem.phone);
+  private Set<WriteableFilemanValue> claimsInptContact(Contact contact) {
+    Set<WriteableFilemanValue> contactDetails = new HashSet<>();
+    companyName(contact, InsuranceCompany.CLAIMS_INPT_COMPANY_NAME).ifPresent(contactDetails::add);
+    contactPointForSystem(contact.telecom(), ContactPointSystem.phone)
+        .map(
+            filemanFactory.toString(
+                InsuranceCompany.CLAIMS_INPT_PHONE_NUMBER, index(1), ContactPoint::value))
+        .ifPresentOrElse(
+            contactDetails::add,
+            () -> {
+              throw BadRequestPayload.because(
+                  InsuranceCompany.CLAIMS_INPT_PHONE_NUMBER,
+                  "Unable to populate phone for INPTCLAIMS contact.");
+            });
+    contactPointForSystem(contact.telecom(), ContactPointSystem.fax)
+        .map(
+            filemanFactory.toString(
+                InsuranceCompany.CLAIMS_INPT_FAX, index(1), ContactPoint::value))
+        .ifPresent(contactDetails::add);
+    contactDetails.addAll(
+        address(
+            InsuranceCompany.CLAIMS_INPT_STREET_ADDRESS_1,
+            InsuranceCompany.CLAIMS_INPT_STREET_ADDRESS_2,
+            InsuranceCompany.CLAIMS_INPT_STREET_ADDRESS_3,
+            InsuranceCompany.CLAIMS_INPT_PROCESS_CITY,
+            InsuranceCompany.CLAIMS_INPT_PROCESS_STATE,
+            InsuranceCompany.CLAIMS_INPT_PROCESS_ZIP,
+            contact.address()));
+    return contactDetails;
   }
 
-  private WriteableFilemanValue claimsOptContact() {
-    Organization.Contact verificationContact =
-        contactForPurposeOrDie(
-            "OUTPTCLAIMS", InsuranceCompany.CLAIMS_OPT_PHONE_NUMBER, "claims opt");
-    return contactPoint(
-        verificationContact.telecom(),
-        InsuranceCompany.CLAIMS_OPT_PHONE_NUMBER,
-        "claims opt",
-        ContactPoint.ContactPointSystem.phone);
+  private Set<WriteableFilemanValue> claimsOptContact(Contact contact) {
+    Set<WriteableFilemanValue> contactDetails = new HashSet<>();
+    companyName(contact, InsuranceCompany.CLAIMS_OPT_COMPANY_NAME).ifPresent(contactDetails::add);
+    contactPointForSystem(contact.telecom(), ContactPointSystem.phone)
+        .map(
+            filemanFactory.toString(
+                InsuranceCompany.CLAIMS_OPT_PHONE_NUMBER, index(1), ContactPoint::value))
+        .ifPresentOrElse(
+            contactDetails::add,
+            () -> {
+              throw BadRequestPayload.because(
+                  InsuranceCompany.CLAIMS_OPT_PHONE_NUMBER,
+                  "Unable to populate phone for OUTPTCLAIMS contact.");
+            });
+    contactPointForSystem(contact.telecom(), ContactPointSystem.fax)
+        .map(
+            filemanFactory.toString(InsuranceCompany.CLAIMS_OPT_FAX, index(1), ContactPoint::value))
+        .ifPresent(contactDetails::add);
+    contactDetails.addAll(
+        address(
+            InsuranceCompany.CLAIMS_OPT_STREET_ADDRESS_1,
+            InsuranceCompany.CLAIMS_OPT_STREET_ADDRESS_2,
+            InsuranceCompany.CLAIMS_OPT_STREET_ADDRESS_3,
+            InsuranceCompany.CLAIMS_OPT_PROCESS_CITY,
+            InsuranceCompany.CLAIMS_OPT_PROCESS_STATE,
+            InsuranceCompany.CLAIMS_OPT_PROCESS_ZIP,
+            contact.address()));
+    return contactDetails;
   }
 
   private Set<ExtensionHandler> codeableConceptHandlers() {
@@ -348,48 +485,51 @@ public class R4OrganizationToInsuranceCompanyFileTransformer {
     return codings.stream().filter(c -> system.equals(c.system())).findFirst();
   }
 
-  WriteableFilemanValue companyName(
-      Organization.Contact contact, String fieldNumber, String contactType) {
-    Extension companyNameExtension =
-        extensionForSystem(contact.extension(), OrganizationStructureDefinitions.VIA_INTERMEDIARY)
-            .orElseThrow(
-                () ->
-                    BadRequestPayload.because(
-                        fieldNumber, contactType + " contact extension is null"));
-    Reference billingCompanyNameReference = companyNameExtension.valueReference();
-    if (isBlank(billingCompanyNameReference)) {
-      throw BadRequestPayload.because(
-          fieldNumber, contactType + " contact extension value reference is null");
+  Optional<WriteableFilemanValue> companyName(Contact contact, String fieldNumber) {
+    Optional<Extension> maybeCompanyNameExtension =
+        extensionForSystem(contact.extension(), OrganizationStructureDefinitions.VIA_INTERMEDIARY);
+    if (maybeCompanyNameExtension.isEmpty()) {
+      return Optional.empty();
     }
-    return insuranceCompanyCoordinatesOrDie(
-        fieldNumber, 1, billingCompanyNameReference.display(), contactType + "company name");
+    Reference billingCompanyNameReference = maybeCompanyNameExtension.get().valueReference();
+    if (isBlank(billingCompanyNameReference)) {
+      return Optional.empty();
+    }
+    return Optional.ofNullable(
+        filemanFactory.forString(fieldNumber, 1, billingCompanyNameReference.display()));
   }
 
-  Organization.Contact contactForPurposeOrDie(
-      String purpose, String fieldNumber, String contactType) {
-    List<Organization.Contact> contacts = organization().contact();
-    if (isBlank(contacts)) {
-      throw BadRequestPayload.because(fieldNumber, contactType + " contact is null");
+  private Set<WriteableFilemanValue> contact(
+      @NonNull ContactPurpose purpose, @NonNull Contact contact) {
+    switch (purpose) {
+      case APPEAL:
+        return appealsContact(contact);
+      case BILL:
+        return billingContact(contact);
+      case DENTALCLAIMS:
+        return dentalClaimsContact(contact);
+      case INPTCLAIMS:
+        return claimsInptContact(contact);
+      case OUTPTCLAIMS:
+        return claimsOptContact(contact);
+      case INQUIRY:
+        return inquiryContact(contact);
+      case PRECERT:
+        return precertContact(contact);
+      case RXCLAIMS:
+        return rxClaimsContact(contact);
+      case VERIFY:
+        return verificationContact(contact);
+      default:
+        throw BadRequestPayload.because("Unknown purpose for contact: " + contact);
     }
-    CodeableConcept purposeCodeableConcept =
-        asCodeableConcept(
-            Coding.builder()
-                .code(purpose)
-                .display(purpose)
-                .system("http://terminology.hl7.org/CodeSystem/contactentity-type")
-                .build());
-    return contacts.stream()
-        .filter(c -> purposeCodeableConcept.equals(c.purpose()))
-        .findFirst()
-        .orElseThrow(
-            () -> BadRequestPayload.because(fieldNumber, contactType + " contact is null"));
   }
 
   WriteableFilemanValue contactPoint(
       List<ContactPoint> telecom,
       String fieldNumber,
       String contactType,
-      ContactPoint.ContactPointSystem system) {
+      ContactPointSystem system) {
     if (isBlank(telecom)) {
       throw BadRequestPayload.because(fieldNumber, contactType + "telecom reference is null");
     }
@@ -403,7 +543,7 @@ public class R4OrganizationToInsuranceCompanyFileTransformer {
   }
 
   Optional<ContactPoint> contactPointForSystem(
-      List<ContactPoint> contactPoints, ContactPoint.ContactPointSystem system) {
+      List<ContactPoint> contactPoints, ContactPointSystem system) {
     if (isBlank(contactPoints)) {
       return Optional.empty();
     }
@@ -411,15 +551,56 @@ public class R4OrganizationToInsuranceCompanyFileTransformer {
   }
 
   private Set<WriteableFilemanValue> contacts() {
-    Set<WriteableFilemanValue> fields = new HashSet<>();
-    fields.add(appealsContact());
-    fields.addAll(billingContact());
-    fields.add(claimsInptContact());
-    fields.add(claimsOptContact());
-    fields.add(inquiryContact());
-    fields.add(precertContact());
-    fields.add(verificationContact());
-    return fields;
+    Set<ContactPurpose> requiredContacts =
+        new HashSet<>(
+            Set.of(
+                ContactPurpose.APPEAL,
+                ContactPurpose.BILL,
+                ContactPurpose.INPTCLAIMS,
+                ContactPurpose.OUTPTCLAIMS,
+                ContactPurpose.INQUIRY,
+                ContactPurpose.PRECERT,
+                ContactPurpose.VERIFY));
+    var contacts =
+        organization().contact().stream()
+            .map(
+                contact -> {
+                  var purpose = purposeOrDie(contact.purpose());
+                  requiredContacts.remove(purpose);
+                  return contact(purpose, contact);
+                })
+            .flatMap(Collection::stream)
+            .collect(Collectors.toSet());
+    if (requiredContacts.isEmpty()) {
+      return contacts;
+    }
+    throw BadRequestPayload.because("Payload missing required contacts types: " + requiredContacts);
+  }
+
+  private Set<WriteableFilemanValue> dentalClaimsContact(Contact contact) {
+    Set<WriteableFilemanValue> contactDetails = new HashSet<>();
+    companyName(contact, InsuranceCompany.CLAIMS_DENTAL_COMPANY_NAME)
+        .ifPresent(contactDetails::add);
+    contactPointForSystem(contact.telecom(), ContactPointSystem.phone)
+        .map(
+            filemanFactory.toString(
+                InsuranceCompany.CLAIMS_DENTAL_PHONE_NUMBER, index(1), ContactPoint::value))
+        .ifPresent(contactDetails::add);
+    contactPointForSystem(contact.telecom(), ContactPointSystem.fax)
+        .map(
+            filemanFactory.toString(
+                InsuranceCompany.CLAIMS_DENTAL_FAX, index(1), ContactPoint::value))
+        .ifPresent(contactDetails::add);
+    contactDetails.addAll(
+        address(
+            InsuranceCompany.CLAIMS_DENTAL_STREET_ADDR_1,
+            InsuranceCompany.CLAIMS_DENTAL_STREET_ADDR_2,
+            null,
+            InsuranceCompany.CLAIMS_DENTAL_PROCESS_CITY,
+            InsuranceCompany.CLAIMS_DENTAL_PROCESS_STATE,
+            InsuranceCompany.CLAIMS_DENTAL_PROCESS_ZIP,
+            contact.address()));
+    return contactDetails;
   }
 
   Optional<Extension> extensionForSystem(List<Extension> extensions, String system) {
@@ -440,66 +621,143 @@ public class R4OrganizationToInsuranceCompanyFileTransformer {
         .toList();
   }
 
-  WriteableFilemanValue identifier(String fieldName, String fieldNumber, String identifierCode) {
-    Identifier identifier =
-        identifierForCode(organization.identifier(), identifierCode)
-            .orElseThrow(
-                () -> BadRequestPayload.because(fieldNumber, fieldName + " identifier is null"));
-    if (identifier.value().isBlank()) {
+  Optional<WriteableFilemanValue> identifier(
+      String fieldName, String fieldNumber, String identifierCode, boolean required) {
+    Optional<Identifier> identifier =
+        identifierForPredicate(organization.identifier(), c -> identifierCode.equals(c.code()));
+    if (identifier.isEmpty() && required) {
+      throw BadRequestPayload.because(fieldNumber, fieldName + " identifier is required");
+    }
+    if (identifier.isEmpty()) {
+      return Optional.empty();
+    }
+    if (identifier.get().value().isBlank()) {
       throw BadRequestPayload.because(fieldNumber, fieldName + "identifier.value is null");
     }
-    return insuranceCompanyCoordinatesOrDie(fieldNumber, 1, identifier.value(), fieldName);
+    return Optional.ofNullable(filemanFactory.forString(fieldNumber, 1, identifier.get().value()));
   }
 
-  Optional<Identifier> identifierForCode(List<Identifier> identifiers, String identifierCode) {
+  Optional<Identifier> identifierForPredicate(
+      List<Identifier> identifiers, Predicate<Coding> predicate) {
     if (isBlank(identifiers)) {
       return Optional.empty();
     }
     return identifiers.stream()
         .filter(
             i -> {
+              if (i.type() == null) {
+                return false;
+              }
               if (i.type().coding() == null) {
                 return false;
               }
-              return i.type().coding().stream().anyMatch(c -> identifierCode.equals(c.code()));
+              return i.type().coding().stream().anyMatch(predicate);
             })
         .findFirst();
   }
 
-  private WriteableFilemanValue inquiryContact() {
-    Organization.Contact verificationContact =
-        contactForPurposeOrDie("INQUIRY", InsuranceCompany.INQUIRY_PHONE_NUMBER, "inquiry");
-    return contactPoint(
-        verificationContact.telecom(),
-        InsuranceCompany.INQUIRY_PHONE_NUMBER,
-        "inquiry",
-        ContactPoint.ContactPointSystem.phone);
+  List<WriteableFilemanValue> identifierSlice(
+      String fieldName,
+      String idField,
+      String qualifierField,
+      String identifierSystem,
+      boolean required) {
+    Optional<Identifier> identifier =
+        identifierForPredicate(organization.identifier(), c -> identifierSystem.equals(c.system()));
+    if (identifier.isEmpty() && required) {
+      throw BadRequestPayload.because(idField, fieldName + " identifier slice is required");
+    }
+    if (identifier.isEmpty()) {
+      return List.of();
+    }
+    if (identifier.get().value().isBlank()) {
+      throw BadRequestPayload.because(idField, fieldName + " identifier.value is null");
+    }
+    var matchingCodes =
+        identifier.get().type().coding().stream().map(Coding::code).collect(Collectors.toList());
+    if (matchingCodes.isEmpty()) {
+      throw BadRequestPayload.because(idField, fieldName + " identifier.type.coding.code is null");
+    }
+    if (matchingCodes.size() > 1) {
+      throw BadRequestPayload.because(
+          idField, fieldName + " identifier.type.coding.code only one code is allowed.");
+    }
+    return List.of(
+        filemanFactory.forString(idField, 1, identifier.get().value()),
+        filemanFactory.forString(qualifierField, 1, matchingCodes.get(0)));
+  }
+
+  private Set<WriteableFilemanValue> inquiryContact(Contact contact) {
+    Set<WriteableFilemanValue> contactDetails = new HashSet<>();
+    companyName(contact, InsuranceCompany.INQUIRY_COMPANY_NAME).ifPresent(contactDetails::add);
+    contactPointForSystem(contact.telecom(), ContactPointSystem.phone)
+        .map(
+            filemanFactory.toString(
+                InsuranceCompany.INQUIRY_PHONE_NUMBER, index(1), ContactPoint::value))
+        .ifPresentOrElse(
+            contactDetails::add,
+            () -> {
+              throw BadRequestPayload.because(
+                  InsuranceCompany.INQUIRY_PHONE_NUMBER,
+                  "Could not populate phone for INQUIRY contact.");
+            });
+    contactPointForSystem(contact.telecom(), ContactPointSystem.fax)
+        .map(filemanFactory.toString(InsuranceCompany.INQUIRY_FAX, index(1), ContactPoint::value))
+        .ifPresent(contactDetails::add);
+    contactDetails.addAll(
+        address(
+            InsuranceCompany.INQUIRY_ADDRESS_ST_LINE_1_,
+            InsuranceCompany.INQUIRY_ADDRESS_ST_LINE_2_,
+            InsuranceCompany.INQUIRY_ADDRESS_ST_LINE_3_,
+            InsuranceCompany.INQUIRY_ADDRESS_CITY,
+            InsuranceCompany.INQUIRY_ADDRESS_STATE,
+            InsuranceCompany.INQUIRY_ADDRESS_ZIP_CODE,
+            contact.address()));
+    return contactDetails;
   }
 
   private WriteableFilemanValue insuranceCompanyCoordinatesOrDie(
       String field, Integer index, String value, String fieldName) {
+    var wfv = filemanFactory.forString(field, index, value);
     if (isBlank(value)) {
       throw BadRequestPayload.because(field, fieldName + " is null");
     }
-    return WriteableFilemanValue.builder()
-        .file(InsuranceCompany.FILE_NUMBER)
-        .field(field)
-        .index(index)
-        .value(value)
-        .build();
+    return wfv;
   }
 
-  private WriteableFilemanValue precertContact() {
-    Organization.Contact precertContact =
-        contactForPurposeOrDie(
-            "PRECERT",
-            InsuranceCompany.PRECERTIFICATION_PHONE_NUMBER,
-            "precertification contact is null");
-    return contactPoint(
-        precertContact.telecom(),
-        InsuranceCompany.PRECERTIFICATION_PHONE_NUMBER,
-        "precertification",
-        ContactPoint.ContactPointSystem.phone);
+  private Set<WriteableFilemanValue> precertContact(Contact contact) {
+    Set<WriteableFilemanValue> contactDetails = new HashSet<>();
+    companyName(contact, InsuranceCompany.PRECERT_COMPANY_NAME).ifPresent(contactDetails::add);
+    contactPointForSystem(contact.telecom(), ContactPointSystem.phone)
+        .map(
+            filemanFactory.toString(
+                InsuranceCompany.PRECERTIFICATION_PHONE_NUMBER, index(1), ContactPoint::value))
+        .ifPresentOrElse(
+            contactDetails::add,
+            () -> {
+              throw BadRequestPayload.because(
+                  InsuranceCompany.PRECERTIFICATION_PHONE_NUMBER,
+                  "Unable to populate phone for PRECERT contact.");
+            });
+    return contactDetails;
+  }
+
+  private ContactPurpose purposeOrDie(CodeableConcept purpose) {
+    if (isBlank(purpose)) {
+      throw BadRequestPayload.because(".purpose is blank");
+    }
+    if (isBlank(purpose.coding())) {
+      throw BadRequestPayload.because("Cannot determine purpose: .purpose.coding is blank");
+    }
+    if (purpose.coding().size() != 1) {
+      throw BadRequestPayload.because(
+          "Cannot determine purpose: Unexpected number of codings " + purpose.coding().size());
+    }
+    var purposeCode = purpose.coding().get(0).code();
+    if (isBlank(purposeCode)) {
+      throw BadRequestPayload.because("Purpose code is blank.");
+    }
+    return ContactPurpose.valueOf(purposeCode);
   }
 
   private Set<ExtensionHandler> quantityHandlers() {
@@ -524,6 +782,29 @@ public class R4OrganizationToInsuranceCompanyFileTransformer {
             .build());
   }
 
+  private Set<WriteableFilemanValue> rxClaimsContact(Contact contact) {
+    Set<WriteableFilemanValue> contactDetails = new HashSet<>();
+    companyName(contact, InsuranceCompany.CLAIMS_RX_COMPANY_NAME).ifPresent(contactDetails::add);
+    contactPointForSystem(contact.telecom(), ContactPointSystem.phone)
+        .map(
+            filemanFactory.toString(
+                InsuranceCompany.CLAIMS_RX_PHONE_NUMBER, index(1), ContactPoint::value))
+        .ifPresent(contactDetails::add);
+    contactPointForSystem(contact.telecom(), ContactPointSystem.fax)
+        .map(filemanFactory.toString(InsuranceCompany.CLAIMS_RX_FAX, index(1), ContactPoint::value))
+        .ifPresent(contactDetails::add);
+    contactDetails.addAll(
+        address(
+            InsuranceCompany.CLAIMS_RX_STREET_ADDRESS_1,
+            InsuranceCompany.CLAIMS_RX_STREET_ADDRESS_2,
+            InsuranceCompany.CLAIMS_RX_STREET_ADDRESS_3,
+            InsuranceCompany.CLAIMS_RX_CITY,
+            InsuranceCompany.CLAIMS_RX_STATE,
+            InsuranceCompany.CLAIMS_RX_ZIP,
+            contact.address()));
+    return contactDetails;
+  }
+
   private Set<ExtensionHandler> stringHandlers() {
     return Set.of(
         StringExtensionHandler.forDefiningUrl(OrganizationStructureDefinitions.FILING_TIME_FRAME)
@@ -544,13 +825,29 @@ public class R4OrganizationToInsuranceCompanyFileTransformer {
     return fields;
   }
 
-  private WriteableFilemanValue verificationContact() {
-    Organization.Contact verificationContact =
-        contactForPurposeOrDie("VERIFY", InsuranceCompany.VERIFICATION_PHONE_NUMBER, "verify");
-    return contactPoint(
-        verificationContact.telecom(),
-        InsuranceCompany.VERIFICATION_PHONE_NUMBER,
-        "verify",
-        ContactPoint.ContactPointSystem.phone);
+  private Set<WriteableFilemanValue> verificationContact(Contact contact) {
+    var phone =
+        contactPointForSystem(contact.telecom(), ContactPointSystem.phone)
+            .map(
+                filemanFactory.toString(
+                    InsuranceCompany.VERIFICATION_PHONE_NUMBER, index(1), ContactPoint::value))
+            .orElseThrow(
+                () ->
+                    BadRequestPayload.because(
+                        InsuranceCompany.VERIFICATION_PHONE_NUMBER,
+                        "Unable to populate phone for VERIFY contact."));
+    return Set.of(phone);
+  }
+
+  public enum ContactPurpose {
+    APPEAL,
+    BILL,
+    DENTALCLAIMS,
+    INPTCLAIMS,
+    OUTPTCLAIMS,
+    INQUIRY,
+    PRECERT,
+    RXCLAIMS,
+    VERIFY
   }
 }

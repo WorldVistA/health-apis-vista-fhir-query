@@ -101,8 +101,17 @@ public class R4OrganizationInsuranceCompanyTransformer {
           InsuranceCompany.CLAIMS_RX_STREET_ADDRESS_3,
           InsuranceCompany.CLAIMS_RX_ZIP,
           InsuranceCompany.ELECTRONIC_INSURANCE_TYPE,
+          InsuranceCompany.EDI_INST_SECONDARY_ID_1_,
+          InsuranceCompany.EDI_INST_SECONDARY_ID_QUAL_1_,
+          InsuranceCompany.EDI_INST_SECONDARY_ID_2_,
+          InsuranceCompany.EDI_INST_SECONDARY_ID_QUAL_2_,
+          InsuranceCompany.EDI_ID_NUMBER_DENTAL,
           InsuranceCompany.EDI_ID_NUMBER_INST,
           InsuranceCompany.EDI_ID_NUMBER_PROF,
+          InsuranceCompany.EDI_PROF_SECONDARY_ID_1_,
+          InsuranceCompany.EDI_PROF_SECONDARY_ID_QUAL_1_,
+          InsuranceCompany.EDI_PROF_SECONDARY_ID_2_,
+          InsuranceCompany.EDI_PROF_SECONDARY_ID_QUAL_2_,
           InsuranceCompany.FILING_TIME_FRAME,
           InsuranceCompany.INACTIVE,
           InsuranceCompany.INQUIRY_ADDRESS_CITY,
@@ -203,7 +212,7 @@ public class R4OrganizationInsuranceCompanyTransformer {
         entry.internal(InsuranceCompany.CLAIMS_DENTAL_PROCESS_CITY).orElse(null),
         entry.external(InsuranceCompany.CLAIMS_DENTAL_PROCESS_STATE).orElse(null),
         entry.internal(InsuranceCompany.CLAIMS_DENTAL_PROCESS_ZIP).orElse(null),
-        "DENTALCLAIM",
+        "DENTALCLAIMS",
         entry.internal(InsuranceCompany.CLAIMS_DENTAL_PHONE_NUMBER).orElse(null),
         entry.internal(InsuranceCompany.CLAIMS_DENTAL_FAX).orElse(null),
         entry.internal(InsuranceCompany.CLAIMS_DENTAL_COMPANY_NAME).orElse(null));
@@ -452,6 +461,20 @@ public class R4OrganizationInsuranceCompanyTransformer {
         .build();
   }
 
+  private Identifier identifierSlice(
+      Optional<String> maybeValue, Optional<String> maybeCode, String system) {
+    if (isBlank(maybeValue) || isBlank(maybeCode)) {
+      return null;
+    }
+    return Identifier.builder()
+        .value(maybeValue.get())
+        .type(
+            CodeableConcept.builder()
+                .coding(Coding.builder().code(maybeCode.get()).system(system).build().asList())
+                .build())
+        .build();
+  }
+
   private List<Identifier> identifiers(LhsLighthouseRpcGatewayResponse.FilemanEntry entry) {
     return Stream.of(
             identifier(
@@ -462,7 +485,26 @@ public class R4OrganizationInsuranceCompanyTransformer {
                 OrganizationStructureDefinitions.EDI_ID_NUMBER_INST_CODE),
             identifier(
                 entry.internal(InsuranceCompany.BIN_NUMBER),
-                OrganizationStructureDefinitions.BIN_NUMBER_CODE))
+                OrganizationStructureDefinitions.BIN_NUMBER_CODE),
+            identifier(
+                entry.internal(InsuranceCompany.EDI_ID_NUMBER_DENTAL),
+                OrganizationStructureDefinitions.EDI_ID_NUMBER_DENTAL_CODE),
+            identifierSlice(
+                entry.internal(InsuranceCompany.EDI_INST_SECONDARY_ID_1_),
+                entry.internal(InsuranceCompany.EDI_INST_SECONDARY_ID_QUAL_1_),
+                OrganizationStructureDefinitions.EDI_INST_SECONDARY_ID_QUAL_1),
+            identifierSlice(
+                entry.internal(InsuranceCompany.EDI_INST_SECONDARY_ID_2_),
+                entry.internal(InsuranceCompany.EDI_INST_SECONDARY_ID_QUAL_2_),
+                OrganizationStructureDefinitions.EDI_INST_SECONDARY_ID_QUAL_2),
+            identifierSlice(
+                entry.internal(InsuranceCompany.EDI_PROF_SECONDARY_ID_1_),
+                entry.internal(InsuranceCompany.EDI_PROF_SECONDARY_ID_QUAL_1_),
+                OrganizationStructureDefinitions.EDI_PROF_SECONDARY_ID_QUAL_1),
+            identifierSlice(
+                entry.internal(InsuranceCompany.EDI_PROF_SECONDARY_ID_2_),
+                entry.internal(InsuranceCompany.EDI_PROF_SECONDARY_ID_QUAL_2_),
+                OrganizationStructureDefinitions.EDI_PROF_SECONDARY_ID_QUAL_2))
         .filter(Objects::nonNull)
         .collect(Collectors.toList());
   }

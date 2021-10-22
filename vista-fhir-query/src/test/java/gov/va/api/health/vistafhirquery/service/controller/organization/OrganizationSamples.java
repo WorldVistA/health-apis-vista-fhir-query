@@ -89,14 +89,12 @@ public class OrganizationSamples {
           insuranceCompanyValue(InsuranceCompany.BILLING_COMPANY_NAME, "SHANK-BILLING"),
           insuranceCompanyValue(InsuranceCompany.FAX_NUMBER, "SHANKFAX"),
           insuranceCompanyValue(InsuranceCompany.TYPE_OF_COVERAGE, "HEALTH INSURANCE"),
-          insuranceCompanyValue(InsuranceCompany.PHONE_NUMBER, "800-456-8888"),
-          insuranceCompanyValue(InsuranceCompany.BILLING_PHONE_NUMBER, "800-123-7777"),
-          insuranceCompanyValue(InsuranceCompany.PRECERTIFICATION_PHONE_NUMBER, "800-222-9999"),
-          insuranceCompanyValue(InsuranceCompany.VERIFICATION_PHONE_NUMBER, "800-333-8888"),
-          insuranceCompanyValue(InsuranceCompany.CLAIMS_INPT_PHONE_NUMBER, "800-444-7777"),
-          insuranceCompanyValue(InsuranceCompany.CLAIMS_OPT_PHONE_NUMBER, "800-555-6666"),
-          insuranceCompanyValue(InsuranceCompany.APPEALS_PHONE_NUMBER, "1-800-SHANK-APPEALS"),
-          insuranceCompanyValue(InsuranceCompany.INQUIRY_PHONE_NUMBER, "1-800-SHANK-INQUIRY"),
+          insuranceCompanyValue(InsuranceCompany.PHONE_NUMBER, "800-SHANK-TELE"),
+          insuranceCompanyValue(InsuranceCompany.BILLING_PHONE_NUMBER, "800-SHANK-BILLING"),
+          insuranceCompanyValue(InsuranceCompany.PRECERT_COMPANY_NAME, "SHANK-PRECERT NAME"),
+          insuranceCompanyValue(
+              InsuranceCompany.PRECERTIFICATION_PHONE_NUMBER, "800-SHANK-PRECERT"),
+          insuranceCompanyValue(InsuranceCompany.VERIFICATION_PHONE_NUMBER, "800-SHANK-VER"),
           insuranceCompanyValue(InsuranceCompany.REIMBURSE_, "WILL REIMBURSE"),
           insuranceCompanyValue(InsuranceCompany.SIGNATURE_REQUIRED_ON_BILL_, "YES"),
           insuranceCompanyValue(InsuranceCompany.TRANSMIT_ELECTRONICALLY, "YES-TEST"),
@@ -112,22 +110,91 @@ public class OrganizationSamples {
           insuranceCompanyValue(InsuranceCompany.REF_PROV_SEC_ID_DEF_CMS_1500, "REF PROV CMS 1500"),
           insuranceCompanyValue(
               InsuranceCompany.PRESCRIPTION_REFILL_REV_CODE, "SHANK PRESCRIPTION REV CODE"),
-          insuranceCompanyValue(InsuranceCompany.ANOTHER_CO_PROCESS_INQUIRIES_, "YES"),
           insuranceCompanyValue(InsuranceCompany.AMBULATORY_SURG_REV_CODE, "994"),
           insuranceCompanyValue(InsuranceCompany.ONE_OPT_VISIT_ON_BILL_ONLY, "YES"),
           insuranceCompanyValue(InsuranceCompany.PERF_PROV_SECOND_ID_TYPE_1500, "PERF PROV 1500"),
-          insuranceCompanyValue(InsuranceCompany.ANOTHER_CO_PROCESS_RX_CLAIMS_, "YES"),
           pointerTo("365.12", "SHANK PAYER"),
           insuranceCompanyValue(InsuranceCompany.ALLOW_MULTIPLE_BEDSECTIONS, "YES"),
+          insuranceCompanyValue(InsuranceCompany.PERF_PROV_SECOND_ID_TYPE_UB, "PERF PROV 04"),
+          insuranceCompanyValue(InsuranceCompany.ANOTHER_CO_PROCESS_INQUIRIES_, "YES"),
+          insuranceCompanyValue(InsuranceCompany.ANOTHER_CO_PROCESS_RX_CLAIMS_, "YES"),
           insuranceCompanyValue(InsuranceCompany.ANOTHER_CO_PROCESS_OP_CLAIMS_, "YES"),
           insuranceCompanyValue(InsuranceCompany.ANOTHER_CO_PROCESS_APPEALS_, "YES"),
-          insuranceCompanyValue(InsuranceCompany.PERF_PROV_SECOND_ID_TYPE_UB, "PERF PROV 04"),
           insuranceCompanyValue(InsuranceCompany.ANOTHER_CO_PROC_DENT_CLAIMS_, "YES"),
           insuranceCompanyValue(InsuranceCompany.ANOTHER_CO_PROCESS_IP_CLAIMS_, "YES"),
           insuranceCompanyValue(InsuranceCompany.ANOTHER_CO_PROCESS_PRECERTS_, "YES"),
           insuranceCompanyValue(InsuranceCompany.STANDARD_FTF, "DAYS"),
           insuranceCompanyValue(InsuranceCompany.STANDARD_FTF_VALUE, "365"),
-          insuranceCompanyValue(InsuranceCompany.FILING_TIME_FRAME, "FILING SHANKTOTIME FRAME"));
+          insuranceCompanyValue(InsuranceCompany.FILING_TIME_FRAME, "FILING SHANKTOTIME FRAME"),
+          insuranceCompanyValue(InsuranceCompany.APPEALS_COMPANY_NAME, "SHANK-APPEALS NAME"),
+          insuranceCompanyValue(InsuranceCompany.APPEALS_PHONE_NUMBER, "800-SHANK-APPEALS"),
+          insuranceCompanyValue(InsuranceCompany.APPEALS_FAX, "FAX APPEALS"),
+          insuranceCompanyValue(InsuranceCompany.APPEALS_ADDRESS_CITY, "SHANK-APPEALS CITY"),
+          insuranceCompanyValue(InsuranceCompany.APPEALS_ADDRESS_STATE, "FLORIDA"),
+          insuranceCompanyValue(InsuranceCompany.APPEALS_ADDRESS_ZIP, "SHANK-APPEALS ZIP"),
+          insuranceCompanyValue(
+              InsuranceCompany.APPEALS_ADDRESS_ST_LINE_1_, "SHANK-APPEALS LINE 1"),
+          insuranceCompanyValue(
+              InsuranceCompany.APPEALS_ADDRESS_ST_LINE_2_, "SHANK-APPEALS LINE 2"),
+          insuranceCompanyValue(
+              InsuranceCompany.APPEALS_ADDRESS_ST_LINE_3_, "SHANK-APPEALS LINE 3"),
+          insuranceCompanyValue(InsuranceCompany.CLAIMS_OPT_COMPANY_NAME, "SHANK-OPT NAME"),
+          insuranceCompanyValue(InsuranceCompany.CLAIMS_OPT_PHONE_NUMBER, "800-SHANK-OPT"),
+          insuranceCompanyValue(InsuranceCompany.CLAIMS_OPT_FAX, "FAX SHANK-OPT"),
+          insuranceCompanyValue(InsuranceCompany.CLAIMS_OPT_PROCESS_CITY, "SHANK-OPT CITY"),
+          insuranceCompanyValue(InsuranceCompany.CLAIMS_OPT_PROCESS_STATE, "FLORIDA"),
+          insuranceCompanyValue(InsuranceCompany.CLAIMS_OPT_PROCESS_ZIP, "SHANK-OPT ZIP"),
+          insuranceCompanyValue(InsuranceCompany.CLAIMS_OPT_STREET_ADDRESS_1, "SHANK-OPT LINE 1"),
+          insuranceCompanyValue(InsuranceCompany.CLAIMS_OPT_STREET_ADDRESS_2, "SHANK-OPT LINE 2"),
+          insuranceCompanyValue(InsuranceCompany.CLAIMS_OPT_STREET_ADDRESS_3, "SHANK-OPT LINE 3"),
+          insuranceCompanyValue(InsuranceCompany.CLAIMS_RX_COMPANY_NAME, "SHANK-RX NAME"),
+          insuranceCompanyValue(InsuranceCompany.CLAIMS_RX_PHONE_NUMBER, "800-SHANK-RX"),
+          insuranceCompanyValue(InsuranceCompany.CLAIMS_RX_FAX, "FAX SHANK-RX"),
+          insuranceCompanyValue(InsuranceCompany.CLAIMS_RX_CITY, "SHANK-RX CITY"),
+          insuranceCompanyValue(InsuranceCompany.CLAIMS_RX_STATE, "FLORIDA"),
+          insuranceCompanyValue(InsuranceCompany.CLAIMS_RX_ZIP, "SHANK-RX ZIP"),
+          insuranceCompanyValue(InsuranceCompany.CLAIMS_RX_STREET_ADDRESS_1, "SHANK-RX LINE 1"),
+          insuranceCompanyValue(InsuranceCompany.CLAIMS_RX_STREET_ADDRESS_2, "SHANK-RX LINE 2"),
+          insuranceCompanyValue(InsuranceCompany.CLAIMS_RX_STREET_ADDRESS_3, "SHANK-RX LINE 3"),
+          insuranceCompanyValue(InsuranceCompany.CLAIMS_DENTAL_COMPANY_NAME, "SHANK-DENTAL NAME"),
+          insuranceCompanyValue(InsuranceCompany.CLAIMS_DENTAL_PHONE_NUMBER, "800-SHANK-DENTAL"),
+          insuranceCompanyValue(InsuranceCompany.CLAIMS_DENTAL_FAX, "FAX SHANK-DENTAL"),
+          insuranceCompanyValue(InsuranceCompany.CLAIMS_DENTAL_PROCESS_CITY, "SHANK-DENTAL CITY"),
+          insuranceCompanyValue(InsuranceCompany.CLAIMS_DENTAL_PROCESS_STATE, "FLORIDA"),
+          insuranceCompanyValue(InsuranceCompany.CLAIMS_DENTAL_PROCESS_ZIP, "SHANK-DENTAL ZIP"),
+          insuranceCompanyValue(
+              InsuranceCompany.CLAIMS_DENTAL_STREET_ADDR_1, "SHANK-DENTAL LINE 1"),
+          insuranceCompanyValue(
+              InsuranceCompany.CLAIMS_DENTAL_STREET_ADDR_2, "SHANK-DENTAL LINE 2"),
+          insuranceCompanyValue(InsuranceCompany.CLAIMS_INPT_COMPANY_NAME, "SHANK-INPT NAME"),
+          insuranceCompanyValue(InsuranceCompany.CLAIMS_INPT_PHONE_NUMBER, "800-SHANK-INPT"),
+          insuranceCompanyValue(InsuranceCompany.CLAIMS_INPT_FAX, "FAX SHANK-INPT"),
+          insuranceCompanyValue(InsuranceCompany.CLAIMS_INPT_PROCESS_CITY, "SHANK-INPT CITY"),
+          insuranceCompanyValue(InsuranceCompany.CLAIMS_INPT_PROCESS_STATE, "FLORIDA"),
+          insuranceCompanyValue(InsuranceCompany.CLAIMS_INPT_PROCESS_ZIP, "SHANK-INPT ZIP"),
+          insuranceCompanyValue(InsuranceCompany.CLAIMS_INPT_STREET_ADDRESS_1, "SHANK-INPT LINE 1"),
+          insuranceCompanyValue(InsuranceCompany.CLAIMS_INPT_STREET_ADDRESS_2, "SHANK-INPT LINE 2"),
+          insuranceCompanyValue(InsuranceCompany.CLAIMS_INPT_STREET_ADDRESS_3, "SHANK-INPT LINE 3"),
+          insuranceCompanyValue(InsuranceCompany.INQUIRY_COMPANY_NAME, "SHANK-INQUIRY NAME"),
+          insuranceCompanyValue(InsuranceCompany.INQUIRY_PHONE_NUMBER, "800-SHANK-INQUIRY"),
+          insuranceCompanyValue(InsuranceCompany.INQUIRY_FAX, "FAX SHANK-INQUIRY"),
+          insuranceCompanyValue(InsuranceCompany.INQUIRY_ADDRESS_CITY, "SHANK-INQUIRY CITY"),
+          insuranceCompanyValue(InsuranceCompany.INQUIRY_ADDRESS_STATE, "FLORIDA"),
+          insuranceCompanyValue(InsuranceCompany.INQUIRY_ADDRESS_ZIP_CODE, "SHANK-INQUIRY ZIP"),
+          insuranceCompanyValue(
+              InsuranceCompany.INQUIRY_ADDRESS_ST_LINE_1_, "SHANK-INQUIRY LINE 1"),
+          insuranceCompanyValue(
+              InsuranceCompany.INQUIRY_ADDRESS_ST_LINE_2_, "SHANK-INQUIRY LINE 2"),
+          insuranceCompanyValue(
+              InsuranceCompany.INQUIRY_ADDRESS_ST_LINE_3_, "SHANK-INQUIRY LINE 3"),
+          insuranceCompanyValue(InsuranceCompany.EDI_INST_SECONDARY_ID_QUAL_1_, "2U"),
+          insuranceCompanyValue(InsuranceCompany.EDI_INST_SECONDARY_ID_1_, "IN: 1111-1"),
+          insuranceCompanyValue(InsuranceCompany.EDI_INST_SECONDARY_ID_QUAL_2_, "FY"),
+          insuranceCompanyValue(InsuranceCompany.EDI_INST_SECONDARY_ID_2_, "IN: 1111-2"),
+          insuranceCompanyValue(InsuranceCompany.EDI_PROF_SECONDARY_ID_QUAL_1_, "NF"),
+          insuranceCompanyValue(InsuranceCompany.EDI_PROF_SECONDARY_ID_1_, "IN: 2222-1"),
+          insuranceCompanyValue(InsuranceCompany.EDI_PROF_SECONDARY_ID_QUAL_2_, "TJ"),
+          insuranceCompanyValue(InsuranceCompany.EDI_PROF_SECONDARY_ID_2_, "IN: 2222-2"));
     }
 
     public LhsLighthouseRpcGatewayResponse.Results createOrganizationResults(String id) {
@@ -188,17 +255,15 @@ public class OrganizationSamples {
               "SHANK-APPEALS NAME: EXT", "SHANK-APPEALS NAME"));
       fields.put(
           "#.137",
-          LhsLighthouseRpcGatewayResponse.Values.of(
-              "1-800-SHANK-APPEALS: EXT", "1-800-SHANK-APPEALS"));
-      fields.put(
-          "#.149",
-          LhsLighthouseRpcGatewayResponse.Values.of("FAX SHANK-APPEALS: EXT", "FAX SHANK-APPEALS"));
+          LhsLighthouseRpcGatewayResponse.Values.of("800-SHANK-APPEALS", "800-SHANK-APPEALS"));
+      fields.put("#.149", LhsLighthouseRpcGatewayResponse.Values.of("FAX APPEALS", "FAX APPEALS"));
       // Contact - Billing
       fields.put(
           "#.117", LhsLighthouseRpcGatewayResponse.Values.of("SHANK-BILLING", "SHANK-BILLING"));
       fields.put(
           "#.132",
-          LhsLighthouseRpcGatewayResponse.Values.of("1-800-SHANK-BILLING: EXT", "800-123-7777"));
+          LhsLighthouseRpcGatewayResponse.Values.of(
+              "1-800-SHANK-BILLING: EXT", "800-SHANK-BILLING"));
       // Contact - Claims Dental
       fields.put(
           "#.191",
@@ -223,8 +288,7 @@ public class OrganizationSamples {
           LhsLighthouseRpcGatewayResponse.Values.of("FAX SHANK-DENTAL: EXT", "FAX SHANK-DENTAL"));
       fields.put(
           "#.1911",
-          LhsLighthouseRpcGatewayResponse.Values.of(
-              "1-800-SHANK-DENTAL: EXT", "1-800-SHANK-DENTAL"));
+          LhsLighthouseRpcGatewayResponse.Values.of("1-800-SHANK-DENTAL: EXT", "800-SHANK-DENTAL"));
       // Contact - Claims Inpt
       fields.put(
           "#.121",
@@ -246,7 +310,8 @@ public class OrganizationSamples {
           "#.127",
           LhsLighthouseRpcGatewayResponse.Values.of("SHANK-INPT NAME: EXT", "SHANK-INPT NAME"));
       fields.put(
-          "#.135", LhsLighthouseRpcGatewayResponse.Values.of("800-444-7777", "800-444-7777"));
+          "#.135",
+          LhsLighthouseRpcGatewayResponse.Values.of("800-SHANK-INPT: EXT", "800-SHANK-INPT"));
       fields.put(
           "#.129",
           LhsLighthouseRpcGatewayResponse.Values.of("FAX SHANK-INPT: EXT", "FAX SHANK-INPT"));
@@ -271,7 +336,8 @@ public class OrganizationSamples {
           "#.167",
           LhsLighthouseRpcGatewayResponse.Values.of("SHANK-OPT NAME: EXT", "SHANK-OPT NAME"));
       fields.put(
-          "#.136", LhsLighthouseRpcGatewayResponse.Values.of("800-555-6666", "800-555-6666"));
+          "#.136",
+          LhsLighthouseRpcGatewayResponse.Values.of("800-SHANK-OPT: EXT", "800-SHANK-OPT"));
       fields.put(
           "#.169",
           LhsLighthouseRpcGatewayResponse.Values.of("FAX SHANK-OPT: EXT", "FAX SHANK-OPT"));
@@ -292,8 +358,7 @@ public class OrganizationSamples {
           "#.187",
           LhsLighthouseRpcGatewayResponse.Values.of("SHANK-RX NAME: EXT", "SHANK-RX NAME"));
       fields.put(
-          "#.1311",
-          LhsLighthouseRpcGatewayResponse.Values.of("1-800-SHANK-RX: EXT", "1-800-SHANK-RX"));
+          "#.1311", LhsLighthouseRpcGatewayResponse.Values.of("800-SHANK-RX: EXT", "800-SHANK-RX"));
       fields.put(
           "#.189", LhsLighthouseRpcGatewayResponse.Values.of("FAX SHANK-RX: EXT", "FAX SHANK-RX"));
       // Contact - Inquiry
@@ -323,24 +388,26 @@ public class OrganizationSamples {
               "SHANK-INQUIRY NAME: EXT", "SHANK-INQUIRY NAME"));
       fields.put(
           "#.138",
-          LhsLighthouseRpcGatewayResponse.Values.of(
-              "1-800-SHANK-INQUIRY: EXT", "1-800-SHANK-INQUIRY"));
+          LhsLighthouseRpcGatewayResponse.Values.of("800-SHANK-INQUIRY: EXT", "800-SHANK-INQUIRY"));
       fields.put(
           "#.159",
           LhsLighthouseRpcGatewayResponse.Values.of("FAX SHANK-INQUIRY: EXT", "FAX SHANK-INQUIRY"));
       // Contact - Precertification
       fields.put(
-          "#.133", LhsLighthouseRpcGatewayResponse.Values.of("800-222-9999", "800-222-9999"));
+          "#.133",
+          LhsLighthouseRpcGatewayResponse.Values.of("800-SHANK-PRECERT: EXT", "800-SHANK-PRECERT"));
       fields.put(
           "#.139",
           LhsLighthouseRpcGatewayResponse.Values.of(
               "SHANK-PRECERT NAME: EXT", "SHANK-PRECERT NAME"));
       // Contact - Verification
       fields.put(
-          "#.134", LhsLighthouseRpcGatewayResponse.Values.of("800-333-8888", "800-333-8888"));
+          "#.134",
+          LhsLighthouseRpcGatewayResponse.Values.of("800-SHANK-VER: EXT", "800-SHANK-VER"));
       // Telecom
       fields.put(
-          "#.131", LhsLighthouseRpcGatewayResponse.Values.of("800-456-8888", "800-456-8888"));
+          "#.131",
+          LhsLighthouseRpcGatewayResponse.Values.of("800-SHANK-TELE: EXT", "800-SHANK-TELE"));
       fields.put("#.119", LhsLighthouseRpcGatewayResponse.Values.of("SHANKFAX", "SHANKFAX"));
       // Extension
       fields.put("#.06", LhsLighthouseRpcGatewayResponse.Values.of("TRUE", "1"));
@@ -386,6 +453,15 @@ public class OrganizationSamples {
       fields.put("#3.02", LhsLighthouseRpcGatewayResponse.Values.of("55555", "55555"));
       fields.put("#3.03", LhsLighthouseRpcGatewayResponse.Values.of("SHANKBIN: EXT", "SHANKBIN"));
       fields.put("#3.04", LhsLighthouseRpcGatewayResponse.Values.of("66666", "66666"));
+      fields.put("#6.01", LhsLighthouseRpcGatewayResponse.Values.of("PAYER ID #", "2U"));
+      fields.put("#6.02", LhsLighthouseRpcGatewayResponse.Values.of("EX: 1111-1", "IN: 1111-1"));
+      fields.put("#6.03", LhsLighthouseRpcGatewayResponse.Values.of("CLAIM OFFICE #", "FY"));
+      fields.put("#6.04", LhsLighthouseRpcGatewayResponse.Values.of("EX: 1111-2", "IN: 1111-2"));
+      fields.put("#6.05", LhsLighthouseRpcGatewayResponse.Values.of("NAIC CODE", "NF"));
+      fields.put("#6.06", LhsLighthouseRpcGatewayResponse.Values.of("EX: 2222-1", "IN: 2222-1"));
+      fields.put("#6.07", LhsLighthouseRpcGatewayResponse.Values.of("FED TAXPAYER #", "TJ"));
+      fields.put("#6.08", LhsLighthouseRpcGatewayResponse.Values.of("EX: 2222-2", "IN: 2222-2"));
+
       return Map.copyOf(fields);
     }
 
@@ -478,11 +554,11 @@ public class OrganizationSamples {
           .telecom(
               List.of(
                   ContactPoint.builder()
-                      .value("1-800-SHANK-APPEALS")
+                      .value("800-SHANK-APPEALS")
                       .system(ContactPoint.ContactPointSystem.phone)
                       .build(),
                   ContactPoint.builder()
-                      .value("FAX SHANK-APPEALS")
+                      .value("FAX APPEALS")
                       .system(ContactPoint.ContactPointSystem.fax)
                       .build()))
           .purpose(
@@ -510,7 +586,7 @@ public class OrganizationSamples {
           .telecom(
               List.of(
                   ContactPoint.builder()
-                      .value("800-123-7777")
+                      .value("800-SHANK-BILLING")
                       .system(ContactPoint.ContactPointSystem.phone)
                       .build()))
           .purpose(
@@ -545,7 +621,7 @@ public class OrganizationSamples {
           .telecom(
               List.of(
                   ContactPoint.builder()
-                      .value("1-800-SHANK-DENTAL")
+                      .value("800-SHANK-DENTAL")
                       .system(ContactPoint.ContactPointSystem.phone)
                       .build(),
                   ContactPoint.builder()
@@ -558,8 +634,8 @@ public class OrganizationSamples {
                       Collections.singletonList(
                           Coding.builder()
                               .system("http://terminology.hl7.org/CodeSystem/contactentity-type")
-                              .code("DENTALCLAIM")
-                              .display("DENTALCLAIM")
+                              .code("DENTALCLAIMS")
+                              .display("DENTALCLAIMS")
                               .build()))
                   .build())
           .build();
@@ -584,7 +660,7 @@ public class OrganizationSamples {
           .telecom(
               List.of(
                   ContactPoint.builder()
-                      .value("800-444-7777")
+                      .value("800-SHANK-INPT")
                       .system(ContactPoint.ContactPointSystem.phone)
                       .build(),
                   ContactPoint.builder()
@@ -623,7 +699,7 @@ public class OrganizationSamples {
           .telecom(
               List.of(
                   ContactPoint.builder()
-                      .value("800-555-6666")
+                      .value("800-SHANK-OPT")
                       .system(ContactPoint.ContactPointSystem.phone)
                       .build(),
                   ContactPoint.builder()
@@ -662,7 +738,7 @@ public class OrganizationSamples {
           .telecom(
               List.of(
                   ContactPoint.builder()
-                      .value("1-800-SHANK-RX")
+                      .value("800-SHANK-RX")
                       .system(ContactPoint.ContactPointSystem.phone)
                       .build(),
                   ContactPoint.builder()
@@ -950,6 +1026,58 @@ public class OrganizationSamples {
                                   .code(OrganizationStructureDefinitions.BIN_NUMBER_CODE)
                                   .build()))
                       .build())
+              .build(),
+          Identifier.builder()
+              .value("IN: 1111-1")
+              .type(
+                  CodeableConcept.builder()
+                      .coding(
+                          Collections.singletonList(
+                              Coding.builder()
+                                  .code("2U")
+                                  .system(
+                                      OrganizationStructureDefinitions.EDI_INST_SECONDARY_ID_QUAL_1)
+                                  .build()))
+                      .build())
+              .build(),
+          Identifier.builder()
+              .value("IN: 1111-2")
+              .type(
+                  CodeableConcept.builder()
+                      .coding(
+                          Collections.singletonList(
+                              Coding.builder()
+                                  .code("FY")
+                                  .system(
+                                      OrganizationStructureDefinitions.EDI_INST_SECONDARY_ID_QUAL_2)
+                                  .build()))
+                      .build())
+              .build(),
+          Identifier.builder()
+              .value("IN: 2222-1")
+              .type(
+                  CodeableConcept.builder()
+                      .coding(
+                          Collections.singletonList(
+                              Coding.builder()
+                                  .code("NF")
+                                  .system(
+                                      OrganizationStructureDefinitions.EDI_PROF_SECONDARY_ID_QUAL_1)
+                                  .build()))
+                      .build())
+              .build(),
+          Identifier.builder()
+              .value("IN: 2222-2")
+              .type(
+                  CodeableConcept.builder()
+                      .coding(
+                          Collections.singletonList(
+                              Coding.builder()
+                                  .code("TJ")
+                                  .system(
+                                      OrganizationStructureDefinitions.EDI_PROF_SECONDARY_ID_QUAL_2)
+                                  .build()))
+                      .build())
               .build());
     }
 
@@ -974,7 +1102,7 @@ public class OrganizationSamples {
           .telecom(
               List.of(
                   ContactPoint.builder()
-                      .value("1-800-SHANK-INQUIRY")
+                      .value("800-SHANK-INQUIRY")
                       .system(ContactPoint.ContactPointSystem.phone)
                       .build(),
                   ContactPoint.builder()
@@ -1031,7 +1159,7 @@ public class OrganizationSamples {
           .telecom(
               List.of(
                   ContactPoint.builder()
-                      .value("800-222-9999")
+                      .value("800-SHANK-PRECERT")
                       .system(ContactPoint.ContactPointSystem.phone)
                       .build()))
           .purpose(
@@ -1057,7 +1185,7 @@ public class OrganizationSamples {
     private List<ContactPoint> telecom() {
       return List.of(
           ContactPoint.builder()
-              .value("800-456-8888")
+              .value("800-SHANK-TELE")
               .system(ContactPoint.ContactPointSystem.phone)
               .build(),
           ContactPoint.builder()
@@ -1096,7 +1224,7 @@ public class OrganizationSamples {
           .telecom(
               List.of(
                   ContactPoint.builder()
-                      .value("800-333-8888")
+                      .value("800-SHANK-VER")
                       .system(ContactPoint.ContactPointSystem.phone)
                       .build()))
           .purpose(
