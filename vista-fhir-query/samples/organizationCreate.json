@@ -226,7 +226,51 @@
           }
         ]
       },
-      "value" : "77777"
+      "value": "77777"
+    },
+    {
+      "type": {
+        "coding": [
+          {
+            "system": "urn:oid:2.16.840.1.113883.3.8901.3.1.36.68001",
+            "code": "PAYER ID #"
+          }
+        ]
+      },
+      "value": "123456"
+    },
+    {
+      "type": {
+        "coding": [
+          {
+            "system": "urn:oid:2.16.840.1.113883.3.8901.3.1.36.68003",
+            "code": "CLAIM OFFICE #"
+          }
+        ]
+      },
+      "value": "442222"
+    },
+    {
+      "type": {
+        "coding": [
+          {
+            "system": "urn:oid:2.16.840.1.113883.3.8901.3.1.36.68005",
+            "code": "NAIC CODE"
+          }
+        ]
+      },
+      "value": "111999"
+    },
+    {
+      "type": {
+        "coding": [
+          {
+            "system": "urn:oid:2.16.840.1.113883.3.8901.3.1.36.68007",
+            "code": "FED TAXPAYER #"
+          }
+        ]
+      },
+      "value": "558833"
     }
   ],
   "active" : true,
@@ -350,12 +394,12 @@
       "purpose" : {
         "coding" : [
           {
-            "system" : "http://terminology.hl7.org/CodeSystem/contactentity-type",
-            "code" : "DENTALCLAIM",
-            "display" : "DENTALCLAIM"
+            "system": "http://terminology.hl7.org/CodeSystem/contactentity-type",
+            "code": "DENTALCLAIMS",
+            "display": "DENTALCLAIMS"
           }
         ],
-        "text" : "DENTALCLAIM"
+        "text": "DENTALCLAIMS"
       }
     },
     {
@@ -435,16 +479,8 @@
       }
     },
     {
-      "telecom" : [
-        {
-          "system" : "phone",
-          "value" : "1-800-410-7778"
-        }
-      ]
-    },
-    {
-      "purpose" : {
-        "coding" : [
+      "purpose": {
+        "coding": [
           {
             "system" : "http://terminology.hl7.org/CodeSystem/contactentity-type",
             "code" : "PRECERT",

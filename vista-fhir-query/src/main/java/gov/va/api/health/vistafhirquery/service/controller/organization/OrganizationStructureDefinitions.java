@@ -40,9 +40,19 @@ public interface OrganizationStructureDefinitions {
 
   String BIN_NUMBER_CODE = "BIN";
 
+  String EDI_ID_NUMBER_DENTAL_CODE = "DENTALEDI";
+
   String EDI_ID_NUMBER_PROF_CODE = "PROFEDI";
 
   String EDI_ID_NUMBER_INST_CODE = "INSTEDI";
+
+  String EDI_INST_SECONDARY_ID_QUAL_1 = "urn:oid:2.16.840.1.113883.3.8901.3.1.36.68001";
+
+  String EDI_INST_SECONDARY_ID_QUAL_2 = "urn:oid:2.16.840.1.113883.3.8901.3.1.36.68003";
+
+  String EDI_PROF_SECONDARY_ID_QUAL_1 = "urn:oid:2.16.840.1.113883.3.8901.3.1.36.68005";
+
+  String EDI_PROF_SECONDARY_ID_QUAL_2 = "urn:oid:2.16.840.1.113883.3.8901.3.1.36.68007";
 
   String ELECTRONIC_INSURANCE_TYPE =
       "http://va.gov/fhir/StructureDefinition/organization-electronicInsuranceType";
