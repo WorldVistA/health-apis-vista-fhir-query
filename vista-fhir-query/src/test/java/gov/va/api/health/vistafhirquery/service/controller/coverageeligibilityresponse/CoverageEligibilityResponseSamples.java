@@ -20,7 +20,9 @@ import gov.va.api.lighthouse.charon.models.lhslighthouserpcgateway.InsuranceComp
 import gov.va.api.lighthouse.charon.models.lhslighthouserpcgateway.LhsLighthouseRpcGatewayCoverageWrite.WriteableFilemanValue;
 import gov.va.api.lighthouse.charon.models.lhslighthouserpcgateway.LhsLighthouseRpcGatewayResponse;
 import gov.va.api.lighthouse.charon.models.lhslighthouserpcgateway.LhsLighthouseRpcGatewayResponse.FilemanEntry;
+import gov.va.api.lighthouse.charon.models.lhslighthouserpcgateway.LhsLighthouseRpcGatewayResponse.Values;
 import gov.va.api.lighthouse.charon.models.lhslighthouserpcgateway.PlanCoverageLimitations;
+import gov.va.api.lighthouse.charon.models.lhslighthouserpcgateway.ServiceTypes;
 import gov.va.api.lighthouse.charon.models.lhslighthouserpcgateway.SubscriberDates;
 import java.util.Arrays;
 import java.util.Collection;
@@ -102,9 +104,41 @@ public class CoverageEligibilityResponseSamples {
     }
 
     public CoverageEligibilityResponse coverageEligibilityResponseForWrite() {
-      var cer = coverageEligibilityResponse();
-      cer.insurance().get(0).item().get(0).extension(itemExtensions());
-      return cer;
+      return coverageEligibilityResponseForWrite("123", "p1", "1,8,");
+    }
+
+    public CoverageEligibilityResponse coverageEligibilityResponseForWrite(
+        String site, String patient, String coverage) {
+      return CoverageEligibilityResponse.builder()
+          .meta(Meta.builder().source("123").build())
+          .id(
+              PatientTypeCoordinates.builder()
+                  .site(site)
+                  .icn(patient)
+                  .ien(coverage)
+                  .build()
+                  .toString())
+          .insurance(
+              Insurance.builder()
+                  .item(
+                      Item.builder()
+                          .extension(itemExtensions())
+                          .category(
+                              CodeableConcept.builder()
+                                  .coding(
+                                      Coding.builder()
+                                          .system(
+                                              CoverageEligibilityResponseStructureDefinitions
+                                                  .SERVICE_TYPES)
+                                          .code("OTHER MEDICAL")
+                                          .build()
+                                          .asList())
+                                  .build())
+                          .build()
+                          .asList())
+                  .build()
+                  .asList())
+          .build();
     }
 
     private Insurance insurance(String patient, String coverage) {
@@ -193,31 +227,29 @@ public class CoverageEligibilityResponseSamples {
           .build();
     }
 
-    private Map<String, LhsLighthouseRpcGatewayResponse.Values> planLimitationFields() {
-      Map<String, LhsLighthouseRpcGatewayResponse.Values> fields = new HashMap<>();
-      fields.put(
-          PlanCoverageLimitations.COVERAGE_CATEGORY,
-          LhsLighthouseRpcGatewayResponse.Values.of("MENTAL HEALTH", "4"));
-      fields.put(
-          PlanCoverageLimitations.COVERAGE_STATUS,
-          LhsLighthouseRpcGatewayResponse.Values.of("CONDITIONAL COVERAGE", "2"));
-      fields.put(
-          PlanCoverageLimitations.EFFECTIVE_DATE,
-          LhsLighthouseRpcGatewayResponse.Values.of("JAN 12, 1992", "2920112"));
-      fields.put(
-          PlanCoverageLimitations.PLAN,
-          LhsLighthouseRpcGatewayResponse.Values.of("BCBS OF FL", "87"));
+    private Map<String, Values> planLimitationFields() {
+      Map<String, Values> fields = new HashMap<>();
+      fields.put(PlanCoverageLimitations.COVERAGE_CATEGORY, Values.of("MENTAL HEALTH", "4"));
+      fields.put(PlanCoverageLimitations.COVERAGE_STATUS, Values.of("CONDITIONAL COVERAGE", "2"));
+      fields.put(PlanCoverageLimitations.EFFECTIVE_DATE, Values.of("JAN 12, 1992", "2920112"));
+      fields.put(PlanCoverageLimitations.PLAN, Values.of("BCBS OF FL", "87"));
       return Map.copyOf(fields);
     }
 
-    private Map<String, LhsLighthouseRpcGatewayResponse.Values> subscriberDatesFields() {
-      Map<String, LhsLighthouseRpcGatewayResponse.Values> fields = new HashMap<>();
-      fields.put(
-          SubscriberDates.DATE,
-          LhsLighthouseRpcGatewayResponse.Values.of("MAY 20, 2018", "05-20-2018"));
-      fields.put(
-          SubscriberDates.DATE_QUALIFIER,
-          LhsLighthouseRpcGatewayResponse.Values.of("PLAN BEGIN", "346"));
+    public List<WriteableFilemanValue> serviceTypesFilemanValues() {
+      return List.of(
+          WriteableFilemanValue.builder()
+              .file(ServiceTypes.FILE_NUMBER)
+              .index(1)
+              .field(ServiceTypes.SERVICE_TYPES)
+              .value("OTHER MEDICAL")
+              .build());
+    }
+
+    private Map<String, Values> subscriberDatesFields() {
+      Map<String, Values> fields = new HashMap<>();
+      fields.put(SubscriberDates.DATE, Values.of("MAY 20, 2018", "05-20-2018"));
+      fields.put(SubscriberDates.DATE_QUALIFIER, Values.of("PLAN BEGIN", "346"));
       return Map.copyOf(fields);
     }
 

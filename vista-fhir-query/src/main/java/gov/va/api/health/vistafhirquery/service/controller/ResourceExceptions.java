@@ -27,6 +27,11 @@ public class ResourceExceptions {
       return because(format("Could not populate vista field %s: %s", vistaField, reason));
     }
 
+    public static BadRequestPayload because(String vistaFile, String vistaField, String reason) {
+      return because(
+          format("Could not populate vista file %s field %s: %s", vistaFile, vistaField, reason));
+    }
+
     public static final class BadExtension extends BadRequestPayload {
 
       public BadExtension(String message) {

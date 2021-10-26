@@ -1,9 +1,13 @@
 package gov.va.api.health.vistafhirquery.service.controller;
 
+import static java.lang.String.format;
 import static org.apache.commons.lang3.StringUtils.isBlank;
 
+import gov.va.api.health.r4.api.datatypes.CodeableConcept;
+import gov.va.api.health.r4.api.datatypes.Coding;
 import gov.va.api.health.r4.api.datatypes.Identifier;
 import gov.va.api.health.r4.api.elements.Extension;
+import gov.va.api.health.vistafhirquery.service.controller.ResourceExceptions.BadRequestPayload;
 import gov.va.api.lighthouse.charon.models.lhslighthouserpcgateway.LhsLighthouseRpcGatewayCoverageWrite.WriteableFilemanValue;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Function;
@@ -80,6 +84,50 @@ public class WriteableFilemanValueFactory {
       return null;
     }
     return WriteableFilemanValue.builder().file(file).field("ien").index(index).value(ien).build();
+  }
+
+  /**
+   * Build a WriteableFilemanValue using the codeableConcept.coding.code field for a given system.
+   */
+  public WriteableFilemanValue forRequiredCodeableConcept(
+      String field, int index, CodeableConcept codeableConcept, String codingSystem) {
+    if (R4Transformers.isBlank(codeableConcept)
+        || R4Transformers.isBlank(codeableConcept.coding())) {
+      throw BadRequestPayload.because(
+          file(), field, "CodeableConcept or Coding is missing for system: " + codingSystem);
+    }
+    var codingsForSystem =
+        codeableConcept.coding().stream().filter(c -> codingSystem.equals(c.system())).toList();
+    if (codingsForSystem.size() == 1) {
+      return forRequiredCoding(field, index, codingsForSystem.get(0));
+    }
+    throw BadRequestPayload.because(
+        file(),
+        field,
+        format(
+            "Unexpected number of codings for system %s: %d",
+            codingSystem, codingsForSystem.size()));
+  }
+
+  /** Build a WriteableFilemanValue using the coding.code field. */
+  public WriteableFilemanValue forRequiredCoding(String field, int index, Coding coding) {
+    if (isBlank(coding.code())) {
+      throw BadRequestPayload.because(file(), field, ".coding.code is blank.");
+    }
+    return forRequiredString(field, index, coding.code());
+  }
+
+  /** Build a WriteableFilemanValue for a string, throwing if blank. */
+  public WriteableFilemanValue forRequiredString(@NonNull String field, int index, String value) {
+    if (isBlank(value)) {
+      throw BadRequestPayload.because(file(), field, "string value is blank");
+    }
+    return WriteableFilemanValue.builder()
+        .file(file())
+        .index(index)
+        .field(field)
+        .value(value)
+        .build();
   }
 
   /** Build a WriteableFilemanValue with a default index of 1. */

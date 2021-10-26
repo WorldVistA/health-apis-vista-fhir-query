@@ -11,6 +11,7 @@ import gov.va.api.health.vistafhirquery.service.controller.extensionprocessing.C
 import gov.va.api.health.vistafhirquery.service.controller.extensionprocessing.PeriodExtensionHandler;
 import gov.va.api.health.vistafhirquery.service.controller.extensionprocessing.R4ExtensionProcessor;
 import gov.va.api.lighthouse.charon.models.lhslighthouserpcgateway.LhsLighthouseRpcGatewayCoverageWrite.WriteableFilemanValue;
+import gov.va.api.lighthouse.charon.models.lhslighthouserpcgateway.ServiceTypes;
 import gov.va.api.lighthouse.charon.models.lhslighthouserpcgateway.SubscriberDates;
 import java.time.ZoneId;
 import java.util.HashSet;
@@ -30,6 +31,9 @@ public class R4CoverageEligibilityResponseToVistaFileTransformer {
   WriteableFilemanValueFactory subscriberDates =
       WriteableFilemanValueFactory.forFile(SubscriberDates.FILE_NUMBER);
 
+  WriteableFilemanValueFactory serviceTypes =
+      WriteableFilemanValueFactory.forFile(ServiceTypes.FILE_NUMBER);
+
   @Builder
   R4CoverageEligibilityResponseToVistaFileTransformer(
       @NonNull CoverageEligibilityResponse coverageEligibilityResponse, ZoneId timezone) {
@@ -42,7 +46,16 @@ public class R4CoverageEligibilityResponseToVistaFileTransformer {
   }
 
   private Stream<WriteableFilemanValue> item(Item item) {
-    return itemExtensionProcessor().process(item.extension()).stream();
+    Set<WriteableFilemanValue> filemanValues = new HashSet<>();
+    filemanValues.add(
+        serviceTypes()
+            .forRequiredCodeableConcept(
+                ServiceTypes.SERVICE_TYPES,
+                1,
+                item.category(),
+                CoverageEligibilityResponseStructureDefinitions.SERVICE_TYPES));
+    filemanValues.addAll(itemExtensionProcessor().process(item.extension()));
+    return filemanValues.stream();
   }
 
   private R4ExtensionProcessor itemExtensionProcessor() {

@@ -15,4 +15,6 @@ public class CoverageEligibilityResponseStructureDefinitions {
 
   public static final String SUBSCRIBER_DATE_QUALIFIER =
       "urn:oid:2.16.840.1.113883.3.8901.3.1.36580288.8003";
+
+  public static final String SERVICE_TYPES = "urn:oid:2.16.840.1.113883.3.8901.3.1.36580292.8001";
 }
