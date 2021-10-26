@@ -1,5 +1,7 @@
 package gov.va.api.health.vistafhirquery.tests.r4;
 
+import static org.assertj.core.api.Assertions.assertThat;
+
 import gov.va.api.health.r4.api.resources.OperationOutcome;
 import gov.va.api.health.sentinel.ErrorsAreFunctionallyEqual;
 import io.restassured.response.ResponseBody;
@@ -15,12 +17,14 @@ public class OperationOutcomesAreFunctionallyEqual implements ErrorsAreFunctiona
       OperationOutcome oo = body.as(OperationOutcome.class);
       oo.id("REMOVED-FOR-COMPARISON");
       if (oo.extension() != null) {
+        for (var ignoredExtension : List.of("troubleshooting", "message")) {
+          oo.extension().stream()
+              .filter(e -> e.url().equals(ignoredExtension))
+              .forEach(e -> e.valueString("REMOVED-FOR-COMPARISON"));
+        }
         oo.extension().stream()
             .filter(e -> e.url().equals("timestamp"))
             .forEach(e -> e.valueInstant("REMOVED-FOR-COMPARISON"));
-        oo.extension().stream()
-            .filter(e -> List.of("message", "cause").contains(e.url()))
-            .forEach(e -> e.valueString("REMOVED-FOR-COMPARISON"));
       }
       return oo;
     } catch (Exception e) {
@@ -33,6 +37,10 @@ public class OperationOutcomesAreFunctionallyEqual implements ErrorsAreFunctiona
   public boolean equals(ResponseBody<?> left, ResponseBody<?> right) {
     OperationOutcome ooLeft = asOperationOutcomeWithoutDiagnostics(left);
     OperationOutcome ooRight = asOperationOutcomeWithoutDiagnostics(right);
-    return ooLeft.equals(ooRight);
+    boolean ok = ooLeft.equals(ooRight);
+    if (!ok) {
+      assertThat(ooLeft).usingRecursiveComparison().isEqualTo(ooRight);
+    }
+    return ok;
   }
 }

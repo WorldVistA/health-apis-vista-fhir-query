@@ -44,13 +44,18 @@ public class ResourceExceptions {
   }
 
   /** BadSearchParameters . */
-  public static final class BadSearchParameters extends ResourceException {
+  public static final class BadSearchParameters extends ResourceException
+      implements HasPublicMessage {
     public BadSearchParameters(String message) {
       super(message);
     }
 
     public static BadSearchParameters because(String message) {
       return new BadSearchParameters(message);
+    }
+
+    public String getPublicMessage() {
+      return getMessage();
     }
   }
 
@@ -137,7 +142,7 @@ public class ResourceExceptions {
   }
 
   /** The resource was not found. */
-  public static final class NotFound extends ResourceException {
+  public static final class NotFound extends ResourceException implements HasPublicMessage {
     public NotFound(String message) {
       super(message);
     }
@@ -149,6 +154,11 @@ public class ResourceExceptions {
     @FormatMethod
     public static NotFound because(String message, Object... values) {
       return because(format(message, values));
+    }
+
+    @Override
+    public String getPublicMessage() {
+      return getMessage();
     }
   }
 

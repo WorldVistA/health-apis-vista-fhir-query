@@ -37,6 +37,9 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.validation.BindException;
 import org.springframework.web.HttpRequestMethodNotSupportedException;
+import org.springframework.web.bind.MissingRequestValueException;
+import org.springframework.web.bind.MissingServletRequestParameterException;
+import org.springframework.web.bind.ServletRequestBindingException;
 import org.springframework.web.bind.UnsatisfiedServletRequestParameterException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -54,6 +57,15 @@ import org.springframework.web.client.ResourceAccessException;
 @RestControllerAdvice
 @RequestMapping(produces = "application/json")
 public final class WebExceptionHandler {
+  private static final List<Class<?>> EXCEPTIONS_WITH_SAFE_MESSAGES =
+      List.of(
+          HttpClientErrorException.class,
+          HttpRequestMethodNotSupportedException.class,
+          MissingRequestValueException.class,
+          ServletRequestBindingException.class
+          //
+          );
+
   private final String encryptionKey;
 
   /** Uses encryption key if one is set. */
@@ -171,10 +183,14 @@ public final class WebExceptionHandler {
         Extension.builder().url("timestamp").valueInstant(Instant.now().toString()).build());
     extensions.add(
         Extension.builder().url("type").valueString(tr.getClass().getSimpleName()).build());
+    String safeMessage = extractSafeMessage(tr);
+    if (isNotBlank(safeMessage)) {
+      extensions.add(Extension.builder().url("message").valueString(safeMessage).build());
+    }
     if (isNotBlank(sanitizedMessage(tr))) {
       extensions.add(
           Extension.builder()
-              .url("message")
+              .url("troubleshooting")
               .valueString(encrypter.encrypt(sanitizedMessage(tr)))
               .build());
     }
@@ -190,11 +206,24 @@ public final class WebExceptionHandler {
     return extensions;
   }
 
+  private String extractSafeMessage(Throwable tr) {
+    if (tr instanceof HasPublicMessage) {
+      return ((HasPublicMessage) tr).getPublicMessage();
+    }
+    for (Class<?> safeType : EXCEPTIONS_WITH_SAFE_MESSAGES) {
+      if (safeType.isInstance(tr)) {
+        return tr.getMessage();
+      }
+    }
+    return null;
+  }
+
   @ExceptionHandler({
     BindException.class,
     HttpClientErrorException.BadRequest.class,
     ResourceExceptions.BadSearchParameters.class,
-    UnsatisfiedServletRequestParameterException.class
+    UnsatisfiedServletRequestParameterException.class,
+    MissingServletRequestParameterException.class
   })
   @ResponseStatus(HttpStatus.BAD_REQUEST)
   OperationOutcome handleBadRequest(Exception e, HttpServletRequest request) {

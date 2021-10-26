@@ -85,6 +85,10 @@ public class WebExceptionHandlerTest {
     return request;
   }
 
+  void assertHasMessageExtension(OperationOutcome oo, boolean hasIt) {
+    assertThat(oo.extension().stream().anyMatch(e -> "message".equals(e.url()))).isEqualTo(hasIt);
+  }
+
   @Test
   void badRequest() {
     var oo =
@@ -93,6 +97,7 @@ public class WebExceptionHandlerTest {
                 new UnsatisfiedServletRequestParameterException(
                     new String[] {"hello"}, ImmutableMap.of("foo", new String[] {"bar"})),
                 _request());
+    assertHasMessageExtension(oo, true);
     assertThat(_removeIdAndExtension(oo))
         .usingRecursiveComparison()
         .isEqualTo(_operationOutcome("structure"));
@@ -109,6 +114,7 @@ public class WebExceptionHandlerTest {
         _handler()
             .handleCannotUpdateResourceWithMismatchedIds(
                 CannotUpdateResourceWithMismatchedIds.because("123", "456"), _request());
+    assertHasMessageExtension(ooNotSameId, false);
     assertThat(_removeIdAndExtension(ooNotSameId))
         .usingRecursiveComparison()
         .isEqualTo(
@@ -121,6 +127,7 @@ public class WebExceptionHandlerTest {
         _handler()
             .handleCannotUpdateResourceWithMismatchedIds(
                 CannotUpdateResourceWithMismatchedIds.because("123", null), _request());
+    assertHasMessageExtension(ooNotPresentInResource, false);
     assertThat(_removeIdAndExtension(ooNotPresentInResource))
         .usingRecursiveComparison()
         .isEqualTo(
@@ -140,6 +147,7 @@ public class WebExceptionHandlerTest {
     var expected =
         _addDetails(
             _operationOutcome("not-found"), "MSG_NO_EXIST", "Resource Id \"123\" does not exist");
+    assertHasMessageExtension(oo, false);
     assertThat(_removeIdAndExtension(oo)).isEqualTo(expected);
   }
 
@@ -148,6 +156,7 @@ public class WebExceptionHandlerTest {
     HttpClientErrorException forbidden =
         HttpClientErrorException.Forbidden.create(HttpStatus.FORBIDDEN, null, null, null, null);
     var oo = _handler().handleInternalServerError(forbidden, _request());
+    assertHasMessageExtension(oo, true);
     assertThat(_removeIdAndExtension(oo)).isEqualTo(_operationOutcome("internal-server-error"));
   }
 
@@ -157,6 +166,7 @@ public class WebExceptionHandlerTest {
         HttpServerErrorException.InternalServerError.create(
             HttpStatus.INTERNAL_SERVER_ERROR, null, null, null, null);
     var oo = _handler().handleInternalServerError(internalServerError, _request());
+    assertHasMessageExtension(oo, false);
     assertThat(_removeIdAndExtension(oo)).isEqualTo(_operationOutcome("internal-server-error"));
   }
 
@@ -165,6 +175,7 @@ public class WebExceptionHandlerTest {
     MpiFhirQueryClientExceptions.MpiFhirQueryRequestFailed mfqRequestFailed =
         MpiFhirQueryClientExceptions.MpiFhirQueryRequestFailed.because("rip");
     var oo = _handler().mpiFhirQueryRequestFailed(mfqRequestFailed, _request());
+    assertHasMessageExtension(oo, false);
     assertThat(_removeIdAndExtension(oo)).isEqualTo(_operationOutcome("internal-server-error"));
   }
 
@@ -173,12 +184,14 @@ public class WebExceptionHandlerTest {
     var oo =
         _handler()
             .handleNotAllowed(new HttpRequestMethodNotSupportedException("method"), _request());
+    assertHasMessageExtension(oo, true);
     assertThat(_removeIdAndExtension(oo)).isEqualTo(_operationOutcome("not-allowed"));
   }
 
   @Test
   void notFound() {
     var oo = _handler().handleNotFound(new ResourceExceptions.NotFound("x"), _request());
+    assertHasMessageExtension(oo, true);
     assertThat(_removeIdAndExtension(oo)).isEqualTo(_operationOutcome("not-found"));
   }
 
@@ -186,6 +199,7 @@ public class WebExceptionHandlerTest {
   void requestTimeout() {
     ResourceAccessException requestTimeout = new ResourceAccessException(null);
     var oo = _handler().handleRequestTimeout(requestTimeout, _request());
+    assertHasMessageExtension(oo, false);
     assertThat(_removeIdAndExtension(oo)).isEqualTo(_operationOutcome("request-timeout"));
   }
 
@@ -236,6 +250,7 @@ public class WebExceptionHandlerTest {
         HttpClientErrorException.Unauthorized.create(
             HttpStatus.UNAUTHORIZED, null, null, null, null);
     var oo = _handler().handleUnauthorized(unauthorized, _request());
+    assertHasMessageExtension(oo, true);
     assertThat(_removeIdAndExtension(oo)).isEqualTo(_operationOutcome("unauthorized"));
   }
 
@@ -246,6 +261,7 @@ public class WebExceptionHandlerTest {
     var oo =
         _handler()
             .handleValidationException(new ConstraintViolationException(violations), _request());
+    assertHasMessageExtension(oo, false);
     assertThat(_removeIdAndExtension(oo))
         .isEqualTo(
             OperationOutcome.builder()
