@@ -3,6 +3,7 @@ package gov.va.api.health.vistafhirquery.service.controller.extensionprocessing;
 import static gov.va.api.health.vistafhirquery.service.controller.ResourceExceptions.BadRequestPayload.BadExtension;
 import static gov.va.api.health.vistafhirquery.service.controller.extensionprocessing.ExtensionHandler.Required.REQUIRED;
 import static gov.va.api.lighthouse.charon.models.lhslighthouserpcgateway.LhsLighthouseRpcGatewayCoverageWrite.WriteableFilemanValue;
+import static java.util.function.Function.identity;
 import static java.util.stream.Collectors.toMap;
 import static java.util.stream.Collectors.toSet;
 import static org.apache.commons.lang3.StringUtils.isBlank;
@@ -15,7 +16,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.function.Function;
 import lombok.AllArgsConstructor;
 import lombok.NonNull;
 
@@ -35,7 +35,7 @@ public class R4ExtensionProcessor implements ExtensionProcessor {
   /** Get an extension processor that will use the given list of handlers. */
   public static R4ExtensionProcessor of(@NonNull List<ExtensionHandler> handlers) {
     Map<String, ExtensionHandler> handlerMap =
-        handlers.stream().collect(toMap(ExtensionHandler::definingUrl, Function.identity()));
+        handlers.stream().collect(toMap(ExtensionHandler::definingUrl, identity()));
     Set<ExtensionHandler> requiredHandlers =
         handlerMap.values().stream().filter(e -> REQUIRED.equals(e.required())).collect(toSet());
     return new R4ExtensionProcessor(handlerMap, requiredHandlers, new HashSet<>());

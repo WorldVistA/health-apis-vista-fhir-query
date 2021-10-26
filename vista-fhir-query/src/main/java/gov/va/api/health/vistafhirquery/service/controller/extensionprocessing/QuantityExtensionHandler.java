@@ -13,6 +13,8 @@ import lombok.Getter;
 import lombok.NonNull;
 
 public class QuantityExtensionHandler extends AbstractExtensionHandler {
+  @Getter private final String valueFieldNumber;
+
   @Getter private final String unitFieldNumber;
 
   @Builder
@@ -22,7 +24,8 @@ public class QuantityExtensionHandler extends AbstractExtensionHandler {
       @NonNull ExtensionHandler.Required required,
       @NonNull String valueFieldNumber,
       @NonNull String unitFieldNumber) {
-    super(definingUrl, required, valueFieldNumber, filemanFactory);
+    super(definingUrl, required, filemanFactory);
+    this.valueFieldNumber = valueFieldNumber;
     this.unitFieldNumber = unitFieldNumber;
   }
 
@@ -38,7 +41,7 @@ public class QuantityExtensionHandler extends AbstractExtensionHandler {
     var quantity = extension.valueQuantity();
     validQuantityOrDie(extension.url(), quantity);
     return List.of(
-        filemanFactory().forString(fieldNumber(), 1, quantity.value().toString()),
+        filemanFactory().forString(valueFieldNumber(), 1, quantity.value().toString()),
         filemanFactory().forString(unitFieldNumber(), 1, quantity.unit()));
   }
 

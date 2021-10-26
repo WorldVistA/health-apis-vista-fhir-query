@@ -8,8 +8,6 @@ import java.util.List;
 public interface ExtensionHandler {
   String definingUrl();
 
-  String fieldNumber();
-
   WriteableFilemanValueFactory filemanFactory();
 
   List<WriteableFilemanValue> handle(Extension extension);

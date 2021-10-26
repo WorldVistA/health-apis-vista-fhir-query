@@ -12,7 +12,5 @@ public abstract class AbstractExtensionHandler implements ExtensionHandler {
 
   @Getter private final Required required;
 
-  @Getter private final String fieldNumber;
-
   @Getter private final WriteableFilemanValueFactory filemanFactory;
 }

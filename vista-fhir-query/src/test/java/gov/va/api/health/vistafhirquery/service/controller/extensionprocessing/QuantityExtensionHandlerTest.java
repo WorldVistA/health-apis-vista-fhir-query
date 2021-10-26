@@ -27,8 +27,7 @@ public class QuantityExtensionHandlerTest {
   }
 
   private QuantityExtensionHandler _handler() {
-    return QuantityExtensionHandler.builder()
-        .definingUrl("http://fugazi.com/quantity")
+    return QuantityExtensionHandler.forDefiningUrl("http://fugazi.com/quantity")
         .required(REQUIRED)
         .valueFieldNumber("1")
         .unitFieldNumber("2")

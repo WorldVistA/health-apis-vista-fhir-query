@@ -14,8 +14,7 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NonNull;
 
-public class ReferenceExtensionHandler extends AbstractExtensionHandler {
-
+public class ReferenceExtensionHandler extends AbstractSingleFieldExtensionHandler {
   @Getter private final String referenceFile;
 
   @Getter private final Function<String, IsSiteCoordinates> toCoordinates;
@@ -28,7 +27,7 @@ public class ReferenceExtensionHandler extends AbstractExtensionHandler {
       @NonNull String fieldNumber,
       @NonNull String referenceFile,
       @NonNull Function<String, IsSiteCoordinates> toCoordinates) {
-    super(definingUrl, required, fieldNumber, filemanFactory);
+    super(definingUrl, required, filemanFactory, fieldNumber);
     this.referenceFile = referenceFile;
     this.toCoordinates = toCoordinates;
   }

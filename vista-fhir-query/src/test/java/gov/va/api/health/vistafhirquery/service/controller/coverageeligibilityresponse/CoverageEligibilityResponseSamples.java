@@ -7,6 +7,7 @@ import gov.va.api.health.r4.api.bundle.BundleLink;
 import gov.va.api.health.r4.api.datatypes.CodeableConcept;
 import gov.va.api.health.r4.api.datatypes.Coding;
 import gov.va.api.health.r4.api.datatypes.Period;
+import gov.va.api.health.r4.api.elements.Extension;
 import gov.va.api.health.r4.api.elements.Meta;
 import gov.va.api.health.r4.api.elements.Reference;
 import gov.va.api.health.r4.api.resources.CoverageEligibilityResponse;
@@ -16,8 +17,11 @@ import gov.va.api.health.r4.api.resources.CoverageEligibilityResponse.Purpose;
 import gov.va.api.health.vistafhirquery.service.controller.PatientTypeCoordinates;
 import gov.va.api.health.vistafhirquery.service.controller.RecordCoordinates;
 import gov.va.api.lighthouse.charon.models.lhslighthouserpcgateway.InsuranceCompany;
+import gov.va.api.lighthouse.charon.models.lhslighthouserpcgateway.LhsLighthouseRpcGatewayCoverageWrite.WriteableFilemanValue;
 import gov.va.api.lighthouse.charon.models.lhslighthouserpcgateway.LhsLighthouseRpcGatewayResponse;
+import gov.va.api.lighthouse.charon.models.lhslighthouserpcgateway.LhsLighthouseRpcGatewayResponse.FilemanEntry;
 import gov.va.api.lighthouse.charon.models.lhslighthouserpcgateway.PlanCoverageLimitations;
+import gov.va.api.lighthouse.charon.models.lhslighthouserpcgateway.SubscriberDates;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
@@ -97,6 +101,12 @@ public class CoverageEligibilityResponseSamples {
           .build();
     }
 
+    public CoverageEligibilityResponse coverageEligibilityResponseForWrite() {
+      var cer = coverageEligibilityResponse();
+      cer.insurance().get(0).item().get(0).extension(itemExtensions());
+      return cer;
+    }
+
     private Insurance insurance(String patient, String coverage) {
       return Insurance.builder()
           .coverage(
@@ -129,11 +139,61 @@ public class CoverageEligibilityResponseSamples {
                       .build()))
           .build();
     }
+
+    private List<Extension> itemExtensions() {
+      return List.of(
+          Extension.builder()
+              .url(CoverageEligibilityResponseStructureDefinitions.SUBSCRIBER_DATE)
+              .extension(
+                  List.of(
+                      Extension.builder()
+                          .url(
+                              CoverageEligibilityResponseStructureDefinitions
+                                  .SUBSCRIBER_DATE_PERIOD)
+                          .valuePeriod(Period.builder().start("2018-05-20").build())
+                          .build(),
+                      Extension.builder()
+                          .url(CoverageEligibilityResponseStructureDefinitions.SUBSCRIBER_DATE_KIND)
+                          .valueCodeableConcept(
+                              CodeableConcept.builder()
+                                  .coding(
+                                      List.of(
+                                          Coding.builder()
+                                              .system(
+                                                  CoverageEligibilityResponseStructureDefinitions
+                                                      .SUBSCRIBER_DATE_QUALIFIER)
+                                              .code("PLAN BEGIN")
+                                              .build()))
+                                  .build())
+                          .build()))
+              .build());
+    }
   }
 
   @NoArgsConstructor(staticName = "create")
   public static class VistaLhsLighthouseRpcGateway {
-    private Map<String, LhsLighthouseRpcGatewayResponse.Values> fields() {
+    public LhsLighthouseRpcGatewayResponse.Results getsManifestResults() {
+      return getsManifestResults("8");
+    }
+
+    public LhsLighthouseRpcGatewayResponse.Results getsManifestResults(String id) {
+      return LhsLighthouseRpcGatewayResponse.Results.builder()
+          .results(
+              List.of(
+                  FilemanEntry.builder()
+                      .file(PlanCoverageLimitations.FILE_NUMBER)
+                      .ien(id)
+                      .fields(planLimitationFields())
+                      .build(),
+                  FilemanEntry.builder()
+                      .file(SubscriberDates.FILE_NUMBER)
+                      .ien(id)
+                      .fields(subscriberDatesFields())
+                      .build()))
+          .build();
+    }
+
+    private Map<String, LhsLighthouseRpcGatewayResponse.Values> planLimitationFields() {
       Map<String, LhsLighthouseRpcGatewayResponse.Values> fields = new HashMap<>();
       fields.put(
           PlanCoverageLimitations.COVERAGE_CATEGORY,
@@ -150,20 +210,31 @@ public class CoverageEligibilityResponseSamples {
       return Map.copyOf(fields);
     }
 
-    public LhsLighthouseRpcGatewayResponse.Results getsManifestResults() {
-      return getsManifestResults("8");
+    private Map<String, LhsLighthouseRpcGatewayResponse.Values> subscriberDatesFields() {
+      Map<String, LhsLighthouseRpcGatewayResponse.Values> fields = new HashMap<>();
+      fields.put(
+          SubscriberDates.DATE,
+          LhsLighthouseRpcGatewayResponse.Values.of("MAY 20, 2018", "05-20-2018"));
+      fields.put(
+          SubscriberDates.DATE_QUALIFIER,
+          LhsLighthouseRpcGatewayResponse.Values.of("PLAN BEGIN", "346"));
+      return Map.copyOf(fields);
     }
 
-    public LhsLighthouseRpcGatewayResponse.Results getsManifestResults(String id) {
-      return LhsLighthouseRpcGatewayResponse.Results.builder()
-          .results(
-              List.of(
-                  LhsLighthouseRpcGatewayResponse.FilemanEntry.builder()
-                      .file(PlanCoverageLimitations.FILE_NUMBER)
-                      .ien(id)
-                      .fields(fields())
-                      .build()))
-          .build();
+    public List<WriteableFilemanValue> subscriberDatesFilemanValues() {
+      return List.of(
+          WriteableFilemanValue.builder()
+              .file(SubscriberDates.FILE_NUMBER)
+              .index(1)
+              .field(SubscriberDates.DATE)
+              .value("05-20-2018")
+              .build(),
+          WriteableFilemanValue.builder()
+              .file(SubscriberDates.FILE_NUMBER)
+              .index(1)
+              .field(SubscriberDates.DATE_QUALIFIER)
+              .value("PLAN BEGIN")
+              .build());
     }
   }
 }

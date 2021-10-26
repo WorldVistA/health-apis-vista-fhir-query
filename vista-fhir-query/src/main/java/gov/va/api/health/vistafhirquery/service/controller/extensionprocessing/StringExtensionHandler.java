@@ -10,15 +10,14 @@ import java.util.List;
 import lombok.Builder;
 import lombok.NonNull;
 
-public class StringExtensionHandler extends AbstractExtensionHandler {
-
+public class StringExtensionHandler extends AbstractSingleFieldExtensionHandler {
   @Builder
   public StringExtensionHandler(
       @NonNull WriteableFilemanValueFactory filemanFactory,
       @NonNull String definingUrl,
       @NonNull ExtensionHandler.Required required,
       @NonNull String fieldNumber) {
-    super(definingUrl, required, fieldNumber, filemanFactory);
+    super(definingUrl, required, filemanFactory, fieldNumber);
   }
 
   public static StringExtensionHandler.StringExtensionHandlerBuilder forDefiningUrl(

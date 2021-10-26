@@ -13,10 +13,11 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NonNull;
 
-public class CodeableConceptExtensionHandler extends AbstractExtensionHandler {
+public class CodeableConceptExtensionHandler extends AbstractSingleFieldExtensionHandler {
 
-  @Getter @NonNull private final String codingSystem;
+  @Getter private final String codingSystem;
 
+  /** All args constructor. */
   @Builder
   public CodeableConceptExtensionHandler(
       @NonNull WriteableFilemanValueFactory filemanFactory,
@@ -24,7 +25,7 @@ public class CodeableConceptExtensionHandler extends AbstractExtensionHandler {
       @NonNull ExtensionHandler.Required required,
       @NonNull String fieldNumber,
       @NonNull String codingSystem) {
-    super(definingUrl, required, fieldNumber, filemanFactory);
+    super(definingUrl, required, filemanFactory, fieldNumber);
     this.codingSystem = codingSystem;
   }
 

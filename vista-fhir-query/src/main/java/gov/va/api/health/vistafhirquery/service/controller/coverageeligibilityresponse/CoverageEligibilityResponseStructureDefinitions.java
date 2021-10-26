@@ -3,4 +3,16 @@ package gov.va.api.health.vistafhirquery.service.controller.coverageeligibilityr
 public class CoverageEligibilityResponseStructureDefinitions {
   public static final String PLAN_LIMITATION_CATEGORY =
       "urn:oid:2.16.840.1.113883.3.8901.3.1.3558002.8002";
+
+  public static final String SUBSCRIBER_DATE =
+      "http://va.gov/fhir/StructureDefinition/coverageEligibilityResponse-subscriberDate";
+
+  public static final String SUBSCRIBER_DATE_PERIOD =
+      "http://va.gov/fhir/StructureDefinition/coverageEligibilityResponse-subscriberDatePeriod";
+
+  public static final String SUBSCRIBER_DATE_KIND =
+      "http://va.gov/fhir/StructureDefinition/coverageEligibilityResponse-subscriberDateKind";
+
+  public static final String SUBSCRIBER_DATE_QUALIFIER =
+      "urn:oid:2.16.840.1.113883.3.8901.3.1.36580288.8003";
 }

@@ -60,6 +60,22 @@ public class ReferenceExtensionHandlerTest {
                 .build());
   }
 
+  @Test
+  void handlerThrowsWhenCoordinatesAreNull() {
+    var sample = extensionWithReference(Reference.builder().reference("Fugazi/123").build());
+    assertThatExceptionOfType(BadExtension.class)
+        .isThrownBy(
+            () ->
+                ReferenceExtensionHandler.forDefiningUrl("http://fugazi.com/reference")
+                    .required(REQUIRED)
+                    .filemanFactory(WriteableFilemanValueFactory.forFile("888"))
+                    .fieldNumber("#.88")
+                    .referenceFile("123")
+                    .toCoordinates(s -> null)
+                    .build()
+                    .handle(sample));
+  }
+
   public static class FugaziSiteCoordinates implements IsSiteCoordinates {
     @Override
     public String ien() {

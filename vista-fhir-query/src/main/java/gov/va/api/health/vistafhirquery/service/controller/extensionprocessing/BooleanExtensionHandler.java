@@ -12,10 +12,11 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NonNull;
 
-public class BooleanExtensionHandler extends AbstractExtensionHandler {
+public class BooleanExtensionHandler extends AbstractSingleFieldExtensionHandler {
 
-  @Getter @NonNull private final Map<Boolean, String> booleanStringMapping;
+  @Getter private final Map<Boolean, String> booleanStringMapping;
 
+  /** All args constructor. */
   @Builder
   public BooleanExtensionHandler(
       @NonNull WriteableFilemanValueFactory filemanFactory,
@@ -23,7 +24,7 @@ public class BooleanExtensionHandler extends AbstractExtensionHandler {
       @NonNull ExtensionHandler.Required required,
       @NonNull String fieldNumber,
       @NonNull Map<Boolean, String> booleanStringMapping) {
-    super(definingUrl, required, fieldNumber, filemanFactory);
+    super(definingUrl, required, filemanFactory, fieldNumber);
     this.booleanStringMapping = booleanStringMapping;
   }
 
@@ -38,7 +39,7 @@ public class BooleanExtensionHandler extends AbstractExtensionHandler {
       throw BadExtension.because(definingUrl(), "extension.valueBoolean is null");
     }
     var filemanValue =
-        filemanFactory().forString(fieldNumber(), 1, booleanStringMapping.get(value));
+        filemanFactory().forString(fieldNumber(), 1, booleanStringMapping().get(value));
     return filemanValue == null ? List.of() : List.of(filemanValue);
   }
 }

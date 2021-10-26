@@ -12,6 +12,7 @@ import gov.va.api.health.vistafhirquery.service.controller.WriteableFilemanValue
 import java.util.ArrayList;
 import java.util.List;
 import lombok.Builder;
+import lombok.Getter;
 import org.junit.jupiter.api.Test;
 
 public class R4ExtensionProcessorTest {
@@ -114,13 +115,16 @@ public class R4ExtensionProcessorTest {
 
   static class FugaziExtensionHandler extends AbstractExtensionHandler {
 
+    @Getter private final String fieldNumber;
+
     @Builder
     protected FugaziExtensionHandler(
         String definingUrl,
         Required required,
         String fieldNumber,
         WriteableFilemanValueFactory filemanFactory) {
-      super(definingUrl, required, fieldNumber, filemanFactory);
+      super(definingUrl, required, filemanFactory);
+      this.fieldNumber = fieldNumber;
     }
 
     @Override
@@ -129,15 +133,14 @@ public class R4ExtensionProcessorTest {
     }
   }
 
-  static class FoobarExtensionHandler extends AbstractExtensionHandler {
-
+  static class FoobarExtensionHandler extends AbstractSingleFieldExtensionHandler {
     @Builder
     protected FoobarExtensionHandler(
         String definingUrl,
         Required required,
         String fieldNumber,
         WriteableFilemanValueFactory filemanFactory) {
-      super(definingUrl, required, fieldNumber, filemanFactory);
+      super(definingUrl, required, filemanFactory, fieldNumber);
     }
 
     @Override
