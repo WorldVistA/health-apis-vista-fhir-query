@@ -1,6 +1,7 @@
 package gov.va.api.health.vistafhirquery.service.controller.appointment;
 
 import static gov.va.api.health.vistafhirquery.service.controller.R4Transformers.isBlank;
+import static gov.va.api.health.vistafhirquery.service.controller.R4Transformers.toReference;
 import static gov.va.api.health.vistafhirquery.service.controller.R4Transformers.toResourceId;
 
 import gov.va.api.health.r4.api.elements.Meta;
@@ -33,6 +34,7 @@ public class R4AppointmentTransformer {
         .meta(Meta.builder().source(site).build())
         .participant(
             Appointment.Participant.builder()
+                .actor(toReference("Patient", patientIcn, null))
                 .status(Appointment.ParticipationStatus.accepted)
                 .build()
                 .asList())

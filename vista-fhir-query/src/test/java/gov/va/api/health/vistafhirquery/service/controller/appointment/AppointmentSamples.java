@@ -1,5 +1,6 @@
 package gov.va.api.health.vistafhirquery.service.controller.appointment;
 
+import static gov.va.api.health.vistafhirquery.service.controller.R4Transformers.toReference;
 import static java.util.stream.Collectors.toList;
 
 import gov.va.api.health.r4.api.bundle.AbstractBundle;
@@ -7,7 +8,6 @@ import gov.va.api.health.r4.api.bundle.AbstractEntry;
 import gov.va.api.health.r4.api.bundle.BundleLink;
 import gov.va.api.health.r4.api.elements.Meta;
 import gov.va.api.health.r4.api.resources.Appointment;
-import gov.va.api.health.vistafhirquery.service.controller.PatientTypeCoordinates;
 import gov.va.api.lighthouse.charon.models.CodeAndNameXmlAttribute;
 import gov.va.api.lighthouse.charon.models.ValueOnlyXmlAttribute;
 import gov.va.api.lighthouse.charon.models.vprgetpatientdata.Appointments;
@@ -15,7 +15,6 @@ import gov.va.api.lighthouse.charon.models.vprgetpatientdata.VprGetPatientData;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
-import java.util.Map;
 import lombok.NoArgsConstructor;
 import lombok.experimental.UtilityClass;
 
@@ -51,21 +50,16 @@ public class AppointmentSamples {
     }
 
     public Appointment appointment() {
-      return appointment("673", "AA;2931013.07;23", "sNp1");
+      return appointment("sNp1+673+AA;2931013.07;23");
     }
 
-    public Appointment appointment(String site, String ien, String patientIcn) {
+    public Appointment appointment(String id) {
       return Appointment.builder()
-          .id(
-              PatientTypeCoordinates.builder()
-                  .icn(patientIcn)
-                  .site(site)
-                  .ien(ien)
-                  .build()
-                  .toString())
-          .meta(Meta.builder().source(site).build())
+          .id(id)
+          .meta(Meta.builder().source("673").build())
           .participant(
               Appointment.Participant.builder()
+                  .actor(toReference("Patient", "p1", null))
                   .status(Appointment.ParticipationStatus.accepted)
                   .build()
                   .asList())
@@ -111,10 +105,6 @@ public class AppointmentSamples {
           .timeZone("-0500")
           .appointments(Appointments.builder().appointmentResults(List.of(appointment)).build())
           .build();
-    }
-
-    public Map.Entry<String, VprGetPatientData.Response.Results> resultsByStation() {
-      return Map.entry("673", results());
     }
   }
 }

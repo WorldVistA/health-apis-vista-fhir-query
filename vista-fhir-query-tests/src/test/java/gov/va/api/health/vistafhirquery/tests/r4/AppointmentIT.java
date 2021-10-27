@@ -21,16 +21,10 @@ public class AppointmentIT {
   void search() {
     assumeEnvironmentNotIn(Environment.STAGING, Environment.PROD);
     verifyAll(
+        test(200, Appointment.Bundle.class, "Appointment?patient={icn}", testIds.patient()),
         test(
             200,
             Appointment.Bundle.class,
-            R4TestSupport::atLeastOneEntry,
-            "Appointment?patient={icn}",
-            testIds.patient()),
-        test(
-            200,
-            Appointment.Bundle.class,
-            R4TestSupport::atLeastOneEntry,
             "Appointment?date=ge2010&date=lt2012&patient={icn}",
             testIds.patient()),
         test(
