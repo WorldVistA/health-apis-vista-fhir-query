@@ -19,13 +19,7 @@ public class AppointmentIT {
 
   @Test
   void search() {
-    assumeEnvironmentNotIn(
-        Environment.LOCAL,
-        Environment.QA,
-        Environment.STAGING_LAB,
-        Environment.LAB,
-        Environment.STAGING,
-        Environment.PROD);
+    assumeEnvironmentNotIn(Environment.STAGING, Environment.PROD);
     verifyAll(
         test(
             200,
@@ -42,7 +36,7 @@ public class AppointmentIT {
         test(
             400,
             OperationOutcome.class,
-            "Appointment?date=le2010&date=ge2012&patient={icn}",
+            "Appointment?date=lt2010&date=ge2012&patient={icn}",
             testIds.patient()));
   }
 }

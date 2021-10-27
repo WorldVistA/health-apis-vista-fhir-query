@@ -34,8 +34,7 @@ public class SegmentedVistaIdentifier {
   @NonNull String recordId;
 
   private static BiMap<Character, VprGetPatientData.Domains> domainAbbreviationMappings() {
-    var mappings =
-        Map.of('L', VprGetPatientData.Domains.labs, 'V', VprGetPatientData.Domains.vitals);
+    var mappings = Map.of('A', Domains.appointments, 'L', Domains.labs, 'V', Domains.vitals);
     return HashBiMap.create(mappings);
   }
 
@@ -63,6 +62,28 @@ public class SegmentedVistaIdentifier {
         .vprRpcDomain(domainType)
         .recordId(segmentParts[2].substring(1))
         .build();
+  }
+
+  private static boolean isIdentifierPackable(
+      Pattern site,
+      Pattern recordId,
+      VprGetPatientData.Domains domain,
+      SegmentedVistaIdentifier vis) {
+    if (vis.vprRpcDomain() != domain) {
+      return false;
+    }
+    if (vis.patientIdentifierType() != PatientIdentifierType.NATIONAL_ICN) {
+      return false;
+    }
+    if (!site.matcher(vis.siteId()).matches()) {
+      return false;
+    }
+
+    if (!recordId.matcher(vis.recordId()).matches()) {
+      return false;
+    }
+
+    return true;
   }
 
   /** Parse a VistaIdentifier. */
@@ -127,6 +148,7 @@ public class SegmentedVistaIdentifier {
 
     Encoder() {
       formats = new LinkedHashMap<>();
+      formats.put('A', new FormatCompressedAppointment());
       formats.put('L', new FormatCompressedObservationLab());
       /* FormatString is the failsafe format, this should be last. */
       formats.put('s', new FormatString());
@@ -160,6 +182,58 @@ public class SegmentedVistaIdentifier {
     }
   }
 
+  private static class FormatCompressedAppointment implements Format {
+    private static final Pattern SITE = Pattern.compile("[0-9]{3}");
+
+    private static final Pattern RECORD_ID = Pattern.compile("A;[0-9]{7}\\.[0-9]{1,2};[0-9]+");
+
+    @Override
+    public String tryPack(SegmentedVistaIdentifier vis) {
+      if (!isIdentifierPackable(SITE, RECORD_ID, Domains.appointments, vis)) {
+        return null;
+      }
+
+      var tenSix = TenvSix.parse(vis.patientIdentifier());
+      if (tenSix.isEmpty()) {
+        return null;
+      }
+
+      String ten = leftPad(Long.toString(tenSix.get().ten()), 10, 'x');
+      String six = leftPad(Integer.toString(tenSix.get().six()), 6, 'x');
+      String site = vis.siteId();
+      String date = vis.recordId().substring(2, 9);
+      int lastSemi = vis.recordId().lastIndexOf(';');
+      String time = rightPad(vis.recordId().substring(10, lastSemi), 2, 'x');
+      String remainder = vis.recordId().substring(lastSemi + 1);
+      // ....10....6....3.......7......2......2........
+      return ten + six + site + date + time + remainder;
+    }
+
+    @Override
+    public SegmentedVistaIdentifier unpack(String data) {
+      // 10
+      String ten = strip(data.substring(0, 10), "x");
+      // 6
+      String six = strip(data.substring(10, 16), "x");
+      // 3
+      String site = strip(data.substring(16, 19), "x");
+      // 7
+      String date = data.substring(19, 26);
+      // 2
+      String time = data.substring(26, 28);
+      // 2
+      String remainder = data.substring(28);
+      String icn = "0".equals(six) ? ten : ten + "V" + six;
+      return SegmentedVistaIdentifier.builder()
+          .patientIdentifierType(PatientIdentifierType.NATIONAL_ICN)
+          .patientIdentifier(icn)
+          .siteId(site)
+          .vprRpcDomain(Domains.appointments)
+          .recordId("A;" + date + "." + time + ";" + remainder)
+          .build();
+    }
+  }
+
   private static class FormatCompressedObservationLab implements Format {
     private static final Pattern SITE = Pattern.compile("[0-9]{3}");
 
@@ -167,20 +241,12 @@ public class SegmentedVistaIdentifier {
 
     @Override
     public String tryPack(SegmentedVistaIdentifier vis) {
-      if (vis.vprRpcDomain() != Domains.labs) {
+      if (!isIdentifierPackable(SITE, RECORD_ID, Domains.labs, vis)) {
         return null;
       }
-      if (vis.patientIdentifierType() != PatientIdentifierType.NATIONAL_ICN) {
-        return null;
-      }
-      if (!SITE.matcher(vis.siteId()).matches()) {
-        return null;
-      }
+
       var tenSix = TenvSix.parse(vis.patientIdentifier());
       if (tenSix.isEmpty()) {
-        return null;
-      }
-      if (!RECORD_ID.matcher(vis.recordId()).matches()) {
         return null;
       }
       String ten = leftPad(Long.toString(tenSix.get().ten()), 10, 'x');

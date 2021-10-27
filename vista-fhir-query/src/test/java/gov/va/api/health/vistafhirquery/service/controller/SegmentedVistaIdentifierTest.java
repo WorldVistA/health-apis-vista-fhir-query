@@ -98,9 +98,7 @@ public class SegmentedVistaIdentifierTest {
                 .vprRpcDomain(Domains.labs)
                 .recordId("CH;6929384.839997;14")
                 .build(),
-            "sNa1011537977V693883+673+LCH;6929384.839997;14")
-        //
-        );
+            "sNa1011537977V693883+673+LCH;6929384.839997;14"));
   }
 
   @Test
@@ -122,6 +120,44 @@ public class SegmentedVistaIdentifierTest {
   void invalidPatientIdentifierTypeThrowsIllegalArgument() {
     assertThatExceptionOfType(IllegalArgumentException.class)
         .isThrownBy(() -> SegmentedVistaIdentifier.PatientIdentifierType.fromAbbreviation('Z'));
+  }
+
+  @Test
+  void packWithCompactedAppointmentFormatIsSmallEnough() {
+    // VISTA Appointment N1011537977V693883+673+LA;2931013.07;23
+    SegmentedVistaIdentifier id =
+        SegmentedVistaIdentifier.builder()
+            .patientIdentifierType(PatientIdentifierType.NATIONAL_ICN)
+            .patientIdentifier("1011537977V693883")
+            .siteId("673")
+            .vprRpcDomain(Domains.appointments)
+            .recordId("A;2931013.07;23")
+            .build();
+    String packed = id.pack();
+    SegmentedVistaIdentifier unpacked = SegmentedVistaIdentifier.unpack(packed);
+    assertThat(unpacked).isEqualTo(id);
+    var ids =
+        new RestIdentityServiceClientConfig(
+                null,
+                IdsClientProperties.builder()
+                    .encodedIds(
+                        EncodedIdsFormatProperties.builder()
+                            .i3Enabled(true)
+                            .encodingKey("some-longish-key-here")
+                            .build())
+                    .build())
+            .encodingIdentityServiceClient(new VistaFhirQueryIdsCodebookSupplier().get());
+    String i3 =
+        ids.register(
+                List.of(
+                    ResourceIdentity.builder()
+                        .system("VISTA")
+                        .resource("Appointment")
+                        .identifier(packed)
+                        .build()))
+            .get(0)
+            .uuid();
+    assertThat(i3.length()).as(packed).isLessThanOrEqualTo(64);
   }
 
   @ParameterizedTest

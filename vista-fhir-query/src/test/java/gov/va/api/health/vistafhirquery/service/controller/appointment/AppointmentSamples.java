@@ -51,7 +51,7 @@ public class AppointmentSamples {
     }
 
     public Appointment appointment() {
-      return appointment("673", "A;2931013.07;23", "p1");
+      return appointment("673", "AA;2931013.07;23", "sNp1");
     }
 
     public Appointment appointment(String site, String ien, String patientIcn) {

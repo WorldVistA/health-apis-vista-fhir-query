@@ -114,7 +114,7 @@
               <name>vista-fhir-query</name>
               <healthcheckUrl>http://localhost:8095/actuator/health</healthcheckUrl>
               <skip>${sentinel.skipLaunch}</skip>
-              <waitAfterLaunch>30</waitAfterLaunch>
+              <waitAfterLaunch>60</waitAfterLaunch>
               <processLogFile>${project.build.directory}/vista-fhir-query.log</processLogFile>
               <arguments>
                 <argument>java</argument>
@@ -123,6 +123,7 @@
                 <argument>h2.jar${path.separator}vista-fhir-query.jar</argument>
                 <argument>-Dlogging.level.root=INFO</argument>
                 <argument>-Dloader=gov.va.api.health.vistafhirquery.service.Application</argument>
+                <argument>-Duser.timezone=UTC</argument>
                 <argument>-Dvista.api.url=http://localhost:8096</argument>
                 <argument>-Dvista.api.vpr-get-patient-data-context=MOCKSERVICES</argument>
                 <argument>-Dvista-fhir-query.rpc-principals.file=${project.basedir}/src/test/resources/principals.json</argument>

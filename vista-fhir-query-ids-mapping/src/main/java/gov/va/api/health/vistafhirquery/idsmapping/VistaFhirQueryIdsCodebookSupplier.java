@@ -16,6 +16,7 @@ public class VistaFhirQueryIdsCodebookSupplier implements CodebookSupplier {
                 Mapping.of("VISTA", "V"),
                 Mapping.of("UNKNOWN", "U"),
                 /* Resources*/
+                Mapping.of("Appointment", "AP"),
                 Mapping.of("Coverage", "CV"),
                 Mapping.of("CoverageEligibilityResponse", "CR"),
                 Mapping.of("InsurancePlan", "IP"),

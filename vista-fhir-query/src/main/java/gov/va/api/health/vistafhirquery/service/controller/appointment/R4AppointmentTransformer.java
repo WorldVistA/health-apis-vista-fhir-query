@@ -1,6 +1,7 @@
 package gov.va.api.health.vistafhirquery.service.controller.appointment;
 
-import static gov.va.api.health.vistafhirquery.service.controller.R4Transformers.patientCoordinateStringFrom;
+import static gov.va.api.health.vistafhirquery.service.controller.R4Transformers.isBlank;
+import static gov.va.api.health.vistafhirquery.service.controller.R4Transformers.toResourceId;
 
 import gov.va.api.health.r4.api.elements.Meta;
 import gov.va.api.health.r4.api.resources.Appointment;
@@ -19,9 +20,16 @@ public class R4AppointmentTransformer {
 
   @NonNull VprGetPatientData.Response.Results rpcResults;
 
+  String idFrom(String id) {
+    if (isBlank(id)) {
+      return null;
+    }
+    return toResourceId(patientIcn, site, VprGetPatientData.Domains.appointments, id);
+  }
+
   private Appointment toAppointmentSkeleton(Appointments.Appointment rpcAppointment) {
     return Appointment.builder()
-        .id(patientCoordinateStringFrom(patientIcn, site, rpcAppointment.id().value()))
+        .id(idFrom(rpcAppointment.id().value()))
         .meta(Meta.builder().source(site).build())
         .participant(
             Appointment.Participant.builder()
