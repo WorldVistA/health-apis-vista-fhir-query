@@ -39,7 +39,7 @@ public class R4OrganizationInsuranceCompanyTransformer {
   // | grep -vE '(import|FILE_NUMBER)' \
   // | sort -u
   /** The insurance company fields needed by the transformer. */
-  public static final List<String> REQUIRED_FIELDS =
+  public static final List<String> VISTA_FIELDS =
       List.of(
           InsuranceCompany.ALLOW_MULTIPLE_BEDSECTIONS,
           InsuranceCompany.AMBULATORY_SURG_REV_CODE,
@@ -112,6 +112,7 @@ public class R4OrganizationInsuranceCompanyTransformer {
           InsuranceCompany.EDI_PROF_SECONDARY_ID_QUAL_1_,
           InsuranceCompany.EDI_PROF_SECONDARY_ID_2_,
           InsuranceCompany.EDI_PROF_SECONDARY_ID_QUAL_2_,
+          InsuranceCompany.FAX_NUMBER,
           InsuranceCompany.FILING_TIME_FRAME,
           InsuranceCompany.INACTIVE,
           InsuranceCompany.INQUIRY_ADDRESS_CITY,
@@ -146,6 +147,7 @@ public class R4OrganizationInsuranceCompanyTransformer {
           InsuranceCompany.STREET_ADDRESS_LINE_3_,
           InsuranceCompany.TRANSMIT_ELECTRONICALLY,
           InsuranceCompany.TYPE_OF_COVERAGE,
+          InsuranceCompany.VERIFICATION_PHONE_NUMBER,
           InsuranceCompany.ZIP_CODE);
 
   static final Map<String, Boolean> YES_NO = Map.of("1", true, "0", false);
@@ -416,15 +418,15 @@ public class R4OrganizationInsuranceCompanyTransformer {
                 OrganizationStructureDefinitions.ELECTRONIC_INSURANCE_TYPE),
             extensions.ofReference(
                 "Organization", payerId(entry), OrganizationStructureDefinitions.VIA_INTERMEDIARY),
-            extensions.ofCodeableConceptFromInternalValue(
+            extensions.ofCodeableConceptFromExternalValue(
                 InsuranceCompany.PERF_PROV_SECOND_ID_TYPE_1500,
                 OrganizationStructureDefinitions.PERFORMING_PROVIDER_SECOND_IDTYPE_CMS_1500_URN_OID,
                 OrganizationStructureDefinitions.PERFORMING_PROVIDER_SECOND_IDTYPE_CMS_1500),
-            extensions.ofCodeableConceptFromInternalValue(
+            extensions.ofCodeableConceptFromExternalValue(
                 InsuranceCompany.PERF_PROV_SECOND_ID_TYPE_UB,
                 OrganizationStructureDefinitions.PERFORMING_PROVIDER_SECOND_IDTYPE_UB_04_URN_OID,
                 OrganizationStructureDefinitions.PERFORMING_PROVIDER_SECOND_IDTYPE_UB_04),
-            extensions.ofCodeableConceptFromInternalValue(
+            extensions.ofCodeableConceptFromExternalValue(
                 InsuranceCompany.REF_PROV_SEC_ID_DEF_CMS_1500,
                 OrganizationStructureDefinitions.REFERRNG_PROVIDER_SECOND_IDTYPE_CMS_1500_URN_OID,
                 OrganizationStructureDefinitions.REFERRNG_PROVIDER_SECOND_IDTYPE_CMS_1500),
@@ -491,19 +493,19 @@ public class R4OrganizationInsuranceCompanyTransformer {
                 OrganizationStructureDefinitions.EDI_ID_NUMBER_DENTAL_CODE),
             identifierSlice(
                 entry.internal(InsuranceCompany.EDI_INST_SECONDARY_ID_1_),
-                entry.internal(InsuranceCompany.EDI_INST_SECONDARY_ID_QUAL_1_),
+                entry.external(InsuranceCompany.EDI_INST_SECONDARY_ID_QUAL_1_),
                 OrganizationStructureDefinitions.EDI_INST_SECONDARY_ID_QUAL_1),
             identifierSlice(
                 entry.internal(InsuranceCompany.EDI_INST_SECONDARY_ID_2_),
-                entry.internal(InsuranceCompany.EDI_INST_SECONDARY_ID_QUAL_2_),
+                entry.external(InsuranceCompany.EDI_INST_SECONDARY_ID_QUAL_2_),
                 OrganizationStructureDefinitions.EDI_INST_SECONDARY_ID_QUAL_2),
             identifierSlice(
                 entry.internal(InsuranceCompany.EDI_PROF_SECONDARY_ID_1_),
-                entry.internal(InsuranceCompany.EDI_PROF_SECONDARY_ID_QUAL_1_),
+                entry.external(InsuranceCompany.EDI_PROF_SECONDARY_ID_QUAL_1_),
                 OrganizationStructureDefinitions.EDI_PROF_SECONDARY_ID_QUAL_1),
             identifierSlice(
                 entry.internal(InsuranceCompany.EDI_PROF_SECONDARY_ID_2_),
-                entry.internal(InsuranceCompany.EDI_PROF_SECONDARY_ID_QUAL_2_),
+                entry.external(InsuranceCompany.EDI_PROF_SECONDARY_ID_QUAL_2_),
                 OrganizationStructureDefinitions.EDI_PROF_SECONDARY_ID_QUAL_2))
         .filter(Objects::nonNull)
         .collect(Collectors.toList());

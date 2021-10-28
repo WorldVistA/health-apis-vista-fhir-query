@@ -1,7 +1,37 @@
 {
   "resourceType" : "Organization",
-  "id" : "I3-450NAk1LKUAU1WUhmEuHLf",
+  "id" : "I3-450NAk1LKUAKtytID1Rz0z",
+  "meta": {
+    "source": "673"
+    },
   "extension" : [
+    {
+      "url" : "http://va.gov/fhir/StructureDefinition/organization-allowMultipleBedsections",
+      "valueBoolean" : true
+    },
+    {
+      "url" : "http://va.gov/fhir/StructureDefinition/organization-oneOutpatVisitOnBillOnly",
+      "valueBoolean" : false
+    },
+    {
+      "url" : "http://va.gov/fhir/StructureDefinition/organization-ambulatorySurgeryRevenueCode",
+      "valueCodeableConcept" : {
+        "coding" : [
+          {
+            "system" : "urn:oid:2.16.840.1.113883.6.301.3",
+            "code" : "331"
+          }
+        ]
+      }
+    },
+    {
+      "url" : "http://va.gov/fhir/StructureDefinition/organization-filingTimeFrame",
+      "valueString" : "12 MONTHS"
+    },
+    {
+      "url" : "http://va.gov/fhir/StructureDefinition/organization-anotherCompanyProcessesInpatClaims",
+      "valueBoolean" : false
+    },
     {
       "url" : "http://va.gov/fhir/StructureDefinition/organization-typeOfCoverage",
       "valueCodeableConcept" : {
@@ -11,6 +41,49 @@
             "code" : "HEALTH INSURANCE"
           }
         ]
+      }
+    },
+    {
+      "url" : "http://va.gov/fhir/StructureDefinition/organization-anotherCompanyProcessesAppeals",
+      "valueBoolean" : false
+    },
+    {
+      "url" : "http://va.gov/fhir/StructureDefinition/organization-prescriptionRevenueCode",
+      "valueCodeableConcept" : {
+        "coding" : [
+          {
+            "system" : "urn:oid:2.16.840.1.113883.6.301.3",
+            "code" : "332"
+          }
+        ]
+      }
+    },
+    {
+      "url" : "http://va.gov/fhir/StructureDefinition/organization-anotherCompanyProcessesInquiries",
+      "valueBoolean" : false
+    },
+    {
+      "url" : "http://va.gov/fhir/StructureDefinition/organization-anotherCompanyProcessesOutpatClaims",
+      "valueBoolean" : false
+    },
+    {
+      "url" : "http://va.gov/fhir/StructureDefinition/organization-anotherCompanyProcessesPrecert",
+      "valueBoolean" : false
+    },
+    {
+      "url" : "http://va.gov/fhir/StructureDefinition/organization-anotherCompanyProcessesRxClaims",
+      "valueBoolean" : false
+    },
+    {
+      "url" : "http://va.gov/fhir/StructureDefinition/organization-anotherCompanyProcessesDentalClaims",
+      "valueBoolean" : false
+    },
+    {
+      "url" : "http://va.gov/fhir/StructureDefinition/organization-planStandardFilingTimeFrame",
+      "valueQuantity" : {
+        "value" : 365,
+        "unit" : "DAYS",
+        "system" : "urn:oid:2.16.840.1.113883.3.8901.3.3558013"
       }
     },
     {
@@ -25,12 +98,8 @@
       }
     },
     {
-      "url" : "http://va.gov/fhir/StructureDefinition/organization-planStandardFilingTimeFrame",
-      "valueQuantity" : {
-        "value" : 365,
-        "unit" : "DAYS",
-        "system" : "urn:oid:2.16.840.1.113883.3.8901.3.3558013"
-      }
+      "url" : "http://va.gov/fhir/StructureDefinition/organization-signatureRequiredOnBill",
+      "valueBoolean" : true
     },
     {
       "url" : "http://va.gov/fhir/StructureDefinition/organization-electronicTransmissionMode",
@@ -55,36 +124,9 @@
       }
     },
     {
-      "url" : "http://va.gov/fhir/StructureDefinition/organization-referrngProviderSecondIDTypeUB04",
-      "valueCodeableConcept" : {
-        "coding" : [
-          {
-            "system" : "urn:oid:2.16.840.1.113883.3.8901.3.1.3558097.8001",
-            "code" : "CMS-1500"
-          }
-        ]
-      }
-    },
-    {
-      "url" : "http://va.gov/fhir/StructureDefinition/organization-ambulatorySurgeryRevenueCode",
-      "valueCodeableConcept" : {
-        "coding" : [
-          {
-            "system" : "urn:oid:2.16.840.1.113883.6.301.3",
-            "code" : "331"
-          }
-        ]
-      }
-    },
-    {
-      "url" : "http://va.gov/fhir/StructureDefinition/organization-prescriptionRevenueCode",
-      "valueCodeableConcept" : {
-        "coding" : [
-          {
-            "system" : "urn:oid:2.16.840.1.113883.6.301.3",
-            "code" : "332"
-          }
-        ]
+      "url" : "http://hl7.org/fhir/us/davinci-pdex-plan-net/StructureDefinition/via-intermediary",
+      "valueReference" : {
+        "reference" : "Organization/I3-450NAk1LKUAXKzQ35A62U1"
       }
     },
     {
@@ -121,16 +163,19 @@
       }
     },
     {
-      "url" : "http://va.gov/fhir/StructureDefinition/organization-signatureRequiredOnBill",
-      "valueBoolean" : true
+      "url" : "http://va.gov/fhir/StructureDefinition/organization-referrngProviderSecondIDTypeUB04",
+      "valueCodeableConcept" : {
+        "coding" : [
+          {
+            "system" : "urn:oid:2.16.840.1.113883.3.8901.3.1.3558097.8001",
+            "code" : "CMS-1500"
+          }
+        ]
+      }
     },
     {
       "url" : "http://va.gov/fhir/StructureDefinition/organization-attendingRenderingProviderSecondaryIDProfesionalRequired",
       "valueBoolean" : false
-    },
-    {
-      "url" : "http://va.gov/fhir/StructureDefinition/organization-allowMultipleBedsections",
-      "valueBoolean" : true
     },
     {
       "url" : "http://va.gov/fhir/StructureDefinition/organization-attendingRenderingProviderSecondaryIDInstitutionalRequired",
@@ -143,48 +188,6 @@
     {
       "url" : "http://va.gov/fhir/StructureDefinition/organization-printSecMedClaimsWOMRALocally",
       "valueBoolean" : false
-    },
-    {
-      "url" : "http://va.gov/fhir/StructureDefinition/organization-oneOutpatVisitOnBillOnly",
-      "valueBoolean" : false
-    },
-    {
-      "url" : "http://va.gov/fhir/StructureDefinition/organization-anotherCompanyProcessesInpatClaims",
-      "valueBoolean" : false
-    },
-    {
-      "url" : "http://va.gov/fhir/StructureDefinition/organization-anotherCompanyProcessesAppeals",
-      "valueBoolean" : false
-    },
-    {
-      "url" : "http://va.gov/fhir/StructureDefinition/organization-anotherCompanyProcessesInquiries",
-      "valueBoolean" : false
-    },
-    {
-      "url" : "http://va.gov/fhir/StructureDefinition/organization-anotherCompanyProcessesOutpatClaims",
-      "valueBoolean" : false
-    },
-    {
-      "url" : "http://va.gov/fhir/StructureDefinition/organization-anotherCompanyProcessesDentalClaims",
-      "valueBoolean" : false
-    },
-    {
-      "url" : "http://va.gov/fhir/StructureDefinition/organization-anotherCompanyProcessesPrecert",
-      "valueBoolean" : false
-    },
-    {
-      "url" : "http://va.gov/fhir/StructureDefinition/organization-anotherCompanyProcessesRxClaims",
-      "valueBoolean" : false
-    },
-    {
-      "url" : "http://va.gov/fhir/StructureDefinition/organization-filingTimeFrame",
-      "valueString" : "12 MONTHS"
-    },
-    {
-      "url" : "http://hl7.org/fhir/us/davinci-pdex-plan-net/StructureDefinition/via-intermediary",
-      "valueReference" : {
-        "reference" : "Organization/I3-450NAk1LKUAXKzQ35A62U1"
-      }
     }
   ],
   "identifier" : [
@@ -274,16 +277,6 @@
     }
   ],
   "active" : true,
-  "telecom" : [
-    {
-      "system" : "phone",
-      "value" : "777-999-4444"
-    },
-    {
-      "system" : "fax",
-      "value" : "555-333-4444"
-    }
-  ],
   "type" : [
     {
       "coding" : [
@@ -297,6 +290,16 @@
     }
   ],
   "name" : "BCBS OF FL",
+  "telecom" : [
+    {
+      "system" : "phone",
+      "value" : "777-999-4444"
+    },
+    {
+      "system" : "fax",
+      "value" : "555-333-4444"
+    }
+  ],
   "address" : [
     {
       "line" : [
@@ -305,37 +308,11 @@
         "ATTN: MICHAEL"
       ],
       "city" : "JACKSONVILLE",
-      "state" : "12",
+      "state" : "FLORIDA",
       "postalCode" : "322310014"
     }
   ],
   "contact" : [
-    {
-      "purpose" : {
-        "coding" : [
-          {
-            "system" : "http://terminology.hl7.org/CodeSystem/contactentity-type",
-            "code" : "BILL",
-            "display" : "BILL"
-          }
-        ],
-        "text" : "BILL"
-      },
-      "extension" : [
-        {
-          "url" : "http://hl7.org/fhir/us/davinci-pdex-plan-net/StructureDefinition/via-intermediary",
-          "valueReference" : {
-            "display" : "SHANK-BILLING NAME: IN"
-          }
-        }
-      ],
-      "telecom" : [
-        {
-          "system" : "phone",
-          "value" : "800-727-222"
-        }
-      ]
-    },
     {
       "purpose" : {
         "coding" : [
@@ -355,38 +332,28 @@
       ]
     },
     {
-      "purpose" : {
-        "coding" : [
-          {
-            "system" : "http://terminology.hl7.org/CodeSystem/contactentity-type",
-            "code" : "INQUIRY",
-            "display" : "INQUIRY"
-          }
-        ],
-        "text" : "INQUIRY"
-      },
-      "telecom" : [
+      "extension" : [
         {
-          "system" : "phone",
-          "value" : "800-727-2221"
+          "url" : "http://hl7.org/fhir/us/davinci-pdex-plan-net/StructureDefinition/via-intermediary",
+          "valueReference" : {
+            "display" : "SHANK-BILLING NAME: IN"
+          }
         }
-      ]
-    },
-    {
+      ],
       "purpose" : {
         "coding" : [
           {
             "system" : "http://terminology.hl7.org/CodeSystem/contactentity-type",
-            "code" : "VERIFY",
-            "display" : "VERIFY"
+            "code" : "BILL",
+            "display" : "BILL"
           }
         ],
-        "text" : "VERIFY"
+        "text" : "BILL"
       },
       "telecom" : [
         {
           "system" : "phone",
-          "value" : "800-727-2223"
+          "value" : "800-727-222"
         }
       ]
     },
@@ -428,7 +395,7 @@
           "P.O. BOX 6003"
         ],
         "city" : "JACKSONVILLE",
-        "state" : "12",
+        "state" : "FLORIDA",
         "postalCode" : "322310014"
       }
     },
@@ -454,7 +421,7 @@
           "PO BOX 2832"
         ],
         "city" : "NEW YORK",
-        "state" : "36",
+        "state" : "NEW YORK",
         "postalCode" : "101162832"
       }
     },
@@ -474,9 +441,27 @@
           "PO BOX 14610"
         ],
         "city" : "LEXINGTON",
-        "state" : "21",
+        "state" : "KENTUCKY",
         "postalCode" : "405121234"
       }
+    },
+    {
+      "purpose" : {
+        "coding" : [
+          {
+            "system" : "http://terminology.hl7.org/CodeSystem/contactentity-type",
+            "code" : "INQUIRY",
+            "display" : "INQUIRY"
+          }
+        ],
+        "text" : "INQUIRY"
+      },
+      "telecom" : [
+        {
+          "system" : "phone",
+          "value" : "800-727-2221"
+        }
+      ]
     },
     {
       "purpose": {
@@ -493,6 +478,24 @@
         {
           "system" : "phone",
           "value" : "800-955-5692"
+        }
+      ]
+    },
+    {
+      "purpose" : {
+        "coding" : [
+          {
+            "system" : "http://terminology.hl7.org/CodeSystem/contactentity-type",
+            "code" : "VERIFY",
+            "display" : "VERIFY"
+          }
+        ],
+        "text" : "VERIFY"
+      },
+      "telecom" : [
+        {
+          "system" : "phone",
+          "value" : "800-727-2223"
         }
       ]
     }

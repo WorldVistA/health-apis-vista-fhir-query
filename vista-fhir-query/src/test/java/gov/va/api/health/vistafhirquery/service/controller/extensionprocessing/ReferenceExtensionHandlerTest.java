@@ -53,10 +53,10 @@ public class ReferenceExtensionHandlerTest {
     assertThat(_handler().handle(sample))
         .containsOnly(
             WriteableFilemanValue.builder()
-                .file("123")
+                .file("888")
                 .index(1)
-                .field("ien")
-                .value("ien8")
+                .field("#.88")
+                .value("`ien8")
                 .build());
   }
 

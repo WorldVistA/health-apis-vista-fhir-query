@@ -82,7 +82,7 @@ public class R4SiteOrganizationController implements R4OrganizationApi {
   private static List<String> requiredFieldsForFile(String fileNumber) {
     switch (fileNumber) {
       case InsuranceCompany.FILE_NUMBER:
-        return R4OrganizationInsuranceCompanyTransformer.REQUIRED_FIELDS;
+        return R4OrganizationInsuranceCompanyTransformer.VISTA_FIELDS;
       case Payer.FILE_NUMBER:
         return R4OrganizationPayerTransformer.REQUIRED_FIELDS;
       default:
@@ -99,7 +99,7 @@ public class R4SiteOrganizationController implements R4OrganizationApi {
       case "ins":
         return LhsLighthouseRpcGatewayListManifest.Request.builder()
             .file(InsuranceCompany.FILE_NUMBER)
-            .fields(R4OrganizationInsuranceCompanyTransformer.REQUIRED_FIELDS)
+            .fields(R4OrganizationInsuranceCompanyTransformer.VISTA_FIELDS)
             .build();
       case "pay":
         return LhsLighthouseRpcGatewayListManifest.Request.builder()

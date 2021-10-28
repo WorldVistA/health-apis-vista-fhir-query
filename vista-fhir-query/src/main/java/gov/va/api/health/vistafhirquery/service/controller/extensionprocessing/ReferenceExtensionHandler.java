@@ -53,6 +53,6 @@ public class ReferenceExtensionHandler extends AbstractSingleFieldExtensionHandl
       throw BadExtension.because(
           extension.url(), ".valueReference.reference could not be resolved to an id");
     }
-    return List.of(filemanFactory().forPointer(referenceFile(), 1, siteCoordinates.ien()));
+    return List.of(filemanFactory().forString(fieldNumber(), 1, "`" + siteCoordinates.ien()));
   }
 }

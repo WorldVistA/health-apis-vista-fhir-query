@@ -107,15 +107,17 @@ public class OrganizationSamples {
           insuranceCompanyValue(InsuranceCompany.BIN_NUMBER, "SHANKBIN"),
           insuranceCompanyValue(InsuranceCompany.EDI_ID_NUMBER_INST, "66666"),
           insuranceCompanyValue(InsuranceCompany.EDI_ID_NUMBER_PROF, "55555"),
-          insuranceCompanyValue(InsuranceCompany.REF_PROV_SEC_ID_DEF_CMS_1500, "REF PROV CMS 1500"),
+          insuranceCompanyValue(
+              InsuranceCompany.REF_PROV_SEC_ID_DEF_CMS_1500, "REF PROV CMS 1500: EXT"),
           insuranceCompanyValue(
               InsuranceCompany.PRESCRIPTION_REFILL_REV_CODE, "SHANK PRESCRIPTION REV CODE"),
           insuranceCompanyValue(InsuranceCompany.AMBULATORY_SURG_REV_CODE, "994"),
           insuranceCompanyValue(InsuranceCompany.ONE_OPT_VISIT_ON_BILL_ONLY, "YES"),
-          insuranceCompanyValue(InsuranceCompany.PERF_PROV_SECOND_ID_TYPE_1500, "PERF PROV 1500"),
-          pointerTo("365.12", "SHANK PAYER"),
+          insuranceCompanyValue(
+              InsuranceCompany.PERF_PROV_SECOND_ID_TYPE_1500, "PERF PROV 1500: EXT"),
+          insuranceCompanyValue(InsuranceCompany.PAYER, "`SHANK PAYER"),
           insuranceCompanyValue(InsuranceCompany.ALLOW_MULTIPLE_BEDSECTIONS, "YES"),
-          insuranceCompanyValue(InsuranceCompany.PERF_PROV_SECOND_ID_TYPE_UB, "PERF PROV 04"),
+          insuranceCompanyValue(InsuranceCompany.PERF_PROV_SECOND_ID_TYPE_UB, "PERF PROV 04: EXT"),
           insuranceCompanyValue(InsuranceCompany.ANOTHER_CO_PROCESS_INQUIRIES_, "YES"),
           insuranceCompanyValue(InsuranceCompany.ANOTHER_CO_PROCESS_RX_CLAIMS_, "YES"),
           insuranceCompanyValue(InsuranceCompany.ANOTHER_CO_PROCESS_OP_CLAIMS_, "YES"),
@@ -187,13 +189,13 @@ public class OrganizationSamples {
               InsuranceCompany.INQUIRY_ADDRESS_ST_LINE_2_, "SHANK-INQUIRY LINE 2"),
           insuranceCompanyValue(
               InsuranceCompany.INQUIRY_ADDRESS_ST_LINE_3_, "SHANK-INQUIRY LINE 3"),
-          insuranceCompanyValue(InsuranceCompany.EDI_INST_SECONDARY_ID_QUAL_1_, "2U"),
+          insuranceCompanyValue(InsuranceCompany.EDI_INST_SECONDARY_ID_QUAL_1_, "PAYER ID #"),
           insuranceCompanyValue(InsuranceCompany.EDI_INST_SECONDARY_ID_1_, "IN: 1111-1"),
-          insuranceCompanyValue(InsuranceCompany.EDI_INST_SECONDARY_ID_QUAL_2_, "FY"),
+          insuranceCompanyValue(InsuranceCompany.EDI_INST_SECONDARY_ID_QUAL_2_, "CLAIM OFFICE #"),
           insuranceCompanyValue(InsuranceCompany.EDI_INST_SECONDARY_ID_2_, "IN: 1111-2"),
-          insuranceCompanyValue(InsuranceCompany.EDI_PROF_SECONDARY_ID_QUAL_1_, "NF"),
+          insuranceCompanyValue(InsuranceCompany.EDI_PROF_SECONDARY_ID_QUAL_1_, "NAIC CODE"),
           insuranceCompanyValue(InsuranceCompany.EDI_PROF_SECONDARY_ID_1_, "IN: 2222-1"),
-          insuranceCompanyValue(InsuranceCompany.EDI_PROF_SECONDARY_ID_QUAL_2_, "TJ"),
+          insuranceCompanyValue(InsuranceCompany.EDI_PROF_SECONDARY_ID_QUAL_2_, "FED TAXPAYER #"),
           insuranceCompanyValue(InsuranceCompany.EDI_PROF_SECONDARY_ID_2_, "IN: 2222-2"));
     }
 
@@ -438,12 +440,13 @@ public class OrganizationSamples {
       fields.put(
           "#3.1", LhsLighthouseRpcGatewayResponse.Values.of("SHANK PAYER: EXT", "SHANK PAYER"));
       fields.put(
-          "#4.01", LhsLighthouseRpcGatewayResponse.Values.of("PERF PROF 1500", "PERF PROV 1500"));
+          "#4.01",
+          LhsLighthouseRpcGatewayResponse.Values.of("PERF PROV 1500: EXT", "PERF PROV 1500"));
       fields.put(
-          "#4.02", LhsLighthouseRpcGatewayResponse.Values.of("PERF PROV 04", "PERF PROV 04"));
+          "#4.02", LhsLighthouseRpcGatewayResponse.Values.of("PERF PROV 04: EXT", "PERF PROV 04"));
       fields.put(
           "#4.04",
-          LhsLighthouseRpcGatewayResponse.Values.of("REF PROV CMS 1500", "REF PROV CMS 1500"));
+          LhsLighthouseRpcGatewayResponse.Values.of("REF PROV CMS 1500: EXT", "REF PROV CMS 1500"));
       fields.put("#4.05", LhsLighthouseRpcGatewayResponse.Values.of("NONE", "0"));
       fields.put("#4.06", LhsLighthouseRpcGatewayResponse.Values.of("TRUE", "1"));
       fields.put("#4.08", LhsLighthouseRpcGatewayResponse.Values.of("TRUE", "1"));
@@ -906,7 +909,7 @@ public class OrganizationSamples {
                                       .system(
                                           OrganizationStructureDefinitions
                                               .PERFORMING_PROVIDER_SECOND_IDTYPE_CMS_1500_URN_OID)
-                                      .code("PERF PROV 1500")
+                                      .code("PERF PROV 1500: EXT")
                                       .build()))
                           .build())
                   .build(),
@@ -924,7 +927,7 @@ public class OrganizationSamples {
                                       .system(
                                           OrganizationStructureDefinitions
                                               .PERFORMING_PROVIDER_SECOND_IDTYPE_UB_04_URN_OID)
-                                      .code("PERF PROV 04")
+                                      .code("PERF PROV 04: EXT")
                                       .build()))
                           .build())
                   .build(),
@@ -935,7 +938,7 @@ public class OrganizationSamples {
                           .coding(
                               Collections.singletonList(
                                   Coding.builder()
-                                      .code("REF PROV CMS 1500")
+                                      .code("REF PROV CMS 1500: EXT")
                                       .system(
                                           OrganizationStructureDefinitions
                                               .REFERRNG_PROVIDER_SECOND_IDTYPE_CMS_1500_URN_OID)
@@ -1034,7 +1037,7 @@ public class OrganizationSamples {
                       .coding(
                           Collections.singletonList(
                               Coding.builder()
-                                  .code("2U")
+                                  .code("PAYER ID #")
                                   .system(
                                       OrganizationStructureDefinitions.EDI_INST_SECONDARY_ID_QUAL_1)
                                   .build()))
@@ -1047,7 +1050,7 @@ public class OrganizationSamples {
                       .coding(
                           Collections.singletonList(
                               Coding.builder()
-                                  .code("FY")
+                                  .code("CLAIM OFFICE #")
                                   .system(
                                       OrganizationStructureDefinitions.EDI_INST_SECONDARY_ID_QUAL_2)
                                   .build()))
@@ -1060,7 +1063,7 @@ public class OrganizationSamples {
                       .coding(
                           Collections.singletonList(
                               Coding.builder()
-                                  .code("NF")
+                                  .code("NAIC CODE")
                                   .system(
                                       OrganizationStructureDefinitions.EDI_PROF_SECONDARY_ID_QUAL_1)
                                   .build()))
@@ -1073,7 +1076,7 @@ public class OrganizationSamples {
                       .coding(
                           Collections.singletonList(
                               Coding.builder()
-                                  .code("TJ")
+                                  .code("FED TAXPAYER #")
                                   .system(
                                       OrganizationStructureDefinitions.EDI_PROF_SECONDARY_ID_QUAL_2)
                                   .build()))
