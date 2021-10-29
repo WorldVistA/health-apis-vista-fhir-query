@@ -12,7 +12,6 @@ import gov.va.api.health.vistafhirquery.service.controller.ResourceExceptions.Mu
 import gov.va.api.health.vistafhirquery.service.controller.ResourceExceptions.ResourceException;
 import gov.va.api.health.vistafhirquery.service.controller.ResourceExceptions.UnknownErrorReason;
 import gov.va.api.lighthouse.charon.models.lhslighthouserpcgateway.LhsLighthouseRpcGatewayResponse;
-import gov.va.api.lighthouse.charon.models.lhslighthouserpcgateway.LhsLighthouseRpcGatewayResponse.FilemanEntry;
 import gov.va.api.lighthouse.charon.models.lhslighthouserpcgateway.LhsLighthouseRpcGatewayResponse.ResultsError;
 import java.util.Arrays;
 import java.util.List;
@@ -22,7 +21,6 @@ import lombok.NonNull;
 
 @AllArgsConstructor(staticName = "of")
 public class LhsGatewayErrorHandler {
-  private static final String SUCCESS = "1";
 
   private final LhsLighthouseRpcGatewayResponse.Results results;
 
@@ -36,7 +34,7 @@ public class LhsGatewayErrorHandler {
 
   private List<String> describeFailedFilemanEntries() {
     return results.results().stream()
-        .filter(this::isFailure)
+        .filter(FilemanEntries::isFailure)
         .map(
             failure ->
                 format(
@@ -45,15 +43,7 @@ public class LhsGatewayErrorHandler {
   }
 
   private boolean hasFailedResult() {
-    return results.results().stream().anyMatch(this::isFailure);
-  }
-
-  private boolean isFailure(FilemanEntry entry) {
-    return !isSuccessful(entry);
-  }
-
-  private boolean isSuccessful(FilemanEntry entry) {
-    return SUCCESS.equals(entry.status());
+    return results.results().stream().anyMatch(FilemanEntries::isFailure);
   }
 
   @SuppressWarnings("EnhancedSwitchMigration")

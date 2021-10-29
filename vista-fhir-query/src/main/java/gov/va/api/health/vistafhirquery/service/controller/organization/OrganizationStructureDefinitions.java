@@ -66,6 +66,8 @@ public interface OrganizationStructureDefinitions {
 
   String FILING_TIME_FRAME = "http://va.gov/fhir/StructureDefinition/organization-filingTimeFrame";
 
+  String N277_EDI_ID_NUMBER_CODE = "277EDI";
+
   String ONE_OUTPAT_VISIT_ON_BILL_ONLY =
       "http://va.gov/fhir/StructureDefinition/organization-oneOutpatVisitOnBillOnly";
 

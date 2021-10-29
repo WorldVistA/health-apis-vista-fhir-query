@@ -24,7 +24,7 @@ import gov.va.api.lighthouse.charon.models.lhslighthouserpcgateway.InsuranceComp
 import gov.va.api.lighthouse.charon.models.lhslighthouserpcgateway.LhsLighthouseRpcGatewayCoverageSearch;
 import gov.va.api.lighthouse.charon.models.lhslighthouserpcgateway.LhsLighthouseRpcGatewayCoverageWrite;
 import gov.va.api.lighthouse.charon.models.lhslighthouserpcgateway.LhsLighthouseRpcGatewayGetsManifest;
-import gov.va.api.lighthouse.charon.models.lhslighthouserpcgateway.LhsLighthouseRpcGatewayListManifest;
+import gov.va.api.lighthouse.charon.models.lhslighthouserpcgateway.LhsLighthouseRpcGatewayListGetsManifest;
 import gov.va.api.lighthouse.charon.models.lhslighthouserpcgateway.LhsLighthouseRpcGatewayResponse;
 import gov.va.api.lighthouse.charon.models.lhslighthouserpcgateway.Payer;
 import java.util.List;
@@ -107,7 +107,7 @@ class R4SiteOrganizationControllerTest {
   void readReturnsPayerResource() {
     var samples = OrganizationPayerSamples.VistaLhsLighthouseRpcGateway.create();
     var results = samples.getsManifestResults("ien1");
-    var captor = requestCaptor(LhsLighthouseRpcGatewayListManifest.Request.class);
+    var captor = requestCaptor(LhsLighthouseRpcGatewayGetsManifest.Request.class);
     var answer =
         answerFor(captor).value(results).invocationResult(_invocationResult(results)).build();
     when(charon.request(captor.capture())).thenAnswer(answer);
@@ -149,7 +149,7 @@ class R4SiteOrganizationControllerTest {
     var httpRequest = requestFromUri("?_count=10&type=ins");
     var samples = OrganizationSamples.VistaLhsLighthouseRpcGateway.create();
     var results = samples.getsManifestResults("ien1");
-    var captor = requestCaptor(LhsLighthouseRpcGatewayListManifest.Request.class);
+    var captor = requestCaptor(LhsLighthouseRpcGatewayListGetsManifest.Request.class);
     var answer =
         answerFor(captor).value(results).invocationResult(_invocationResult(results)).build();
     when(charon.request(captor.capture())).thenAnswer(answer);
@@ -192,7 +192,7 @@ class R4SiteOrganizationControllerTest {
     var httpRequest = requestFromUri("?_count=10&type=pay");
     var samples = OrganizationPayerSamples.VistaLhsLighthouseRpcGateway.create();
     var results = samples.getsManifestResults("ien1");
-    var captor = requestCaptor(LhsLighthouseRpcGatewayListManifest.Request.class);
+    var captor = requestCaptor(LhsLighthouseRpcGatewayListGetsManifest.Request.class);
     var answer =
         answerFor(captor).value(results).invocationResult(_invocationResult(results)).build();
     when(charon.request(captor.capture())).thenAnswer(answer);

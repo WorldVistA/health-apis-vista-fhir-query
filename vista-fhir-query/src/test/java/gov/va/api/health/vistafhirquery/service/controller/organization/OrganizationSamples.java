@@ -22,6 +22,7 @@ import gov.va.api.health.vistafhirquery.service.controller.RecordCoordinates;
 import gov.va.api.lighthouse.charon.models.lhslighthouserpcgateway.InsuranceCompany;
 import gov.va.api.lighthouse.charon.models.lhslighthouserpcgateway.LhsLighthouseRpcGatewayCoverageWrite.WriteableFilemanValue;
 import gov.va.api.lighthouse.charon.models.lhslighthouserpcgateway.LhsLighthouseRpcGatewayResponse;
+import gov.va.api.lighthouse.charon.models.lhslighthouserpcgateway.N277EdiIdNumber;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -67,6 +68,7 @@ public class OrganizationSamples {
 
   @NoArgsConstructor(staticName = "create")
   public static class VistaLhsLighthouseRpcGateway {
+
     public Set<WriteableFilemanValue> createApiInput() {
       return createApiInput("1,8");
     }
@@ -196,7 +198,19 @@ public class OrganizationSamples {
           insuranceCompanyValue(InsuranceCompany.EDI_PROF_SECONDARY_ID_QUAL_1_, "NAIC CODE"),
           insuranceCompanyValue(InsuranceCompany.EDI_PROF_SECONDARY_ID_1_, "IN: 2222-1"),
           insuranceCompanyValue(InsuranceCompany.EDI_PROF_SECONDARY_ID_QUAL_2_, "FED TAXPAYER #"),
-          insuranceCompanyValue(InsuranceCompany.EDI_PROF_SECONDARY_ID_2_, "IN: 2222-2"));
+          insuranceCompanyValue(InsuranceCompany.EDI_PROF_SECONDARY_ID_2_, "IN: 2222-2"),
+          WriteableFilemanValue.builder()
+              .field("IEN")
+              .index(1)
+              .file(N277EdiIdNumber.FILE_NUMBER)
+              .value("${36^1^IEN}")
+              .build(),
+          WriteableFilemanValue.builder()
+              .file(N277EdiIdNumber.FILE_NUMBER)
+              .index(1)
+              .field(N277EdiIdNumber.N277EDI_ID_NUMBER)
+              .value("EDITWOSEVENSEVEN")
+              .build());
     }
 
     public LhsLighthouseRpcGatewayResponse.Results createOrganizationResults(String id) {
@@ -480,7 +494,20 @@ public class OrganizationSamples {
                       .file("36")
                       .ien(id)
                       .fields(fields())
-                      .build()))
+                      .status("1")
+                      .build(),
+                  subfile36_017(id)))
+          .build();
+    }
+
+    private LhsLighthouseRpcGatewayResponse.FilemanEntry subfile36_017(String parentIen) {
+      return LhsLighthouseRpcGatewayResponse.FilemanEntry.builder()
+          .file("36.017")
+          .ien("1," + parentIen)
+          .status("1")
+          .fields(
+              Map.of(
+                  "#.01", LhsLighthouseRpcGatewayResponse.Values.of("EDITWOSEVENSEVEN", "277EDI")))
           .build();
     }
   }
@@ -1079,6 +1106,17 @@ public class OrganizationSamples {
                                   .code("FED TAXPAYER #")
                                   .system(
                                       OrganizationStructureDefinitions.EDI_PROF_SECONDARY_ID_QUAL_2)
+                                  .build()))
+                      .build())
+              .build(),
+          Identifier.builder()
+              .value("EDITWOSEVENSEVEN")
+              .type(
+                  CodeableConcept.builder()
+                      .coding(
+                          Collections.singletonList(
+                              Coding.builder()
+                                  .code(OrganizationStructureDefinitions.N277_EDI_ID_NUMBER_CODE)
                                   .build()))
                       .build())
               .build());

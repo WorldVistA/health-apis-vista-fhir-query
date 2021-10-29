@@ -4,6 +4,7 @@ import static gov.va.api.health.vistafhirquery.service.controller.R4Transformers
 import static gov.va.api.health.vistafhirquery.service.controller.R4Transformers.asCodeableConcept;
 import static gov.va.api.health.vistafhirquery.service.controller.R4Transformers.emptyToNull;
 import static gov.va.api.health.vistafhirquery.service.controller.R4Transformers.isBlank;
+import static gov.va.api.lighthouse.charon.models.lhslighthouserpcgateway.LhsLighthouseRpcGateway.allFieldsOfSubfile;
 import static java.util.Collections.emptyList;
 
 import gov.va.api.health.r4.api.datatypes.Address;
@@ -16,9 +17,11 @@ import gov.va.api.health.r4.api.elements.Meta;
 import gov.va.api.health.r4.api.elements.Reference;
 import gov.va.api.health.r4.api.resources.Organization;
 import gov.va.api.health.vistafhirquery.service.controller.ExtensionFactory;
+import gov.va.api.health.vistafhirquery.service.controller.FileLookup;
 import gov.va.api.health.vistafhirquery.service.controller.RecordCoordinates;
 import gov.va.api.lighthouse.charon.models.lhslighthouserpcgateway.InsuranceCompany;
 import gov.va.api.lighthouse.charon.models.lhslighthouserpcgateway.LhsLighthouseRpcGatewayResponse;
+import gov.va.api.lighthouse.charon.models.lhslighthouserpcgateway.N277EdiIdNumber;
 import gov.va.api.lighthouse.charon.models.lhslighthouserpcgateway.Payer;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -26,12 +29,13 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import lombok.Builder;
+import lombok.Getter;
 import lombok.NonNull;
 
-@Builder
 public class R4OrganizationInsuranceCompanyTransformer {
   // The following list can be generated using:
   // grep InsuranceCompany R4OrganizationTransformer.java \
@@ -124,6 +128,7 @@ public class R4OrganizationInsuranceCompanyTransformer {
           InsuranceCompany.INQUIRY_COMPANY_NAME,
           InsuranceCompany.INQUIRY_FAX,
           InsuranceCompany.INQUIRY_PHONE_NUMBER,
+          allFieldsOfSubfile(InsuranceCompany.N277EDI_ID_NUMBER).get(0),
           InsuranceCompany.NAME,
           InsuranceCompany.ONE_OPT_VISIT_ON_BILL_ONLY,
           InsuranceCompany.PAYER,
@@ -151,8 +156,18 @@ public class R4OrganizationInsuranceCompanyTransformer {
           InsuranceCompany.ZIP_CODE);
 
   static final Map<String, Boolean> YES_NO = Map.of("1", true, "0", false);
+  private final FileLookup fileLookup;
+  @Getter private final String site;
+  private final Map.Entry<String, LhsLighthouseRpcGatewayResponse.Results> rpcResults;
 
-  @NonNull Map.Entry<String, LhsLighthouseRpcGatewayResponse.Results> rpcResults;
+  /** R4OrganizationInsuranceCompanyTransformer builder. */
+  @Builder
+  public R4OrganizationInsuranceCompanyTransformer(
+      @NonNull Map.Entry<String, LhsLighthouseRpcGatewayResponse.Results> rpcResults) {
+    this.site = rpcResults.getKey();
+    this.rpcResults = rpcResults;
+    this.fileLookup = FileLookup.of(rpcResults.getValue());
+  }
 
   private Address address(
       String streetAddressLine1,
@@ -478,35 +493,37 @@ public class R4OrganizationInsuranceCompanyTransformer {
   }
 
   private List<Identifier> identifiers(LhsLighthouseRpcGatewayResponse.FilemanEntry entry) {
-    return Stream.of(
-            identifier(
-                entry.internal(InsuranceCompany.EDI_ID_NUMBER_PROF),
-                OrganizationStructureDefinitions.EDI_ID_NUMBER_PROF_CODE),
-            identifier(
-                entry.internal(InsuranceCompany.EDI_ID_NUMBER_INST),
-                OrganizationStructureDefinitions.EDI_ID_NUMBER_INST_CODE),
-            identifier(
-                entry.internal(InsuranceCompany.BIN_NUMBER),
-                OrganizationStructureDefinitions.BIN_NUMBER_CODE),
-            identifier(
-                entry.internal(InsuranceCompany.EDI_ID_NUMBER_DENTAL),
-                OrganizationStructureDefinitions.EDI_ID_NUMBER_DENTAL_CODE),
-            identifierSlice(
-                entry.internal(InsuranceCompany.EDI_INST_SECONDARY_ID_1_),
-                entry.external(InsuranceCompany.EDI_INST_SECONDARY_ID_QUAL_1_),
-                OrganizationStructureDefinitions.EDI_INST_SECONDARY_ID_QUAL_1),
-            identifierSlice(
-                entry.internal(InsuranceCompany.EDI_INST_SECONDARY_ID_2_),
-                entry.external(InsuranceCompany.EDI_INST_SECONDARY_ID_QUAL_2_),
-                OrganizationStructureDefinitions.EDI_INST_SECONDARY_ID_QUAL_2),
-            identifierSlice(
-                entry.internal(InsuranceCompany.EDI_PROF_SECONDARY_ID_1_),
-                entry.external(InsuranceCompany.EDI_PROF_SECONDARY_ID_QUAL_1_),
-                OrganizationStructureDefinitions.EDI_PROF_SECONDARY_ID_QUAL_1),
-            identifierSlice(
-                entry.internal(InsuranceCompany.EDI_PROF_SECONDARY_ID_2_),
-                entry.external(InsuranceCompany.EDI_PROF_SECONDARY_ID_QUAL_2_),
-                OrganizationStructureDefinitions.EDI_PROF_SECONDARY_ID_QUAL_2))
+    return Stream.concat(
+            Stream.of(
+                identifier(
+                    entry.internal(InsuranceCompany.EDI_ID_NUMBER_PROF),
+                    OrganizationStructureDefinitions.EDI_ID_NUMBER_PROF_CODE),
+                identifier(
+                    entry.internal(InsuranceCompany.EDI_ID_NUMBER_INST),
+                    OrganizationStructureDefinitions.EDI_ID_NUMBER_INST_CODE),
+                identifier(
+                    entry.internal(InsuranceCompany.BIN_NUMBER),
+                    OrganizationStructureDefinitions.BIN_NUMBER_CODE),
+                identifier(
+                    entry.internal(InsuranceCompany.EDI_ID_NUMBER_DENTAL),
+                    OrganizationStructureDefinitions.EDI_ID_NUMBER_DENTAL_CODE),
+                identifierSlice(
+                    entry.internal(InsuranceCompany.EDI_INST_SECONDARY_ID_1_),
+                    entry.external(InsuranceCompany.EDI_INST_SECONDARY_ID_QUAL_1_),
+                    OrganizationStructureDefinitions.EDI_INST_SECONDARY_ID_QUAL_1),
+                identifierSlice(
+                    entry.internal(InsuranceCompany.EDI_INST_SECONDARY_ID_2_),
+                    entry.external(InsuranceCompany.EDI_INST_SECONDARY_ID_QUAL_2_),
+                    OrganizationStructureDefinitions.EDI_INST_SECONDARY_ID_QUAL_2),
+                identifierSlice(
+                    entry.internal(InsuranceCompany.EDI_PROF_SECONDARY_ID_1_),
+                    entry.external(InsuranceCompany.EDI_PROF_SECONDARY_ID_QUAL_1_),
+                    OrganizationStructureDefinitions.EDI_PROF_SECONDARY_ID_QUAL_1),
+                identifierSlice(
+                    entry.internal(InsuranceCompany.EDI_PROF_SECONDARY_ID_2_),
+                    entry.external(InsuranceCompany.EDI_PROF_SECONDARY_ID_QUAL_2_),
+                    OrganizationStructureDefinitions.EDI_PROF_SECONDARY_ID_QUAL_2)),
+            n277EdiIdNumber(entry).stream())
         .filter(Objects::nonNull)
         .collect(Collectors.toList());
   }
@@ -533,6 +550,18 @@ public class R4OrganizationInsuranceCompanyTransformer {
                 .display("Insurance Company")
                 .system("http://hl7.org/fhir/ValueSet/organization-type")
                 .build()));
+  }
+
+  private Set<Identifier> n277EdiIdNumber(LhsLighthouseRpcGatewayResponse.FilemanEntry entry) {
+    return fileLookup
+        .findByFileNumberAndParentIen(N277EdiIdNumber.FILE_NUMBER, entry.ien())
+        .stream()
+        .map(
+            e ->
+                identifier(
+                    e.external(N277EdiIdNumber.N277EDI_ID_NUMBER),
+                    OrganizationStructureDefinitions.N277_EDI_ID_NUMBER_CODE))
+        .collect(Collectors.toSet());
   }
 
   private String payerId(LhsLighthouseRpcGatewayResponse.FilemanEntry entry) {
@@ -573,10 +602,6 @@ public class R4OrganizationInsuranceCompanyTransformer {
             .display(purpose)
             .system("http://terminology.hl7.org/CodeSystem/contactentity-type")
             .build());
-  }
-
-  private String site() {
-    return rpcResults.getKey();
   }
 
   /** Transform an RPC response to fhir. */

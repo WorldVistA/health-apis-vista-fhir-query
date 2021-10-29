@@ -13,6 +13,7 @@ public class R4OrganizationToInsuranceCompanyFileTransformerTest {
   private R4OrganizationToInsuranceCompanyFileTransformer _transformer() {
     return R4OrganizationToInsuranceCompanyFileTransformer.builder()
         .organization(OrganizationSamples.R4.create().organization())
+        .include277EdiNumber(true)
         .build();
   }
 

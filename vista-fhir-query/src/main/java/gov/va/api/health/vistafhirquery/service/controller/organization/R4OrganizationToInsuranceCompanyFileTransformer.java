@@ -30,7 +30,9 @@ import gov.va.api.health.vistafhirquery.service.controller.extensionprocessing.R
 import gov.va.api.health.vistafhirquery.service.controller.extensionprocessing.StringExtensionHandler;
 import gov.va.api.lighthouse.charon.models.lhslighthouserpcgateway.InsuranceCompany;
 import gov.va.api.lighthouse.charon.models.lhslighthouserpcgateway.LhsLighthouseRpcGatewayCoverageWrite.WriteableFilemanValue;
+import gov.va.api.lighthouse.charon.models.lhslighthouserpcgateway.N277EdiIdNumber;
 import gov.va.api.lighthouse.charon.models.lhslighthouserpcgateway.Payer;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
@@ -55,9 +57,13 @@ public class R4OrganizationToInsuranceCompanyFileTransformer {
 
   ExtensionProcessor extensionProcessor = R4ExtensionProcessor.of(extensionHandlers());
 
+  boolean include277EdiNumber;
+
   @Builder
-  R4OrganizationToInsuranceCompanyFileTransformer(Organization organization) {
+  R4OrganizationToInsuranceCompanyFileTransformer(
+      Organization organization, boolean include277EdiNumber) {
     this.organization = organization;
+    this.include277EdiNumber = include277EdiNumber;
   }
 
   private void addRequiredFields(Set<WriteableFilemanValue> fields) {
@@ -148,6 +154,9 @@ public class R4OrganizationToInsuranceCompanyFileTransformer {
             InsuranceCompany.EDI_PROF_SECONDARY_ID_QUAL_2_,
             OrganizationStructureDefinitions.EDI_PROF_SECONDARY_ID_QUAL_2,
             false));
+    if (include277EdiNumber) {
+      fields.addAll(n277EdiIdentifier());
+    }
   }
 
   private Set<WriteableFilemanValue> address(
@@ -723,6 +732,37 @@ public class R4OrganizationToInsuranceCompanyFileTransformer {
       throw BadRequestPayload.because(field, fieldName + " is null");
     }
     return wfv;
+  }
+
+  List<WriteableFilemanValue> n277EdiIdentifier() {
+    Optional<Identifier> identifier =
+        identifierForPredicate(
+            organization.identifier(),
+            c -> OrganizationStructureDefinitions.N277_EDI_ID_NUMBER_CODE.equals(c.code()));
+    if (identifier.isEmpty()) {
+      throw BadRequestPayload.because(
+          InsuranceCompany.N277EDI_ID_NUMBER, "277 edi id number" + " identifier is required");
+    }
+    if (identifier.get().value().isBlank()) {
+      throw BadRequestPayload.because(
+          InsuranceCompany.N277EDI_ID_NUMBER, "277 edi id number" + "identifier.value is null");
+    }
+    ArrayList<WriteableFilemanValue> n277Values = new ArrayList<>(2);
+    n277Values.add(
+        WriteableFilemanValue.builder()
+            .field("IEN")
+            .index(1)
+            .file(N277EdiIdNumber.FILE_NUMBER)
+            .value("${36^1^IEN}")
+            .build());
+    n277Values.add(
+        WriteableFilemanValue.builder()
+            .field(N277EdiIdNumber.N277EDI_ID_NUMBER)
+            .index(1)
+            .file(N277EdiIdNumber.FILE_NUMBER)
+            .value(identifier.get().value())
+            .build());
+    return n277Values;
   }
 
   private Set<WriteableFilemanValue> precertContact(Contact contact) {

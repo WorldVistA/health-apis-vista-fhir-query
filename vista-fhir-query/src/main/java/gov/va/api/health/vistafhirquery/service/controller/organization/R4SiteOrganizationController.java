@@ -8,6 +8,7 @@ import static gov.va.api.health.vistafhirquery.service.controller.R4Controllers.
 import static gov.va.api.health.vistafhirquery.service.controller.R4Controllers.verifyAndGetResult;
 import static gov.va.api.health.vistafhirquery.service.controller.recordcontext.Validations.filesMatch;
 import static gov.va.api.health.vistafhirquery.service.controller.recordcontext.Validations.nonPatientRecordUpdateValidationRules;
+import static gov.va.api.lighthouse.charon.models.lhslighthouserpcgateway.LhsLighthouseRpcGatewayGetsManifest.Request.GetsManifestFlags;
 import static java.util.stream.Collectors.toList;
 import static org.apache.commons.lang3.StringUtils.isBlank;
 
@@ -28,8 +29,7 @@ import gov.va.api.lighthouse.charon.models.lhslighthouserpcgateway.InsuranceComp
 import gov.va.api.lighthouse.charon.models.lhslighthouserpcgateway.LhsLighthouseRpcGatewayCoverageWrite;
 import gov.va.api.lighthouse.charon.models.lhslighthouserpcgateway.LhsLighthouseRpcGatewayCoverageWrite.Request.CoverageWriteApi;
 import gov.va.api.lighthouse.charon.models.lhslighthouserpcgateway.LhsLighthouseRpcGatewayGetsManifest;
-import gov.va.api.lighthouse.charon.models.lhslighthouserpcgateway.LhsLighthouseRpcGatewayGetsManifest.Request.GetsManifestFlags;
-import gov.va.api.lighthouse.charon.models.lhslighthouserpcgateway.LhsLighthouseRpcGatewayListManifest;
+import gov.va.api.lighthouse.charon.models.lhslighthouserpcgateway.LhsLighthouseRpcGatewayListGetsManifest;
 import gov.va.api.lighthouse.charon.models.lhslighthouserpcgateway.LhsLighthouseRpcGatewayResponse;
 import gov.va.api.lighthouse.charon.models.lhslighthouserpcgateway.Payer;
 import java.util.List;
@@ -70,12 +70,12 @@ public class R4SiteOrganizationController implements R4OrganizationApi {
     return LhsLighthouseRpcGatewayGetsManifest.Request.builder()
         .file(coordinates.file())
         .iens(coordinates.ien())
-        .fields(requiredFieldsForFile(coordinates.file()))
         .flags(
             List.of(
                 GetsManifestFlags.OMIT_NULL_VALUES,
                 GetsManifestFlags.RETURN_INTERNAL_VALUES,
                 GetsManifestFlags.RETURN_EXTERNAL_VALUES))
+        .fields(requiredFieldsForFile(coordinates.file()))
         .build();
   }
 
@@ -91,18 +91,19 @@ public class R4SiteOrganizationController implements R4OrganizationApi {
     }
   }
 
-  private LhsLighthouseRpcGatewayListManifest.Request createRpcGatewayRequestForType(String type) {
+  private LhsLighthouseRpcGatewayListGetsManifest.Request createRpcGatewayRequestForType(
+      String type) {
     if (isBlank(type)) {
       return null;
     }
     switch (type) {
       case "ins":
-        return LhsLighthouseRpcGatewayListManifest.Request.builder()
+        return LhsLighthouseRpcGatewayListGetsManifest.Request.builder()
             .file(InsuranceCompany.FILE_NUMBER)
             .fields(R4OrganizationInsuranceCompanyTransformer.VISTA_FIELDS)
             .build();
       case "pay":
-        return LhsLighthouseRpcGatewayListManifest.Request.builder()
+        return LhsLighthouseRpcGatewayListGetsManifest.Request.builder()
             .file(Payer.FILE_NUMBER)
             .fields(R4OrganizationPayerTransformer.REQUIRED_FIELDS)
             .build();
@@ -206,6 +207,7 @@ public class R4SiteOrganizationController implements R4OrganizationApi {
     var fieldsToWrite =
         R4OrganizationToInsuranceCompanyFileTransformer.builder()
             .organization(body)
+            .include277EdiNumber(operation == CoverageWriteApi.CREATE)
             .build()
             .toInsuranceCompanyFile();
     return LhsLighthouseRpcGatewayCoverageWrite.Request.builder()
