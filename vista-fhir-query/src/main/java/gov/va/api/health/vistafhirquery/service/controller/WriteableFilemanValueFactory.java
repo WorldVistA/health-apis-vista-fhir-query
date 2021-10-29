@@ -86,6 +86,15 @@ public class WriteableFilemanValueFactory {
     return WriteableFilemanValue.builder().file(file).field("ien").index(index).value(ien).build();
   }
 
+  /** Build a WriteableFilemanValue from a Boolean value. */
+  public WriteableFilemanValue forRequiredBoolean(
+      @NonNull String field, int index, Boolean value, @NonNull Function<Boolean, String> mapper) {
+    if (value == null) {
+      throw BadRequestPayload.because(file(), field, "Required boolean was found to be null.");
+    }
+    return forRequiredString(field, index, mapper.apply(value));
+  }
+
   /**
    * Build a WriteableFilemanValue using the codeableConcept.coding.code field for a given system.
    */

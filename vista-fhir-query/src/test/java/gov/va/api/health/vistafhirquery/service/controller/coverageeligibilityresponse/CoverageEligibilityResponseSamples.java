@@ -6,6 +6,7 @@ import gov.va.api.health.r4.api.bundle.AbstractEntry;
 import gov.va.api.health.r4.api.bundle.BundleLink;
 import gov.va.api.health.r4.api.datatypes.CodeableConcept;
 import gov.va.api.health.r4.api.datatypes.Coding;
+import gov.va.api.health.r4.api.datatypes.Money;
 import gov.va.api.health.r4.api.datatypes.Period;
 import gov.va.api.health.r4.api.elements.Extension;
 import gov.va.api.health.r4.api.elements.Meta;
@@ -16,6 +17,7 @@ import gov.va.api.health.r4.api.resources.CoverageEligibilityResponse.Item;
 import gov.va.api.health.r4.api.resources.CoverageEligibilityResponse.Purpose;
 import gov.va.api.health.vistafhirquery.service.controller.PatientTypeCoordinates;
 import gov.va.api.health.vistafhirquery.service.controller.RecordCoordinates;
+import gov.va.api.lighthouse.charon.models.lhslighthouserpcgateway.EligibilityBenefit;
 import gov.va.api.lighthouse.charon.models.lhslighthouserpcgateway.InsuranceCompany;
 import gov.va.api.lighthouse.charon.models.lhslighthouserpcgateway.LhsLighthouseRpcGatewayCoverageWrite.WriteableFilemanValue;
 import gov.va.api.lighthouse.charon.models.lhslighthouserpcgateway.LhsLighthouseRpcGatewayResponse;
@@ -24,6 +26,7 @@ import gov.va.api.lighthouse.charon.models.lhslighthouserpcgateway.LhsLighthouse
 import gov.va.api.lighthouse.charon.models.lhslighthouserpcgateway.PlanCoverageLimitations;
 import gov.va.api.lighthouse.charon.models.lhslighthouserpcgateway.ServiceTypes;
 import gov.va.api.lighthouse.charon.models.lhslighthouserpcgateway.SubscriberDates;
+import java.math.BigDecimal;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
@@ -65,6 +68,24 @@ public class CoverageEligibilityResponseSamples {
 
     public static BundleLink link(BundleLink.LinkRelation rel, String base, String query) {
       return BundleLink.builder().relation(rel).url(base + "?" + query).build();
+    }
+
+    private List<CoverageEligibilityResponse.Benefit> benefits() {
+      return CoverageEligibilityResponse.Benefit.builder()
+          .type(
+              CodeableConcept.builder()
+                  .coding(
+                      Coding.builder()
+                          .code("1")
+                          .system(
+                              CoverageEligibilityResponseStructureDefinitions
+                                  .ELIGIBILITY_BENEFIT_INFO)
+                          .build()
+                          .asList())
+                  .build())
+          .allowedMoney(Money.builder().value(new BigDecimal("250.25")).build())
+          .build()
+          .asList();
     }
 
     public CoverageEligibilityResponse coverageEligibilityResponse() {
@@ -134,6 +155,58 @@ public class CoverageEligibilityResponseSamples {
                                           .build()
                                           .asList())
                                   .build())
+                          .benefit(benefits())
+                          .modifier(
+                              CodeableConcept.builder()
+                                  .coding(
+                                      Coding.builder()
+                                          .system(
+                                              CoverageEligibilityResponseStructureDefinitions
+                                                  .ITEM_MODIFIER)
+                                          .code("Modified")
+                                          .build()
+                                          .asList())
+                                  .build()
+                                  .asList())
+                          .term(
+                              CodeableConcept.builder()
+                                  .coding(
+                                      Coding.builder()
+                                          .code("7")
+                                          .system(
+                                              CoverageEligibilityResponseStructureDefinitions
+                                                  .ITEM_TERM)
+                                          .build()
+                                          .asList())
+                                  .build())
+                          .unit(
+                              CodeableConcept.builder()
+                                  .coding(
+                                      Coding.builder()
+                                          .code("2")
+                                          .system(
+                                              CoverageEligibilityResponseStructureDefinitions
+                                                  .ITEM_UNIT)
+                                          .build()
+                                          .asList())
+                                  .build())
+                          .productOrService(
+                              CodeableConcept.builder()
+                                  .coding(
+                                      Coding.builder().system("N4").code("IE123").build().asList())
+                                  .build())
+                          .network(
+                              CodeableConcept.builder()
+                                  .coding(
+                                      Coding.builder()
+                                          .system(
+                                              CoverageEligibilityResponseStructureDefinitions
+                                                  .X12_YES_NO_SYSTEM)
+                                          .code("N")
+                                          .build()
+                                          .asList())
+                                  .build())
+                          .authorizationRequired(true)
                           .build()
                           .asList())
                   .build()
@@ -206,6 +279,82 @@ public class CoverageEligibilityResponseSamples {
 
   @NoArgsConstructor(staticName = "create")
   public static class VistaLhsLighthouseRpcGateway {
+    public List<WriteableFilemanValue> eligibilityBenefitFilemanValues() {
+      return List.of(
+          WriteableFilemanValue.builder()
+              .file(EligibilityBenefit.FILE_NUMBER)
+              .index(1)
+              .field(EligibilityBenefit.ELIGIBILITY_BENEFIT_INFO)
+              .value("1")
+              .build(),
+          WriteableFilemanValue.builder()
+              .file(EligibilityBenefit.FILE_NUMBER)
+              .index(1)
+              .field(EligibilityBenefit.COVERAGE_LEVEL)
+              .value("2")
+              .build(),
+          WriteableFilemanValue.builder()
+              .file(EligibilityBenefit.FILE_NUMBER)
+              .index(1)
+              .field(EligibilityBenefit.TIME_PERIOD_QUALIFIER)
+              .value("7")
+              .build(),
+          WriteableFilemanValue.builder()
+              .file(EligibilityBenefit.FILE_NUMBER)
+              .index(1)
+              .field(EligibilityBenefit.MONETARY_AMOUNT)
+              .value("250.25")
+              .build(), /*          WriteableFilemanValue.builder()
+                            .file(EligibilityBenefit.FILE_NUMBER)
+                            .index(1)
+                            .field(EligibilityBenefit.PERCENT)
+                            .value("88.88")
+                            .build(),
+                        WriteableFilemanValue.builder()
+                            .file(EligibilityBenefit.FILE_NUMBER)
+                            .index(1)
+                            .field(EligibilityBenefit.QUANTITY_QUALIFIER)
+                            // M2 Maximum
+                            .value("M2")
+                            .build(),
+                        WriteableFilemanValue.builder()
+                            .file(EligibilityBenefit.FILE_NUMBER)
+                            .index(1)
+                            .field(EligibilityBenefit.QUANTITY)
+                            .value("666")
+                            .build(),*/
+          WriteableFilemanValue.builder()
+              .file(EligibilityBenefit.FILE_NUMBER)
+              .index(1)
+              .field(EligibilityBenefit.AUTHORIZATION_CERTIFICATION)
+              .value("Y")
+              .build(),
+          WriteableFilemanValue.builder()
+              .file(EligibilityBenefit.FILE_NUMBER)
+              .index(1)
+              .field(EligibilityBenefit.IN_PLAN)
+              .value("N")
+              .build(),
+          WriteableFilemanValue.builder()
+              .file(EligibilityBenefit.FILE_NUMBER)
+              .index(1)
+              .field(EligibilityBenefit.PROCEDURE_CODING_METHOD)
+              .value("N4")
+              .build(),
+          WriteableFilemanValue.builder()
+              .file(EligibilityBenefit.FILE_NUMBER)
+              .index(1)
+              .field(EligibilityBenefit.PROCEDURE_CODE)
+              .value("IE123")
+              .build(),
+          WriteableFilemanValue.builder()
+              .file(EligibilityBenefit.FILE_NUMBER)
+              .index(1)
+              .field(EligibilityBenefit.PROCEDURE_MODIFIER_1)
+              .value("Modified")
+              .build());
+    }
+
     public LhsLighthouseRpcGatewayResponse.Results getsManifestResults() {
       return getsManifestResults("8");
     }

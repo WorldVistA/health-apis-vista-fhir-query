@@ -1,6 +1,21 @@
 package gov.va.api.health.vistafhirquery.service.controller.coverageeligibilityresponse;
 
 public class CoverageEligibilityResponseStructureDefinitions {
+  public static final String ELIGIBILITY_BENEFIT_INFO =
+      "urn:oid:2.16.840.1.113883.3.8901.3.1.3658002.8002";
+
+  public static final String ITEM_MODIFIER = "urn:oid:2.16.840.1.113883.3.8901.3.1.3658002.18003";
+
+  public static final String X12_YES_NO_SYSTEM =
+      "urn:oid:2.16.840.1.113883.3.8901.3.1.36580033.8001";
+
+  public static final String ITEM_PRODUCT_OR_SERVICE =
+      "urn:oid:2.16.840.1.113883.3.8901.3.1.3658002.18002";
+
+  public static final String ITEM_TERM = "urn:oid:2.16.840.1.113883.3.8901.3.1.3658002.8007";
+
+  public static final String ITEM_UNIT = "urn:oid:2.16.840.1.113883.3.8901.3.1.3658002.8003";
+
   public static final String PLAN_LIMITATION_CATEGORY =
       "urn:oid:2.16.840.1.113883.3.8901.3.1.3558002.8002";
 

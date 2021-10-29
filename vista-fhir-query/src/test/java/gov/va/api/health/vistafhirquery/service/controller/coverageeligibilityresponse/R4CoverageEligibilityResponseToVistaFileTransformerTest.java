@@ -20,7 +20,10 @@ public class R4CoverageEligibilityResponseToVistaFileTransformerTest {
     var samples = CoverageEligibilityResponseSamples.VistaLhsLighthouseRpcGateway.create();
     assertThat(_transformer().toVistaFiles())
         .containsExactlyInAnyOrderElementsOf(
-            Stream.of(samples.serviceTypesFilemanValues(), samples.subscriberDatesFilemanValues())
+            Stream.of(
+                    samples.eligibilityBenefitFilemanValues(),
+                    samples.serviceTypesFilemanValues(),
+                    samples.subscriberDatesFilemanValues())
                 .flatMap(Collection::stream)
                 .toList());
   }
