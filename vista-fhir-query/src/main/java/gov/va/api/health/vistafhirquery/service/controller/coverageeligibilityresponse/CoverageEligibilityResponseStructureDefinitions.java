@@ -32,4 +32,29 @@ public class CoverageEligibilityResponseStructureDefinitions {
       "urn:oid:2.16.840.1.113883.3.8901.3.1.36580288.8003";
 
   public static final String SERVICE_TYPES = "urn:oid:2.16.840.1.113883.3.8901.3.1.36580292.8001";
+
+  public static final String MILITARY_INFO_STATUS_CODE =
+      "urn:oid:2.16.840.1.113883.3.8901.3.1.365.128001";
+  public static final String MILITARY_EMPLOYMENT_STATUS =
+      "urn:oid:2.16.840.1.113883.3.8901.3.1.365.128002";
+  public static final String MILITARY_GOVT_AFFILIATION_CODE =
+      "urn:oid:2.16.840.1.113883.3.8901.3.1.365.128003";
+  public static final String MILITARY_SERVICE_RANK_CODE =
+      "urn:oid:2.16.840.1.113883.3.8901.3.1.365.128005";
+
+  public static final String MILITARY_INFO_STATUS_CODE_DEFINITION =
+      "http://va.gov/fhir/StructureDefinition" + "/coverageEligibilityResponse-militaryInfoStatus";
+  public static final String MILITARY_EMPLOYMENT_STATUS_DEFINITION =
+      "http://va.gov/fhir/StructureDefinition"
+          + "/coverageEligibilityResponse-militaryEmploymentStatus";
+  public static final String MILITARY_GOVT_AFFILIATION_CODE_DEFINITION =
+      "http://va.gov/fhir/StructureDefinition" + "/coverageEligibilityResponse-militaryAffiliation";
+  public static final String MILITARY_PERSONNEL_DESCRIPTION_DEFINITION =
+      "http://va.gov/fhir/StructureDefinition"
+          + "/coverageEligibilityResponse-militaryPersonnelDescription";
+  public static final String MILITARY_SERVICE_RANK_CODE_DEFINITION =
+      "http://va.gov/fhir/StructureDefinition" + "/coverageEligibilityResponse-militaryRank";
+  public static final String DATE_TIME_PERIOD =
+      "http://va.gov/fhir/StructureDefinition/coverageEligibilityResponse"
+          + "-militaryEngagementPeriod";
 }

@@ -8,6 +8,7 @@ import static java.util.stream.Collectors.toMap;
 import static java.util.stream.Collectors.toSet;
 import static org.apache.commons.lang3.StringUtils.isBlank;
 
+import gov.va.api.health.fhir.api.Safe;
 import gov.va.api.health.r4.api.elements.Extension;
 import gov.va.api.health.vistafhirquery.service.controller.ExtensionProcessor;
 import java.util.ArrayList;
@@ -70,7 +71,7 @@ public class R4ExtensionProcessor implements ExtensionProcessor {
   @Override
   public List<WriteableFilemanValue> process(List<Extension> extensions) {
     List<WriteableFilemanValue> values = new ArrayList<>();
-    for (Extension ex : extensions) {
+    for (Extension ex : Safe.list(extensions)) {
       var matchingHandler = findMatchingHandler(ex);
       uniqueExtensionOrDie(matchingHandler);
       values.addAll(matchingHandler.handle(ex));

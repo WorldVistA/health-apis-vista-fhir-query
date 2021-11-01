@@ -1,29 +1,42 @@
 package gov.va.api.health.vistafhirquery.service.controller.coverageeligibilityresponse;
 
+import static gov.va.api.health.fhir.api.FhirDateTime.parseDateTime;
 import static gov.va.api.health.vistafhirquery.service.controller.R4Transformers.allBlank;
 import static gov.va.api.health.vistafhirquery.service.controller.R4Transformers.isBlank;
+import static gov.va.api.health.vistafhirquery.service.controller.R4Transformers.recordCoordinatesForReference;
+import static gov.va.api.health.vistafhirquery.service.controller.WriteableFilemanValueFactory.index;
 import static gov.va.api.health.vistafhirquery.service.controller.extensionprocessing.ExtensionHandler.Required.REQUIRED;
+import static java.util.function.Function.identity;
 
+import gov.va.api.health.fhir.api.FhirDateTime;
 import gov.va.api.health.r4.api.datatypes.CodeableConcept;
 import gov.va.api.health.r4.api.datatypes.Coding;
+import gov.va.api.health.r4.api.datatypes.Identifier;
 import gov.va.api.health.r4.api.datatypes.Money;
+import gov.va.api.health.r4.api.datatypes.Period;
 import gov.va.api.health.r4.api.resources.CoverageEligibilityResponse;
 import gov.va.api.health.r4.api.resources.CoverageEligibilityResponse.Benefit;
 import gov.va.api.health.r4.api.resources.CoverageEligibilityResponse.Insurance;
 import gov.va.api.health.r4.api.resources.CoverageEligibilityResponse.Item;
+import gov.va.api.health.vistafhirquery.service.controller.RecordCoordinates;
 import gov.va.api.health.vistafhirquery.service.controller.ResourceExceptions.BadRequestPayload;
 import gov.va.api.health.vistafhirquery.service.controller.WriteableFilemanValueFactory;
 import gov.va.api.health.vistafhirquery.service.controller.extensionprocessing.CodeableConceptExtensionHandler;
 import gov.va.api.health.vistafhirquery.service.controller.extensionprocessing.ComplexExtensionHandler;
 import gov.va.api.health.vistafhirquery.service.controller.extensionprocessing.PeriodExtensionHandler;
 import gov.va.api.health.vistafhirquery.service.controller.extensionprocessing.R4ExtensionProcessor;
+import gov.va.api.health.vistafhirquery.service.controller.extensionprocessing.StringExtensionHandler;
 import gov.va.api.lighthouse.charon.models.lhslighthouserpcgateway.EligibilityBenefit;
+import gov.va.api.lighthouse.charon.models.lhslighthouserpcgateway.IivResponse;
 import gov.va.api.lighthouse.charon.models.lhslighthouserpcgateway.LhsLighthouseRpcGatewayCoverageWrite.WriteableFilemanValue;
+import gov.va.api.lighthouse.charon.models.lhslighthouserpcgateway.Payer;
 import gov.va.api.lighthouse.charon.models.lhslighthouserpcgateway.ServiceTypes;
 import gov.va.api.lighthouse.charon.models.lhslighthouserpcgateway.SubscriberDates;
 import java.time.ZoneId;
+import java.time.format.DateTimeFormatter;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Stream;
 import lombok.Builder;
@@ -32,16 +45,19 @@ import lombok.Value;
 
 @Value
 public class R4CoverageEligibilityResponseToVistaFileTransformer {
-  private static final WriteableFilemanValueFactory SUBSCRIBER_DATES_FACTORY =
-      WriteableFilemanValueFactory.forFile(SubscriberDates.FILE_NUMBER);
+  private static final WriteableFilemanValueFactory ELIGIBILITY_BENEFIT_FACTORY =
+      WriteableFilemanValueFactory.forFile(EligibilityBenefit.FILE_NUMBER);
 
   private static final WriteableFilemanValueFactory SERVICE_TYPES_FACTORY =
       WriteableFilemanValueFactory.forFile(ServiceTypes.FILE_NUMBER);
 
-  private static final WriteableFilemanValueFactory ELIGIBILITY_BENEFIT_FACTORY =
-      WriteableFilemanValueFactory.forFile(EligibilityBenefit.FILE_NUMBER);
+  private static final WriteableFilemanValueFactory SUBSCRIBER_DATES_FACTORY =
+      WriteableFilemanValueFactory.forFile(SubscriberDates.FILE_NUMBER);
 
-  @NonNull CoverageEligibilityResponse coverageEligibilityResponse;
+  private static final WriteableFilemanValueFactory IIV_RESPONSE_FACTORY =
+      WriteableFilemanValueFactory.forFile(IivResponse.FILE_NUMBER);
+
+  CoverageEligibilityResponse coverageEligibilityResponse;
 
   ZoneId zoneId;
 
@@ -64,8 +80,103 @@ public class R4CoverageEligibilityResponseToVistaFileTransformer {
     return filemanValues.stream();
   }
 
+  private WriteableFilemanValue dateTimePeriod(Period period) {
+    if (isBlank(period)) {
+      throw BadRequestPayload.because(
+          IivResponse.FILE_NUMBER,
+          IivResponse.DATE_TIME_PERIOD,
+          ".benefitPeriod is a required field.");
+    }
+    if (isBlank(period.start())) {
+      throw BadRequestPayload.because(
+          IivResponse.FILE_NUMBER,
+          IivResponse.DATE_TIME_PERIOD,
+          ".benefitPeriod requires a start date.");
+    }
+    var formatter = DateTimeFormatter.ofPattern("MMddyyyy").withZone(zoneId());
+    var vistaDateTimePeriod = formatter.format(parseDateTime(period.start()));
+    if (!isBlank(period.end())) {
+      var formattedEndDate = formatter.format(parseDateTime(period.end()));
+      vistaDateTimePeriod = vistaDateTimePeriod + "-" + formattedEndDate;
+    }
+    return IIV_RESPONSE_FACTORY.forRequiredString(
+        IivResponse.DATE_TIME_PERIOD, 1, vistaDateTimePeriod);
+  }
+
+  private R4ExtensionProcessor extensionProcessor() {
+    return R4ExtensionProcessor.of(
+        CodeableConceptExtensionHandler.forDefiningUrl(
+                CoverageEligibilityResponseStructureDefinitions
+                    .MILITARY_INFO_STATUS_CODE_DEFINITION)
+            .filemanFactory(IIV_RESPONSE_FACTORY)
+            .fieldNumber(IivResponse.MILITARY_INFO_STATUS_CODE)
+            .codingSystem(CoverageEligibilityResponseStructureDefinitions.MILITARY_INFO_STATUS_CODE)
+            .required(REQUIRED)
+            .build(),
+        CodeableConceptExtensionHandler.forDefiningUrl(
+                CoverageEligibilityResponseStructureDefinitions
+                    .MILITARY_EMPLOYMENT_STATUS_DEFINITION)
+            .filemanFactory(IIV_RESPONSE_FACTORY)
+            .fieldNumber(IivResponse.MILITARY_EMPLOYMENT_STATUS)
+            .codingSystem(
+                CoverageEligibilityResponseStructureDefinitions.MILITARY_EMPLOYMENT_STATUS)
+            .required(REQUIRED)
+            .build(),
+        CodeableConceptExtensionHandler.forDefiningUrl(
+                CoverageEligibilityResponseStructureDefinitions
+                    .MILITARY_GOVT_AFFILIATION_CODE_DEFINITION)
+            .filemanFactory(IIV_RESPONSE_FACTORY)
+            .fieldNumber(IivResponse.MILITARY_GOVT_AFFILIATION_CODE)
+            .codingSystem(
+                CoverageEligibilityResponseStructureDefinitions.MILITARY_GOVT_AFFILIATION_CODE)
+            .required(REQUIRED)
+            .build(),
+        StringExtensionHandler.forDefiningUrl(
+                CoverageEligibilityResponseStructureDefinitions
+                    .MILITARY_PERSONNEL_DESCRIPTION_DEFINITION)
+            .filemanFactory(IIV_RESPONSE_FACTORY)
+            .fieldNumber(IivResponse.MILITARY_PERSONNEL_DESCRIPTION)
+            .required(REQUIRED)
+            .build(),
+        CodeableConceptExtensionHandler.forDefiningUrl(
+                CoverageEligibilityResponseStructureDefinitions
+                    .MILITARY_SERVICE_RANK_CODE_DEFINITION)
+            .filemanFactory(IIV_RESPONSE_FACTORY)
+            .fieldNumber(IivResponse.MILITARY_SERVICE_RANK_CODE)
+            .codingSystem(
+                CoverageEligibilityResponseStructureDefinitions.MILITARY_SERVICE_RANK_CODE)
+            .required(REQUIRED)
+            .build());
+  }
+
+  private WriteableFilemanValue identifier(@NonNull Identifier identifier) {
+    if (isBlank(identifier.type()) || isBlank(identifier.type().text())) {
+      throw new IllegalArgumentException("Unknown Identifier: " + identifier);
+    }
+    switch (identifier.type().text()) {
+      case "MSH-10":
+        return IIV_RESPONSE_FACTORY.forRequiredIdentifier(
+            IivResponse.MESSAGE_CONTROL_ID, 1, identifier);
+      case "MSA-3":
+        return IIV_RESPONSE_FACTORY.forRequiredIdentifier(IivResponse.TRACE_NUMBER, 1, identifier);
+      default:
+        throw new IllegalArgumentException("Unknown Identifier type: " + identifier.type().text());
+    }
+  }
+
+  private String ienForPayerFileOrDie(RecordCoordinates coordinates) {
+    if (!Payer.FILE_NUMBER.equals(coordinates.file())) {
+      throw BadRequestPayload.because(
+          IivResponse.FILE_NUMBER, IivResponse.PAYER, ".insurer reference was not to a payer.");
+    }
+    return coordinates.ien();
+  }
+
   private Stream<WriteableFilemanValue> insurance(Insurance insurance) {
-    return insurance.item().stream().flatMap(this::item);
+    Set<WriteableFilemanValue> filemanValues = new HashSet<>();
+    insurance.item().stream().flatMap(this::item).forEach(filemanValues::add);
+    filemanValues.add(dateTimePeriod(insurance.benefitPeriod()));
+    return filemanValues.stream();
   }
 
   private Stream<WriteableFilemanValue> item(Item item) {
@@ -198,9 +309,34 @@ public class R4CoverageEligibilityResponseToVistaFileTransformer {
   /** Transform Fhir fields into a list of fileman values. */
   public Set<WriteableFilemanValue> toVistaFiles() {
     Set<WriteableFilemanValue> vistaFields = new HashSet<>();
+    vistaFields.addAll(
+        coverageEligibilityResponse().identifier().stream().map(this::identifier).toList());
+    vistaFields.add(
+        recordCoordinatesForReference(coverageEligibilityResponse().insurer())
+            .map(
+                IIV_RESPONSE_FACTORY.toString(
+                    IivResponse.PAYER, index(1), this::ienForPayerFileOrDie))
+            .orElseThrow(
+                () ->
+                    BadRequestPayload.because(
+                        IivResponse.FILE_NUMBER,
+                        IivResponse.PAYER,
+                        "The .insurer field was not a valid reference.")));
+    vistaFields.add(
+        Optional.ofNullable(coverageEligibilityResponse().servicedDate())
+            .map(FhirDateTime::parseDateTime)
+            .map(i -> DateTimeFormatter.ofPattern("MM-dd-yyy").withZone(zoneId()).format(i))
+            .map(IIV_RESPONSE_FACTORY.toString(IivResponse.SERVICE_DATE, index(1), identity()))
+            .orElseThrow(
+                () ->
+                    BadRequestPayload.because(
+                        IivResponse.FILE_NUMBER,
+                        IivResponse.SERVICE_DATE,
+                        "The .servicedDate field was not a valid date.")));
     coverageEligibilityResponse().insurance().stream()
         .flatMap(this::insurance)
         .forEach(vistaFields::add);
+    vistaFields.addAll(extensionProcessor().process(coverageEligibilityResponse().extension()));
     return vistaFields;
   }
 
@@ -209,7 +345,8 @@ public class R4CoverageEligibilityResponseToVistaFileTransformer {
       return "U";
     } else if (isYes) {
       return "Y";
+    } else {
+      return "N";
     }
-    return "N";
   }
 }

@@ -6,6 +6,7 @@ import gov.va.api.health.r4.api.bundle.AbstractEntry;
 import gov.va.api.health.r4.api.bundle.BundleLink;
 import gov.va.api.health.r4.api.datatypes.CodeableConcept;
 import gov.va.api.health.r4.api.datatypes.Coding;
+import gov.va.api.health.r4.api.datatypes.Identifier;
 import gov.va.api.health.r4.api.datatypes.Money;
 import gov.va.api.health.r4.api.datatypes.Period;
 import gov.va.api.health.r4.api.elements.Extension;
@@ -18,11 +19,13 @@ import gov.va.api.health.r4.api.resources.CoverageEligibilityResponse.Purpose;
 import gov.va.api.health.vistafhirquery.service.controller.PatientTypeCoordinates;
 import gov.va.api.health.vistafhirquery.service.controller.RecordCoordinates;
 import gov.va.api.lighthouse.charon.models.lhslighthouserpcgateway.EligibilityBenefit;
+import gov.va.api.lighthouse.charon.models.lhslighthouserpcgateway.IivResponse;
 import gov.va.api.lighthouse.charon.models.lhslighthouserpcgateway.InsuranceCompany;
 import gov.va.api.lighthouse.charon.models.lhslighthouserpcgateway.LhsLighthouseRpcGatewayCoverageWrite.WriteableFilemanValue;
 import gov.va.api.lighthouse.charon.models.lhslighthouserpcgateway.LhsLighthouseRpcGatewayResponse;
 import gov.va.api.lighthouse.charon.models.lhslighthouserpcgateway.LhsLighthouseRpcGatewayResponse.FilemanEntry;
 import gov.va.api.lighthouse.charon.models.lhslighthouserpcgateway.LhsLighthouseRpcGatewayResponse.Values;
+import gov.va.api.lighthouse.charon.models.lhslighthouserpcgateway.Payer;
 import gov.va.api.lighthouse.charon.models.lhslighthouserpcgateway.PlanCoverageLimitations;
 import gov.va.api.lighthouse.charon.models.lhslighthouserpcgateway.ServiceTypes;
 import gov.va.api.lighthouse.charon.models.lhslighthouserpcgateway.SubscriberDates;
@@ -88,6 +91,12 @@ public class CoverageEligibilityResponseSamples {
           .asList();
     }
 
+    private CodeableConcept codeableConceptFor(String system, String code) {
+      return CodeableConcept.builder()
+          .coding(Coding.builder().system(system).code(code).build().asList())
+          .build();
+    }
+
     public CoverageEligibilityResponse coverageEligibilityResponse() {
       return coverageEligibilityResponse("p1", "8", "4", "1,8,");
     }
@@ -139,79 +148,108 @@ public class CoverageEligibilityResponseSamples {
                   .ien(coverage)
                   .build()
                   .toString())
+          .identifier(
+              List.of(
+                  Identifier.builder()
+                      .type(CodeableConcept.builder().text("MSH-10").build())
+                      .value("MCI-1234")
+                      .build(),
+                  Identifier.builder()
+                      .type(CodeableConcept.builder().text("MSA-3").build())
+                      .value("TN-1234")
+                      .build()))
+          .insurer(
+              Reference.builder()
+                  .reference(
+                      "Organization/"
+                          + RecordCoordinates.builder()
+                              .file(Payer.FILE_NUMBER)
+                              .site(site)
+                              .ien("8")
+                              .build())
+                  .build())
+          .extension(extensions())
+          .servicedDate("2010-01-20")
           .insurance(
               Insurance.builder()
+                  .benefitPeriod(Period.builder().start("2004-02-03").end("2007-05-06").build())
                   .item(
                       Item.builder()
                           .extension(itemExtensions())
                           .category(
-                              CodeableConcept.builder()
-                                  .coding(
-                                      Coding.builder()
-                                          .system(
-                                              CoverageEligibilityResponseStructureDefinitions
-                                                  .SERVICE_TYPES)
-                                          .code("OTHER MEDICAL")
-                                          .build()
-                                          .asList())
-                                  .build())
+                              codeableConceptFor(
+                                  CoverageEligibilityResponseStructureDefinitions.SERVICE_TYPES,
+                                  "OTHER MEDICAL"))
                           .benefit(benefits())
                           .modifier(
-                              CodeableConcept.builder()
-                                  .coding(
-                                      Coding.builder()
-                                          .system(
-                                              CoverageEligibilityResponseStructureDefinitions
-                                                  .ITEM_MODIFIER)
-                                          .code("Modified")
-                                          .build()
-                                          .asList())
-                                  .build()
+                              codeableConceptFor(
+                                      CoverageEligibilityResponseStructureDefinitions.ITEM_MODIFIER,
+                                      "Modified")
                                   .asList())
                           .term(
-                              CodeableConcept.builder()
-                                  .coding(
-                                      Coding.builder()
-                                          .code("7")
-                                          .system(
-                                              CoverageEligibilityResponseStructureDefinitions
-                                                  .ITEM_TERM)
-                                          .build()
-                                          .asList())
-                                  .build())
+                              codeableConceptFor(
+                                  CoverageEligibilityResponseStructureDefinitions.ITEM_TERM, "7"))
                           .unit(
-                              CodeableConcept.builder()
-                                  .coding(
-                                      Coding.builder()
-                                          .code("2")
-                                          .system(
-                                              CoverageEligibilityResponseStructureDefinitions
-                                                  .ITEM_UNIT)
-                                          .build()
-                                          .asList())
-                                  .build())
-                          .productOrService(
-                              CodeableConcept.builder()
-                                  .coding(
-                                      Coding.builder().system("N4").code("IE123").build().asList())
-                                  .build())
+                              codeableConceptFor(
+                                  CoverageEligibilityResponseStructureDefinitions.ITEM_UNIT, "2"))
+                          .productOrService(codeableConceptFor("N4", "IE123"))
                           .network(
-                              CodeableConcept.builder()
-                                  .coding(
-                                      Coding.builder()
-                                          .system(
-                                              CoverageEligibilityResponseStructureDefinitions
-                                                  .X12_YES_NO_SYSTEM)
-                                          .code("N")
-                                          .build()
-                                          .asList())
-                                  .build())
+                              codeableConceptFor(
+                                  CoverageEligibilityResponseStructureDefinitions.X12_YES_NO_SYSTEM,
+                                  "N"))
                           .authorizationRequired(true)
                           .build()
                           .asList())
                   .build()
                   .asList())
           .build();
+    }
+
+    private List<Extension> extensions() {
+      return List.of(
+          Extension.builder()
+              .url(
+                  CoverageEligibilityResponseStructureDefinitions
+                      .MILITARY_INFO_STATUS_CODE_DEFINITION)
+              .valueCodeableConcept(
+                  codeableConceptFor(
+                      CoverageEligibilityResponseStructureDefinitions.MILITARY_INFO_STATUS_CODE,
+                      "P"))
+              .build(),
+          Extension.builder()
+              .url(
+                  CoverageEligibilityResponseStructureDefinitions
+                      .MILITARY_EMPLOYMENT_STATUS_DEFINITION)
+              .valueCodeableConcept(
+                  codeableConceptFor(
+                      CoverageEligibilityResponseStructureDefinitions.MILITARY_EMPLOYMENT_STATUS,
+                      "CC"))
+              .build(),
+          Extension.builder()
+              .url(
+                  CoverageEligibilityResponseStructureDefinitions
+                      .MILITARY_GOVT_AFFILIATION_CODE_DEFINITION)
+              .valueCodeableConcept(
+                  codeableConceptFor(
+                      CoverageEligibilityResponseStructureDefinitions
+                          .MILITARY_GOVT_AFFILIATION_CODE,
+                      "C"))
+              .build(),
+          Extension.builder()
+              .url(
+                  CoverageEligibilityResponseStructureDefinitions
+                      .MILITARY_PERSONNEL_DESCRIPTION_DEFINITION)
+              .valueString("ARMY")
+              .build(),
+          Extension.builder()
+              .url(
+                  CoverageEligibilityResponseStructureDefinitions
+                      .MILITARY_SERVICE_RANK_CODE_DEFINITION)
+              .valueCodeableConcept(
+                  codeableConceptFor(
+                      CoverageEligibilityResponseStructureDefinitions.MILITARY_SERVICE_RANK_CODE,
+                      "C1"))
+              .build());
     }
 
     private Insurance insurance(String patient, String coverage) {
@@ -374,6 +412,70 @@ public class CoverageEligibilityResponseSamples {
                       .fields(subscriberDatesFields())
                       .build()))
           .build();
+    }
+
+    public List<WriteableFilemanValue> iivResponseFilemanValues() {
+      return List.of(
+          WriteableFilemanValue.builder()
+              .file(IivResponse.FILE_NUMBER)
+              .index(1)
+              .field(IivResponse.MESSAGE_CONTROL_ID)
+              .value("MCI-1234")
+              .build(),
+          WriteableFilemanValue.builder()
+              .file(IivResponse.FILE_NUMBER)
+              .index(1)
+              .field(IivResponse.PAYER)
+              .value("8")
+              .build(),
+          WriteableFilemanValue.builder()
+              .file(IivResponse.FILE_NUMBER)
+              .index(1)
+              .field(IivResponse.TRACE_NUMBER)
+              .value("TN-1234")
+              .build(),
+          WriteableFilemanValue.builder()
+              .file(IivResponse.FILE_NUMBER)
+              .index(1)
+              .field(IivResponse.SERVICE_DATE)
+              .value("01-20-2010")
+              .build(),
+          WriteableFilemanValue.builder()
+              .file(IivResponse.FILE_NUMBER)
+              .index(1)
+              .field(IivResponse.MILITARY_INFO_STATUS_CODE)
+              .value("P")
+              .build(),
+          WriteableFilemanValue.builder()
+              .file(IivResponse.FILE_NUMBER)
+              .index(1)
+              .field(IivResponse.MILITARY_EMPLOYMENT_STATUS)
+              .value("CC")
+              .build(),
+          WriteableFilemanValue.builder()
+              .file(IivResponse.FILE_NUMBER)
+              .index(1)
+              .field(IivResponse.MILITARY_GOVT_AFFILIATION_CODE)
+              .value("C")
+              .build(),
+          WriteableFilemanValue.builder()
+              .file(IivResponse.FILE_NUMBER)
+              .index(1)
+              .field(IivResponse.MILITARY_PERSONNEL_DESCRIPTION)
+              .value("ARMY")
+              .build(),
+          WriteableFilemanValue.builder()
+              .file(IivResponse.FILE_NUMBER)
+              .index(1)
+              .field(IivResponse.MILITARY_SERVICE_RANK_CODE)
+              .value("C1")
+              .build(),
+          WriteableFilemanValue.builder()
+              .file(IivResponse.FILE_NUMBER)
+              .index(1)
+              .field(IivResponse.DATE_TIME_PERIOD)
+              .value("02032004-05062007")
+              .build());
     }
 
     private Map<String, Values> planLimitationFields() {

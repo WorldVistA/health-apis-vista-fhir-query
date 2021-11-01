@@ -38,12 +38,13 @@ public class CodeableConceptExtensionHandler extends AbstractSingleFieldExtensio
       throw BadExtension.because(extensionUrl, ".valueCodeableConcept.coding is null or empty");
     }
     var matchingCodings = codings.stream().filter(c -> codingSystem().equals(c.system())).toList();
-    if (matchingCodings.size() > 1) {
+    if (matchingCodings.size() != 1) {
       throw BadExtension.because(
           extensionUrl,
           "Found "
               + matchingCodings.size()
-              + " matching .valueCodeableConcept.coding's for system");
+              + " matching .valueCodeableConcept.coding's for system "
+              + codingSystem());
     }
     var coding = matchingCodings.get(0);
     if (isBlank(coding.code())) {

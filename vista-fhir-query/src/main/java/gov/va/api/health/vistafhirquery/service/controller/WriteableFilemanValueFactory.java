@@ -126,6 +126,15 @@ public class WriteableFilemanValueFactory {
     return forRequiredString(field, index, coding.code());
   }
 
+  /** Build a WriteableFilemanValue using the identifer.value field. */
+  public WriteableFilemanValue forRequiredIdentifier(
+      String field, int index, Identifier identifier) {
+    if (identifier == null || isBlank(identifier.value())) {
+      throw BadRequestPayload.because(file(), field, "identifier or identifier.value is null.");
+    }
+    return forRequiredString(field, index, identifier.value());
+  }
+
   /** Build a WriteableFilemanValue for a string, throwing if blank. */
   public WriteableFilemanValue forRequiredString(@NonNull String field, int index, String value) {
     if (isBlank(value)) {

@@ -22,6 +22,7 @@ public class R4CoverageEligibilityResponseToVistaFileTransformerTest {
         .containsExactlyInAnyOrderElementsOf(
             Stream.of(
                     samples.eligibilityBenefitFilemanValues(),
+                    samples.iivResponseFilemanValues(),
                     samples.serviceTypesFilemanValues(),
                     samples.subscriberDatesFilemanValues())
                 .flatMap(Collection::stream)
