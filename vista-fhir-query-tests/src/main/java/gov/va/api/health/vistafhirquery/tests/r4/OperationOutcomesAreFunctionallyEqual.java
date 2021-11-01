@@ -17,7 +17,7 @@ public class OperationOutcomesAreFunctionallyEqual implements ErrorsAreFunctiona
       OperationOutcome oo = body.as(OperationOutcome.class);
       oo.id("REMOVED-FOR-COMPARISON");
       if (oo.extension() != null) {
-        for (var ignoredExtension : List.of("troubleshooting", "message")) {
+        for (var ignoredExtension : List.of("troubleshooting", "message", "cause")) {
           oo.extension().stream()
               .filter(e -> e.url().equals(ignoredExtension))
               .forEach(e -> e.valueString("REMOVED-FOR-COMPARISON"));
