@@ -12,12 +12,13 @@
   <packaging>jar</packaging>
   <properties>
     <charon.version>4.0.49</charon.version>
-    <fhir-resources.version>8.0.20</fhir-resources.version>
+    <fhir-resources.version>8.0.21</fhir-resources.version>
+    <guava.version>31.0.1-jre</guava.version>
     <jacoco.coverage>0.94</jacoco.coverage>
     <mssql-jdbc.version>9.2.1.jre15</mssql-jdbc.version>
+    <swagger-examples-maven-plugin.version>3.0.0</swagger-examples-maven-plugin.version>
     <swagger-maven-plugin.version>2.1.10</swagger-maven-plugin.version>
     <talos.version>1.0.1</talos.version>
-    <swagger-examples-maven-plugin.version>3.0.0</swagger-examples-maven-plugin.version>
   </properties>
   <dependencies>
     <dependency>
@@ -34,6 +35,11 @@
       <groupId>gov.va.api.lighthouse</groupId>
       <artifactId>charon-models</artifactId>
       <version>${charon.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>com.google.guava</groupId>
+      <artifactId>guava</artifactId>
+      <version>${guava.version}</version>
     </dependency>
     <dependency>
       <groupId>gov.va.api.health</groupId>
