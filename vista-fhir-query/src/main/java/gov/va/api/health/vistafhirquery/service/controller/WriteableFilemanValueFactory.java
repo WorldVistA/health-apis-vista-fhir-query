@@ -135,6 +135,29 @@ public class WriteableFilemanValueFactory {
     return forRequiredString(field, index, identifier.value());
   }
 
+  /**
+   * Creates a pointer using the Dynamic IEN Macro to a parent file (e.g.
+   * 355.321^1^IEN^${355.32^1^IEN}).
+   */
+  public WriteableFilemanValue forRequiredParentFileUsingIenMacro(
+      int index, @NonNull String parentFileNumber, int parentFileIndex) {
+    return forRequiredString(
+        "IEN", index, "${" + parentFileNumber + "^" + parentFileIndex + "^IEN}");
+  }
+
+  /**
+   * Creates a pointer using the Dynamic IEN Macro for a pointer field (e.g.
+   * 355.32^2^#.01^${355.3^1^IEN}).
+   */
+  public WriteableFilemanValue forRequiredPointerUsingIenMacro(
+      int index,
+      @NonNull String fieldNumber,
+      @NonNull String pointerToFileNumber,
+      int pointerToIndex) {
+    return forRequiredString(
+        fieldNumber, index, "${" + pointerToFileNumber + "^" + pointerToIndex + "^IEN}");
+  }
+
   /** Build a WriteableFilemanValue for a string, throwing if blank. */
   public WriteableFilemanValue forRequiredString(@NonNull String field, int index, String value) {
     if (isBlank(value)) {

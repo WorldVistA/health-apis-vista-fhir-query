@@ -189,18 +189,23 @@ public class R4CoverageEligibilityResponseToVistaFileTransformer {
 
   private Stream<WriteableFilemanValue> item(Item item) {
     Set<WriteableFilemanValue> filemanValues = new HashSet<>();
-    /* ToDo Remove on successful create request.
-     *      Could this just populate EligibilityBenefit field 14 (ServiceTypes)?
-     *      EB 14 -> ST .01 -> X12 .01
-     *      If possible, I think that would be my preference to avoid adding more files to
-     *      correlate and track. */
     filemanValues.add(
         SERVICE_TYPES_FACTORY.forRequiredCodeableConcept(
             ServiceTypes.SERVICE_TYPES,
             INDEX_REGISTRY.get(ServiceTypes.FILE_NUMBER),
             item.category(),
             CoverageEligibilityResponseStructureDefinitions.SERVICE_TYPES));
+    filemanValues.add(
+        SERVICE_TYPES_FACTORY.forRequiredParentFileUsingIenMacro(
+            INDEX_REGISTRY.getAndIncrement(ServiceTypes.FILE_NUMBER),
+            EligibilityBenefit.FILE_NUMBER,
+            INDEX_REGISTRY.get(EligibilityBenefit.FILE_NUMBER)));
     filemanValues.addAll(itemExtensionProcessor().process(item.extension()));
+    filemanValues.add(
+        SUBSCRIBER_DATES_FACTORY.forRequiredParentFileUsingIenMacro(
+            INDEX_REGISTRY.getAndIncrement(SubscriberDates.FILE_NUMBER),
+            EligibilityBenefit.FILE_NUMBER,
+            INDEX_REGISTRY.get(EligibilityBenefit.FILE_NUMBER)));
     filemanValues.add(
         ELIGIBILITY_BENEFIT_FACTORY.forRequiredCodeableConcept(
             EligibilityBenefit.COVERAGE_LEVEL,
@@ -228,6 +233,11 @@ public class R4CoverageEligibilityResponseToVistaFileTransformer {
             INDEX_REGISTRY.get(EligibilityBenefit.FILE_NUMBER),
             item.network(),
             CoverageEligibilityResponseStructureDefinitions.X12_YES_NO_SYSTEM));
+    filemanValues.add(
+        ELIGIBILITY_BENEFIT_FACTORY.forRequiredParentFileUsingIenMacro(
+            INDEX_REGISTRY.getAndIncrement(EligibilityBenefit.FILE_NUMBER),
+            IivResponse.FILE_NUMBER,
+            INDEX_REGISTRY.get(IivResponse.FILE_NUMBER)));
     return filemanValues.stream();
   }
 

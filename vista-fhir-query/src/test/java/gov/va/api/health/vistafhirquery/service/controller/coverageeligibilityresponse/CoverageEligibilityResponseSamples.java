@@ -414,6 +414,28 @@ public class CoverageEligibilityResponseSamples {
           .build();
     }
 
+    public List<WriteableFilemanValue> ienMacroPointers() {
+      return List.of(
+          WriteableFilemanValue.builder()
+              .file(EligibilityBenefit.FILE_NUMBER)
+              .index(1)
+              .field("IEN")
+              .value("${365^1^IEN}")
+              .build(),
+          WriteableFilemanValue.builder()
+              .file(SubscriberDates.FILE_NUMBER)
+              .index(1)
+              .field("IEN")
+              .value("${365.02^1^IEN}")
+              .build(),
+          WriteableFilemanValue.builder()
+              .file(ServiceTypes.FILE_NUMBER)
+              .index(1)
+              .field("IEN")
+              .value("${365.02^1^IEN}")
+              .build());
+    }
+
     public List<WriteableFilemanValue> iivResponseFilemanValues() {
       return List.of(
           WriteableFilemanValue.builder()
