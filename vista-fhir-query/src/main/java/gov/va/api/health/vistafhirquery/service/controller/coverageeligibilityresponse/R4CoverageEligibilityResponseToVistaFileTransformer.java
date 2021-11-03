@@ -18,10 +18,10 @@ import gov.va.api.health.r4.api.resources.CoverageEligibilityResponse;
 import gov.va.api.health.r4.api.resources.CoverageEligibilityResponse.Benefit;
 import gov.va.api.health.r4.api.resources.CoverageEligibilityResponse.Insurance;
 import gov.va.api.health.r4.api.resources.CoverageEligibilityResponse.Item;
+import gov.va.api.health.vistafhirquery.service.controller.FilemanFactoryRegistry;
 import gov.va.api.health.vistafhirquery.service.controller.FilemanIndexRegistry;
 import gov.va.api.health.vistafhirquery.service.controller.RecordCoordinates;
 import gov.va.api.health.vistafhirquery.service.controller.ResourceExceptions.BadRequestPayload;
-import gov.va.api.health.vistafhirquery.service.controller.WriteableFilemanValueFactory;
 import gov.va.api.health.vistafhirquery.service.controller.extensionprocessing.CodeableConceptExtensionHandler;
 import gov.va.api.health.vistafhirquery.service.controller.extensionprocessing.ComplexExtensionHandler;
 import gov.va.api.health.vistafhirquery.service.controller.extensionprocessing.PeriodExtensionHandler;
@@ -46,17 +46,7 @@ import lombok.Value;
 
 @Value
 public class R4CoverageEligibilityResponseToVistaFileTransformer {
-  private static final WriteableFilemanValueFactory ELIGIBILITY_BENEFIT_FACTORY =
-      WriteableFilemanValueFactory.forFile(EligibilityBenefit.FILE_NUMBER);
-
-  private static final WriteableFilemanValueFactory SERVICE_TYPES_FACTORY =
-      WriteableFilemanValueFactory.forFile(ServiceTypes.FILE_NUMBER);
-
-  private static final WriteableFilemanValueFactory SUBSCRIBER_DATES_FACTORY =
-      WriteableFilemanValueFactory.forFile(SubscriberDates.FILE_NUMBER);
-
-  private static final WriteableFilemanValueFactory IIV_RESPONSE_FACTORY =
-      WriteableFilemanValueFactory.forFile(IivResponse.FILE_NUMBER);
+  private static final FilemanFactoryRegistry FACTORY_REGISTRY = FilemanFactoryRegistry.create();
 
   private static final FilemanIndexRegistry INDEX_REGISTRY = FilemanIndexRegistry.create();
 
@@ -74,11 +64,13 @@ public class R4CoverageEligibilityResponseToVistaFileTransformer {
   private Stream<WriteableFilemanValue> benefit(Benefit benefit) {
     Set<WriteableFilemanValue> filemanValues = new HashSet<>();
     filemanValues.add(
-        ELIGIBILITY_BENEFIT_FACTORY.forRequiredCodeableConcept(
-            EligibilityBenefit.ELIGIBILITY_BENEFIT_INFO,
-            INDEX_REGISTRY.get(EligibilityBenefit.FILE_NUMBER),
-            benefit.type(),
-            CoverageEligibilityResponseStructureDefinitions.ELIGIBILITY_BENEFIT_INFO));
+        FACTORY_REGISTRY
+            .get(EligibilityBenefit.FILE_NUMBER)
+            .forRequiredCodeableConcept(
+                EligibilityBenefit.ELIGIBILITY_BENEFIT_INFO,
+                INDEX_REGISTRY.get(EligibilityBenefit.FILE_NUMBER),
+                benefit.type(),
+                CoverageEligibilityResponseStructureDefinitions.ELIGIBILITY_BENEFIT_INFO));
     filemanValues.add(money(benefit.allowedMoney(), benefit.usedMoney()));
     return filemanValues.stream();
   }
@@ -102,10 +94,12 @@ public class R4CoverageEligibilityResponseToVistaFileTransformer {
       var formattedEndDate = formatter.format(parseDateTime(period.end()));
       vistaDateTimePeriod = vistaDateTimePeriod + "-" + formattedEndDate;
     }
-    return IIV_RESPONSE_FACTORY.forRequiredString(
-        IivResponse.DATE_TIME_PERIOD,
-        INDEX_REGISTRY.get(IivResponse.FILE_NUMBER),
-        vistaDateTimePeriod);
+    return FACTORY_REGISTRY
+        .get(IivResponse.FILE_NUMBER)
+        .forRequiredString(
+            IivResponse.DATE_TIME_PERIOD,
+            INDEX_REGISTRY.get(IivResponse.FILE_NUMBER),
+            vistaDateTimePeriod);
   }
 
   private R4ExtensionProcessor extensionProcessor() {
@@ -113,7 +107,7 @@ public class R4CoverageEligibilityResponseToVistaFileTransformer {
         CodeableConceptExtensionHandler.forDefiningUrl(
                 CoverageEligibilityResponseStructureDefinitions
                     .MILITARY_INFO_STATUS_CODE_DEFINITION)
-            .filemanFactory(IIV_RESPONSE_FACTORY)
+            .filemanFactory(FACTORY_REGISTRY.get(IivResponse.FILE_NUMBER))
             .fieldNumber(IivResponse.MILITARY_INFO_STATUS_CODE)
             .codingSystem(CoverageEligibilityResponseStructureDefinitions.MILITARY_INFO_STATUS_CODE)
             .required(REQUIRED)
@@ -121,7 +115,7 @@ public class R4CoverageEligibilityResponseToVistaFileTransformer {
         CodeableConceptExtensionHandler.forDefiningUrl(
                 CoverageEligibilityResponseStructureDefinitions
                     .MILITARY_EMPLOYMENT_STATUS_DEFINITION)
-            .filemanFactory(IIV_RESPONSE_FACTORY)
+            .filemanFactory(FACTORY_REGISTRY.get(IivResponse.FILE_NUMBER))
             .fieldNumber(IivResponse.MILITARY_EMPLOYMENT_STATUS)
             .codingSystem(
                 CoverageEligibilityResponseStructureDefinitions.MILITARY_EMPLOYMENT_STATUS)
@@ -130,7 +124,7 @@ public class R4CoverageEligibilityResponseToVistaFileTransformer {
         CodeableConceptExtensionHandler.forDefiningUrl(
                 CoverageEligibilityResponseStructureDefinitions
                     .MILITARY_GOVT_AFFILIATION_CODE_DEFINITION)
-            .filemanFactory(IIV_RESPONSE_FACTORY)
+            .filemanFactory(FACTORY_REGISTRY.get(IivResponse.FILE_NUMBER))
             .fieldNumber(IivResponse.MILITARY_GOVT_AFFILIATION_CODE)
             .codingSystem(
                 CoverageEligibilityResponseStructureDefinitions.MILITARY_GOVT_AFFILIATION_CODE)
@@ -139,14 +133,14 @@ public class R4CoverageEligibilityResponseToVistaFileTransformer {
         StringExtensionHandler.forDefiningUrl(
                 CoverageEligibilityResponseStructureDefinitions
                     .MILITARY_PERSONNEL_DESCRIPTION_DEFINITION)
-            .filemanFactory(IIV_RESPONSE_FACTORY)
+            .filemanFactory(FACTORY_REGISTRY.get(IivResponse.FILE_NUMBER))
             .fieldNumber(IivResponse.MILITARY_PERSONNEL_DESCRIPTION)
             .required(REQUIRED)
             .build(),
         CodeableConceptExtensionHandler.forDefiningUrl(
                 CoverageEligibilityResponseStructureDefinitions
                     .MILITARY_SERVICE_RANK_CODE_DEFINITION)
-            .filemanFactory(IIV_RESPONSE_FACTORY)
+            .filemanFactory(FACTORY_REGISTRY.get(IivResponse.FILE_NUMBER))
             .fieldNumber(IivResponse.MILITARY_SERVICE_RANK_CODE)
             .codingSystem(
                 CoverageEligibilityResponseStructureDefinitions.MILITARY_SERVICE_RANK_CODE)
@@ -160,13 +154,17 @@ public class R4CoverageEligibilityResponseToVistaFileTransformer {
     }
     switch (identifier.type().text()) {
       case "MSH-10":
-        return IIV_RESPONSE_FACTORY.forRequiredIdentifier(
-            IivResponse.MESSAGE_CONTROL_ID,
-            INDEX_REGISTRY.get(IivResponse.FILE_NUMBER),
-            identifier);
+        return FACTORY_REGISTRY
+            .get(IivResponse.FILE_NUMBER)
+            .forRequiredIdentifier(
+                IivResponse.MESSAGE_CONTROL_ID,
+                INDEX_REGISTRY.get(IivResponse.FILE_NUMBER),
+                identifier);
       case "MSA-3":
-        return IIV_RESPONSE_FACTORY.forRequiredIdentifier(
-            IivResponse.TRACE_NUMBER, INDEX_REGISTRY.get(IivResponse.FILE_NUMBER), identifier);
+        return FACTORY_REGISTRY
+            .get(IivResponse.FILE_NUMBER)
+            .forRequiredIdentifier(
+                IivResponse.TRACE_NUMBER, INDEX_REGISTRY.get(IivResponse.FILE_NUMBER), identifier);
       default:
         throw new IllegalArgumentException("Unknown Identifier type: " + identifier.type().text());
     }
@@ -190,54 +188,70 @@ public class R4CoverageEligibilityResponseToVistaFileTransformer {
   private Stream<WriteableFilemanValue> item(Item item) {
     Set<WriteableFilemanValue> filemanValues = new HashSet<>();
     filemanValues.add(
-        SERVICE_TYPES_FACTORY.forRequiredCodeableConcept(
-            ServiceTypes.SERVICE_TYPES,
-            INDEX_REGISTRY.get(ServiceTypes.FILE_NUMBER),
-            item.category(),
-            CoverageEligibilityResponseStructureDefinitions.SERVICE_TYPES));
+        FACTORY_REGISTRY
+            .get(ServiceTypes.FILE_NUMBER)
+            .forRequiredCodeableConcept(
+                ServiceTypes.SERVICE_TYPES,
+                INDEX_REGISTRY.get(ServiceTypes.FILE_NUMBER),
+                item.category(),
+                CoverageEligibilityResponseStructureDefinitions.SERVICE_TYPES));
     filemanValues.add(
-        SERVICE_TYPES_FACTORY.forRequiredParentFileUsingIenMacro(
-            INDEX_REGISTRY.getAndIncrement(ServiceTypes.FILE_NUMBER),
-            EligibilityBenefit.FILE_NUMBER,
-            INDEX_REGISTRY.get(EligibilityBenefit.FILE_NUMBER)));
+        FACTORY_REGISTRY
+            .get(ServiceTypes.FILE_NUMBER)
+            .forRequiredParentFileUsingIenMacro(
+                INDEX_REGISTRY.getAndIncrement(ServiceTypes.FILE_NUMBER),
+                EligibilityBenefit.FILE_NUMBER,
+                INDEX_REGISTRY.get(EligibilityBenefit.FILE_NUMBER)));
     filemanValues.addAll(itemExtensionProcessor().process(item.extension()));
     filemanValues.add(
-        SUBSCRIBER_DATES_FACTORY.forRequiredParentFileUsingIenMacro(
-            INDEX_REGISTRY.getAndIncrement(SubscriberDates.FILE_NUMBER),
-            EligibilityBenefit.FILE_NUMBER,
-            INDEX_REGISTRY.get(EligibilityBenefit.FILE_NUMBER)));
+        FACTORY_REGISTRY
+            .get(SubscriberDates.FILE_NUMBER)
+            .forRequiredParentFileUsingIenMacro(
+                INDEX_REGISTRY.getAndIncrement(SubscriberDates.FILE_NUMBER),
+                EligibilityBenefit.FILE_NUMBER,
+                INDEX_REGISTRY.get(EligibilityBenefit.FILE_NUMBER)));
     filemanValues.add(
-        ELIGIBILITY_BENEFIT_FACTORY.forRequiredCodeableConcept(
-            EligibilityBenefit.COVERAGE_LEVEL,
-            INDEX_REGISTRY.get(EligibilityBenefit.FILE_NUMBER),
-            item.unit(),
-            CoverageEligibilityResponseStructureDefinitions.ITEM_UNIT));
+        FACTORY_REGISTRY
+            .get(EligibilityBenefit.FILE_NUMBER)
+            .forRequiredCodeableConcept(
+                EligibilityBenefit.COVERAGE_LEVEL,
+                INDEX_REGISTRY.get(EligibilityBenefit.FILE_NUMBER),
+                item.unit(),
+                CoverageEligibilityResponseStructureDefinitions.ITEM_UNIT));
     filemanValues.add(
-        ELIGIBILITY_BENEFIT_FACTORY.forRequiredCodeableConcept(
-            EligibilityBenefit.TIME_PERIOD_QUALIFIER,
-            INDEX_REGISTRY.get(EligibilityBenefit.FILE_NUMBER),
-            item.term(),
-            CoverageEligibilityResponseStructureDefinitions.ITEM_TERM));
+        FACTORY_REGISTRY
+            .get(EligibilityBenefit.FILE_NUMBER)
+            .forRequiredCodeableConcept(
+                EligibilityBenefit.TIME_PERIOD_QUALIFIER,
+                INDEX_REGISTRY.get(EligibilityBenefit.FILE_NUMBER),
+                item.term(),
+                CoverageEligibilityResponseStructureDefinitions.ITEM_TERM));
     item.benefit().stream().flatMap(this::benefit).forEach(filemanValues::add);
     filemanValues.addAll(procedureCoding(item.productOrService()));
     filemanValues.add(procedureModifier(item.modifier()));
     filemanValues.add(
-        ELIGIBILITY_BENEFIT_FACTORY.forRequiredBoolean(
-            EligibilityBenefit.AUTHORIZATION_CERTIFICATION,
-            INDEX_REGISTRY.get(EligibilityBenefit.FILE_NUMBER),
-            item.authorizationRequired(),
-            this::x12YesNo));
+        FACTORY_REGISTRY
+            .get(EligibilityBenefit.FILE_NUMBER)
+            .forRequiredBoolean(
+                EligibilityBenefit.AUTHORIZATION_CERTIFICATION,
+                INDEX_REGISTRY.get(EligibilityBenefit.FILE_NUMBER),
+                item.authorizationRequired(),
+                this::x12YesNo));
     filemanValues.add(
-        ELIGIBILITY_BENEFIT_FACTORY.forRequiredCodeableConcept(
-            EligibilityBenefit.IN_PLAN,
-            INDEX_REGISTRY.get(EligibilityBenefit.FILE_NUMBER),
-            item.network(),
-            CoverageEligibilityResponseStructureDefinitions.X12_YES_NO_SYSTEM));
+        FACTORY_REGISTRY
+            .get(EligibilityBenefit.FILE_NUMBER)
+            .forRequiredCodeableConcept(
+                EligibilityBenefit.IN_PLAN,
+                INDEX_REGISTRY.get(EligibilityBenefit.FILE_NUMBER),
+                item.network(),
+                CoverageEligibilityResponseStructureDefinitions.X12_YES_NO_SYSTEM));
     filemanValues.add(
-        ELIGIBILITY_BENEFIT_FACTORY.forRequiredParentFileUsingIenMacro(
-            INDEX_REGISTRY.getAndIncrement(EligibilityBenefit.FILE_NUMBER),
-            IivResponse.FILE_NUMBER,
-            INDEX_REGISTRY.get(IivResponse.FILE_NUMBER)));
+        FACTORY_REGISTRY
+            .get(EligibilityBenefit.FILE_NUMBER)
+            .forRequiredParentFileUsingIenMacro(
+                INDEX_REGISTRY.getAndIncrement(EligibilityBenefit.FILE_NUMBER),
+                IivResponse.FILE_NUMBER,
+                INDEX_REGISTRY.get(IivResponse.FILE_NUMBER)));
     return filemanValues.stream();
   }
 
@@ -251,7 +265,7 @@ public class R4CoverageEligibilityResponseToVistaFileTransformer {
                     PeriodExtensionHandler.forDefiningUrl(
                             CoverageEligibilityResponseStructureDefinitions.SUBSCRIBER_DATE_PERIOD)
                         .required(REQUIRED)
-                        .filemanFactory(SUBSCRIBER_DATES_FACTORY)
+                        .filemanFactory(FACTORY_REGISTRY.get(SubscriberDates.FILE_NUMBER))
                         .zoneId(zoneId())
                         .periodStartFieldNumber(SubscriberDates.DATE)
                         .periodEndFieldNumber(SubscriberDates.DATE)
@@ -259,7 +273,7 @@ public class R4CoverageEligibilityResponseToVistaFileTransformer {
                     CodeableConceptExtensionHandler.forDefiningUrl(
                             CoverageEligibilityResponseStructureDefinitions.SUBSCRIBER_DATE_KIND)
                         .required(REQUIRED)
-                        .filemanFactory(SUBSCRIBER_DATES_FACTORY)
+                        .filemanFactory(FACTORY_REGISTRY.get(SubscriberDates.FILE_NUMBER))
                         .codingSystem(
                             CoverageEligibilityResponseStructureDefinitions
                                 .SUBSCRIBER_DATE_QUALIFIER)
@@ -282,10 +296,12 @@ public class R4CoverageEligibilityResponseToVistaFileTransformer {
           "Expected one of allowedMoney or usedMoney, but got both.");
     }
     var money = isBlank(allowed) ? used : allowed;
-    return ELIGIBILITY_BENEFIT_FACTORY.forRequiredString(
-        EligibilityBenefit.MONETARY_AMOUNT,
-        INDEX_REGISTRY.get(EligibilityBenefit.FILE_NUMBER),
-        money.value().toPlainString());
+    return FACTORY_REGISTRY
+        .get(EligibilityBenefit.FILE_NUMBER)
+        .forRequiredString(
+            EligibilityBenefit.MONETARY_AMOUNT,
+            INDEX_REGISTRY.get(EligibilityBenefit.FILE_NUMBER),
+            money.value().toPlainString());
   }
 
   List<WriteableFilemanValue> procedureCoding(CodeableConcept productOrService) {
@@ -303,14 +319,18 @@ public class R4CoverageEligibilityResponseToVistaFileTransformer {
     }
     Coding productOrServiceCoding = productOrService.coding().get(0);
     return Stream.of(
-            ELIGIBILITY_BENEFIT_FACTORY.forRequiredString(
-                EligibilityBenefit.PROCEDURE_CODE,
-                INDEX_REGISTRY.get(EligibilityBenefit.FILE_NUMBER),
-                productOrServiceCoding.code()),
-            ELIGIBILITY_BENEFIT_FACTORY.forRequiredString(
-                EligibilityBenefit.PROCEDURE_CODING_METHOD,
-                INDEX_REGISTRY.get(EligibilityBenefit.FILE_NUMBER),
-                productOrServiceCoding.system()))
+            FACTORY_REGISTRY
+                .get(EligibilityBenefit.FILE_NUMBER)
+                .forRequiredString(
+                    EligibilityBenefit.PROCEDURE_CODE,
+                    INDEX_REGISTRY.get(EligibilityBenefit.FILE_NUMBER),
+                    productOrServiceCoding.code()),
+            FACTORY_REGISTRY
+                .get(EligibilityBenefit.FILE_NUMBER)
+                .forRequiredString(
+                    EligibilityBenefit.PROCEDURE_CODING_METHOD,
+                    INDEX_REGISTRY.get(EligibilityBenefit.FILE_NUMBER),
+                    productOrServiceCoding.system()))
         .toList();
   }
 
@@ -323,11 +343,13 @@ public class R4CoverageEligibilityResponseToVistaFileTransformer {
       throw BadRequestPayload.because(
           EligibilityBenefit.PROCEDURE_MODIFIER_1, "More than one item modifier provided");
     }
-    return ELIGIBILITY_BENEFIT_FACTORY.forRequiredCodeableConcept(
-        EligibilityBenefit.PROCEDURE_MODIFIER_1,
-        INDEX_REGISTRY.get(EligibilityBenefit.FILE_NUMBER),
-        modifier.get(0),
-        CoverageEligibilityResponseStructureDefinitions.ITEM_MODIFIER);
+    return FACTORY_REGISTRY
+        .get(EligibilityBenefit.FILE_NUMBER)
+        .forRequiredCodeableConcept(
+            EligibilityBenefit.PROCEDURE_MODIFIER_1,
+            INDEX_REGISTRY.get(EligibilityBenefit.FILE_NUMBER),
+            modifier.get(0),
+            CoverageEligibilityResponseStructureDefinitions.ITEM_MODIFIER);
   }
 
   /** Transform Fhir fields into a list of fileman values. */
@@ -338,10 +360,12 @@ public class R4CoverageEligibilityResponseToVistaFileTransformer {
     vistaFields.add(
         recordCoordinatesForReference(coverageEligibilityResponse().insurer())
             .map(
-                IIV_RESPONSE_FACTORY.toString(
-                    IivResponse.PAYER,
-                    index(INDEX_REGISTRY.get(IivResponse.FILE_NUMBER)),
-                    this::ienForPayerFileOrDie))
+                FACTORY_REGISTRY
+                    .get(IivResponse.FILE_NUMBER)
+                    .toString(
+                        IivResponse.PAYER,
+                        index(INDEX_REGISTRY.get(IivResponse.FILE_NUMBER)),
+                        this::ienForPayerFileOrDie))
             .orElseThrow(
                 () ->
                     BadRequestPayload.because(
@@ -353,10 +377,12 @@ public class R4CoverageEligibilityResponseToVistaFileTransformer {
             .map(FhirDateTime::parseDateTime)
             .map(i -> DateTimeFormatter.ofPattern("MM-dd-yyy").withZone(zoneId()).format(i))
             .map(
-                IIV_RESPONSE_FACTORY.toString(
-                    IivResponse.SERVICE_DATE,
-                    index(INDEX_REGISTRY.get(IivResponse.FILE_NUMBER)),
-                    identity()))
+                FACTORY_REGISTRY
+                    .get(IivResponse.FILE_NUMBER)
+                    .toString(
+                        IivResponse.SERVICE_DATE,
+                        index(INDEX_REGISTRY.get(IivResponse.FILE_NUMBER)),
+                        identity()))
             .orElseThrow(
                 () ->
                     BadRequestPayload.because(
