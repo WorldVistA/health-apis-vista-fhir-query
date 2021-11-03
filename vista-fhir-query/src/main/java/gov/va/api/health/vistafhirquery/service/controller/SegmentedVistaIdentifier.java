@@ -5,8 +5,7 @@ import static org.apache.commons.lang3.StringUtils.leftPad;
 import static org.apache.commons.lang3.StringUtils.rightPad;
 import static org.apache.commons.lang3.StringUtils.strip;
 
-import com.google.common.collect.BiMap;
-import com.google.common.collect.HashBiMap;
+import gov.va.api.health.vistafhirquery.service.util.BiMap;
 import gov.va.api.lighthouse.charon.models.vprgetpatientdata.VprGetPatientData;
 import gov.va.api.lighthouse.charon.models.vprgetpatientdata.VprGetPatientData.Domains;
 import java.util.LinkedHashMap;
@@ -23,6 +22,10 @@ import lombok.Value;
 @Value
 @Builder
 public class SegmentedVistaIdentifier {
+
+  public static final BiMap<Character, Domains> DOMAIN_ABBREVIATIONS =
+      new BiMap<>(Map.of('A', Domains.appointments, 'L', Domains.labs, 'V', Domains.vitals));
+
   @NonNull PatientIdentifierType patientIdentifierType;
 
   @NonNull String patientIdentifier;
@@ -32,11 +35,6 @@ public class SegmentedVistaIdentifier {
   @NonNull VprGetPatientData.Domains vprRpcDomain;
 
   @NonNull String recordId;
-
-  private static BiMap<Character, VprGetPatientData.Domains> domainAbbreviationMappings() {
-    var mappings = Map.of('A', Domains.appointments, 'L', Domains.labs, 'V', Domains.vitals);
-    return HashBiMap.create(mappings);
-  }
 
   private static SegmentedVistaIdentifier fromString(String data) {
     String[] segmentParts = data.split("\\+", -1);
@@ -50,7 +48,7 @@ public class SegmentedVistaIdentifier {
           "The first and third sections of a SegmentedVistaIdentifier must contain "
               + "a type and an identifier value.");
     }
-    var domainType = domainAbbreviationMappings().get(segmentParts[2].charAt(0));
+    var domainType = DOMAIN_ABBREVIATIONS.leftToRight(segmentParts[2].charAt(0), null);
     if (domainType == null) {
       throw new IllegalArgumentException(
           "Identifier value had invalid domain type abbreviation: " + segmentParts[2].charAt(0));
@@ -79,11 +77,7 @@ public class SegmentedVistaIdentifier {
       return false;
     }
 
-    if (!recordId.matcher(vis.recordId()).matches()) {
-      return false;
-    }
-
-    return true;
+    return recordId.matcher(vis.recordId()).matches();
   }
 
   /** Parse a VistaIdentifier. */
@@ -103,7 +97,7 @@ public class SegmentedVistaIdentifier {
         "+",
         patientIdentifierType().abbreviation() + patientIdentifier(),
         siteId(),
-        domainAbbreviationMappings().inverse().get(vprRpcDomain()) + recordId());
+        DOMAIN_ABBREVIATIONS.rightToLeft(vprRpcDomain(), null) + recordId());
   }
 
   /** The type of a Vista identifier which can be DFN, local ICN, or National ICN. */

@@ -1,6 +1,5 @@
 package gov.va.api.health.vistafhirquery.service.controller;
 
-import static com.google.common.base.Preconditions.checkState;
 import static java.lang.String.format;
 import static java.util.Collections.emptyList;
 import static java.util.stream.Collectors.joining;
@@ -71,8 +70,9 @@ public final class WebExceptionHandler {
   /** Uses encryption key if one is set. */
   public WebExceptionHandler(
       @Value("${vista-fhir-query.public-web-exception-key}") String encryptionKey) {
-    checkState(
-        !"unset".equals(encryptionKey), "vista-fhir-query.public-web-exception-key is unset");
+    if ("unset".equals(encryptionKey)) {
+      throw new IllegalStateException("vista-fhir-query.public-web-exception-key is unset");
+    }
     this.encryptionKey = encryptionKey;
   }
 

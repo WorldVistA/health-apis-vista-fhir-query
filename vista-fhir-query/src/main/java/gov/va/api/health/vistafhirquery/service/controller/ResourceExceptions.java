@@ -8,7 +8,6 @@ import java.util.Arrays;
 import java.util.List;
 import lombok.Getter;
 import lombok.NonNull;
-import org.springframework.lang.Nullable;
 
 /** The because methods exist to add readability when throwing exceptions. */
 @SuppressWarnings("DoNotCallSuggester")
@@ -72,8 +71,7 @@ public class ResourceExceptions {
      * New instance specifying the ID as determined by the URL and the ID from resource, which may
      * be null.
      */
-    public CannotUpdateResourceWithMismatchedIds(
-        @NonNull String idFromUrl, @Nullable String idFromResource) {
+    public CannotUpdateResourceWithMismatchedIds(@NonNull String idFromUrl, String idFromResource) {
       super(format("id from URL: %s, id from resource: %s", idFromUrl, idFromResource));
       this.idFromUrl = idFromUrl;
       this.idFromResource = idFromResource;

@@ -1,7 +1,6 @@
 package gov.va.api.health.vistafhirquery.service.controller.witnessprotection;
 
-import com.google.common.collect.BiMap;
-import com.google.common.collect.HashBiMap;
+import gov.va.api.health.vistafhirquery.service.util.BiMap;
 import java.util.List;
 import java.util.Map;
 import lombok.Builder;
@@ -54,25 +53,26 @@ public interface AlternatePatientIds {
   @Value
   class MappedAlternatePatientIds implements AlternatePatientIds {
 
-    private final BiMap<String, String> publicToPrivateIds;
+    private BiMap<String, String> publicToPrivateIds;
 
-    @Getter private final List<String> patientIdParameters;
+    @Getter private List<String> patientIdParameters;
 
     @Builder
     public MappedAlternatePatientIds(
         List<String> patientIdParameters, Map<String, String> publicToPrivateIds) {
       this.patientIdParameters = List.copyOf(patientIdParameters);
-      this.publicToPrivateIds = HashBiMap.create(publicToPrivateIds);
+      this.publicToPrivateIds = new BiMap<>(publicToPrivateIds);
     }
 
     @Override
     public String toPrivateId(String publicId) {
-      return publicToPrivateIds.getOrDefault(publicId, publicId);
+
+      return publicToPrivateIds.leftToRight(publicId, publicId);
     }
 
     @Override
     public String toPublicId(String privateId) {
-      return publicToPrivateIds.inverse().getOrDefault(privateId, privateId);
+      return publicToPrivateIds.rightToLeft(privateId, privateId);
     }
   }
 }

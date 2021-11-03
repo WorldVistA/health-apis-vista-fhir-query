@@ -10,7 +10,6 @@ import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.core.io.JsonEOFException;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.exc.MismatchedInputException;
-import com.google.common.collect.ImmutableMap;
 import gov.va.api.health.r4.api.datatypes.CodeableConcept;
 import gov.va.api.health.r4.api.datatypes.Coding;
 import gov.va.api.health.r4.api.elements.Narrative;
@@ -19,6 +18,7 @@ import gov.va.api.health.vistafhirquery.service.controller.ResourceExceptions.Ca
 import gov.va.api.health.vistafhirquery.service.controller.ResourceExceptions.CannotUpdateUnknownResource;
 import gov.va.api.health.vistafhirquery.service.mpifhirqueryclient.MpiFhirQueryClientExceptions;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import javax.servlet.http.HttpServletRequest;
 import javax.validation.ConstraintViolation;
@@ -95,7 +95,7 @@ public class WebExceptionHandlerTest {
         _handler()
             .handleBadRequest(
                 new UnsatisfiedServletRequestParameterException(
-                    new String[] {"hello"}, ImmutableMap.of("foo", new String[] {"bar"})),
+                    new String[] {"hello"}, Map.of("foo", new String[] {"bar"})),
                 _request());
     assertHasMessageExtension(oo, true);
     assertThat(_removeIdAndExtension(oo))
