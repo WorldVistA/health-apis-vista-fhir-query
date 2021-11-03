@@ -9,18 +9,22 @@ import gov.va.api.health.vistafhirquery.service.controller.WriteableFilemanValue
 import gov.va.api.lighthouse.charon.models.lhslighthouserpcgateway.LhsLighthouseRpcGatewayCoverageWrite;
 import java.util.Map;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 
 public class BooleanExtensionHandlerTest {
 
   private final WriteableFilemanValueFactory filemanFactory =
       WriteableFilemanValueFactory.forFile("file number");
 
-  @Test
-  void handle() {
+  @ParameterizedTest
+  @ValueSource(ints = {1, 2})
+  void handle(int index) {
     assertThat(
             BooleanExtensionHandler.forDefiningUrl("defining url")
                 .filemanFactory(filemanFactory)
                 .fieldNumber("field number")
+                .index(index)
                 .booleanStringMapping(Map.of(true, "YES", false, "NO"))
                 .required(ExtensionHandler.Required.REQUIRED)
                 .build()
@@ -29,7 +33,7 @@ public class BooleanExtensionHandlerTest {
             LhsLighthouseRpcGatewayCoverageWrite.WriteableFilemanValue.builder()
                 .file("file number")
                 .field("field number")
-                .index(1)
+                .index(index)
                 .value("YES")
                 .build());
   }

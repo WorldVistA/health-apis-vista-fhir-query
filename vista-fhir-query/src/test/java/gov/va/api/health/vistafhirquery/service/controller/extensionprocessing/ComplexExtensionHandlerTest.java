@@ -23,6 +23,7 @@ public class ComplexExtensionHandlerTest {
                     .required(Required.REQUIRED)
                     .filemanFactory(WriteableFilemanValueFactory.forFile("888"))
                     .fieldNumber(".string")
+                    .index(1)
                     .build()))
         .build();
   }

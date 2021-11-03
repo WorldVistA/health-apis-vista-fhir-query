@@ -23,8 +23,9 @@ public class QuantityExtensionHandler extends AbstractExtensionHandler {
       @NonNull String definingUrl,
       @NonNull ExtensionHandler.Required required,
       @NonNull String valueFieldNumber,
-      @NonNull String unitFieldNumber) {
-    super(definingUrl, required, filemanFactory);
+      @NonNull String unitFieldNumber,
+      int index) {
+    super(definingUrl, required, filemanFactory, index);
     this.valueFieldNumber = valueFieldNumber;
     this.unitFieldNumber = unitFieldNumber;
   }
@@ -41,8 +42,8 @@ public class QuantityExtensionHandler extends AbstractExtensionHandler {
     var quantity = extension.valueQuantity();
     validQuantityOrDie(extension.url(), quantity);
     return List.of(
-        filemanFactory().forString(valueFieldNumber(), 1, quantity.value().toString()),
-        filemanFactory().forString(unitFieldNumber(), 1, quantity.unit()));
+        filemanFactory().forString(valueFieldNumber(), index(), quantity.value().toString()),
+        filemanFactory().forString(unitFieldNumber(), index(), quantity.unit()));
   }
 
   private void validQuantityOrDie(String definingUrl, Quantity quantity) {

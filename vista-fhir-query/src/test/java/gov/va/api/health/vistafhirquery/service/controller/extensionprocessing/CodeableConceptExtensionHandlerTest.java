@@ -13,11 +13,11 @@ import gov.va.api.health.vistafhirquery.service.controller.WriteableFilemanValue
 import gov.va.api.lighthouse.charon.models.lhslighthouserpcgateway.LhsLighthouseRpcGatewayCoverageWrite;
 import java.util.List;
 import java.util.stream.Stream;
-import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 import org.junit.jupiter.params.provider.NullSource;
+import org.junit.jupiter.params.provider.ValueSource;
 
 public class CodeableConceptExtensionHandlerTest {
   private static Stream<Arguments> badExtensionCodeableConcepts() {
@@ -29,11 +29,12 @@ public class CodeableConceptExtensionHandlerTest {
         arguments(CodeableConcept.builder().coding(List.of(goodCoding, goodCoding)).build()));
   }
 
-  private CodeableConceptExtensionHandler _handler() {
+  private CodeableConceptExtensionHandler _handler(int index) {
     return CodeableConceptExtensionHandler.forDefiningUrl("http://fugazi.com/codeableConcept")
         .required(REQUIRED)
         .filemanFactory(WriteableFilemanValueFactory.forFile("888"))
         .fieldNumber("#.88")
+        .index(index)
         .codingSystem("http://fugazi.com/coding")
         .build();
   }
@@ -43,7 +44,7 @@ public class CodeableConceptExtensionHandlerTest {
   @MethodSource
   void badExtensionCodeableConcepts(CodeableConcept cc) {
     var sample = extensionWithCodeableConcept(cc);
-    assertThatExceptionOfType(BadExtension.class).isThrownBy(() -> _handler().handle(sample));
+    assertThatExceptionOfType(BadExtension.class).isThrownBy(() -> _handler(1).handle(sample));
   }
 
   private Extension extensionWithCodeableConcept(CodeableConcept codeableConcept) {
@@ -53,8 +54,9 @@ public class CodeableConceptExtensionHandlerTest {
         .build();
   }
 
-  @Test
-  void handleCodeableConcept() {
+  @ParameterizedTest
+  @ValueSource(ints = {1, 2})
+  void handle(int index) {
     var sample =
         extensionWithCodeableConcept(
             CodeableConcept.builder()
@@ -65,12 +67,12 @@ public class CodeableConceptExtensionHandlerTest {
                         .build()
                         .asList())
                 .build());
-    assertThat(_handler().handle(sample))
+    assertThat(_handler(index).handle(sample))
         .containsOnly(
             LhsLighthouseRpcGatewayCoverageWrite.WriteableFilemanValue.builder()
                 .file("888")
                 .field("#.88")
-                .index(1)
+                .index(index)
                 .value("SHANKTOPUS")
                 .build());
   }

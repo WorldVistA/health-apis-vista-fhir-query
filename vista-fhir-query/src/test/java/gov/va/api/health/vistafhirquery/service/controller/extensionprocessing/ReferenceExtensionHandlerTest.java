@@ -17,6 +17,7 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 import org.junit.jupiter.params.provider.NullSource;
+import org.junit.jupiter.params.provider.ValueSource;
 
 public class ReferenceExtensionHandlerTest {
   static Stream<Arguments> badExtensionReference() {
@@ -25,11 +26,12 @@ public class ReferenceExtensionHandlerTest {
         arguments(Reference.builder().display("SHANKTOPUS").build()));
   }
 
-  private ReferenceExtensionHandler _handler() {
+  private ReferenceExtensionHandler _handler(int index) {
     return ReferenceExtensionHandler.forDefiningUrl("http://fugazi.com/reference")
         .required(REQUIRED)
         .filemanFactory(WriteableFilemanValueFactory.forFile("888"))
         .fieldNumber("#.88")
+        .index(index)
         .referenceFile("123")
         .toCoordinates(s -> new FugaziSiteCoordinates())
         .build();
@@ -40,21 +42,22 @@ public class ReferenceExtensionHandlerTest {
   @MethodSource
   void badExtensionReference(Reference reference) {
     var sample = extensionWithReference(reference);
-    assertThatExceptionOfType(BadExtension.class).isThrownBy(() -> _handler().handle(sample));
+    assertThatExceptionOfType(BadExtension.class).isThrownBy(() -> _handler(1).handle(sample));
   }
 
   private Extension extensionWithReference(Reference reference) {
     return Extension.builder().url("http://fugazi.com/reference").valueReference(reference).build();
   }
 
-  @Test
-  void handleReference() {
+  @ParameterizedTest
+  @ValueSource(ints = {1, 2})
+  void handle(int index) {
     var sample = extensionWithReference(Reference.builder().reference("Fugazi/123").build());
-    assertThat(_handler().handle(sample))
+    assertThat(_handler(index).handle(sample))
         .containsOnly(
             WriteableFilemanValue.builder()
                 .file("888")
-                .index(1)
+                .index(index)
                 .field("#.88")
                 .value("`ien8")
                 .build());

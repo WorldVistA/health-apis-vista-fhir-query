@@ -92,24 +92,28 @@ public class R4ExtensionProcessorTest {
             .definingUrl("HUNGRY")
             .required(REQUIRED)
             .fieldNumber("#.ALLDAY")
+            .index(1)
             .build(),
         FugaziExtensionHandler.builder()
             .filemanFactory(filemanFactory)
             .definingUrl("TACOS")
             .required(REQUIRED)
             .fieldNumber("#.LUNCH")
+            .index(1)
             .build(),
         FugaziExtensionHandler.builder()
             .filemanFactory(filemanFactory)
             .definingUrl("FRENCH TOAST")
             .required(OPTIONAL)
             .fieldNumber("#.BREAKFAST")
+            .index(1)
             .build(),
         FugaziExtensionHandler.builder()
             .filemanFactory(filemanFactory)
             .definingUrl("SUSHI")
             .required(REQUIRED)
             .fieldNumber("#.DINNER")
+            .index(1)
             .build());
   }
 
@@ -122,14 +126,15 @@ public class R4ExtensionProcessorTest {
         String definingUrl,
         Required required,
         String fieldNumber,
+        int index,
         WriteableFilemanValueFactory filemanFactory) {
-      super(definingUrl, required, filemanFactory);
+      super(definingUrl, required, filemanFactory, index);
       this.fieldNumber = fieldNumber;
     }
 
     @Override
     public List<WriteableFilemanValue> handle(Extension extension) {
-      return List.of(filemanFactory().forString(fieldNumber(), 1, extension.valueCode()));
+      return List.of(filemanFactory().forString(fieldNumber(), index(), extension.valueCode()));
     }
   }
 
@@ -139,14 +144,15 @@ public class R4ExtensionProcessorTest {
         String definingUrl,
         Required required,
         String fieldNumber,
+        int index,
         WriteableFilemanValueFactory filemanFactory) {
-      super(definingUrl, required, filemanFactory, fieldNumber);
+      super(definingUrl, required, filemanFactory, fieldNumber, index);
     }
 
     @Override
     public List<WriteableFilemanValue> handle(Extension extension) {
       return List.of(
-          filemanFactory().forString(fieldNumber(), 1, extension.valueBoolean().toString()));
+          filemanFactory().forString(fieldNumber(), index(), extension.valueBoolean().toString()));
     }
   }
 }

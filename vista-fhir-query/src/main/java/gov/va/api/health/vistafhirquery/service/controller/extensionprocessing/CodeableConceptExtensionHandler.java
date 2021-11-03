@@ -24,8 +24,9 @@ public class CodeableConceptExtensionHandler extends AbstractSingleFieldExtensio
       @NonNull String definingUrl,
       @NonNull ExtensionHandler.Required required,
       @NonNull String fieldNumber,
+      int index,
       @NonNull String codingSystem) {
-    super(definingUrl, required, filemanFactory, fieldNumber);
+    super(definingUrl, required, filemanFactory, fieldNumber, index);
     this.codingSystem = codingSystem;
   }
 
@@ -59,6 +60,6 @@ public class CodeableConceptExtensionHandler extends AbstractSingleFieldExtensio
       throw BadExtension.because(extension.url(), ".valueCodeableConcept is null");
     }
     var code = findCodeOrDie(extension.url(), extension.valueCodeableConcept().coding());
-    return List.of(filemanFactory().forString(fieldNumber(), 1, code));
+    return List.of(filemanFactory().forString(fieldNumber(), index(), code));
   }
 }

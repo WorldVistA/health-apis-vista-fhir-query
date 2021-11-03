@@ -16,8 +16,9 @@ public class StringExtensionHandler extends AbstractSingleFieldExtensionHandler 
       @NonNull WriteableFilemanValueFactory filemanFactory,
       @NonNull String definingUrl,
       @NonNull ExtensionHandler.Required required,
-      @NonNull String fieldNumber) {
-    super(definingUrl, required, filemanFactory, fieldNumber);
+      @NonNull String fieldNumber,
+      int index) {
+    super(definingUrl, required, filemanFactory, fieldNumber, index);
   }
 
   public static StringExtensionHandler.StringExtensionHandlerBuilder forDefiningUrl(
@@ -32,6 +33,6 @@ public class StringExtensionHandler extends AbstractSingleFieldExtensionHandler 
     if (isBlank(value)) {
       throw BadExtension.because(extension.url(), ".valueString is null");
     }
-    return List.of(filemanFactory().forString(fieldNumber(), 1, value));
+    return List.of(filemanFactory().forString(fieldNumber(), index(), value));
   }
 }

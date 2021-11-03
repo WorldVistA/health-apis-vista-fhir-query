@@ -23,8 +23,9 @@ public class BooleanExtensionHandler extends AbstractSingleFieldExtensionHandler
       @NonNull String definingUrl,
       @NonNull ExtensionHandler.Required required,
       @NonNull String fieldNumber,
+      int index,
       @NonNull Map<Boolean, String> booleanStringMapping) {
-    super(definingUrl, required, filemanFactory, fieldNumber);
+    super(definingUrl, required, filemanFactory, fieldNumber, index);
     this.booleanStringMapping = booleanStringMapping;
   }
 
@@ -39,7 +40,7 @@ public class BooleanExtensionHandler extends AbstractSingleFieldExtensionHandler
       throw BadExtension.because(definingUrl(), "extension.valueBoolean is null");
     }
     var filemanValue =
-        filemanFactory().forString(fieldNumber(), 1, booleanStringMapping().get(value));
+        filemanFactory().forString(fieldNumber(), index(), booleanStringMapping().get(value));
     return filemanValue == null ? List.of() : List.of(filemanValue);
   }
 }

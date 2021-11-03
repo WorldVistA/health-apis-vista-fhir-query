@@ -25,9 +25,10 @@ public class ReferenceExtensionHandler extends AbstractSingleFieldExtensionHandl
       @NonNull String definingUrl,
       @NonNull ExtensionHandler.Required required,
       @NonNull String fieldNumber,
+      int index,
       @NonNull String referenceFile,
       @NonNull Function<String, IsSiteCoordinates> toCoordinates) {
-    super(definingUrl, required, filemanFactory, fieldNumber);
+    super(definingUrl, required, filemanFactory, fieldNumber, index);
     this.referenceFile = referenceFile;
     this.toCoordinates = toCoordinates;
   }
@@ -53,6 +54,6 @@ public class ReferenceExtensionHandler extends AbstractSingleFieldExtensionHandl
       throw BadExtension.because(
           extension.url(), ".valueReference.reference could not be resolved to an id");
     }
-    return List.of(filemanFactory().forString(fieldNumber(), 1, "`" + siteCoordinates.ien()));
+    return List.of(filemanFactory().forString(fieldNumber(), index(), "`" + siteCoordinates.ien()));
   }
 }

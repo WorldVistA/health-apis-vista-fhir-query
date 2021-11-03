@@ -9,34 +9,24 @@ import gov.va.api.health.vistafhirquery.service.controller.ResourceExceptions;
 import gov.va.api.health.vistafhirquery.service.controller.WriteableFilemanValueFactory;
 import gov.va.api.lighthouse.charon.models.lhslighthouserpcgateway.LhsLighthouseRpcGatewayCoverageWrite;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 
 public class StringExtensionHandlerTest {
-
-  private StringExtensionHandler _handler() {
+  private StringExtensionHandler _handler(int index) {
     return StringExtensionHandler.forDefiningUrl("http://fugazi.com/string")
         .required(REQUIRED)
         .fieldNumber("#.field_number")
+        .index(index)
         .filemanFactory(WriteableFilemanValueFactory.forFile("file_number"))
         .build();
   }
 
-  @Test
-  void handleNullValueStringThrowsBadException() {
-    assertThatExceptionOfType(ResourceExceptions.BadRequestPayload.BadExtension.class)
-        .isThrownBy(
-            () ->
-                _handler()
-                    .handle(
-                        Extension.builder()
-                            .url("http://fugazi.com/string")
-                            .valueString(null)
-                            .build()));
-  }
-
-  @Test
-  void handleString() {
+  @ParameterizedTest
+  @ValueSource(ints = {1, 2})
+  void handle(int index) {
     assertThat(
-            _handler()
+            _handler(index)
                 .handle(
                     Extension.builder()
                         .url("http://fugazi.com/string")
@@ -45,9 +35,22 @@ public class StringExtensionHandlerTest {
         .containsOnly(
             LhsLighthouseRpcGatewayCoverageWrite.WriteableFilemanValue.builder()
                 .file("file_number")
-                .index(1)
+                .index(index)
                 .field("#.field_number")
                 .value("test_string")
                 .build());
+  }
+
+  @Test
+  void handleNullValueStringThrowsBadException() {
+    assertThatExceptionOfType(ResourceExceptions.BadRequestPayload.BadExtension.class)
+        .isThrownBy(
+            () ->
+                _handler(1)
+                    .handle(
+                        Extension.builder()
+                            .url("http://fugazi.com/string")
+                            .valueString(null)
+                            .build()));
   }
 }

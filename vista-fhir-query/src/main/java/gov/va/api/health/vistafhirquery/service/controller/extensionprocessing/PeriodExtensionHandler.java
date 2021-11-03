@@ -31,8 +31,9 @@ public class PeriodExtensionHandler extends AbstractExtensionHandler {
       @NonNull ExtensionHandler.Required required,
       @NonNull String periodStartFieldNumber,
       @NonNull String periodEndFieldNumber,
+      int index,
       ZoneId zoneId) {
-    super(definingUrl, required, filemanFactory);
+    super(definingUrl, required, filemanFactory, index);
     this.dateTimeFormatter =
         DateTimeFormatter.ofPattern("MM-dd-yyy")
             .withZone(zoneId == null ? ZoneId.of("UTC") : zoneId);
@@ -67,6 +68,6 @@ public class PeriodExtensionHandler extends AbstractExtensionHandler {
       return null;
     }
     var vistaFormatedDate = dateTimeFormatter().format(parseDateTime(datetime));
-    return filemanFactory().forString(fieldNumber, 1, vistaFormatedDate);
+    return filemanFactory().forString(fieldNumber, index(), vistaFormatedDate);
   }
 }

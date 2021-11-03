@@ -26,21 +26,23 @@ public class PeriodExtensionHandlerTest {
     return Stream.of(
         arguments(
             Period.builder().start("2010-01-20T10:00:01.000Z").end("2015-02-08").build(),
+            2,
             List.of(
                 WriteableFilemanValue.builder()
                     .file("888")
-                    .index(1)
+                    .index(2)
                     .field(".start")
                     .value("01-20-2010")
                     .build(),
                 WriteableFilemanValue.builder()
                     .file("888")
-                    .index(1)
+                    .index(2)
                     .field(".end")
                     .value("02-08-2015")
                     .build())),
         arguments(
             Period.builder().start("2010-01-20T10:00:01.000Z").build(),
+            1,
             List.of(
                 WriteableFilemanValue.builder()
                     .file("888")
@@ -50,6 +52,7 @@ public class PeriodExtensionHandlerTest {
                     .build())),
         arguments(
             Period.builder().end("2015-02-08").build(),
+            1,
             List.of(
                 WriteableFilemanValue.builder()
                     .file("888")
@@ -59,12 +62,13 @@ public class PeriodExtensionHandlerTest {
                     .build())));
   }
 
-  private PeriodExtensionHandler _handler() {
+  private PeriodExtensionHandler _handler(int index) {
     return PeriodExtensionHandler.forDefiningUrl("http://fugazi.com/period")
         .required(Required.REQUIRED)
         .filemanFactory(WriteableFilemanValueFactory.forFile("888"))
         .periodStartFieldNumber(".start")
         .periodEndFieldNumber(".end")
+        .index(index)
         .build();
   }
 
@@ -73,7 +77,7 @@ public class PeriodExtensionHandlerTest {
   @NullSource
   void badExtensionPeriod(Period period) {
     var sample = extensionWithPeriod(period);
-    assertThatExceptionOfType(BadExtension.class).isThrownBy(() -> _handler().handle(sample));
+    assertThatExceptionOfType(BadExtension.class).isThrownBy(() -> _handler(1).handle(sample));
   }
 
   private Extension extensionWithPeriod(Period period) {
@@ -82,8 +86,8 @@ public class PeriodExtensionHandlerTest {
 
   @ParameterizedTest
   @MethodSource
-  void handlePeriod(Period period, List<WriteableFilemanValue> expected) {
+  void handlePeriod(Period period, int index, List<WriteableFilemanValue> expected) {
     var sample = extensionWithPeriod(period);
-    assertThat(_handler().handle(sample)).containsExactlyElementsOf(expected);
+    assertThat(_handler(index).handle(sample)).containsExactlyElementsOf(expected);
   }
 }

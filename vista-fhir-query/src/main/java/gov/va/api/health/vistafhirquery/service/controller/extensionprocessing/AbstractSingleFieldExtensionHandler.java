@@ -10,8 +10,9 @@ public abstract class AbstractSingleFieldExtensionHandler extends AbstractExtens
       String definingUrl,
       Required required,
       WriteableFilemanValueFactory filemanFactory,
-      String fieldNumber) {
-    super(definingUrl, required, filemanFactory);
+      String fieldNumber,
+      int index) {
+    super(definingUrl, required, filemanFactory, index);
     this.fieldNumber = fieldNumber;
   }
 }

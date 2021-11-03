@@ -4,23 +4,21 @@ import static gov.va.api.health.vistafhirquery.service.controller.R4Transformers
 
 import gov.va.api.health.r4.api.elements.Extension;
 import gov.va.api.health.vistafhirquery.service.controller.ResourceExceptions;
+import gov.va.api.health.vistafhirquery.service.controller.extensionprocessing.ExtensionHandler.Required;
 import gov.va.api.lighthouse.charon.models.lhslighthouserpcgateway.LhsLighthouseRpcGatewayCoverageWrite.WriteableFilemanValue;
 import java.util.List;
+import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
-import lombok.NonNull;
 
-public class ComplexExtensionHandler extends AbstractExtensionHandler {
+@Builder
+@AllArgsConstructor
+public class ComplexExtensionHandler implements ExtensionHandler {
+  @Getter private final String definingUrl;
+
+  @Getter private final Required required;
+
   @Getter private final List<ExtensionHandler> childExtensions;
-
-  @Builder
-  ComplexExtensionHandler(
-      @NonNull String definingUrl,
-      @NonNull ExtensionHandler.Required required,
-      @NonNull List<ExtensionHandler> childExtensions) {
-    super(definingUrl, required, null);
-    this.childExtensions = childExtensions;
-  }
 
   public static ComplexExtensionHandlerBuilder forDefiningUrl(String definingUrl) {
     return ComplexExtensionHandler.builder().definingUrl(definingUrl);

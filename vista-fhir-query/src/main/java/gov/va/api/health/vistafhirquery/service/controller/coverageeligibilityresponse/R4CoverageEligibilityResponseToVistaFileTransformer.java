@@ -109,6 +109,7 @@ public class R4CoverageEligibilityResponseToVistaFileTransformer {
                     .MILITARY_INFO_STATUS_CODE_DEFINITION)
             .filemanFactory(FACTORY_REGISTRY.get(IivResponse.FILE_NUMBER))
             .fieldNumber(IivResponse.MILITARY_INFO_STATUS_CODE)
+            .index(INDEX_REGISTRY.get(IivResponse.FILE_NUMBER))
             .codingSystem(CoverageEligibilityResponseStructureDefinitions.MILITARY_INFO_STATUS_CODE)
             .required(REQUIRED)
             .build(),
@@ -117,6 +118,7 @@ public class R4CoverageEligibilityResponseToVistaFileTransformer {
                     .MILITARY_EMPLOYMENT_STATUS_DEFINITION)
             .filemanFactory(FACTORY_REGISTRY.get(IivResponse.FILE_NUMBER))
             .fieldNumber(IivResponse.MILITARY_EMPLOYMENT_STATUS)
+            .index(INDEX_REGISTRY.get(IivResponse.FILE_NUMBER))
             .codingSystem(
                 CoverageEligibilityResponseStructureDefinitions.MILITARY_EMPLOYMENT_STATUS)
             .required(REQUIRED)
@@ -126,6 +128,7 @@ public class R4CoverageEligibilityResponseToVistaFileTransformer {
                     .MILITARY_GOVT_AFFILIATION_CODE_DEFINITION)
             .filemanFactory(FACTORY_REGISTRY.get(IivResponse.FILE_NUMBER))
             .fieldNumber(IivResponse.MILITARY_GOVT_AFFILIATION_CODE)
+            .index(INDEX_REGISTRY.get(IivResponse.FILE_NUMBER))
             .codingSystem(
                 CoverageEligibilityResponseStructureDefinitions.MILITARY_GOVT_AFFILIATION_CODE)
             .required(REQUIRED)
@@ -135,6 +138,7 @@ public class R4CoverageEligibilityResponseToVistaFileTransformer {
                     .MILITARY_PERSONNEL_DESCRIPTION_DEFINITION)
             .filemanFactory(FACTORY_REGISTRY.get(IivResponse.FILE_NUMBER))
             .fieldNumber(IivResponse.MILITARY_PERSONNEL_DESCRIPTION)
+            .index(INDEX_REGISTRY.get(IivResponse.FILE_NUMBER))
             .required(REQUIRED)
             .build(),
         CodeableConceptExtensionHandler.forDefiningUrl(
@@ -142,6 +146,7 @@ public class R4CoverageEligibilityResponseToVistaFileTransformer {
                     .MILITARY_SERVICE_RANK_CODE_DEFINITION)
             .filemanFactory(FACTORY_REGISTRY.get(IivResponse.FILE_NUMBER))
             .fieldNumber(IivResponse.MILITARY_SERVICE_RANK_CODE)
+            .index(INDEX_REGISTRY.get(IivResponse.FILE_NUMBER))
             .codingSystem(
                 CoverageEligibilityResponseStructureDefinitions.MILITARY_SERVICE_RANK_CODE)
             .required(REQUIRED)
@@ -269,6 +274,7 @@ public class R4CoverageEligibilityResponseToVistaFileTransformer {
                         .zoneId(zoneId())
                         .periodStartFieldNumber(SubscriberDates.DATE)
                         .periodEndFieldNumber(SubscriberDates.DATE)
+                        .index(INDEX_REGISTRY.get(SubscriberDates.FILE_NUMBER))
                         .build(),
                     CodeableConceptExtensionHandler.forDefiningUrl(
                             CoverageEligibilityResponseStructureDefinitions.SUBSCRIBER_DATE_KIND)
@@ -278,6 +284,7 @@ public class R4CoverageEligibilityResponseToVistaFileTransformer {
                             CoverageEligibilityResponseStructureDefinitions
                                 .SUBSCRIBER_DATE_QUALIFIER)
                         .fieldNumber(SubscriberDates.DATE_QUALIFIER)
+                        .index(INDEX_REGISTRY.get(SubscriberDates.FILE_NUMBER))
                         .build()))
             .build());
   }

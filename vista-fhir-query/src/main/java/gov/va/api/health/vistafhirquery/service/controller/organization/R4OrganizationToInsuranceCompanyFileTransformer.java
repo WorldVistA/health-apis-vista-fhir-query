@@ -250,6 +250,7 @@ public class R4OrganizationToInsuranceCompanyFileTransformer {
                 OrganizationStructureDefinitions.SIGNATURE_REQUIRED_ON_BILL)
             .filemanFactory(filemanFactory)
             .fieldNumber(InsuranceCompany.SIGNATURE_REQUIRED_ON_BILL_)
+            .index(1)
             .required(REQUIRED)
             .booleanStringMapping(YES_NO)
             .build(),
@@ -258,6 +259,7 @@ public class R4OrganizationToInsuranceCompanyFileTransformer {
                     .ATTENDING_RENDERING_PROVIDER_SECONDARY_IDPROFESIONAL_REQUIRED)
             .filemanFactory(filemanFactory)
             .fieldNumber(InsuranceCompany.ATT_REND_ID_BILL_SEC_ID_PROF)
+            .index(1)
             .required(REQUIRED)
             .booleanStringMapping(YES_NO)
             .build(),
@@ -266,6 +268,7 @@ public class R4OrganizationToInsuranceCompanyFileTransformer {
                     .ATTENDING_RENDERING_PROVIDER_SECONDARY_IDINSTITUTIONAL_REQUIRED)
             .filemanFactory(filemanFactory)
             .fieldNumber(InsuranceCompany.ATT_REND_ID_BILL_SEC_ID_INST)
+            .index(1)
             .required(REQUIRED)
             .booleanStringMapping(YES_NO)
             .build(),
@@ -273,6 +276,7 @@ public class R4OrganizationToInsuranceCompanyFileTransformer {
                 OrganizationStructureDefinitions.PRINT_SEC_TERT_AUTO_CLAIMS_LOCALLY)
             .filemanFactory(filemanFactory)
             .fieldNumber(InsuranceCompany.PRINT_SEC_TERT_AUTO_CLAIMS_)
+            .index(1)
             .required(REQUIRED)
             .booleanStringMapping(YES_NO)
             .build(),
@@ -280,6 +284,7 @@ public class R4OrganizationToInsuranceCompanyFileTransformer {
                 OrganizationStructureDefinitions.PRINT_SEC_MED_CLAIMS_WOMRALOCALLY)
             .filemanFactory(filemanFactory)
             .fieldNumber(InsuranceCompany.PRINT_SEC_MED_CLAIMS_W_O_MRA_)
+            .index(1)
             .required(REQUIRED)
             .booleanStringMapping(YES_NO)
             .build(),
@@ -287,6 +292,7 @@ public class R4OrganizationToInsuranceCompanyFileTransformer {
                 OrganizationStructureDefinitions.ALLOW_MULTIPLE_BEDSECTIONS)
             .filemanFactory(filemanFactory)
             .fieldNumber(InsuranceCompany.ALLOW_MULTIPLE_BEDSECTIONS)
+            .index(1)
             .required(OPTIONAL)
             .booleanStringMapping(YES_NO)
             .build(),
@@ -294,6 +300,7 @@ public class R4OrganizationToInsuranceCompanyFileTransformer {
                 OrganizationStructureDefinitions.ONE_OUTPAT_VISIT_ON_BILL_ONLY)
             .filemanFactory(filemanFactory)
             .fieldNumber(InsuranceCompany.ONE_OPT_VISIT_ON_BILL_ONLY)
+            .index(1)
             .required(OPTIONAL)
             .booleanStringMapping(YES_NO)
             .build(),
@@ -301,6 +308,7 @@ public class R4OrganizationToInsuranceCompanyFileTransformer {
                 OrganizationStructureDefinitions.ANOTHER_COMPANY_PROCESSES_INPAT_CLAIMS)
             .filemanFactory(filemanFactory)
             .fieldNumber(InsuranceCompany.ANOTHER_CO_PROCESS_IP_CLAIMS_)
+            .index(1)
             .required(OPTIONAL)
             .booleanStringMapping(YES_NO)
             .build(),
@@ -308,6 +316,7 @@ public class R4OrganizationToInsuranceCompanyFileTransformer {
                 OrganizationStructureDefinitions.ANOTHER_COMPANY_PROCESSES_APPEALS)
             .filemanFactory(filemanFactory)
             .fieldNumber(InsuranceCompany.ANOTHER_CO_PROCESS_APPEALS_)
+            .index(1)
             .required(OPTIONAL)
             .booleanStringMapping(YES_NO)
             .build(),
@@ -315,6 +324,7 @@ public class R4OrganizationToInsuranceCompanyFileTransformer {
                 OrganizationStructureDefinitions.ANOTHER_COMPANY_PROCESSES_INQUIRIES)
             .filemanFactory(filemanFactory)
             .fieldNumber(InsuranceCompany.ANOTHER_CO_PROCESS_INQUIRIES_)
+            .index(1)
             .required(OPTIONAL)
             .booleanStringMapping(YES_NO)
             .build(),
@@ -322,6 +332,7 @@ public class R4OrganizationToInsuranceCompanyFileTransformer {
                 OrganizationStructureDefinitions.ANOTHER_COMPANY_PROCESSES_DENTAL_CLAIMS)
             .filemanFactory(filemanFactory)
             .fieldNumber(InsuranceCompany.ANOTHER_CO_PROC_DENT_CLAIMS_)
+            .index(1)
             .required(OPTIONAL)
             .booleanStringMapping(YES_NO)
             .build(),
@@ -329,6 +340,7 @@ public class R4OrganizationToInsuranceCompanyFileTransformer {
                 OrganizationStructureDefinitions.ANOTHER_COMPANY_PROCESSES_OUTPAT_CLAIMS)
             .filemanFactory(filemanFactory)
             .fieldNumber(InsuranceCompany.ANOTHER_CO_PROCESS_OP_CLAIMS_)
+            .index(1)
             .required(OPTIONAL)
             .booleanStringMapping(YES_NO)
             .build(),
@@ -336,6 +348,7 @@ public class R4OrganizationToInsuranceCompanyFileTransformer {
                 OrganizationStructureDefinitions.ANOTHER_COMPANY_PROCESSES_PRECERT)
             .filemanFactory(filemanFactory)
             .fieldNumber(InsuranceCompany.ANOTHER_CO_PROCESS_PRECERTS_)
+            .index(1)
             .required(OPTIONAL)
             .booleanStringMapping(YES_NO)
             .build(),
@@ -343,6 +356,7 @@ public class R4OrganizationToInsuranceCompanyFileTransformer {
                 OrganizationStructureDefinitions.ANOTHER_COMPANY_PROCESSES_RX_CLAIMS)
             .filemanFactory(filemanFactory)
             .fieldNumber(InsuranceCompany.ANOTHER_CO_PROCESS_RX_CLAIMS_)
+            .index(1)
             .required(OPTIONAL)
             .booleanStringMapping(YES_NO)
             .build());
@@ -415,6 +429,7 @@ public class R4OrganizationToInsuranceCompanyFileTransformer {
                 OrganizationStructureDefinitions.TYPE_OF_COVERAGE)
             .filemanFactory(filemanFactory)
             .fieldNumber(InsuranceCompany.TYPE_OF_COVERAGE)
+            .index(1)
             .codingSystem(OrganizationStructureDefinitions.TYPE_OF_COVERAGE_URN_OID)
             .required(REQUIRED)
             .build(),
@@ -422,6 +437,7 @@ public class R4OrganizationToInsuranceCompanyFileTransformer {
                 OrganizationStructureDefinitions.WILL_REIMBURSE_FOR_CARE)
             .filemanFactory(filemanFactory)
             .fieldNumber(InsuranceCompany.REIMBURSE_)
+            .index(1)
             .codingSystem(OrganizationStructureDefinitions.WILL_REIMBURSE_FOR_CARE_URN_OID)
             .required(REQUIRED)
             .build(),
@@ -429,6 +445,7 @@ public class R4OrganizationToInsuranceCompanyFileTransformer {
                 OrganizationStructureDefinitions.ELECTRONIC_TRANSMISSION_MODE)
             .filemanFactory(filemanFactory)
             .fieldNumber(InsuranceCompany.TRANSMIT_ELECTRONICALLY)
+            .index(1)
             .codingSystem(OrganizationStructureDefinitions.ELECTRONIC_TRANSMISSION_MODE_URN_OID)
             .required(REQUIRED)
             .build(),
@@ -436,6 +453,7 @@ public class R4OrganizationToInsuranceCompanyFileTransformer {
                 OrganizationStructureDefinitions.ELECTRONIC_INSURANCE_TYPE)
             .filemanFactory(filemanFactory)
             .fieldNumber(InsuranceCompany.ELECTRONIC_INSURANCE_TYPE)
+            .index(1)
             .codingSystem(OrganizationStructureDefinitions.ELECTRONIC_INSURANCE_TYPE_URN_OID)
             .required(REQUIRED)
             .build(),
@@ -443,6 +461,7 @@ public class R4OrganizationToInsuranceCompanyFileTransformer {
                 OrganizationStructureDefinitions.REFERRNG_PROVIDER_SECOND_IDTYPE_UB_04)
             .filemanFactory(filemanFactory)
             .fieldNumber(InsuranceCompany.REF_PROV_SEC_ID_REQ_ON_CLAIMS)
+            .index(1)
             .codingSystem(
                 OrganizationStructureDefinitions.REFERRNG_PROVIDER_SECOND_IDTYPE_UB_04_URN_OID)
             .required(REQUIRED)
@@ -451,6 +470,7 @@ public class R4OrganizationToInsuranceCompanyFileTransformer {
                 OrganizationStructureDefinitions.AMBULATORY_SURGERY_REVENUE_CODE)
             .filemanFactory(filemanFactory)
             .fieldNumber(InsuranceCompany.AMBULATORY_SURG_REV_CODE)
+            .index(1)
             .codingSystem(OrganizationStructureDefinitions.AMBULATORY_SURGERY_REVENUE_CODE_URN_OID)
             .required(OPTIONAL)
             .build(),
@@ -458,6 +478,7 @@ public class R4OrganizationToInsuranceCompanyFileTransformer {
                 OrganizationStructureDefinitions.PRESCRIPTION_REVENUE_CODE)
             .filemanFactory(filemanFactory)
             .fieldNumber(InsuranceCompany.PRESCRIPTION_REFILL_REV_CODE)
+            .index(1)
             .codingSystem(OrganizationStructureDefinitions.PRESCRIPTION_REVENUE_CODE_URN_OID)
             .required(OPTIONAL)
             .build(),
@@ -465,6 +486,7 @@ public class R4OrganizationToInsuranceCompanyFileTransformer {
                 OrganizationStructureDefinitions.PERFORMING_PROVIDER_SECOND_IDTYPE_CMS_1500)
             .filemanFactory(filemanFactory)
             .fieldNumber(InsuranceCompany.PERF_PROV_SECOND_ID_TYPE_1500)
+            .index(1)
             .codingSystem(
                 OrganizationStructureDefinitions.PERFORMING_PROVIDER_SECOND_IDTYPE_CMS_1500_URN_OID)
             .required(OPTIONAL)
@@ -473,6 +495,7 @@ public class R4OrganizationToInsuranceCompanyFileTransformer {
                 OrganizationStructureDefinitions.PERFORMING_PROVIDER_SECOND_IDTYPE_UB_04)
             .filemanFactory(filemanFactory)
             .fieldNumber(InsuranceCompany.PERF_PROV_SECOND_ID_TYPE_UB)
+            .index(1)
             .codingSystem(
                 OrganizationStructureDefinitions.PERFORMING_PROVIDER_SECOND_IDTYPE_UB_04_URN_OID)
             .required(OPTIONAL)
@@ -481,6 +504,7 @@ public class R4OrganizationToInsuranceCompanyFileTransformer {
                 OrganizationStructureDefinitions.REFERRNG_PROVIDER_SECOND_IDTYPE_CMS_1500)
             .filemanFactory(filemanFactory)
             .fieldNumber(InsuranceCompany.REF_PROV_SEC_ID_DEF_CMS_1500)
+            .index(1)
             .codingSystem(
                 OrganizationStructureDefinitions.REFERRNG_PROVIDER_SECOND_IDTYPE_CMS_1500_URN_OID)
             .required(OPTIONAL)
@@ -807,6 +831,7 @@ public class R4OrganizationToInsuranceCompanyFileTransformer {
             .required(REQUIRED)
             .valueFieldNumber(InsuranceCompany.STANDARD_FTF_VALUE)
             .unitFieldNumber(InsuranceCompany.STANDARD_FTF)
+            .index(1)
             .filemanFactory(filemanFactory)
             .build());
   }
@@ -816,6 +841,7 @@ public class R4OrganizationToInsuranceCompanyFileTransformer {
         ReferenceExtensionHandler.forDefiningUrl(OrganizationStructureDefinitions.VIA_INTERMEDIARY)
             .required(REQUIRED)
             .fieldNumber(InsuranceCompany.PAYER)
+            .index(1)
             .referenceFile(Payer.FILE_NUMBER)
             .toCoordinates(RecordCoordinates::fromString)
             .filemanFactory(filemanFactory)
@@ -849,6 +875,7 @@ public class R4OrganizationToInsuranceCompanyFileTransformer {
     return Set.of(
         StringExtensionHandler.forDefiningUrl(OrganizationStructureDefinitions.FILING_TIME_FRAME)
             .fieldNumber(InsuranceCompany.FILING_TIME_FRAME)
+            .index(1)
             .filemanFactory(filemanFactory)
             .required(REQUIRED)
             .build());
