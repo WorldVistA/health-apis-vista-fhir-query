@@ -9,6 +9,7 @@ import gov.va.api.health.ids.client.IdsClientProperties;
 import gov.va.api.health.ids.client.IdsClientProperties.EncodedIdsFormatProperties;
 import gov.va.api.health.ids.client.RestIdentityServiceClientConfig;
 import gov.va.api.health.vistafhirquery.idsmapping.VistaFhirQueryIdsCodebookSupplier;
+import gov.va.api.health.vistafhirquery.service.controller.SegmentedVistaIdentifier.FormatCompressedAppointment;
 import gov.va.api.health.vistafhirquery.service.controller.SegmentedVistaIdentifier.PatientIdentifierType;
 import gov.va.api.health.vistafhirquery.service.controller.SegmentedVistaIdentifier.TenvSix;
 import gov.va.api.lighthouse.charon.models.vprgetpatientdata.VprGetPatientData;
@@ -122,16 +123,18 @@ public class SegmentedVistaIdentifierTest {
         .isThrownBy(() -> SegmentedVistaIdentifier.PatientIdentifierType.fromAbbreviation('Z'));
   }
 
-  @Test
-  void packWithCompactedAppointmentFormatIsSmallEnough() {
-    // VISTA Appointment N1011537977V693883+673+LA;2931013.07;23
+  @ParameterizedTest
+  @ValueSource(strings = {"A;2931013.07;23", "A;2931013.070512;23", "A;2931013;23"})
+  void packWithCompactedAppointmentFormatIsSmallEnough(String recordId) {
+    assertThat(FormatCompressedAppointment.RECORD_ID.matcher(recordId).matches()).isEqualTo(true);
+
     SegmentedVistaIdentifier id =
         SegmentedVistaIdentifier.builder()
             .patientIdentifierType(PatientIdentifierType.NATIONAL_ICN)
             .patientIdentifier("1011537977V693883")
             .siteId("673")
             .vprRpcDomain(Domains.appointments)
-            .recordId("A;2931013.07;23")
+            .recordId(recordId)
             .build();
     String packed = id.pack();
     SegmentedVistaIdentifier unpacked = SegmentedVistaIdentifier.unpack(packed);
