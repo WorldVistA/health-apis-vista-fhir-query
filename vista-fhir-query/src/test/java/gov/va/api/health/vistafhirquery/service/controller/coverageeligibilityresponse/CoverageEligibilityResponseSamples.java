@@ -19,6 +19,7 @@ import gov.va.api.health.r4.api.resources.CoverageEligibilityResponse.Purpose;
 import gov.va.api.health.vistafhirquery.service.controller.PatientTypeCoordinates;
 import gov.va.api.health.vistafhirquery.service.controller.RecordCoordinates;
 import gov.va.api.lighthouse.charon.models.lhslighthouserpcgateway.EligibilityBenefit;
+import gov.va.api.lighthouse.charon.models.lhslighthouserpcgateway.HealthCareCodeInformation;
 import gov.va.api.lighthouse.charon.models.lhslighthouserpcgateway.IivResponse;
 import gov.va.api.lighthouse.charon.models.lhslighthouserpcgateway.InsuranceCompany;
 import gov.va.api.lighthouse.charon.models.lhslighthouserpcgateway.LhsLighthouseRpcGatewayCoverageWrite.WriteableFilemanValue;
@@ -249,6 +250,29 @@ public class CoverageEligibilityResponseSamples {
                   codeableConceptFor(
                       CoverageEligibilityResponseStructureDefinitions.MILITARY_SERVICE_RANK_CODE,
                       "C1"))
+              .build(),
+          Extension.builder()
+              .url(
+                  "http://va.gov/fhir/StructureDefinition/coverageEligibilityResponse-healthCareCode")
+              .extension(
+                  List.of(
+                      Extension.builder()
+                          .url("diagnosisCode")
+                          .valueCodeableConcept(
+                              CodeableConcept.builder()
+                                  .coding(
+                                      Coding.builder()
+                                          .system("http://hl7.org/fhir/sid/icd-9-cm")
+                                          .code("100.81")
+                                          .build()
+                                          .asList())
+                                  .build())
+                          .build(),
+                      Extension.builder()
+                          .url("diagnosisCodeQualifier")
+                          .valueString("ICD-9-CM")
+                          .build(),
+                      Extension.builder().url("primaryOrSecondary").valueString("PRIMARY").build()))
               .build());
     }
 
@@ -412,6 +436,37 @@ public class CoverageEligibilityResponseSamples {
                       .fields(subscriberDatesFields())
                       .build()))
           .build();
+    }
+
+    private Map<String, Values> healthCareCodeInformationFields() {
+      Map<String, Values> fields = new HashMap<>();
+      fields.put(HealthCareCodeInformation.DIAGNOSIS_CODE, Values.of("100.81", "100.81"));
+      fields.put(
+          HealthCareCodeInformation.DIAGNOSIS_CODE_QUALIFIER, Values.of("ICD-9-CM", "ICD-9-CM"));
+      fields.put(HealthCareCodeInformation.PRIMARY_OR_SECONDARY, Values.of("PRIMARY", "P"));
+      return Map.copyOf(fields);
+    }
+
+    public List<WriteableFilemanValue> healthCareCodeInformationFilemanValues() {
+      return List.of(
+          WriteableFilemanValue.builder()
+              .file(HealthCareCodeInformation.FILE_NUMBER)
+              .index(1)
+              .field(HealthCareCodeInformation.DIAGNOSIS_CODE)
+              .value("100.81")
+              .build(),
+          WriteableFilemanValue.builder()
+              .file(HealthCareCodeInformation.FILE_NUMBER)
+              .index(1)
+              .field(HealthCareCodeInformation.DIAGNOSIS_CODE_QUALIFIER)
+              .value("ICD-9-CM")
+              .build(),
+          WriteableFilemanValue.builder()
+              .file(HealthCareCodeInformation.FILE_NUMBER)
+              .index(1)
+              .field(HealthCareCodeInformation.PRIMARY_OR_SECONDARY)
+              .value("PRIMARY")
+              .build());
     }
 
     public List<WriteableFilemanValue> ienMacroPointers() {

@@ -114,10 +114,11 @@ public class R4CoverageEligibilityResponseToVistaFileTransformerTest {
         .containsExactlyInAnyOrderElementsOf(
             Stream.of(
                     samples.eligibilityBenefitFilemanValues(),
+                    samples.healthCareCodeInformationFilemanValues(),
+                    samples.ienMacroPointers(),
                     samples.iivResponseFilemanValues(),
                     samples.serviceTypesFilemanValues(),
-                    samples.subscriberDatesFilemanValues(),
-                    samples.ienMacroPointers())
+                    samples.subscriberDatesFilemanValues())
                 .flatMap(Collection::stream)
                 .toList());
   }

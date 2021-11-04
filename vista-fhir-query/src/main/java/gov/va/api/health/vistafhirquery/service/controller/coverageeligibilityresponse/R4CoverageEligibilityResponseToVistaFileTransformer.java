@@ -28,6 +28,7 @@ import gov.va.api.health.vistafhirquery.service.controller.extensionprocessing.P
 import gov.va.api.health.vistafhirquery.service.controller.extensionprocessing.R4ExtensionProcessor;
 import gov.va.api.health.vistafhirquery.service.controller.extensionprocessing.StringExtensionHandler;
 import gov.va.api.lighthouse.charon.models.lhslighthouserpcgateway.EligibilityBenefit;
+import gov.va.api.lighthouse.charon.models.lhslighthouserpcgateway.HealthCareCodeInformation;
 import gov.va.api.lighthouse.charon.models.lhslighthouserpcgateway.IivResponse;
 import gov.va.api.lighthouse.charon.models.lhslighthouserpcgateway.LhsLighthouseRpcGatewayCoverageWrite.WriteableFilemanValue;
 import gov.va.api.lighthouse.charon.models.lhslighthouserpcgateway.Payer;
@@ -150,6 +151,36 @@ public class R4CoverageEligibilityResponseToVistaFileTransformer {
             .codingSystem(
                 CoverageEligibilityResponseStructureDefinitions.MILITARY_SERVICE_RANK_CODE)
             .required(REQUIRED)
+            .build(),
+        ComplexExtensionHandler.forDefiningUrl(
+                CoverageEligibilityResponseStructureDefinitions.HEALTH_CARE_CODE_DEFINITION)
+            .required(REQUIRED)
+            .childExtensions(
+                List.of(
+                    CodeableConceptExtensionHandler.forDefiningUrl("diagnosisCode")
+                        .required(REQUIRED)
+                        .filemanFactory(FACTORY_REGISTRY.get(HealthCareCodeInformation.FILE_NUMBER))
+                        .fieldNumber(HealthCareCodeInformation.DIAGNOSIS_CODE)
+                        .index(INDEX_REGISTRY.get(HealthCareCodeInformation.FILE_NUMBER))
+                        .codingSystems(
+                            List.of(
+                                "http://hl7.org/fhir/sid/icd-9-cm",
+                                "http://www.cms.gov/Medicare/Coding/ICD9",
+                                "http://hl7.org/fhir/sid/icd-10-cm",
+                                "http://www.cms.gov/Medicare/Coding/ICD10"))
+                        .build(),
+                    StringExtensionHandler.forDefiningUrl("diagnosisCodeQualifier")
+                        .required(REQUIRED)
+                        .filemanFactory(FACTORY_REGISTRY.get(HealthCareCodeInformation.FILE_NUMBER))
+                        .fieldNumber(HealthCareCodeInformation.DIAGNOSIS_CODE_QUALIFIER)
+                        .index(INDEX_REGISTRY.get(HealthCareCodeInformation.FILE_NUMBER))
+                        .build(),
+                    StringExtensionHandler.forDefiningUrl("primaryOrSecondary")
+                        .required(REQUIRED)
+                        .filemanFactory(FACTORY_REGISTRY.get(HealthCareCodeInformation.FILE_NUMBER))
+                        .fieldNumber(HealthCareCodeInformation.PRIMARY_OR_SECONDARY)
+                        .index(INDEX_REGISTRY.get(HealthCareCodeInformation.FILE_NUMBER))
+                        .build()))
             .build());
   }
 

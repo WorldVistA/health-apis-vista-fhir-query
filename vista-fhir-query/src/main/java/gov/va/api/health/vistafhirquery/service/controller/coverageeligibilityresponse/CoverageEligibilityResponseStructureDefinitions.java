@@ -55,6 +55,7 @@ public class CoverageEligibilityResponseStructureDefinitions {
   public static final String MILITARY_SERVICE_RANK_CODE_DEFINITION =
       "http://va.gov/fhir/StructureDefinition" + "/coverageEligibilityResponse-militaryRank";
   public static final String DATE_TIME_PERIOD =
-      "http://va.gov/fhir/StructureDefinition/coverageEligibilityResponse"
-          + "-militaryEngagementPeriod";
+      "http://va.gov/fhir/StructureDefinition/coverageEligibilityResponse-militaryEngagementPeriod";
+  public static final String HEALTH_CARE_CODE_DEFINITION =
+      "http://va.gov/fhir/StructureDefinition/coverageEligibilityResponse-healthCareCode";
 }
