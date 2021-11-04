@@ -139,6 +139,7 @@ public class R4CoverageToInsuranceTypeFileTransformer {
           InsuranceType.PT_RELATIONSHIP_HIPAA,
           "Unexpected relationship code count: " + relationship.coding().size());
     }
+    /* TODO https://vajira.max.gov/browse/API-11160 verify system is http://terminology.hl7.org/CodeSystem/subscriber-relationship */
     return relationship.coding().stream()
         .map(SubscriberToBeneficiaryRelationship::fromCoding)
         .filter(Optional::isPresent)
@@ -171,6 +172,7 @@ public class R4CoverageToInsuranceTypeFileTransformer {
       return dates;
     }
     var end = Instant.parse(period.end());
+    /* TODO https://vajira.max.gov/browse/API-11160 check end is _after_ the start, isBefore will allow for equal start and end */
     if (end.isBefore(start)) {
       throw BadRequestPayload.because("Coverage expiration Date is before start date.");
     }
@@ -200,6 +202,7 @@ public class R4CoverageToInsuranceTypeFileTransformer {
 
   /** Create a set of writeable fileman values. */
   public Set<WriteableFilemanValue> toInsuranceTypeFile() {
+    /* TODO https://vajira.max.gov/browse/API-11160 verify status is active */
     Set<WriteableFilemanValue> fields = new HashSet<>();
     Optional.ofNullable(coverage().id())
         .map(PatientTypeCoordinates::fromString)
