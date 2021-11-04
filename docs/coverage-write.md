@@ -35,4 +35,4 @@ Supported fields
 
 > Unsupported fields or extensions will be ignored.
 
-Example: [Coverage](vista-fhir-query/samples/coverageWrite.json)
+Example: [Coverage](../vista-fhir-query/samples/coverageWrite.json)
