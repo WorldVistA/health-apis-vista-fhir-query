@@ -43,7 +43,7 @@ public class R4AppointmentTransformer {
         return AppointmentStatus.noshow;
       case "CANCELLED":
         return AppointmentStatus.cancelled;
-      // Intentionally falling through for SCHEDULED/KEPT and NO ACTION TAKEN
+        // Intentionally falling through for SCHEDULED/KEPT and NO ACTION TAKEN
       case "SCHEDULED/KEPT":
       case "NO ACTION TAKEN":
       default:
