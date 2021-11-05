@@ -158,6 +158,20 @@ public class WriteableFilemanValueFactory {
         fieldNumber, index, "${" + pointerToFileNumber + "^" + pointerToIndex + "^IEN}");
   }
 
+  /** Build a WriteableFilemanValue with a gravé marker added to the value. */
+  public WriteableFilemanValue forRequiredPointerWithGraveMarker(
+      @NonNull String field, int index, String value) {
+    if (isBlank(value)) {
+      throw BadRequestPayload.because(file(), field, "Required pointer was found to be null.");
+    }
+    return WriteableFilemanValue.builder()
+        .file(file())
+        .index(index)
+        .field(field)
+        .value("`" + value)
+        .build();
+  }
+
   /** Build a WriteableFilemanValue for a string, throwing if blank. */
   public WriteableFilemanValue forRequiredString(@NonNull String field, int index, String value) {
     if (isBlank(value)) {

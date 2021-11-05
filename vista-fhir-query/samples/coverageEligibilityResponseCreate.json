@@ -1,0 +1,207 @@
+{
+  "resourceType": "CoverageEligibilityResponse",
+  "meta": {
+    "source": "673"
+  },
+  "patient" : {
+    "reference" : "http://localhost:8090/data-query/r4/Patient/195607",
+    "identifier" : {
+      "type" : {
+        "coding" : [
+          {
+            "code" : "MB"
+          }
+        ]
+      },
+      "value" : "1234"
+    }
+  },
+  "extension": [
+
+    {
+      "url": "http://va.gov/fhir/StructureDefinition/coverageEligibilityResponse-militaryInfoStatus",
+      "valueCodeableConcept": {
+        "coding": [
+          {
+            "system": "urn:oid:2.16.840.1.113883.3.8901.3.1.365.128001",
+            "code": "P"
+          }
+        ]
+      }
+    },
+    {
+      "url": "http://va.gov/fhir/StructureDefinition/coverageEligibilityResponse-militaryEmploymentStatus",
+      "valueCodeableConcept": {
+        "coding": [
+          {
+            "system": "urn:oid:2.16.840.1.113883.3.8901.3.1.365.128002",
+            "code": "CC"
+          }
+        ]
+      }
+    },
+    {
+      "url": "http://va.gov/fhir/StructureDefinition/coverageEligibilityResponse-militaryAffiliation",
+      "valueCodeableConcept": {
+        "coding": [
+          {
+            "system": "urn:oid:2.16.840.1.113883.3.8901.3.1.365.128003",
+            "code": "C"
+          }
+        ]
+      }
+    },
+    {
+      "url": "http://va.gov/fhir/StructureDefinition/coverageEligibilityResponse-militaryPersonnelDescription",
+      "valueString": "ARMY"
+    },
+    {
+      "url": "http://va.gov/fhir/StructureDefinition/coverageEligibilityResponse-militaryRank",
+      "valueCodeableConcept": {
+        "coding": [
+          {
+            "system": "urn:oid:2.16.840.1.113883.3.8901.3.1.365.128005",
+            "code": "C1"
+          }
+        ]
+      }
+    },
+    {
+      "url" : "http://va.gov/fhir/StructureDefinition/coverageEligibilityResponse-healthCareCode",
+      "extension" : [ {
+        "url" : "diagnosisCode",
+        "valueCodeableConcept" : {
+          "coding" : [ {
+            "system" : "http://hl7.org/fhir/sid/icd-9-cm",
+            "code" : "100.81"
+          } ]
+        }
+      }, {
+        "url" : "diagnosisCodeQualifier",
+        "valueString" : "ICD-9-CM"
+      }, {
+        "url" : "primaryOrSecondary",
+        "valueString" : "PRIMARY"
+      } ]
+    } ],
+  "identifier": [
+    {
+      "type": {
+        "text": "MSH-10"
+      },
+      "value": "MCI-888"
+    },
+    {
+      "type": {
+        "text": "MSA-3"
+      },
+      "value": "TN-1234"
+    }
+  ],
+  "servicedDate": "2010-01-20",
+  "insurer": {
+    "reference": "http://localhost:8095/site/673/r4/Organization/I3-450NAk1LKUAXPSQ98J5A3y"
+  },
+  "insurance": [
+    {
+      "benefitPeriod": {
+        "start": "2004-02-03",
+        "end": "2007-05-06"
+      },
+      "item": [
+        {
+          "extension": [
+            {
+              "extension": [
+                {
+                  "url": "http://va.gov/fhir/StructureDefinition/coverageEligibilityResponse-subscriberDatePeriod",
+                  "valuePeriod": {
+                    "start": "2018-05-20"
+                  }
+                },
+                {
+                  "url": "http://va.gov/fhir/StructureDefinition/coverageEligibilityResponse-subscriberDateKind",
+                  "valueCodeableConcept": {
+                    "coding": [
+                      {
+                        "system": "urn:oid:2.16.840.1.113883.3.8901.3.1.36580288.8003",
+                        "code": "346"
+                      }
+                    ]
+                  }
+                }
+              ],
+              "url": "http://va.gov/fhir/StructureDefinition/coverageEligibilityResponse-subscriberDate"
+            }
+          ],
+          "category": {
+            "coding": [
+              {
+                "system": "urn:oid:2.16.840.1.113883.3.8901.3.1.36580292.8001",
+                "code": "OTHER MEDICAL"
+              }
+            ]
+          },
+          "productOrService": {
+            "coding": [
+              {
+                "system": "N4",
+                "code": "IE123"
+              }
+            ]
+          },
+          "modifier": [
+            {
+              "coding": [
+                {
+                  "system": "urn:oid:2.16.840.1.113883.3.8901.3.1.3658002.18003",
+                  "code": "01"
+                }
+              ]
+            }
+          ],
+          "network": {
+            "coding": [
+              {
+                "system": "urn:oid:2.16.840.1.113883.3.8901.3.1.36580033.8001",
+                "code": "N"
+              }
+            ]
+          },
+          "unit": {
+            "coding": [
+              {
+                "system": "urn:oid:2.16.840.1.113883.3.8901.3.1.3658002.8003",
+                "code": "FAM"
+              }
+            ]
+          },
+          "term": {
+            "coding": [
+              {
+                "system": "urn:oid:2.16.840.1.113883.3.8901.3.1.3658002.8007",
+                "code": "7"
+              }
+            ]
+          },
+          "benefit": [
+            {
+              "type": {
+                "coding": [
+                  {
+                    "system": "urn:oid:2.16.840.1.113883.3.8901.3.1.3658002.8002",
+                    "code": "1"
+                  }
+                ]
+              },
+              "allowedMoney": {
+                "value": 250.25
+              }
+            }
+          ],
+          "authorizationRequired": true
+        }
+      ]
+    }
+  ]
+}

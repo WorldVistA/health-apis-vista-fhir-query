@@ -150,6 +150,7 @@ public class CoverageEligibilityResponseSamples {
                   .ien(coverage)
                   .build()
                   .toString())
+          .patient(Reference.builder().reference("Patient/" + patient).build())
           .identifier(
               List.of(
                   Identifier.builder()
@@ -450,6 +451,24 @@ public class CoverageEligibilityResponseSamples {
               .index(1)
               .field(EligibilityBenefit.PROCEDURE_MODIFIER_1)
               .value("Modified")
+              .build(),
+          WriteableFilemanValue.builder()
+              .file(EligibilityBenefit.FILE_NUMBER)
+              .index(1)
+              .field(EligibilityBenefit.EB_NUMBER)
+              .value("1")
+              .build(),
+          WriteableFilemanValue.builder()
+              .file(HealthCareCodeInformation.FILE_NUMBER)
+              .index(1)
+              .field(HealthCareCodeInformation.SEQUENCE)
+              .value("1")
+              .build(),
+          WriteableFilemanValue.builder()
+              .file(SubscriberDates.FILE_NUMBER)
+              .index(1)
+              .field(SubscriberDates.SEQUENCE)
+              .value("1")
               .build());
     }
 
@@ -462,16 +481,25 @@ public class CoverageEligibilityResponseSamples {
           .results(
               List.of(
                   FilemanEntry.builder()
+                      .status("1")
                       .file(PlanCoverageLimitations.FILE_NUMBER)
                       .ien(id)
                       .fields(planLimitationFields())
                       .build(),
                   FilemanEntry.builder()
+                      .status("1")
                       .file(SubscriberDates.FILE_NUMBER)
                       .ien(id)
                       .fields(subscriberDatesFields())
                       .build(),
                   FilemanEntry.builder()
+                      .status("1")
+                      .file(IivResponse.FILE_NUMBER)
+                      .ien(id)
+                      .fields(iivFields())
+                      .build(),
+                  FilemanEntry.builder()
+                      .status("1")
                       .file(SubscriberReferenceId.FILE_NUMBER)
                       .ien(id)
                       .fields(subscriberReferenceIdFields())
@@ -544,6 +572,21 @@ public class CoverageEligibilityResponseSamples {
               .build());
     }
 
+    private Map<String, Values> iivFields() {
+      Map<String, Values> fields = new HashMap<>();
+      fields.put(IivResponse.MESSAGE_CONTROL_ID, Values.of("MCI-1234", "MCI-1234"));
+      fields.put(IivResponse.PAYER, Values.of("8", "8"));
+      fields.put(IivResponse.TRACE_NUMBER, Values.of("TN-1234", "TN-1234"));
+      fields.put(IivResponse.SERVICE_DATE, Values.of("01-20-2010", "01-20-2010"));
+      fields.put(IivResponse.MILITARY_INFO_STATUS_CODE, Values.of("P", "P"));
+      fields.put(IivResponse.MILITARY_EMPLOYMENT_STATUS, Values.of("CC", "Closed-Captions"));
+      fields.put(IivResponse.MILITARY_GOVT_AFFILIATION_CODE, Values.of("C", "ARMY"));
+      fields.put(IivResponse.MILITARY_PERSONNEL_DESCRIPTION, Values.of("ARMY", "ARMY"));
+      fields.put(IivResponse.MILITARY_SERVICE_RANK_CODE, Values.of("C1", "CAPTAIN"));
+      fields.put(IivResponse.DATE_TIME_PERIOD, Values.of("02032004-05062007", "02032004-05062007"));
+      return Map.copyOf(fields);
+    }
+
     public List<WriteableFilemanValue> iivResponseFilemanValues() {
       return List.of(
           WriteableFilemanValue.builder()
@@ -556,7 +599,7 @@ public class CoverageEligibilityResponseSamples {
               .file(IivResponse.FILE_NUMBER)
               .index(1)
               .field(IivResponse.PAYER)
-              .value("8")
+              .value("`8")
               .build(),
           WriteableFilemanValue.builder()
               .file(IivResponse.FILE_NUMBER)

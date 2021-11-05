@@ -25,13 +25,12 @@ public abstract class AbstractWriteContext<BodyT extends IsResource>
     verifySiteSpecificVistaResponseOrDie(site(), response);
     var resultsForStation = response.resultsByStation().get(site());
     LhsGatewayErrorHandler.of(resultsForStation).validateResults();
-    var results = resultsForStation.results();
     var insTypeResults =
         resultsForStation.results().stream()
             .filter(entry -> fileNumber().equals(entry.file()))
             .toList();
     if (insTypeResults.size() != 1) {
-      throw ExpectationFailed.because("Unexpected number of results: " + results.size());
+      throw ExpectationFailed.because("Unexpected number of results: " + insTypeResults.size());
     }
     this.result = insTypeResults.get(0);
   }

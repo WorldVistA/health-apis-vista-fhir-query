@@ -1,5 +1,7 @@
 package gov.va.api.health.vistafhirquery.service.controller.coverageeligibilityresponse;
 
+import static gov.va.api.health.vistafhirquery.service.charonclient.CharonTestSupport.answerFor;
+import static gov.va.api.health.vistafhirquery.service.charonclient.CharonTestSupport.requestCaptor;
 import static gov.va.api.health.vistafhirquery.service.controller.MockRequests.json;
 import static gov.va.api.health.vistafhirquery.service.controller.MockRequests.requestFromUri;
 import static gov.va.api.health.vistafhirquery.service.controller.coverageeligibilityresponse.CoverageEligibilityResponseSamples.R4.link;
@@ -8,17 +10,19 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
 
 import gov.va.api.health.r4.api.bundle.BundleLink;
-import gov.va.api.health.r4.api.resources.CoverageEligibilityResponse;
 import gov.va.api.health.vistafhirquery.service.charonclient.CharonClient;
 import gov.va.api.health.vistafhirquery.service.charonclient.CharonRequest;
 import gov.va.api.health.vistafhirquery.service.charonclient.CharonResponse;
 import gov.va.api.health.vistafhirquery.service.config.LinkProperties;
+import gov.va.api.health.vistafhirquery.service.controller.MockWitnessProtection;
 import gov.va.api.health.vistafhirquery.service.controller.R4BundlerFactory;
 import gov.va.api.health.vistafhirquery.service.controller.coverage.CoverageSamples;
 import gov.va.api.health.vistafhirquery.service.controller.witnessprotection.AlternatePatientIds;
 import gov.va.api.lighthouse.charon.api.v1.RpcInvocationResultV1;
 import gov.va.api.lighthouse.charon.models.TypeSafeRpcRequest;
 import gov.va.api.lighthouse.charon.models.lhslighthouserpcgateway.LhsLighthouseRpcGatewayCoverageSearch;
+import gov.va.api.lighthouse.charon.models.lhslighthouserpcgateway.LhsLighthouseRpcGatewayCoverageWrite;
+import gov.va.api.lighthouse.charon.models.lhslighthouserpcgateway.LhsLighthouseRpcGatewayCoverageWrite.Request.CoverageWriteApi;
 import gov.va.api.lighthouse.charon.models.lhslighthouserpcgateway.LhsLighthouseRpcGatewayListManifest;
 import gov.va.api.lighthouse.charon.models.lhslighthouserpcgateway.LhsLighthouseRpcGatewayResponse;
 import gov.va.api.lighthouse.charon.models.lhslighthouserpcgateway.PatientId;
@@ -28,12 +32,13 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.http.HttpHeaders;
 import org.springframework.mock.web.MockHttpServletResponse;
 
 @ExtendWith(MockitoExtension.class)
 public class R4SiteCoverageEligibilityResponseControllerTest {
   @Mock CharonClient charon;
+
+  MockWitnessProtection witnessProtection = new MockWitnessProtection();
 
   private R4SiteCoverageEligibilityResponseController _controller() {
     return R4SiteCoverageEligibilityResponseController.builder()
@@ -49,6 +54,7 @@ public class R4SiteCoverageEligibilityResponseControllerTest {
                 .alternatePatientIds(new AlternatePatientIds.DisabledAlternatePatientIds())
                 .build())
         .charon(charon)
+        .witnessProtection(witnessProtection)
         .build();
   }
 
@@ -83,11 +89,24 @@ public class R4SiteCoverageEligibilityResponseControllerTest {
   @Test
   void createResource() {
     var response = new MockHttpServletResponse();
+    var samples = CoverageEligibilityResponseSamples.VistaLhsLighthouseRpcGateway.create();
+    var results = samples.getsManifestResults("ip1");
+    var captor = requestCaptor(LhsLighthouseRpcGatewayCoverageWrite.Request.class);
+    var answer =
+        answerFor(captor).value(results).invocationResult(_invocationResult(results)).build();
+    when(charon.request(captor.capture())).thenAnswer(answer);
+    witnessProtection.add("public-ip1", "p1+123+ip1");
     _controller()
         .coverageEligibilityResponseCreate(
-            response, "123", CoverageEligibilityResponse.builder().build());
+            response,
+            "123",
+            CoverageEligibilityResponseSamples.R4
+                .create()
+                .coverageEligibilityResponseForWrite("123", "p1", "not-used"));
+    assertThat(captor.getValue().rpcRequest().api()).isEqualTo(CoverageWriteApi.CREATE);
     assertThat(response.getStatus()).isEqualTo(201);
-    assertThat(response.getHeader(HttpHeaders.LOCATION)).isNotBlank();
+    assertThat(response.getHeader("Location"))
+        .isEqualTo("http://fugazi.com/hcs/123/r4/CoverageEligibilityResponse/public-ip1");
   }
 
   @Test
