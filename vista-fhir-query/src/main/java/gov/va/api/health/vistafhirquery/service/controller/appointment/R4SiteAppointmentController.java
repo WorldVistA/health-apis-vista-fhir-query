@@ -48,7 +48,7 @@ public class R4SiteAppointmentController implements R4AppointmentApi {
 
   /** Search for Appointment records by Patient. */
   @SneakyThrows
-  @GetMapping(value = {"/hcs/{site}/r4/Appointment", "/site/{site}/r4/Appointment"})
+  @GetMapping(value = "/hcs/{site}/r4/Appointment")
   public Appointment.Bundle appointmentSearch(
       HttpServletRequest request,
       @PathVariable(value = "site") String site,

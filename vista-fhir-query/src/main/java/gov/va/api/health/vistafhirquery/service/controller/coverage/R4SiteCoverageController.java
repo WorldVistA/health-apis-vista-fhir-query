@@ -77,7 +77,7 @@ public class R4SiteCoverageController implements R4CoverageApi {
 
   @Override
   @PostMapping(
-      value = {"/hcs/{site}/r4/Coverage", "/site/{site}/r4/Coverage"},
+      value = "/hcs/{site}/r4/Coverage",
       consumes = {"application/json", "application/fhir+json"})
   public void coverageCreate(
       @Redact HttpServletResponse response,
@@ -103,7 +103,7 @@ public class R4SiteCoverageController implements R4CoverageApi {
   }
 
   @Override
-  @GetMapping(value = {"/hcs/{site}/r4/Coverage/{publicId}", "/site/{site}/r4/Coverage/{publicId}"})
+  @GetMapping(value = "/hcs/{site}/r4/Coverage/{publicId}")
   public Coverage coverageRead(
       @PathVariable(value = "site") String site, @PathVariable(value = "publicId") String id) {
     var coordinates = witnessProtection.toPatientTypeCoordinatesOrDie(id, Coverage.class);
@@ -120,7 +120,7 @@ public class R4SiteCoverageController implements R4CoverageApi {
 
   /** Search support. */
   @Override
-  @GetMapping(value = {"/hcs/{site}/r4/Coverage", "/site/{site}/r4/Coverage"})
+  @GetMapping(value = "/hcs/{site}/r4/Coverage")
   public Coverage.Bundle coverageSearch(
       HttpServletRequest httpRequest,
       @PathVariable(value = "site") String site,
@@ -138,7 +138,7 @@ public class R4SiteCoverageController implements R4CoverageApi {
 
   @Override
   @PutMapping(
-      value = {"/hcs/{site}/r4/Coverage/{id}", "/site/{site}/r4/Coverage/{id}"},
+      value = "/hcs/{site}/r4/Coverage/{id}",
       consumes = {"application/json", "application/fhir+json"})
   public void coverageUpdate(
       @Redact HttpServletResponse response,

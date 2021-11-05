@@ -16,7 +16,7 @@ import lombok.NonNull;
 @Builder
 public class RequestPayloadModifier<ResourceT extends Resource> {
 
-  private static final Pattern SITE_IN_PATH_PATTERN = Pattern.compile(".*/(hcs|site)/([-\\w]+)/.*");
+  private static final Pattern SITE_IN_PATH_PATTERN = Pattern.compile(".*/(hcs)/([-\\w]+)/.*");
 
   @NonNull private final HttpServletRequest request;
 

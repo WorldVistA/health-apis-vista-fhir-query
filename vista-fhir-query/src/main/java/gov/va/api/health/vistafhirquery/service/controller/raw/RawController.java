@@ -39,9 +39,9 @@ public class RawController {
   /** Get the raw response that the coverage controller transforms to fhir. */
   @GetMapping(
       value = "/Coverage",
-      params = {"site", "icn"})
+      params = {"hcs", "icn"})
   public RpcInvocationResultV1 coverageBySiteAndIcn(
-      @RequestParam(name = "site") String site, @RequestParam(name = "icn") String icn) {
+      @RequestParam(name = "hcs") String site, @RequestParam(name = "icn") String icn) {
     return makeRequest(site, R4SiteCoverageController.coverageByPatientIcn(icn));
   }
 

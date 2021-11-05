@@ -114,7 +114,7 @@ public class R4SiteOrganizationController implements R4OrganizationApi {
 
   @Override
   @PostMapping(
-      value = {"/hcs/{site}/r4/Organization", "/site/{site}/r4/Organization"},
+      value = "/hcs/{site}/r4/Organization",
       consumes = {"application/json", "application/fhir+json"})
   public void organizationCreate(
       @Redact HttpServletResponse response,
@@ -139,8 +139,7 @@ public class R4SiteOrganizationController implements R4OrganizationApi {
   }
 
   @Override
-  @GetMapping(
-      value = {"/hcs/{site}/r4/Organization/{publicId}", "/site/{site}/r4/Organization/{publicId}"})
+  @GetMapping(value = "/hcs/{site}/r4/Organization/{publicId}")
   public Organization organizationRead(
       @PathVariable(value = "site") String site, @PathVariable(value = "publicId") String id) {
     var coordinates = witnessProtection.toRecordCoordinatesOrDie(id, Organization.class);
@@ -159,7 +158,7 @@ public class R4SiteOrganizationController implements R4OrganizationApi {
   }
 
   @Override
-  @GetMapping(value = {"/hcs/{site}/r4/Organization", "/site/{site}/r4/Organization"})
+  @GetMapping(value = "/hcs/{site}/r4/Organization")
   public Organization.Bundle organizationSearch(
       @Redact HttpServletRequest httpRequest,
       @PathVariable(value = "site") String site,
@@ -180,7 +179,7 @@ public class R4SiteOrganizationController implements R4OrganizationApi {
 
   @Override
   @PutMapping(
-      value = {"/hcs/{site}/r4/Organization/{id}", "/site/{site}/r4/Organization/{id}"},
+      value = "/hcs/{site}/r4/Organization/{id}",
       consumes = {"application/json", "application/fhir+json"})
   public void organizationUpdate(
       @Redact HttpServletResponse response,

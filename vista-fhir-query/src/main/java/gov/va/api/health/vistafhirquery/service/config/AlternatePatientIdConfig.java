@@ -36,9 +36,7 @@ public class AlternatePatientIdConfig {
         "/r4/*",
         PathRewriteConfig.leadingPath() + "r4/*",
         "/hcs/*",
-        PathRewriteConfig.leadingPath() + "hcs/*",
-        "/site/*",
-        PathRewriteConfig.leadingPath() + "site/*");
+        PathRewriteConfig.leadingPath() + "hcs/*");
     return registration;
   }
 

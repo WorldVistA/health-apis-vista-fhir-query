@@ -79,10 +79,7 @@ public class R4SiteCoverageEligibilityResponseController
 
   @Override
   @PostMapping(
-      value = {
-        "/hcs/{site}/r4/CoverageEligibilityResponse",
-        "/site/{site}/r4/CoverageEligibilityResponse"
-      },
+      value = "/hcs/{site}/r4/CoverageEligibilityResponse",
       consumes = {"application/json", "application/fhir+json"})
   public void coverageEligibilityResponseCreate(
       @Redact HttpServletResponse response,
@@ -99,11 +96,7 @@ public class R4SiteCoverageEligibilityResponseController
 
   /** Search support. */
   @Override
-  @GetMapping(
-      value = {
-        "/hcs/{site}/r4/CoverageEligibilityResponse",
-        "/site/{site}/r4/CoverageEligibilityResponse"
-      })
+  @GetMapping(value = "/hcs/{site}/r4/CoverageEligibilityResponse")
   public CoverageEligibilityResponse.Bundle coverageEligibilityResponseSearch(
       @Redact HttpServletRequest httpRequest,
       @NonNull @PathVariable(value = "site") String site,

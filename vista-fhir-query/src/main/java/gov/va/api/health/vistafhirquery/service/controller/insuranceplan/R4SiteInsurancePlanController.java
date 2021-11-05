@@ -107,7 +107,7 @@ public class R4SiteInsurancePlanController implements R4InsurancePlanApi {
 
   @Override
   @PostMapping(
-      value = {"/hcs/{site}/r4/InsurancePlan", "/site/{site}/r4/InsurancePlan"},
+      value = "/hcs/{site}/r4/InsurancePlan",
       consumes = {"application/json", "application/fhir+json"})
   public void insurancePlanCreate(
       @Redact HttpServletResponse response,
@@ -132,11 +132,7 @@ public class R4SiteInsurancePlanController implements R4InsurancePlanApi {
   }
 
   @Override
-  @GetMapping(
-      value = {
-        "/hcs/{site}/r4/InsurancePlan/{publicId}",
-        "/site/{site}/r4/InsurancePlan/{publicId}"
-      })
+  @GetMapping(value = "/hcs/{site}/r4/InsurancePlan/{publicId}")
   @SneakyThrows
   public InsurancePlan insurancePlanRead(
       @PathVariable(value = "site") String site, @PathVariable(value = "publicId") String id) {
@@ -157,7 +153,7 @@ public class R4SiteInsurancePlanController implements R4InsurancePlanApi {
 
   /** Search support. */
   @Override
-  @GetMapping(value = {"/hcs/{site}/r4/InsurancePlan", "/site/{site}/r4/InsurancePlan"})
+  @GetMapping(value = "/hcs/{site}/r4/InsurancePlan")
   public InsurancePlan.Bundle insurancePlanSearch(
       HttpServletRequest httpRequest,
       @PathVariable(value = "site") String site,
@@ -175,7 +171,7 @@ public class R4SiteInsurancePlanController implements R4InsurancePlanApi {
 
   @Override
   @PutMapping(
-      value = {"/hcs/{site}/r4/InsurancePlan/{id}", "/site/{site}/r4/InsurancePlan/{id}"},
+      value = "/hcs/{site}/r4/InsurancePlan/{id}",
       consumes = {"application/json", "application/fhir+json"})
   public void insurancePlanUpdate(
       @Redact HttpServletResponse response,
