@@ -6,6 +6,8 @@ import static java.util.stream.Collectors.toList;
 import gov.va.api.health.r4.api.bundle.AbstractBundle;
 import gov.va.api.health.r4.api.bundle.AbstractEntry;
 import gov.va.api.health.r4.api.bundle.BundleLink;
+import gov.va.api.health.r4.api.datatypes.CodeableConcept;
+import gov.va.api.health.r4.api.datatypes.Coding;
 import gov.va.api.health.r4.api.elements.Meta;
 import gov.va.api.health.r4.api.resources.Appointment;
 import gov.va.api.lighthouse.charon.models.CodeAndNameXmlAttribute;
@@ -56,6 +58,7 @@ public class AppointmentSamples {
     public Appointment appointment(String id) {
       return Appointment.builder()
           .id(id)
+          .appointmentType(appointmentType())
           .meta(Meta.builder().source("673").build())
           .participant(
               Appointment.Participant.builder()
@@ -63,8 +66,41 @@ public class AppointmentSamples {
                   .status(Appointment.ParticipationStatus.accepted)
                   .build()
                   .asList())
-          .status(Appointment.AppointmentStatus.proposed)
+          .serviceCategory(serviceCategory())
+          .serviceType(serviceType())
+          .start("1993-10-13T07:00:00Z")
+          .status(Appointment.AppointmentStatus.noshow)
           .build();
+    }
+
+    CodeableConcept appointmentType() {
+      return CodeableConcept.builder()
+          .coding(
+              Coding.builder()
+                  .system("http://www.va.gov/Terminology/VistADefinedTerms/2.98-9.5")
+                  .display("REGULAR")
+                  .build()
+                  .asList())
+          .text("REGULAR")
+          .build();
+    }
+
+    List<CodeableConcept> serviceCategory() {
+      return CodeableConcept.builder()
+          .coding(
+              Coding.builder()
+                  .system("http://www.va.gov/Terminology/VistADefinedTerms/44-9")
+                  .display("MEDICINE")
+                  .code("M")
+                  .build()
+                  .asList())
+          .text("MEDICINE")
+          .build()
+          .asList();
+    }
+
+    List<CodeableConcept> serviceType() {
+      return CodeableConcept.builder().text("GENERAL INTERNAL MEDICINE").build().asList();
     }
   }
 

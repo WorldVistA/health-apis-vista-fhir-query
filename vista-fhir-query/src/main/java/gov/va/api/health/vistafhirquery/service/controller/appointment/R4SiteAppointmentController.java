@@ -104,7 +104,7 @@ public class R4SiteAppointmentController implements R4AppointmentApi {
                     .patientIcn(patientId)
                     .rpcResults(rpcResults)
                     .build()
-                    .toFhirSkeleton()
+                    .toFhir()
                     .collect(toList()))
         .build();
   }

@@ -15,7 +15,7 @@ public class R4AppointmentTransformerTest {
                 .site("673")
                 .rpcResults(VprGetPatientData.Response.Results.builder().build())
                 .build()
-                .toFhirSkeleton())
+                .toFhir())
         .isEmpty();
   }
 
@@ -34,7 +34,7 @@ public class R4AppointmentTransformerTest {
                 .site("673")
                 .rpcResults(AppointmentSamples.Vista.create().results())
                 .build()
-                .toFhirSkeleton()
+                .toFhir()
                 .findFirst()
                 .get())
         .isEqualTo(AppointmentSamples.R4.create().appointment());
