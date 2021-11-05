@@ -56,6 +56,18 @@ public class CoverageEligibilityResponseStructureDefinitions {
       "http://va.gov/fhir/StructureDefinition" + "/coverageEligibilityResponse-militaryRank";
   public static final String DATE_TIME_PERIOD =
       "http://va.gov/fhir/StructureDefinition/coverageEligibilityResponse-militaryEngagementPeriod";
+  // Health Care Code Information Sub-File (#365.01)
   public static final String HEALTH_CARE_CODE_DEFINITION =
       "http://va.gov/fhir/StructureDefinition/coverageEligibilityResponse-healthCareCode";
+  // Subscriber Reference Id Sub-File (#365.291)
+  public static final String SUBSCRIBER_REFERENCE_ID_DEFINITION =
+      "http://va.gov/fhir/StructureDefinition/coverageEligibilityResponse-subscriberReferenceId";
+  public static final String SUBSCRIBER_REFERENCE_ID_VALUE_DEFINITION =
+      "http://va.gov/fhir/StructureDefinition/coverageEligibilityResponse-subscriberReferenceIdValue";
+  public static final String SUBSCRIBER_REFERENCE_ID_QUALIFIER_DEFINITION =
+      "http://va.gov/fhir/StructureDefinition/coverageEligibilityResponse-subscriberReferenceIdQualifier";
+  public static final String SUBSCRIBER_REFERENCE_ID_QUALIFIER =
+      "2.16.840.1.113883.3.8901.3.1.36580291.8003";
+  public static final String SUBSCRIBER_REFERENCE_ID_DESCRIPTION_DEFINITION =
+      "http://va.gov/fhir/StructureDefinition/coverageEligibilityResponse-subscriberReferenceIdDescription";
 }

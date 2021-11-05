@@ -118,7 +118,8 @@ public class R4CoverageEligibilityResponseToVistaFileTransformerTest {
                     samples.ienMacroPointers(),
                     samples.iivResponseFilemanValues(),
                     samples.serviceTypesFilemanValues(),
-                    samples.subscriberDatesFilemanValues())
+                    samples.subscriberDatesFilemanValues(),
+                    samples.subscriberReferenceIdFilemanValues())
                 .flatMap(Collection::stream)
                 .toList());
   }

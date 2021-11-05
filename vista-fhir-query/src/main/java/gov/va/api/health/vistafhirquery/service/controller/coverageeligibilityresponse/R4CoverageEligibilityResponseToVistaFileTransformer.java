@@ -34,6 +34,7 @@ import gov.va.api.lighthouse.charon.models.lhslighthouserpcgateway.LhsLighthouse
 import gov.va.api.lighthouse.charon.models.lhslighthouserpcgateway.Payer;
 import gov.va.api.lighthouse.charon.models.lhslighthouserpcgateway.ServiceTypes;
 import gov.va.api.lighthouse.charon.models.lhslighthouserpcgateway.SubscriberDates;
+import gov.va.api.lighthouse.charon.models.lhslighthouserpcgateway.SubscriberReferenceId;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.HashSet;
@@ -241,6 +242,13 @@ public class R4CoverageEligibilityResponseToVistaFileTransformer {
     filemanValues.addAll(itemExtensionProcessor().process(item.extension()));
     filemanValues.add(
         FACTORY_REGISTRY
+            .get(SubscriberReferenceId.FILE_NUMBER)
+            .forRequiredParentFileUsingIenMacro(
+                INDEX_REGISTRY.getAndIncrement(SubscriberReferenceId.FILE_NUMBER),
+                EligibilityBenefit.FILE_NUMBER,
+                INDEX_REGISTRY.get(EligibilityBenefit.FILE_NUMBER)));
+    filemanValues.add(
+        FACTORY_REGISTRY
             .get(SubscriberDates.FILE_NUMBER)
             .forRequiredParentFileUsingIenMacro(
                 INDEX_REGISTRY.getAndIncrement(SubscriberDates.FILE_NUMBER),
@@ -316,6 +324,39 @@ public class R4CoverageEligibilityResponseToVistaFileTransformer {
                                 .SUBSCRIBER_DATE_QUALIFIER)
                         .fieldNumber(SubscriberDates.DATE_QUALIFIER)
                         .index(INDEX_REGISTRY.get(SubscriberDates.FILE_NUMBER))
+                        .build()))
+            .build(),
+        ComplexExtensionHandler.forDefiningUrl(
+                CoverageEligibilityResponseStructureDefinitions.SUBSCRIBER_REFERENCE_ID_DEFINITION)
+            .required(REQUIRED)
+            .childExtensions(
+                List.of(
+                    StringExtensionHandler.forDefiningUrl(
+                            CoverageEligibilityResponseStructureDefinitions
+                                .SUBSCRIBER_REFERENCE_ID_VALUE_DEFINITION)
+                        .required(REQUIRED)
+                        .filemanFactory(FACTORY_REGISTRY.get(SubscriberReferenceId.FILE_NUMBER))
+                        .index(INDEX_REGISTRY.get(SubscriberReferenceId.FILE_NUMBER))
+                        .fieldNumber(SubscriberReferenceId.REFERENCE_ID)
+                        .build(),
+                    CodeableConceptExtensionHandler.forDefiningUrl(
+                            CoverageEligibilityResponseStructureDefinitions
+                                .SUBSCRIBER_REFERENCE_ID_QUALIFIER_DEFINITION)
+                        .required(REQUIRED)
+                        .filemanFactory(FACTORY_REGISTRY.get(SubscriberReferenceId.FILE_NUMBER))
+                        .index(INDEX_REGISTRY.get(SubscriberReferenceId.FILE_NUMBER))
+                        .codingSystem(
+                            CoverageEligibilityResponseStructureDefinitions
+                                .SUBSCRIBER_REFERENCE_ID_QUALIFIER)
+                        .fieldNumber(SubscriberReferenceId.REFERENCE_ID_QUALIFIER)
+                        .build(),
+                    StringExtensionHandler.forDefiningUrl(
+                            CoverageEligibilityResponseStructureDefinitions
+                                .SUBSCRIBER_REFERENCE_ID_DESCRIPTION_DEFINITION)
+                        .required(REQUIRED)
+                        .filemanFactory(FACTORY_REGISTRY.get(SubscriberReferenceId.FILE_NUMBER))
+                        .index(INDEX_REGISTRY.get(SubscriberReferenceId.FILE_NUMBER))
+                        .fieldNumber(SubscriberReferenceId.DESCRIPTION)
                         .build()))
             .build());
   }
@@ -431,6 +472,13 @@ public class R4CoverageEligibilityResponseToVistaFileTransformer {
         .flatMap(this::insurance)
         .forEach(vistaFields::add);
     vistaFields.addAll(extensionProcessor().process(coverageEligibilityResponse().extension()));
+    vistaFields.add(
+        FACTORY_REGISTRY
+            .get(HealthCareCodeInformation.FILE_NUMBER)
+            .forRequiredParentFileUsingIenMacro(
+                INDEX_REGISTRY.getAndIncrement(HealthCareCodeInformation.FILE_NUMBER),
+                IivResponse.FILE_NUMBER,
+                INDEX_REGISTRY.get(IivResponse.FILE_NUMBER)));
     return vistaFields;
   }
 

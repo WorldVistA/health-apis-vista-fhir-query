@@ -30,6 +30,7 @@ import gov.va.api.lighthouse.charon.models.lhslighthouserpcgateway.Payer;
 import gov.va.api.lighthouse.charon.models.lhslighthouserpcgateway.PlanCoverageLimitations;
 import gov.va.api.lighthouse.charon.models.lhslighthouserpcgateway.ServiceTypes;
 import gov.va.api.lighthouse.charon.models.lhslighthouserpcgateway.SubscriberDates;
+import gov.va.api.lighthouse.charon.models.lhslighthouserpcgateway.SubscriberReferenceId;
 import java.math.BigDecimal;
 import java.util.Arrays;
 import java.util.Collection;
@@ -335,6 +336,41 @@ public class CoverageEligibilityResponseSamples {
                                               .build()))
                                   .build())
                           .build()))
+              .build(),
+          Extension.builder()
+              .url(
+                  CoverageEligibilityResponseStructureDefinitions
+                      .SUBSCRIBER_REFERENCE_ID_DEFINITION)
+              .extension(
+                  List.of(
+                      Extension.builder()
+                          .url(
+                              CoverageEligibilityResponseStructureDefinitions
+                                  .SUBSCRIBER_REFERENCE_ID_VALUE_DEFINITION)
+                          .valueString("REF123")
+                          .build(),
+                      Extension.builder()
+                          .url(
+                              CoverageEligibilityResponseStructureDefinitions
+                                  .SUBSCRIBER_REFERENCE_ID_QUALIFIER_DEFINITION)
+                          .valueCodeableConcept(
+                              CodeableConcept.builder()
+                                  .coding(
+                                      Coding.builder()
+                                          .system(
+                                              CoverageEligibilityResponseStructureDefinitions
+                                                  .SUBSCRIBER_REFERENCE_ID_QUALIFIER)
+                                          .code("18")
+                                          .build()
+                                          .asList())
+                                  .build())
+                          .build(),
+                      Extension.builder()
+                          .url(
+                              CoverageEligibilityResponseStructureDefinitions
+                                  .SUBSCRIBER_REFERENCE_ID_DESCRIPTION_DEFINITION)
+                          .valueString("BCBS")
+                          .build()))
               .build());
     }
   }
@@ -434,6 +470,11 @@ public class CoverageEligibilityResponseSamples {
                       .file(SubscriberDates.FILE_NUMBER)
                       .ien(id)
                       .fields(subscriberDatesFields())
+                      .build(),
+                  FilemanEntry.builder()
+                      .file(SubscriberReferenceId.FILE_NUMBER)
+                      .ien(id)
+                      .fields(subscriberReferenceIdFields())
                       .build()))
           .build();
     }
@@ -478,6 +519,12 @@ public class CoverageEligibilityResponseSamples {
               .value("${365^1^IEN}")
               .build(),
           WriteableFilemanValue.builder()
+              .file(HealthCareCodeInformation.FILE_NUMBER)
+              .index(1)
+              .field("IEN")
+              .value("${365^1^IEN}")
+              .build(),
+          WriteableFilemanValue.builder()
               .file(SubscriberDates.FILE_NUMBER)
               .index(1)
               .field("IEN")
@@ -485,6 +532,12 @@ public class CoverageEligibilityResponseSamples {
               .build(),
           WriteableFilemanValue.builder()
               .file(ServiceTypes.FILE_NUMBER)
+              .index(1)
+              .field("IEN")
+              .value("${365.02^1^IEN}")
+              .build(),
+          WriteableFilemanValue.builder()
+              .file(SubscriberReferenceId.FILE_NUMBER)
               .index(1)
               .field("IEN")
               .value("${365.02^1^IEN}")
@@ -594,6 +647,36 @@ public class CoverageEligibilityResponseSamples {
               .index(1)
               .field(SubscriberDates.DATE_QUALIFIER)
               .value("PLAN BEGIN")
+              .build());
+    }
+
+    private Map<String, Values> subscriberReferenceIdFields() {
+      Map<String, Values> fields = new HashMap<>();
+      fields.put(SubscriberReferenceId.REFERENCE_ID, Values.of("REF123", "REF123-"));
+      fields.put(SubscriberReferenceId.REFERENCE_ID_QUALIFIER, Values.of("18", "PLAN NUMBER"));
+      fields.put(SubscriberReferenceId.DESCRIPTION, Values.of("BCBS", "BCBS-"));
+      return Map.copyOf(fields);
+    }
+
+    public List<WriteableFilemanValue> subscriberReferenceIdFilemanValues() {
+      return List.of(
+          WriteableFilemanValue.builder()
+              .file(SubscriberReferenceId.FILE_NUMBER)
+              .index(1)
+              .field(SubscriberReferenceId.REFERENCE_ID)
+              .value("REF123")
+              .build(),
+          WriteableFilemanValue.builder()
+              .file(SubscriberReferenceId.FILE_NUMBER)
+              .index(1)
+              .field(SubscriberReferenceId.REFERENCE_ID_QUALIFIER)
+              .value("18")
+              .build(),
+          WriteableFilemanValue.builder()
+              .file(SubscriberReferenceId.FILE_NUMBER)
+              .index(1)
+              .field(SubscriberReferenceId.DESCRIPTION)
+              .value("BCBS")
               .build());
     }
   }
