@@ -29,6 +29,7 @@ import gov.va.api.lighthouse.charon.models.lhslighthouserpcgateway.LhsLighthouse
 import gov.va.api.lighthouse.charon.models.lhslighthouserpcgateway.Payer;
 import gov.va.api.lighthouse.charon.models.lhslighthouserpcgateway.PlanCoverageLimitations;
 import gov.va.api.lighthouse.charon.models.lhslighthouserpcgateway.ServiceTypes;
+import gov.va.api.lighthouse.charon.models.lhslighthouserpcgateway.SubscriberAdditionalInfo;
 import gov.va.api.lighthouse.charon.models.lhslighthouserpcgateway.SubscriberDates;
 import gov.va.api.lighthouse.charon.models.lhslighthouserpcgateway.SubscriberReferenceId;
 import java.math.BigDecimal;
@@ -37,6 +38,7 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Consumer;
 import java.util.stream.Collectors;
 import lombok.NoArgsConstructor;
 import lombok.experimental.UtilityClass;
@@ -208,6 +210,12 @@ public class CoverageEligibilityResponseSamples {
           .build();
     }
 
+    private Extension createExtension(String definingUrl, Consumer<Extension> populateValueX) {
+      var extension = Extension.builder().url(definingUrl).build();
+      populateValueX.accept(extension);
+      return extension;
+    }
+
     private List<Extension> extensions() {
       return List.of(
           Extension.builder()
@@ -372,6 +380,53 @@ public class CoverageEligibilityResponseSamples {
                                   .SUBSCRIBER_REFERENCE_ID_DESCRIPTION_DEFINITION)
                           .valueString("BCBS")
                           .build()))
+              .build(),
+          Extension.builder()
+              .url(
+                  CoverageEligibilityResponseStructureDefinitions
+                      .SUBSCRIBER_ADDITIONAL_INFO_DEFINITION)
+              .extension(
+                  List.of(
+                      createExtension(
+                          CoverageEligibilityResponseStructureDefinitions
+                              .SUBSCRIBER_PLACE_OF_SERVICE_DEFINITION,
+                          e ->
+                              e.valueCodeableConcept(
+                                  codeableConceptFor(
+                                      CoverageEligibilityResponseStructureDefinitions
+                                          .SUBSCRIBER_PLACE_OF_SERVICE_SYSTEM,
+                                      "12"))),
+                      createExtension(
+                          CoverageEligibilityResponseStructureDefinitions
+                              .SUBSCRIBER_QUALIFIER_DEFINITION,
+                          e ->
+                              e.valueCodeableConcept(
+                                  codeableConceptFor(
+                                      CoverageEligibilityResponseStructureDefinitions
+                                          .SUBSCRIBER_QUALIFIER_SYSTEM,
+                                      "NI"))),
+                      createExtension(
+                          CoverageEligibilityResponseStructureDefinitions
+                              .SUBSCRIBER_INJURY_CODE_DEFINITION,
+                          e ->
+                              e.valueCodeableConcept(
+                                  codeableConceptFor(
+                                      CoverageEligibilityResponseStructureDefinitions
+                                          .SUBSCRIBER_INJURY_CODE_SYSTEM,
+                                      "GR"))),
+                      createExtension(
+                          CoverageEligibilityResponseStructureDefinitions
+                              .SUBSCRIBER_INJURY_CATEGORY_DEFINITION,
+                          e ->
+                              e.valueCodeableConcept(
+                                  codeableConceptFor(
+                                      CoverageEligibilityResponseStructureDefinitions
+                                          .SUBSCRIBER_INJURY_CATEGORY_SYSTEM,
+                                      "NI"))),
+                      createExtension(
+                          CoverageEligibilityResponseStructureDefinitions
+                              .SUBSCRIBER_INJURY_TEXT_DEFINITION,
+                          e -> e.valueString("ARM IS BORKED"))))
               .build());
     }
   }
@@ -569,6 +624,12 @@ public class CoverageEligibilityResponseSamples {
               .index(1)
               .field("IEN")
               .value("${365.02^1^IEN}")
+              .build(),
+          WriteableFilemanValue.builder()
+              .file(SubscriberAdditionalInfo.FILE_NUMBER)
+              .index(1)
+              .field("IEN")
+              .value("${365.02^1^IEN}")
               .build());
     }
 
@@ -667,6 +728,56 @@ public class CoverageEligibilityResponseSamples {
               .index(1)
               .field(ServiceTypes.SERVICE_TYPES)
               .value("OTHER MEDICAL")
+              .build());
+    }
+
+    private Map<String, Values> subscriberAdditionalInfoFields() {
+      Map<String, Values> fields = new HashMap<>();
+      fields.put(SubscriberAdditionalInfo.PLACE_OF_SERVICE, Values.of("12", "HOME"));
+      fields.put(SubscriberAdditionalInfo.QUALIFIER, Values.of("NI", "NATURE OF INJURY CODE"));
+      fields.put(
+          SubscriberAdditionalInfo.NATURE_OF_INJURY_CODE,
+          Values.of("GR", "NATURE OF INJURY (NCCI)"));
+      fields.put(
+          SubscriberAdditionalInfo.NATURE_OF_INJURY_CATEGORY,
+          Values.of("NI", "NATURE OF INJURY CODE"));
+      fields.put(
+          SubscriberAdditionalInfo.NATURE_OF_INJURY_TEXT,
+          Values.of("ARM IS BORKED", "ARM IS BORKED"));
+      return Map.copyOf(fields);
+    }
+
+    public List<WriteableFilemanValue> subscriberAdditionalInfoFilemanValues() {
+      return List.of(
+          WriteableFilemanValue.builder()
+              .file(SubscriberAdditionalInfo.FILE_NUMBER)
+              .index(1)
+              .field(SubscriberAdditionalInfo.PLACE_OF_SERVICE)
+              .value("12")
+              .build(),
+          WriteableFilemanValue.builder()
+              .file(SubscriberAdditionalInfo.FILE_NUMBER)
+              .index(1)
+              .field(SubscriberAdditionalInfo.QUALIFIER)
+              .value("NI")
+              .build(),
+          WriteableFilemanValue.builder()
+              .file(SubscriberAdditionalInfo.FILE_NUMBER)
+              .index(1)
+              .field(SubscriberAdditionalInfo.NATURE_OF_INJURY_CODE)
+              .value("GR")
+              .build(),
+          WriteableFilemanValue.builder()
+              .file(SubscriberAdditionalInfo.FILE_NUMBER)
+              .index(1)
+              .field(SubscriberAdditionalInfo.NATURE_OF_INJURY_CATEGORY)
+              .value("NI")
+              .build(),
+          WriteableFilemanValue.builder()
+              .file(SubscriberAdditionalInfo.FILE_NUMBER)
+              .index(1)
+              .field(SubscriberAdditionalInfo.NATURE_OF_INJURY_TEXT)
+              .value("ARM IS BORKED")
               .build());
     }
 

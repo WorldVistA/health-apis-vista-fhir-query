@@ -70,4 +70,25 @@ public class CoverageEligibilityResponseStructureDefinitions {
       "2.16.840.1.113883.3.8901.3.1.36580291.8003";
   public static final String SUBSCRIBER_REFERENCE_ID_DESCRIPTION_DEFINITION =
       "http://va.gov/fhir/StructureDefinition/coverageEligibilityResponse-subscriberReferenceIdDescription";
+  // Subscriber Additional Info Sub-File (#365.29)
+  public static final String SUBSCRIBER_ADDITIONAL_INFO_DEFINITION =
+      "http://va.gov/fhir/StructureDefinition/coverageEligibilityResponse-subscriberAdditionalInfo";
+  public static final String SUBSCRIBER_PLACE_OF_SERVICE_DEFINITION =
+      "http://va.gov/fhir/StructureDefinition/coverageEligibilityResponse-subscriberPlaceOfService";
+  public static final String SUBSCRIBER_PLACE_OF_SERVICE_SYSTEM =
+      "2.16.840.1.113883.3.8901.3.1.3658029.8002";
+  public static final String SUBSCRIBER_QUALIFIER_DEFINITION =
+      "http://va.gov/fhir/StructureDefinition/coverageEligibilityResponse-subscriberQualifier";
+  public static final String SUBSCRIBER_QUALIFIER_SYSTEM =
+      "2.16.840.1.113883.3.8901.3.1.3658029.8004";
+  public static final String SUBSCRIBER_INJURY_CODE_DEFINITION =
+      "http://va.gov/fhir/StructureDefinition/coverageEligibilityResponse-subscriberInjuryCode";
+  public static final String SUBSCRIBER_INJURY_CODE_SYSTEM =
+      "2.16.840.1.113883.3.8901.3.1.3658029.8005";
+  public static final String SUBSCRIBER_INJURY_CATEGORY_DEFINITION =
+      "http://va.gov/fhir/StructureDefinition/coverageEligibilityResponse-subscriberInjuryCategory";
+  public static final String SUBSCRIBER_INJURY_CATEGORY_SYSTEM =
+      "2.16.840.1.113883.3.8901.3.1.3658029.8006";
+  public static final String SUBSCRIBER_INJURY_TEXT_DEFINITION =
+      "http://va.gov/fhir/StructureDefinition/coverageEligibilityResponse-subscriberInjuryText";
 }

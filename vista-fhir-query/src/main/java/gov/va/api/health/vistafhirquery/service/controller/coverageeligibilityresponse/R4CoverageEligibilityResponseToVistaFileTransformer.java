@@ -33,6 +33,7 @@ import gov.va.api.lighthouse.charon.models.lhslighthouserpcgateway.IivResponse;
 import gov.va.api.lighthouse.charon.models.lhslighthouserpcgateway.LhsLighthouseRpcGatewayCoverageWrite.WriteableFilemanValue;
 import gov.va.api.lighthouse.charon.models.lhslighthouserpcgateway.Payer;
 import gov.va.api.lighthouse.charon.models.lhslighthouserpcgateway.ServiceTypes;
+import gov.va.api.lighthouse.charon.models.lhslighthouserpcgateway.SubscriberAdditionalInfo;
 import gov.va.api.lighthouse.charon.models.lhslighthouserpcgateway.SubscriberDates;
 import gov.va.api.lighthouse.charon.models.lhslighthouserpcgateway.SubscriberReferenceId;
 import java.time.ZoneId;
@@ -247,6 +248,13 @@ public class R4CoverageEligibilityResponseToVistaFileTransformer {
     filemanValues.addAll(itemExtensionProcessor().process(item.extension()));
     filemanValues.add(
         factoryRegistry()
+            .get(SubscriberAdditionalInfo.FILE_NUMBER)
+            .forRequiredParentFileUsingIenMacro(
+                indexRegistry().getAndIncrement(SubscriberAdditionalInfo.FILE_NUMBER),
+                EligibilityBenefit.FILE_NUMBER,
+                indexRegistry().get(EligibilityBenefit.FILE_NUMBER)));
+    filemanValues.add(
+        factoryRegistry()
             .get(SubscriberDates.FILE_NUMBER)
             .forInteger(
                 SubscriberDates.SEQUENCE,
@@ -376,6 +384,65 @@ public class R4CoverageEligibilityResponseToVistaFileTransformer {
                         .filemanFactory(factoryRegistry().get(SubscriberReferenceId.FILE_NUMBER))
                         .index(indexRegistry().get(SubscriberReferenceId.FILE_NUMBER))
                         .fieldNumber(SubscriberReferenceId.DESCRIPTION)
+                        .build()))
+            .build(),
+        ComplexExtensionHandler.forDefiningUrl(
+                CoverageEligibilityResponseStructureDefinitions
+                    .SUBSCRIBER_ADDITIONAL_INFO_DEFINITION)
+            .required(REQUIRED)
+            .childExtensions(
+                List.of(
+                    CodeableConceptExtensionHandler.forDefiningUrl(
+                            CoverageEligibilityResponseStructureDefinitions
+                                .SUBSCRIBER_PLACE_OF_SERVICE_DEFINITION)
+                        .required(REQUIRED)
+                        .filemanFactory(factoryRegistry().get(SubscriberAdditionalInfo.FILE_NUMBER))
+                        .index(indexRegistry().get(SubscriberAdditionalInfo.FILE_NUMBER))
+                        .fieldNumber(SubscriberAdditionalInfo.PLACE_OF_SERVICE)
+                        .codingSystem(
+                            CoverageEligibilityResponseStructureDefinitions
+                                .SUBSCRIBER_PLACE_OF_SERVICE_SYSTEM)
+                        .build(),
+                    CodeableConceptExtensionHandler.forDefiningUrl(
+                            CoverageEligibilityResponseStructureDefinitions
+                                .SUBSCRIBER_QUALIFIER_DEFINITION)
+                        .required(REQUIRED)
+                        .filemanFactory(factoryRegistry().get(SubscriberAdditionalInfo.FILE_NUMBER))
+                        .index(indexRegistry().get(SubscriberAdditionalInfo.FILE_NUMBER))
+                        .fieldNumber(SubscriberAdditionalInfo.QUALIFIER)
+                        .codingSystem(
+                            CoverageEligibilityResponseStructureDefinitions
+                                .SUBSCRIBER_QUALIFIER_SYSTEM)
+                        .build(),
+                    CodeableConceptExtensionHandler.forDefiningUrl(
+                            CoverageEligibilityResponseStructureDefinitions
+                                .SUBSCRIBER_INJURY_CODE_DEFINITION)
+                        .required(REQUIRED)
+                        .filemanFactory(factoryRegistry().get(SubscriberAdditionalInfo.FILE_NUMBER))
+                        .index(indexRegistry().get(SubscriberAdditionalInfo.FILE_NUMBER))
+                        .fieldNumber(SubscriberAdditionalInfo.NATURE_OF_INJURY_CODE)
+                        .codingSystem(
+                            CoverageEligibilityResponseStructureDefinitions
+                                .SUBSCRIBER_INJURY_CODE_SYSTEM)
+                        .build(),
+                    CodeableConceptExtensionHandler.forDefiningUrl(
+                            CoverageEligibilityResponseStructureDefinitions
+                                .SUBSCRIBER_INJURY_CATEGORY_DEFINITION)
+                        .required(REQUIRED)
+                        .filemanFactory(factoryRegistry().get(SubscriberAdditionalInfo.FILE_NUMBER))
+                        .index(indexRegistry().get(SubscriberAdditionalInfo.FILE_NUMBER))
+                        .fieldNumber(SubscriberAdditionalInfo.NATURE_OF_INJURY_CATEGORY)
+                        .codingSystem(
+                            CoverageEligibilityResponseStructureDefinitions
+                                .SUBSCRIBER_INJURY_CATEGORY_SYSTEM)
+                        .build(),
+                    StringExtensionHandler.forDefiningUrl(
+                            CoverageEligibilityResponseStructureDefinitions
+                                .SUBSCRIBER_INJURY_TEXT_DEFINITION)
+                        .required(REQUIRED)
+                        .filemanFactory(factoryRegistry().get(SubscriberAdditionalInfo.FILE_NUMBER))
+                        .index(indexRegistry().get(SubscriberAdditionalInfo.FILE_NUMBER))
+                        .fieldNumber(SubscriberAdditionalInfo.NATURE_OF_INJURY_TEXT)
                         .build()))
             .build());
   }
