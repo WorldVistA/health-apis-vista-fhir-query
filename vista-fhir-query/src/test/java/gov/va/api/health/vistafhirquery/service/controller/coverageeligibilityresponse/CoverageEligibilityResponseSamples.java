@@ -22,6 +22,7 @@ import gov.va.api.lighthouse.charon.models.lhslighthouserpcgateway.EligibilityBe
 import gov.va.api.lighthouse.charon.models.lhslighthouserpcgateway.HealthCareCodeInformation;
 import gov.va.api.lighthouse.charon.models.lhslighthouserpcgateway.IivResponse;
 import gov.va.api.lighthouse.charon.models.lhslighthouserpcgateway.InsuranceCompany;
+import gov.va.api.lighthouse.charon.models.lhslighthouserpcgateway.InsuranceType;
 import gov.va.api.lighthouse.charon.models.lhslighthouserpcgateway.LhsLighthouseRpcGatewayCoverageWrite.WriteableFilemanValue;
 import gov.va.api.lighthouse.charon.models.lhslighthouserpcgateway.LhsLighthouseRpcGatewayResponse;
 import gov.va.api.lighthouse.charon.models.lhslighthouserpcgateway.LhsLighthouseRpcGatewayResponse.FilemanEntry;
@@ -177,6 +178,17 @@ public class CoverageEligibilityResponseSamples {
           .servicedDate("2010-01-20")
           .insurance(
               Insurance.builder()
+                  .coverage(
+                      Reference.builder()
+                          .reference(
+                              "Coverage/"
+                                  + PatientTypeCoordinates.builder()
+                                      .site(site)
+                                      .icn(patient)
+                                      .ien(coverage)
+                                      .build()
+                                      .toString())
+                          .build())
                   .benefitPeriod(Period.builder().start("2004-02-03").end("2007-05-06").build())
                   .item(
                       Item.builder()
@@ -537,6 +549,12 @@ public class CoverageEligibilityResponseSamples {
               List.of(
                   FilemanEntry.builder()
                       .status("1")
+                      .file(InsuranceType.FILE_NUMBER)
+                      .ien(id)
+                      .fields(Map.of())
+                      .build(),
+                  FilemanEntry.builder()
+                      .status("1")
                       .file(PlanCoverageLimitations.FILE_NUMBER)
                       .ien(id)
                       .fields(planLimitationFields())
@@ -595,6 +613,12 @@ public class CoverageEligibilityResponseSamples {
 
     public List<WriteableFilemanValue> ienMacroPointers() {
       return List.of(
+          WriteableFilemanValue.builder()
+              .file(InsuranceType.FILE_NUMBER)
+              .index(1)
+              .field("IEN")
+              .value("1,8,")
+              .build(),
           WriteableFilemanValue.builder()
               .file(EligibilityBenefit.FILE_NUMBER)
               .index(1)
@@ -733,6 +757,7 @@ public class CoverageEligibilityResponseSamples {
 
     private Map<String, Values> subscriberAdditionalInfoFields() {
       Map<String, Values> fields = new HashMap<>();
+      fields.put(SubscriberAdditionalInfo.SEQUENCE, Values.of("1", "01"));
       fields.put(SubscriberAdditionalInfo.PLACE_OF_SERVICE, Values.of("12", "HOME"));
       fields.put(SubscriberAdditionalInfo.QUALIFIER, Values.of("NI", "NATURE OF INJURY CODE"));
       fields.put(
@@ -749,6 +774,12 @@ public class CoverageEligibilityResponseSamples {
 
     public List<WriteableFilemanValue> subscriberAdditionalInfoFilemanValues() {
       return List.of(
+          WriteableFilemanValue.builder()
+              .file(SubscriberAdditionalInfo.FILE_NUMBER)
+              .index(1)
+              .field(SubscriberAdditionalInfo.SEQUENCE)
+              .value("1")
+              .build(),
           WriteableFilemanValue.builder()
               .file(SubscriberAdditionalInfo.FILE_NUMBER)
               .index(1)
@@ -806,6 +837,7 @@ public class CoverageEligibilityResponseSamples {
 
     private Map<String, Values> subscriberReferenceIdFields() {
       Map<String, Values> fields = new HashMap<>();
+      fields.put(SubscriberReferenceId.SEQUENCE, Values.of("1", "01"));
       fields.put(SubscriberReferenceId.REFERENCE_ID, Values.of("REF123", "REF123-"));
       fields.put(SubscriberReferenceId.REFERENCE_ID_QUALIFIER, Values.of("18", "PLAN NUMBER"));
       fields.put(SubscriberReferenceId.DESCRIPTION, Values.of("BCBS", "BCBS-"));
@@ -814,6 +846,12 @@ public class CoverageEligibilityResponseSamples {
 
     public List<WriteableFilemanValue> subscriberReferenceIdFilemanValues() {
       return List.of(
+          WriteableFilemanValue.builder()
+              .file(SubscriberReferenceId.FILE_NUMBER)
+              .index(1)
+              .field(SubscriberReferenceId.SEQUENCE)
+              .value("1")
+              .build(),
           WriteableFilemanValue.builder()
               .file(SubscriberReferenceId.FILE_NUMBER)
               .index(1)

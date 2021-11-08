@@ -31,15 +31,15 @@ public final class SystemDefinitions {
 
   private static TestIds idsForLocalEnvironment() {
     return TestIds.builder()
-        .coverage("I3-4z05kjIPYEYQYLQmGck6nb")
+        .coverage("I3-KIP2d05814vy8hy5ghAbLQwDUt9O6qLsSCqMjdnOSKF")
         .insurancePlan("I3-1JeCN3qnboBvfJAeuA5VVg")
         .organizations(
             OrganizationIds.builder()
                 .insTypeRead("I3-450NAk1LKUAaaGqyCDA9S9")
                 .payTypeRead("I3-1Rgkl3lKGiggGNsUfEj21yVdybD2jbbv4")
                 .build())
-        .observationLaboratory("I3-KqbQBRfPz2QzBYOB9MoX6iis0i7kCY2n5Zn5RQssOEMCd96dST7kj4")
-        .observationVitalSign("I3-nfcGFM5JEsuzapkk9xecju3QH0MrK6tqZKVY9rd7wSk")
+        .observationLaboratory("I3-KqbQBRfPz2QzBYOB9MoX6k5Or3KfxWShgyktFPlKkGxdwjVYXnYuUJ")
+        .observationVitalSign("I3-WCE2nReXz5vFdUSsLMQmISPcK5xMGVm0vpLZAgo38ZX")
         .patient("1011537977V693883")
         .patientSites(icnAtSites())
         .build();

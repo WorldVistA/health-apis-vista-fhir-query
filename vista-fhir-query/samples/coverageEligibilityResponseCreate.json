@@ -3,21 +3,20 @@
   "meta": {
     "source": "673"
   },
-  "patient" : {
-    "reference" : "http://localhost:8090/data-query/r4/Patient/195607",
-    "identifier" : {
-      "type" : {
-        "coding" : [
+  "patient": {
+    "reference": "http://localhost:8090/data-query/r4/Patient/5000000347V502052",
+    "identifier": {
+      "type": {
+        "coding": [
           {
-            "code" : "MB"
+            "code": "MB"
           }
         ]
       },
-      "value" : "1234"
+      "value": "1234"
     }
   },
   "extension": [
-
     {
       "url": "http://va.gov/fhir/StructureDefinition/coverageEligibilityResponse-militaryInfoStatus",
       "valueCodeableConcept": {
@@ -67,23 +66,30 @@
       }
     },
     {
-      "url" : "http://va.gov/fhir/StructureDefinition/coverageEligibilityResponse-healthCareCode",
-      "extension" : [ {
-        "url" : "diagnosisCode",
-        "valueCodeableConcept" : {
-          "coding" : [ {
-            "system" : "http://hl7.org/fhir/sid/icd-9-cm",
-            "code" : "100.81"
-          } ]
+      "url": "http://va.gov/fhir/StructureDefinition/coverageEligibilityResponse-healthCareCode",
+      "extension": [
+        {
+          "url": "diagnosisCode",
+          "valueCodeableConcept": {
+            "coding": [
+              {
+                "system": "http://hl7.org/fhir/sid/icd-9-cm",
+                "code": "100.81"
+              }
+            ]
+          }
+        },
+        {
+          "url": "diagnosisCodeQualifier",
+          "valueString": "ICD-9-CM"
+        },
+        {
+          "url": "primaryOrSecondary",
+          "valueString": "PRIMARY"
         }
-      }, {
-        "url" : "diagnosisCodeQualifier",
-        "valueString" : "ICD-9-CM"
-      }, {
-        "url" : "primaryOrSecondary",
-        "valueString" : "PRIMARY"
-      } ]
-    } ],
+      ]
+    }
+  ],
   "identifier": [
     {
       "type": {
@@ -104,6 +110,9 @@
   },
   "insurance": [
     {
+      "coverage": {
+        "reference": "Coverage/I3-KIP2d05814vy8hy5ghAbLQwDUt9O6qLsSCqMjdnOSKF"
+      },
       "benefitPeriod": {
         "start": "2004-02-03",
         "end": "2007-05-06"
@@ -111,6 +120,83 @@
       "item": [
         {
           "extension": [
+            {
+              "url": "http://va.gov/fhir/StructureDefinition/coverageEligibilityResponse-subscriberAdditionalInfo",
+              "extension": [
+                {
+                  "url": "http://va.gov/fhir/StructureDefinition/coverageEligibilityResponse-subscriberPlaceOfService",
+                  "valueCodeableConcept": {
+                    "coding": [
+                      {
+                        "system": "2.16.840.1.113883.3.8901.3.1.3658029.8002",
+                        "code": "55"
+                      }
+                    ]
+                  }
+                },
+                {
+                  "url": "http://va.gov/fhir/StructureDefinition/coverageEligibilityResponse-subscriberQualifier",
+                  "valueCodeableConcept": {
+                    "coding": [
+                      {
+                        "system": "2.16.840.1.113883.3.8901.3.1.3658029.8004",
+                        "code": "NI"
+                      }
+                    ]
+                  }
+                },
+                {
+                  "url": "http://va.gov/fhir/StructureDefinition/coverageEligibilityResponse-subscriberInjuryCode",
+                  "valueCodeableConcept": {
+                    "coding": [
+                      {
+                        "system": "2.16.840.1.113883.3.8901.3.1.3658029.8005",
+                        "code": "GR"
+                      }
+                    ]
+                  }
+                },
+                {
+                  "url": "http://va.gov/fhir/StructureDefinition/coverageEligibilityResponse-subscriberInjuryCategory",
+                  "valueCodeableConcept": {
+                    "coding": [
+                      {
+                        "system": "2.16.840.1.113883.3.8901.3.1.3658029.8006",
+                        "code": "44"
+                      }
+                    ]
+                  }
+                },
+                {
+                  "url": "http://va.gov/fhir/StructureDefinition/coverageEligibilityResponse-subscriberInjuryText",
+                  "valueString": "HEART IS BORKED"
+                }
+              ]
+            },
+            {
+              "url": "http://va.gov/fhir/StructureDefinition/coverageEligibilityResponse-subscriberReferenceId",
+              "extension": [
+                {
+                  "url": "http://va.gov/fhir/StructureDefinition/coverageEligibilityResponse-subscriberReferenceIdValue",
+                  "valueString": "REF123"
+                },
+                {
+                  "url": "http://va.gov/fhir/StructureDefinition/coverageEligibilityResponse-subscriberReferenceIdQualifier",
+                  "valueCodeableConcept": {
+                    "coding": [
+                      {
+                        "system": "2.16.840.1.113883.3.8901.3.1.36580291.8003",
+                        "code": "18"
+                      }
+                    ]
+                  }
+                },
+                {
+                  "url": "http://va.gov/fhir/StructureDefinition/coverageEligibilityResponse-subscriberReferenceIdDescription",
+                  "valueString": "PLAN ID"
+                }
+              ]
+            },
             {
               "extension": [
                 {

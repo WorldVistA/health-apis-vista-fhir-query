@@ -3,6 +3,7 @@ package gov.va.api.health.vistafhirquery.service.controller.coverageeligibilityr
 import static gov.va.api.health.fhir.api.FhirDateTime.parseDateTime;
 import static gov.va.api.health.vistafhirquery.service.controller.R4Transformers.allBlank;
 import static gov.va.api.health.vistafhirquery.service.controller.R4Transformers.isBlank;
+import static gov.va.api.health.vistafhirquery.service.controller.R4Transformers.patientCoordinatesForReference;
 import static gov.va.api.health.vistafhirquery.service.controller.R4Transformers.recordCoordinatesForReference;
 import static gov.va.api.health.vistafhirquery.service.controller.WriteableFilemanValueFactory.index;
 import static gov.va.api.health.vistafhirquery.service.controller.extensionprocessing.ExtensionHandler.Required.REQUIRED;
@@ -30,6 +31,7 @@ import gov.va.api.health.vistafhirquery.service.controller.extensionprocessing.S
 import gov.va.api.lighthouse.charon.models.lhslighthouserpcgateway.EligibilityBenefit;
 import gov.va.api.lighthouse.charon.models.lhslighthouserpcgateway.HealthCareCodeInformation;
 import gov.va.api.lighthouse.charon.models.lhslighthouserpcgateway.IivResponse;
+import gov.va.api.lighthouse.charon.models.lhslighthouserpcgateway.InsuranceType;
 import gov.va.api.lighthouse.charon.models.lhslighthouserpcgateway.LhsLighthouseRpcGatewayCoverageWrite.WriteableFilemanValue;
 import gov.va.api.lighthouse.charon.models.lhslighthouserpcgateway.Payer;
 import gov.va.api.lighthouse.charon.models.lhslighthouserpcgateway.ServiceTypes;
@@ -225,6 +227,21 @@ public class R4CoverageEligibilityResponseToVistaFileTransformer {
     Set<WriteableFilemanValue> filemanValues = new HashSet<>();
     insurance.item().stream().flatMap(this::item).forEach(filemanValues::add);
     filemanValues.add(dateTimePeriod(insurance.benefitPeriod()));
+    patientCoordinatesForReference(insurance.coverage())
+        .map(
+            id ->
+                WriteableFilemanValue.builder()
+                    .file(InsuranceType.FILE_NUMBER)
+                    .index(indexRegistry().getAndIncrement(InsuranceType.FILE_NUMBER))
+                    .field("IEN")
+                    .value(id.ien())
+                    .build())
+        .ifPresentOrElse(
+            filemanValues::add,
+            () -> {
+              throw BadRequestPayload.because(
+                  ".insurance[].coverage is a required field for writing to vista.");
+            });
     return filemanValues.stream();
   }
 
@@ -249,10 +266,24 @@ public class R4CoverageEligibilityResponseToVistaFileTransformer {
     filemanValues.add(
         factoryRegistry()
             .get(SubscriberAdditionalInfo.FILE_NUMBER)
+            .forInteger(
+                SubscriberAdditionalInfo.SEQUENCE,
+                indexRegistry().get(SubscriberAdditionalInfo.FILE_NUMBER),
+                indexRegistry().get(SubscriberAdditionalInfo.FILE_NUMBER)));
+    filemanValues.add(
+        factoryRegistry()
+            .get(SubscriberAdditionalInfo.FILE_NUMBER)
             .forRequiredParentFileUsingIenMacro(
                 indexRegistry().getAndIncrement(SubscriberAdditionalInfo.FILE_NUMBER),
                 EligibilityBenefit.FILE_NUMBER,
                 indexRegistry().get(EligibilityBenefit.FILE_NUMBER)));
+    filemanValues.add(
+        factoryRegistry()
+            .get(SubscriberReferenceId.FILE_NUMBER)
+            .forInteger(
+                SubscriberReferenceId.SEQUENCE,
+                indexRegistry().get(SubscriberReferenceId.FILE_NUMBER),
+                indexRegistry().get(SubscriberReferenceId.FILE_NUMBER)));
     filemanValues.add(
         factoryRegistry()
             .get(SubscriberDates.FILE_NUMBER)
@@ -554,6 +585,10 @@ public class R4CoverageEligibilityResponseToVistaFileTransformer {
                         IivResponse.FILE_NUMBER,
                         IivResponse.SERVICE_DATE,
                         "The .servicedDate field was not a valid date.")));
+    if (coverageEligibilityResponse().insurance() == null
+        || coverageEligibilityResponse().insurance().size() != 1) {
+      throw BadRequestPayload.because("Writing to vista requires exactly one .insurance[] field.");
+    }
     coverageEligibilityResponse().insurance().stream()
         .flatMap(this::insurance)
         .forEach(vistaFields::add);

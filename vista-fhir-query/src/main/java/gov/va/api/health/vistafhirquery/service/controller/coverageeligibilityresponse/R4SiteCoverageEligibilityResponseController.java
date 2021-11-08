@@ -20,7 +20,7 @@ import gov.va.api.health.vistafhirquery.service.controller.ResourceExceptions;
 import gov.va.api.health.vistafhirquery.service.controller.recordcontext.CreatePatientRecordWriteContext;
 import gov.va.api.health.vistafhirquery.service.controller.recordcontext.PatientRecordWriteContext;
 import gov.va.api.health.vistafhirquery.service.controller.witnessprotection.WitnessProtection;
-import gov.va.api.lighthouse.charon.models.lhslighthouserpcgateway.IivResponse;
+import gov.va.api.lighthouse.charon.models.lhslighthouserpcgateway.InsuranceType;
 import gov.va.api.lighthouse.charon.models.lhslighthouserpcgateway.LhsLighthouseRpcGatewayCoverageEligibilityResponse;
 import gov.va.api.lighthouse.charon.models.lhslighthouserpcgateway.LhsLighthouseRpcGatewayCoverageWrite;
 import gov.va.api.lighthouse.charon.models.lhslighthouserpcgateway.LhsLighthouseRpcGatewayListManifest;
@@ -105,7 +105,7 @@ public class R4SiteCoverageEligibilityResponseController
         updateOrCreate(
             CreatePatientRecordWriteContext.<CoverageEligibilityResponse>builder()
                 .patientIcn(patientOrDie(body))
-                .fileNumber(IivResponse.FILE_NUMBER)
+                .fileNumber(InsuranceType.FILE_NUMBER)
                 .site(site)
                 .body(body)
                 .build());

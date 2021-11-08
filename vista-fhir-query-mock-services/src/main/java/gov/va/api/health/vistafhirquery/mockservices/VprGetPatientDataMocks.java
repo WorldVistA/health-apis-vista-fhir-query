@@ -96,7 +96,7 @@ public class VprGetPatientDataMocks implements MockService {
             .context(Optional.of("MOCKSERVICES"))
             .dfn(forIcn("5000000347"))
             .type(Set.of(Domains.labs))
-            .id(Optional.of("CH;6919171.919997;14"))
+            .id(Optional.of("CH;6899892.91xxxx;14"))
             .build()
             .asDetails();
     addSupportedQuery(body);
@@ -114,9 +114,9 @@ public class VprGetPatientDataMocks implements MockService {
     var body =
         VprGetPatientData.Request.builder()
             .context(Optional.of("MOCKSERVICES"))
-            .dfn(forIcn("1011537977V693883"))
+            .dfn(forIcn("5000000347"))
             .type(Set.of(Domains.vitals))
-            .id(Optional.of("32071"))
+            .id(Optional.of("32082"))
             .build()
             .asDetails();
     addSupportedQuery(body);

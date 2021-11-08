@@ -61,6 +61,19 @@ public class R4Transformers {
     return c.coding().stream().anyMatch(coding -> system.equals(coding.system()));
   }
 
+  private static <T extends IsSiteCoordinates> Optional<T> coordinatesForReference(
+      IsReference maybeReference, Function<String, T> toCoordinates) {
+    var refId = referenceIdFromUri(maybeReference);
+    if (refId.isEmpty()) {
+      return Optional.empty();
+    }
+    try {
+      return Optional.ofNullable(toCoordinates.apply(refId.get()));
+    } catch (IllegalArgumentException e) {
+      return Optional.empty();
+    }
+  }
+
   /** Filter null items and return null if the result is null or empty. */
   public static <T> List<T> emptyToNull(List<T> items) {
     if (isEmpty(items)) {
@@ -137,18 +150,16 @@ public class R4Transformers {
     return PatientTypeCoordinates.builder().icn(patientIcn).site(site).ien(ien).build().toString();
   }
 
+  /** Given a reference, get the id and try to parse it as patient coordinates. */
+  public static Optional<PatientTypeCoordinates> patientCoordinatesForReference(
+      IsReference maybeReference) {
+    return coordinatesForReference(maybeReference, PatientTypeCoordinates::fromString);
+  }
+
   /** Given a reference, get the id and try to parse it as record coordinates. */
   public static Optional<RecordCoordinates> recordCoordinatesForReference(
       IsReference maybeReference) {
-    var refId = referenceIdFromUri(maybeReference);
-    if (refId.isEmpty()) {
-      return Optional.empty();
-    }
-    try {
-      return Optional.ofNullable(RecordCoordinates.fromString(refId.get()));
-    } catch (IllegalArgumentException e) {
-      return Optional.empty();
-    }
+    return coordinatesForReference(maybeReference, RecordCoordinates::fromString);
   }
 
   /** Given a reference, attempt to get the reference Id from the reference field. */
