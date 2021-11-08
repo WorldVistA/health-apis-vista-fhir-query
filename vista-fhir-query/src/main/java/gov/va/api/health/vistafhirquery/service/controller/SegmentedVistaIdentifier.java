@@ -272,7 +272,7 @@ public class SegmentedVistaIdentifier {
       // 7
       String date = data.substring(19, 26);
       // 6
-      String time = data.substring(26, 32);
+      String time = strip(data.substring(26, 32), "x");
       // 2
       String remainder = data.substring(32);
       String icn = "0".equals(six) ? ten : ten + "V" + six;

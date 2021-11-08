@@ -96,7 +96,7 @@ public class VprGetPatientDataMocks implements MockService {
             .context(Optional.of("MOCKSERVICES"))
             .dfn(forIcn("5000000347"))
             .type(Set.of(Domains.labs))
-            .id(Optional.of("CH;6899892.91xxxx;14"))
+            .id(Optional.of("CH;6899892.91;14"))
             .build()
             .asDetails();
     addSupportedQuery(body);

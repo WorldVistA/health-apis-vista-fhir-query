@@ -1,5 +1,6 @@
 package gov.va.api.health.vistafhirquery.service.controller;
 
+import static gov.va.api.health.vistafhirquery.service.controller.SegmentedVistaIdentifier.unpack;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.junit.jupiter.params.provider.Arguments.arguments;
@@ -103,6 +104,22 @@ public class SegmentedVistaIdentifierTest {
   }
 
   @Test
+  void compactedObservationLabFormatRoundTrip() {
+    // Id with padding on both the icn and the recordId time
+    var sample =
+        SegmentedVistaIdentifier.builder()
+            .patientIdentifierType(PatientIdentifierType.NATIONAL_ICN)
+            .patientIdentifier("4000000438")
+            .siteId("673")
+            .vprRpcDomain(Domains.labs)
+            .recordId("CH;6899892.91;14")
+            .build();
+    var compacted = "L4000000438xxxxx0673689989291xxxx14";
+    assertThat(sample.pack()).isEqualTo(compacted);
+    assertThat(unpack(compacted)).isEqualTo(sample);
+  }
+
+  @Test
   void formatOfToString() {
     assertThat(
             SegmentedVistaIdentifier.builder()
@@ -127,7 +144,6 @@ public class SegmentedVistaIdentifierTest {
   @ValueSource(strings = {"A;2931013.07;23", "A;2931013.070512;23", "A;2931013;23"})
   void packWithCompactedAppointmentFormatIsSmallEnough(String recordId) {
     assertThat(FormatCompressedAppointment.RECORD_ID.matcher(recordId).matches()).isEqualTo(true);
-
     SegmentedVistaIdentifier id =
         SegmentedVistaIdentifier.builder()
             .patientIdentifierType(PatientIdentifierType.NATIONAL_ICN)
@@ -137,7 +153,7 @@ public class SegmentedVistaIdentifierTest {
             .recordId(recordId)
             .build();
     String packed = id.pack();
-    SegmentedVistaIdentifier unpacked = SegmentedVistaIdentifier.unpack(packed);
+    SegmentedVistaIdentifier unpacked = unpack(packed);
     assertThat(unpacked).isEqualTo(id);
     var ids =
         new RestIdentityServiceClientConfig(
@@ -182,7 +198,7 @@ public class SegmentedVistaIdentifierTest {
             .recordId("CH;6909685.886779;643214")
             .build();
     String packed = id.pack();
-    SegmentedVistaIdentifier unpacked = SegmentedVistaIdentifier.unpack(packed);
+    SegmentedVistaIdentifier unpacked = unpack(packed);
     assertThat(unpacked).isEqualTo(id);
     var ids =
         new RestIdentityServiceClientConfig(
@@ -224,7 +240,7 @@ public class SegmentedVistaIdentifierTest {
 
   @Test
   void parseIdSuccessfully() {
-    assertThat(SegmentedVistaIdentifier.unpack("Nicn+siteId+LvistaId"))
+    assertThat(unpack("Nicn+siteId+LvistaId"))
         .isEqualTo(
             SegmentedVistaIdentifier.builder()
                 .patientIdentifierType(SegmentedVistaIdentifier.PatientIdentifierType.NATIONAL_ICN)
@@ -239,8 +255,7 @@ public class SegmentedVistaIdentifierTest {
   @ValueSource(
       strings = {"x+123+Vabc", "+123+abc", "123", "123+abc", "D123+abc+V456+def", "D123+abc+x"})
   void parseInvalidSegmentThrowsIllegalArgument(String segment) {
-    assertThatExceptionOfType(IllegalArgumentException.class)
-        .isThrownBy(() -> SegmentedVistaIdentifier.unpack(segment));
+    assertThatExceptionOfType(IllegalArgumentException.class).isThrownBy(() -> unpack(segment));
   }
 
   @ParameterizedTest
