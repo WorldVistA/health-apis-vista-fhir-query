@@ -25,11 +25,14 @@ import gov.va.api.health.vistafhirquery.service.controller.RecordCoordinates;
 import gov.va.api.health.vistafhirquery.service.controller.ResourceExceptions.BadRequestPayload;
 import gov.va.api.health.vistafhirquery.service.controller.extensionprocessing.CodeableConceptExtensionHandler;
 import gov.va.api.health.vistafhirquery.service.controller.extensionprocessing.ComplexExtensionHandler;
+import gov.va.api.health.vistafhirquery.service.controller.extensionprocessing.DecimalExtensionHandler;
+import gov.va.api.health.vistafhirquery.service.controller.extensionprocessing.IntegerExtensionHandler;
 import gov.va.api.health.vistafhirquery.service.controller.extensionprocessing.PeriodExtensionHandler;
 import gov.va.api.health.vistafhirquery.service.controller.extensionprocessing.R4ExtensionProcessor;
 import gov.va.api.health.vistafhirquery.service.controller.extensionprocessing.StringExtensionHandler;
 import gov.va.api.lighthouse.charon.models.lhslighthouserpcgateway.EligibilityBenefit;
 import gov.va.api.lighthouse.charon.models.lhslighthouserpcgateway.HealthCareCodeInformation;
+import gov.va.api.lighthouse.charon.models.lhslighthouserpcgateway.HealthcareServicesDelivery;
 import gov.va.api.lighthouse.charon.models.lhslighthouserpcgateway.IivResponse;
 import gov.va.api.lighthouse.charon.models.lhslighthouserpcgateway.InsuranceType;
 import gov.va.api.lighthouse.charon.models.lhslighthouserpcgateway.LhsLighthouseRpcGatewayCoverageWrite.WriteableFilemanValue;
@@ -265,6 +268,20 @@ public class R4CoverageEligibilityResponseToVistaFileTransformer {
     filemanValues.addAll(itemExtensionProcessor().process(item.extension()));
     filemanValues.add(
         factoryRegistry()
+            .get(HealthcareServicesDelivery.FILE_NUMBER)
+            .forInteger(
+                HealthcareServicesDelivery.SEQUENCE,
+                indexRegistry().get(HealthcareServicesDelivery.FILE_NUMBER),
+                indexRegistry().get(HealthcareServicesDelivery.FILE_NUMBER)));
+    filemanValues.add(
+        factoryRegistry()
+            .get(HealthcareServicesDelivery.FILE_NUMBER)
+            .forRequiredParentFileUsingIenMacro(
+                indexRegistry().getAndIncrement(HealthcareServicesDelivery.FILE_NUMBER),
+                EligibilityBenefit.FILE_NUMBER,
+                indexRegistry().get(EligibilityBenefit.FILE_NUMBER)));
+    filemanValues.add(
+        factoryRegistry()
             .get(SubscriberAdditionalInfo.FILE_NUMBER)
             .forInteger(
                 SubscriberAdditionalInfo.SEQUENCE,
@@ -474,6 +491,91 @@ public class R4CoverageEligibilityResponseToVistaFileTransformer {
                         .filemanFactory(factoryRegistry().get(SubscriberAdditionalInfo.FILE_NUMBER))
                         .index(indexRegistry().get(SubscriberAdditionalInfo.FILE_NUMBER))
                         .fieldNumber(SubscriberAdditionalInfo.NATURE_OF_INJURY_TEXT)
+                        .build()))
+            .build(),
+        ComplexExtensionHandler.forDefiningUrl(
+                CoverageEligibilityResponseStructureDefinitions.HEALTHCARE_SERVICES_DELIVERY)
+            .required(REQUIRED)
+            .childExtensions(
+                List.of(
+                    DecimalExtensionHandler.forDefiningUrl(
+                            CoverageEligibilityResponseStructureDefinitions.BENEFIT_QUANTITY)
+                        .required(REQUIRED)
+                        .filemanFactory(
+                            factoryRegistry().get(HealthcareServicesDelivery.FILE_NUMBER))
+                        .index(indexRegistry().get(HealthcareServicesDelivery.FILE_NUMBER))
+                        .fieldNumber(HealthcareServicesDelivery.BENEFIT_QUANTITY)
+                        .build(),
+                    CodeableConceptExtensionHandler.forDefiningUrl(
+                            CoverageEligibilityResponseStructureDefinitions.QUANTITY_QUALIFIER)
+                        .required(REQUIRED)
+                        .filemanFactory(
+                            factoryRegistry().get(HealthcareServicesDelivery.FILE_NUMBER))
+                        .index(indexRegistry().get(HealthcareServicesDelivery.FILE_NUMBER))
+                        .fieldNumber(HealthcareServicesDelivery.QUANTITY_QUALIFIER)
+                        .codingSystem(
+                            CoverageEligibilityResponseStructureDefinitions
+                                .QUANTITY_QUALIFIER_SYSTEM)
+                        .build(),
+                    StringExtensionHandler.forDefiningUrl(
+                            CoverageEligibilityResponseStructureDefinitions
+                                .SAMPLE_SELECTION_MODULUS)
+                        .required(REQUIRED)
+                        .filemanFactory(
+                            factoryRegistry().get(HealthcareServicesDelivery.FILE_NUMBER))
+                        .index(indexRegistry().get(HealthcareServicesDelivery.FILE_NUMBER))
+                        .fieldNumber(HealthcareServicesDelivery.SAMPLE_SELECTION_MODULUS)
+                        .build(),
+                    CodeableConceptExtensionHandler.forDefiningUrl(
+                            CoverageEligibilityResponseStructureDefinitions.UNITS_OF_MEASUREMENT)
+                        .required(REQUIRED)
+                        .filemanFactory(
+                            factoryRegistry().get(HealthcareServicesDelivery.FILE_NUMBER))
+                        .index(indexRegistry().get(HealthcareServicesDelivery.FILE_NUMBER))
+                        .fieldNumber(HealthcareServicesDelivery.UNITS_OF_MEASUREMENT)
+                        .codingSystem(
+                            CoverageEligibilityResponseStructureDefinitions
+                                .UNITS_OF_MEASUREMENT_SYSTEM)
+                        .build(),
+                    IntegerExtensionHandler.forDefiningUrl(
+                            CoverageEligibilityResponseStructureDefinitions.TIME_PERIODS)
+                        .required(REQUIRED)
+                        .filemanFactory(
+                            factoryRegistry().get(HealthcareServicesDelivery.FILE_NUMBER))
+                        .index(indexRegistry().get(HealthcareServicesDelivery.FILE_NUMBER))
+                        .fieldNumber(HealthcareServicesDelivery.TIME_PERIODS)
+                        .build(),
+                    CodeableConceptExtensionHandler.forDefiningUrl(
+                            CoverageEligibilityResponseStructureDefinitions.TIME_PERIOD_QUALIFIER)
+                        .required(REQUIRED)
+                        .filemanFactory(
+                            factoryRegistry().get(HealthcareServicesDelivery.FILE_NUMBER))
+                        .index(indexRegistry().get(HealthcareServicesDelivery.FILE_NUMBER))
+                        .fieldNumber(HealthcareServicesDelivery.TIME_PERIOD_QUALIFIER)
+                        .codingSystem(
+                            CoverageEligibilityResponseStructureDefinitions
+                                .TIME_PERIOD_QUALIFIER_SYSTEM)
+                        .build(),
+                    CodeableConceptExtensionHandler.forDefiningUrl(
+                            CoverageEligibilityResponseStructureDefinitions.DELIVERY_FREQUENCY)
+                        .required(REQUIRED)
+                        .filemanFactory(
+                            factoryRegistry().get(HealthcareServicesDelivery.FILE_NUMBER))
+                        .index(indexRegistry().get(HealthcareServicesDelivery.FILE_NUMBER))
+                        .fieldNumber(HealthcareServicesDelivery.DELIVERY_FREQUENCY)
+                        .codingSystem(
+                            CoverageEligibilityResponseStructureDefinitions
+                                .DELIVERY_FREQUENCY_SYSTEM)
+                        .build(),
+                    CodeableConceptExtensionHandler.forDefiningUrl(
+                            CoverageEligibilityResponseStructureDefinitions.DELIVERY_PATTERN)
+                        .required(REQUIRED)
+                        .filemanFactory(
+                            factoryRegistry().get(HealthcareServicesDelivery.FILE_NUMBER))
+                        .index(indexRegistry().get(HealthcareServicesDelivery.FILE_NUMBER))
+                        .fieldNumber(HealthcareServicesDelivery.DELIVERY_PATTERN)
+                        .codingSystem(
+                            CoverageEligibilityResponseStructureDefinitions.DELIVERY_PATTERN_SYSTEM)
                         .build()))
             .build());
   }

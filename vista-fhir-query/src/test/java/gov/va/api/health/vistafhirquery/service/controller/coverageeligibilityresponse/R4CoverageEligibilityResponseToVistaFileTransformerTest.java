@@ -115,6 +115,7 @@ public class R4CoverageEligibilityResponseToVistaFileTransformerTest {
             Stream.of(
                     samples.eligibilityBenefitFilemanValues(),
                     samples.healthCareCodeInformationFilemanValues(),
+                    samples.healthcareServicesDeliveryFilemanValues(),
                     samples.ienMacroPointers(),
                     samples.iivResponseFilemanValues(),
                     samples.serviceTypesFilemanValues(),

@@ -20,6 +20,7 @@ import gov.va.api.health.vistafhirquery.service.controller.PatientTypeCoordinate
 import gov.va.api.health.vistafhirquery.service.controller.RecordCoordinates;
 import gov.va.api.lighthouse.charon.models.lhslighthouserpcgateway.EligibilityBenefit;
 import gov.va.api.lighthouse.charon.models.lhslighthouserpcgateway.HealthCareCodeInformation;
+import gov.va.api.lighthouse.charon.models.lhslighthouserpcgateway.HealthcareServicesDelivery;
 import gov.va.api.lighthouse.charon.models.lhslighthouserpcgateway.IivResponse;
 import gov.va.api.lighthouse.charon.models.lhslighthouserpcgateway.InsuranceCompany;
 import gov.va.api.lighthouse.charon.models.lhslighthouserpcgateway.InsuranceType;
@@ -439,6 +440,90 @@ public class CoverageEligibilityResponseSamples {
                           CoverageEligibilityResponseStructureDefinitions
                               .SUBSCRIBER_INJURY_TEXT_DEFINITION,
                           e -> e.valueString("ARM IS BORKED"))))
+              .build(),
+          Extension.builder()
+              .url(CoverageEligibilityResponseStructureDefinitions.HEALTHCARE_SERVICES_DELIVERY)
+              .extension(
+                  List.of(
+                      createExtension(
+                          CoverageEligibilityResponseStructureDefinitions.BENEFIT_QUANTITY,
+                          e -> e.valueDecimal(new BigDecimal("365.666"))),
+                      createExtension(
+                          CoverageEligibilityResponseStructureDefinitions.QUANTITY_QUALIFIER,
+                          e ->
+                              e.valueCodeableConcept(
+                                  CodeableConcept.builder()
+                                      .coding(
+                                          Coding.builder()
+                                              .system(
+                                                  CoverageEligibilityResponseStructureDefinitions
+                                                      .QUANTITY_QUALIFIER_SYSTEM)
+                                              .code("m2")
+                                              .build()
+                                              .asList())
+                                      .build())),
+                      createExtension(
+                          CoverageEligibilityResponseStructureDefinitions.SAMPLE_SELECTION_MODULUS,
+                          e -> e.valueString("5")),
+                      createExtension(
+                          CoverageEligibilityResponseStructureDefinitions.UNITS_OF_MEASUREMENT,
+                          e ->
+                              e.valueCodeableConcept(
+                                  CodeableConcept.builder()
+                                      .coding(
+                                          Coding.builder()
+                                              .system(
+                                                  CoverageEligibilityResponseStructureDefinitions
+                                                      .UNITS_OF_MEASUREMENT_SYSTEM)
+                                              .code("VS")
+                                              .build()
+                                              .asList())
+                                      .build())),
+                      createExtension(
+                          CoverageEligibilityResponseStructureDefinitions.TIME_PERIODS,
+                          e -> e.valueInteger(3)),
+                      createExtension(
+                          CoverageEligibilityResponseStructureDefinitions.TIME_PERIOD_QUALIFIER,
+                          e ->
+                              e.valueCodeableConcept(
+                                  CodeableConcept.builder()
+                                      .coding(
+                                          Coding.builder()
+                                              .system(
+                                                  CoverageEligibilityResponseStructureDefinitions
+                                                      .TIME_PERIOD_QUALIFIER_SYSTEM)
+                                              .code("32")
+                                              .build()
+                                              .asList())
+                                      .build())),
+                      createExtension(
+                          CoverageEligibilityResponseStructureDefinitions.DELIVERY_FREQUENCY,
+                          e ->
+                              e.valueCodeableConcept(
+                                  CodeableConcept.builder()
+                                      .coding(
+                                          Coding.builder()
+                                              .system(
+                                                  CoverageEligibilityResponseStructureDefinitions
+                                                      .DELIVERY_FREQUENCY_SYSTEM)
+                                              .code("N")
+                                              .build()
+                                              .asList())
+                                      .build())),
+                      createExtension(
+                          CoverageEligibilityResponseStructureDefinitions.DELIVERY_PATTERN,
+                          e ->
+                              e.valueCodeableConcept(
+                                  CodeableConcept.builder()
+                                      .coding(
+                                          Coding.builder()
+                                              .system(
+                                                  CoverageEligibilityResponseStructureDefinitions
+                                                      .DELIVERY_PATTERN_SYSTEM)
+                                              .code("G")
+                                              .build()
+                                              .asList())
+                                      .build()))))
               .build());
     }
   }
@@ -611,6 +696,64 @@ public class CoverageEligibilityResponseSamples {
               .build());
     }
 
+    public List<WriteableFilemanValue> healthcareServicesDeliveryFilemanValues() {
+      return List.of(
+          WriteableFilemanValue.builder()
+              .file(HealthcareServicesDelivery.FILE_NUMBER)
+              .index(1)
+              .field(HealthcareServicesDelivery.SEQUENCE)
+              .value("1")
+              .build(),
+          WriteableFilemanValue.builder()
+              .file(HealthcareServicesDelivery.FILE_NUMBER)
+              .index(1)
+              .field(HealthcareServicesDelivery.BENEFIT_QUANTITY)
+              .value("365.666")
+              .build(),
+          WriteableFilemanValue.builder()
+              .file(HealthcareServicesDelivery.FILE_NUMBER)
+              .index(1)
+              .field(HealthcareServicesDelivery.QUANTITY_QUALIFIER)
+              .value("m2")
+              .build(),
+          WriteableFilemanValue.builder()
+              .file(HealthcareServicesDelivery.FILE_NUMBER)
+              .index(1)
+              .field(HealthcareServicesDelivery.SAMPLE_SELECTION_MODULUS)
+              .value("5")
+              .build(),
+          WriteableFilemanValue.builder()
+              .file(HealthcareServicesDelivery.FILE_NUMBER)
+              .index(1)
+              .field(HealthcareServicesDelivery.UNITS_OF_MEASUREMENT)
+              .value("VS")
+              .build(),
+          WriteableFilemanValue.builder()
+              .file(HealthcareServicesDelivery.FILE_NUMBER)
+              .index(1)
+              .field(HealthcareServicesDelivery.TIME_PERIODS)
+              .value("3")
+              .build(),
+          WriteableFilemanValue.builder()
+              .file(HealthcareServicesDelivery.FILE_NUMBER)
+              .index(1)
+              .field(HealthcareServicesDelivery.TIME_PERIOD_QUALIFIER)
+              .value("32")
+              .build(),
+          WriteableFilemanValue.builder()
+              .file(HealthcareServicesDelivery.FILE_NUMBER)
+              .index(1)
+              .field(HealthcareServicesDelivery.DELIVERY_FREQUENCY)
+              .value("N")
+              .build(),
+          WriteableFilemanValue.builder()
+              .file(HealthcareServicesDelivery.FILE_NUMBER)
+              .index(1)
+              .field(HealthcareServicesDelivery.DELIVERY_PATTERN)
+              .value("G")
+              .build());
+    }
+
     public List<WriteableFilemanValue> ienMacroPointers() {
       return List.of(
           WriteableFilemanValue.builder()
@@ -651,6 +794,12 @@ public class CoverageEligibilityResponseSamples {
               .build(),
           WriteableFilemanValue.builder()
               .file(SubscriberAdditionalInfo.FILE_NUMBER)
+              .index(1)
+              .field("IEN")
+              .value("${365.02^1^IEN}")
+              .build(),
+          WriteableFilemanValue.builder()
+              .file(HealthcareServicesDelivery.FILE_NUMBER)
               .index(1)
               .field("IEN")
               .value("${365.02^1^IEN}")

@@ -91,4 +91,32 @@ public class CoverageEligibilityResponseStructureDefinitions {
       "2.16.840.1.113883.3.8901.3.1.3658029.8006";
   public static final String SUBSCRIBER_INJURY_TEXT_DEFINITION =
       "http://va.gov/fhir/StructureDefinition/coverageEligibilityResponse-subscriberInjuryText";
+  // Healthcare Services Delivery (#365.27)
+  public static final String HEALTHCARE_SERVICES_DELIVERY =
+      "http://va.gov/fhir/StructureDefinition/coverageEligibilityResponse-healthcareServicesDelivery";
+  public static final String BENEFIT_QUANTITY =
+      "http://va.gov/fhir/StructureDefinition/coverageEligibilityResponse-benefitQuantity";
+  public static final String QUANTITY_QUALIFIER =
+      "http://va.gov/fhir/StructureDefinition/coverageEligibilityResponse-quantityQualifier";
+  public static final String QUANTITY_QUALIFIER_SYSTEM =
+      "2.16.840.1.113883.3.8901.3.1.3658027.8003";
+  public static final String SAMPLE_SELECTION_MODULUS =
+      "http://va.gov/fhir/StructureDefinition/coverageEligibilityResponse-sampleSelectionModulus";
+  public static final String UNITS_OF_MEASUREMENT =
+      "http://va.gov/fhir/StructureDefinition/coverageEligibilityResponse-unitsOfMeasurement";
+  public static final String UNITS_OF_MEASUREMENT_SYSTEM =
+      "2.16.840.1.113883.3.8901.3.1.3658027.8005";
+  public static final String TIME_PERIODS =
+      "http://va.gov/fhir/StructureDefinition/coverageEligibilityResponse-timePeriods";
+  public static final String TIME_PERIOD_QUALIFIER =
+      "http://va.gov/fhir/StructureDefinition/coverageEligibilityResponse-timePeriodQualifier";
+  public static final String TIME_PERIOD_QUALIFIER_SYSTEM =
+      "2.16.840.1.113883.3.8901.3.1.3658027.8007";
+  public static final String DELIVERY_FREQUENCY =
+      "http://va.gov/fhir/StructureDefinition/coverageEligibilityResponse-deliveryFrequency";
+  public static final String DELIVERY_FREQUENCY_SYSTEM =
+      "2.16.840.1.113883.3.8901.3.1.3658027.8008";
+  public static final String DELIVERY_PATTERN =
+      "http://va.gov/fhir/StructureDefinition/coverageEligibilityResponse-deliveryPattern";
+  public static final String DELIVERY_PATTERN_SYSTEM = "2.16.840.1.113883.3.8901.3.1.3658027.8009";
 }

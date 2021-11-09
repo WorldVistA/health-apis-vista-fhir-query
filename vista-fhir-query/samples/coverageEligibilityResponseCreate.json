@@ -106,7 +106,7 @@
   ],
   "servicedDate": "2010-01-20",
   "insurer": {
-    "reference": "http://localhost:8095/site/673/r4/Organization/I3-450NAk1LKUAXPSQ98J5A3y"
+    "reference": "http://localhost:8095/site/673/r4/Organization/I3-1Rgkl3lKGigfVAwV0w9mpFTHOMkyYBwic"
   },
   "insurance": [
     {
@@ -120,6 +120,78 @@
       "item": [
         {
           "extension": [
+            {
+              "url": "http://va.gov/fhir/StructureDefinition/coverageEligibilityResponse-healthcareServicesDelivery",
+              "extension": [
+                {
+                  "url": "http://va.gov/fhir/StructureDefinition/coverageEligibilityResponse-benefitQuantity",
+                  "valueDecimal": "365.666"
+                },
+                {
+                  "url": "http://va.gov/fhir/StructureDefinition/coverageEligibilityResponse-quantityQualifier",
+                  "valueCodeableConcept": {
+                    "coding": [
+                      {
+                        "system": "2.16.840.1.113883.3.8901.3.1.3658027.8003",
+                        "code": "m2"
+                      }
+                    ]
+                  }
+                },
+                {
+                  "url": "http://va.gov/fhir/StructureDefinition/coverageEligibilityResponse-sampleSelectionModulus",
+                  "valueString": "5"
+                },
+                {
+                  "url": "http://va.gov/fhir/StructureDefinition/coverageEligibilityResponse-unitsOfMeasurement",
+                  "valueCodeableConcept": {
+                    "coding": [
+                      {
+                        "system": "2.16.840.1.113883.3.8901.3.1.3658027.8005",
+                        "code": "VS"
+                      }
+                    ]
+                  }
+                },
+                {
+                  "url": "http://va.gov/fhir/StructureDefinition/coverageEligibilityResponse-timePeriods",
+                  "valueInteger": "3"
+                },
+                {
+                  "url": "http://va.gov/fhir/StructureDefinition/coverageEligibilityResponse-timePeriodQualifier",
+                  "valueCodeableConcept": {
+                    "coding": [
+                      {
+                        "system": "2.16.840.1.113883.3.8901.3.1.3658027.8007",
+                        "code": "32"
+                      }
+                    ]
+                  }
+                },
+                {
+                  "url": "http://va.gov/fhir/StructureDefinition/coverageEligibilityResponse-deliveryFrequency",
+                  "valueCodeableConcept": {
+                    "coding": [
+                      {
+                        "system": "2.16.840.1.113883.3.8901.3.1.3658027.8008",
+                        "code": "N"
+                      }
+                    ]
+                  }
+                },
+                {
+                  "url": "http://va.gov/fhir/StructureDefinition/coverageEligibilityResponse-deliveryPattern",
+                  "valueCodeableConcept": {
+                    "coding": [
+                      {
+                        "system": "2.16.840.1.113883.3.8901.3.1.3658027.8009",
+                        "code": "G"
+                      }
+                    ]
+                  }
+                }
+              ]
+            },
             {
               "url": "http://va.gov/fhir/StructureDefinition/coverageEligibilityResponse-subscriberAdditionalInfo",
               "extension": [
