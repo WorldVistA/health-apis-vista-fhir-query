@@ -170,6 +170,7 @@ public class R4InsurancePlanToGroupInsurancePlanFileTransformer {
       throw ResourceExceptions.BadRequestPayload.because(
           GroupInsurancePlan.PLAN_STANDARD_FTF, "extension unit/value is null");
     }
+    /* TODO https://vajira.max.gov/browse/API-11253 verify system is urn:oid:2.16.840.1.113883.3.8901.3.1.3558013 */
     return List.of(
         filemanFactory.forString(
             GroupInsurancePlan.PLAN_STANDARD_FTF, 1, extension.valueQuantity().unit()),
