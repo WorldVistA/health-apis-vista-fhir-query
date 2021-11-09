@@ -46,7 +46,6 @@ public class R4OrganizationToInsuranceCompanyFileTransformerTest {
   @Test
   void forSystemReturnEmptyOnNull() {
     _transformer().extensionForSystem(null, null).isEmpty();
-    _transformer().codingForSystem(null, null).isEmpty();
   }
 
   @Test
