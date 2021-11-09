@@ -5,7 +5,7 @@ Supported fields
 |Path|Required|Notes|
 |---|---|---|
 |`.resourceType` | Required | Must be `Coverage`. |
-|`.id` | Conditional | Must be omitted on create. Must match Coverage ID in URL on update. |
+|`.id` | Conditional | Should be omitted on create. Must match Coverage ID in URL on update. |
 | `.extension[]` | Required | See [Supported Extensions](#supported-extensions) below. |
 | `.status` | Required | Must be `active`. |
 | `.subscriberId` | Required | |

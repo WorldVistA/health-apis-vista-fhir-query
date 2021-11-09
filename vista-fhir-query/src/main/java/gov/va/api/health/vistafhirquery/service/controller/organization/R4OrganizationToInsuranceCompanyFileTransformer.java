@@ -893,6 +893,8 @@ public class R4OrganizationToInsuranceCompanyFileTransformer {
 
   /** Create a set of writeable fileman values. */
   public Set<WriteableFilemanValue> toInsuranceCompanyFile() {
+    /* TODO https://vajira.max.gov/browse/API-10394 validate active status. */
+    /* TODO https://vajira.max.gov/browse/API-10394 insurance company type. */
     Set<WriteableFilemanValue> fields = new HashSet<>();
     addRequiredFields(fields);
     Optional.ofNullable(organization().id())

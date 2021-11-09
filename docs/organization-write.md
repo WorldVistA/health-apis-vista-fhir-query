@@ -7,19 +7,29 @@ Supported fields
 |Path|Required|Notes|
 |---|---|---|
 |`.resourceType` | Required | Must be `Organization`. |
-|`.id` | Conditional | Must be omitted on create. Must match Organization ID in URL on update. |
+|`.id` | Conditional | Should be omitted on create. Must match Organization ID in URL on update. |
+| `.identifier[]` | Required | See [Supported Identifiers](#supported-identifiers) below. |
 | `.extension[]` | Required | See [Supported Extensions](#supported-extensions) below. |
-|`.name` | Required | |
+|`.name` | Required | Name is a key identifier and cannot be updated. |
+|`.active` | Required | Must be `true`. |
+|`.type[]` | Required | Must contain 1 entry. |
+|`.type[0].coding[0].system` | Required | Must be `http://hl7.org/fhir/ValueSet/organization-type` |
+|`.type[0].coding[0].code` | Required | Must be `ins` |
 |`.address[]` | Required | Must contain 1 entry. |
-|`.address[0].line[]` | Required | Must contain 1 to 3 items |
-|`.address[0].line[0]` | Required | 3-35 characters |
-|`.address[0].line[1]` | Optional | 3-30 characters |
-|`.address[0].line[2]` | Optional | 3-30 characters |
-|`.address[0].city` | Optional | 2-25 characters |
-|`.address[0].state` | Optional | 2 characters |
-|`.address[0].postalCode` | Optional | Format `[0-9]{9}` or `[0-9]{5}-[0-9]{4}` |
+|`.address[0].line[]` | Required | Must contain 1 to 3 items. |
+|`.address[0].line[0]` | Required | 3-35 characters. |
+|`.address[0].line[1]` | Optional | 3-30 characters. |
+|`.address[0].line[2]` | Optional | 3-30 characters. |
+|`.address[0].city` | Optional | 2-25 characters. |
+|`.address[0].state` | Optional | 2 characters. |
+|`.address[0].postalCode` | Optional | Format `[0-9]{9}` or `[0-9]{5}-[0-9]{4}`. |
 ucture)|
 |`.contact[]` | Required | See [Supported Contacts](#supported-contacts) below. |
+|`.telecom[]` | Required | Must contain a `phone` and `fax` contact point. |
+|`.telecom[0].system` | Required | Must be `phone`. |
+|`.telecom[0].value` | Required | Telephone number, 7-20 characters. |
+|`.telecom[1].system` | Required | Must be `fax` if second contact point is specified. |
+|`.telecom[1].value` | Required | Telephone number, 7-20 characters. Required if second contact point. |
 
 ## Supported Contacts
 
@@ -40,21 +50,21 @@ The following codes are supported. Individual data requirements are described be
 
 |Path|Required|Notes|
 |---|---|---|
-|`.purpose.coding[0].system` | Required | Ignored at the this time (TODO API-11250) |
-|`.purpose.coding[0].code` | Required | Must be `APPEAL` |
+|`.purpose.coding[0].system` | Required | Ignored at the this time (TODO API-11250). |
+|`.purpose.coding[0].code` | Required | Must be `APPEAL`. |
 |`.extension[]` | Optional | See supported extensions below. |
 |`.telecom[]` | Required | Must contain a `phone` contact point. May contain a `fax` contact point. |
-|`.telecom[0].system` | Required | Must be `phone` |
-|`.telecom[0].value` | Required | Telephone number, 7-20 characters |
+|`.telecom[0].system` | Required | Must be `phone`. |
+|`.telecom[0].value` | Required | Telephone number, 7-20 characters. |
 |`.telecom[1].system` | Conditional | Must be `fax` if second contact point is specified. |
 |`.telecom[1].value` | Conditional | Telephone number, 7-20 characters. Required if second contact point is specified.  |
-|`.address.line[]` | Optional | May contain 1 to 3 items |
-|`.address.line[0]` | Optional | 3-35 characters |
-|`.address.line[1]` | Optional | 3-30 characters |
-|`.address.line[2]` | Optional | 3-30 characters |
-|`.address.city` | Optional | 2-25 characters |
-|`.address.state` | Optional | 2 characters |
-|`.address.postalCode` | Optional | Format `[0-9]{9}` or `[0-9]{5}-[0-9]{4}` |
+|`.address.line[]` | Optional | May contain 1 to 3 items. |
+|`.address.line[0]` | Optional | 3-35 characters. |
+|`.address.line[1]` | Optional | 3-30 characters. |
+|`.address.line[2]` | Optional | 3-30 characters. |
+|`.address.city` | Optional | 2-25 characters. |
+|`.address.state` | Optional | 2 characters. |
+|`.address.postalCode` | Optional | Format `[0-9]{9}` or `[0-9]{5}-[0-9]{4}`. |
 
 #### `APPEAL` Supported Extensions
 
@@ -66,12 +76,12 @@ The following codes are supported. Individual data requirements are described be
 
 |Path|Required|Notes|
 |---|---|---|
-|`.purpose.coding[0].system` | Required | Ignored at the this time (TODO API-11250) |
-|`.purpose.coding[0].code` | Required | Must be `BILL` |
+|`.purpose.coding[0].system` | Required | Ignored at the this time (TODO API-11250). |
+|`.purpose.coding[0].code` | Required | Must be `BILL`. |
 |`.extension[]` | Optional | See supported extensions below. |
 |`.telecom[]` | Required | Must contain a `phone` contact point. |
-|`.telecom[0].system` | Required | Must be `phone` |
-|`.telecom[0].value` | Required | Telephone number, 7-20 characters |
+|`.telecom[0].system` | Required | Must be `phone`. |
+|`.telecom[0].value` | Required | Telephone number, 7-20 characters. |
 
 #### `BILL` Supported Extensions
 
@@ -83,20 +93,20 @@ The following codes are supported. Individual data requirements are described be
 
 |Path|Required|Notes|
 |---|---|---|
-|`.purpose.coding[0].system` | Required | Ignored at the this time (TODO API-11250) |
-|`.purpose.coding[0].code` | Required | Must be `DENTALCLAIMS` |
+|`.purpose.coding[0].system` | Required | Ignored at the this time (TODO API-11250). |
+|`.purpose.coding[0].code` | Required | Must be `DENTALCLAIMS`. |
 |`.extension[]` | Optional | See supported extensions below. |
 |`.telecom[]` | Optional | May contain a `phone` and/or contain a `fax` contact point. |
-|`.telecom[0].system` | Optional | Must be `phone` |
-|`.telecom[0].value` | Optional | Telephone number, 7-20 characters |
+|`.telecom[0].system` | Optional | Must be `phone`. |
+|`.telecom[0].value` | Optional | Telephone number, 7-20 characters. |
 |`.telecom[1].system` | Optional | Must be `fax` if second contact point is specified. |
 |`.telecom[1].value` | Optional | Telephone number, 7-20 characters. Required if second contact point is specified.  |
-|`.address.line[]` | Optional | May contain 1 or 2 items |
-|`.address.line[0]` | Optional | 3-35 characters |
-|`.address.line[1]` | Optional | 3-30 characters |
-|`.address.city` | Optional | 2-25 characters |
-|`.address.state` | Optional | 2 characters |
-|`.address.postalCode` | Optional | Format `[0-9]{9}` or `[0-9]{5}-[0-9]{4}` |
+|`.address.line[]` | Optional | May contain 1 or 2 items. |
+|`.address.line[0]` | Optional | 3-35 characters. |
+|`.address.line[1]` | Optional | 3-30 characters. |
+|`.address.city` | Optional | 2-25 characters. |
+|`.address.state` | Optional | 2 characters. |
+|`.address.postalCode` | Optional | Format `[0-9]{9}` or `[0-9]{5}-[0-9]{4}`. |
 
 #### `DENTALCLAIMS` Supported Extensions
 
@@ -108,21 +118,21 @@ The following codes are supported. Individual data requirements are described be
 
 |Path|Required|Notes|
 |---|---|---|
-|`.purpose.coding[0].system` | Required | Ignored at the this time (TODO API-11250) |
-|`.purpose.coding[0].code` | Required | Must be `INPTCLAIMS` |
+|`.purpose.coding[0].system` | Required | Ignored at the this time (TODO API-11250). |
+|`.purpose.coding[0].code` | Required | Must be `INPTCLAIMS`. |
 |`.extension[]` | Optional | See supported extensions below. |
 |`.telecom[]` | Required | Must contain a `phone` contact point. May contain a `fax` contact point. |
-|`.telecom[0].system` | Required | Must be `phone` |
-|`.telecom[0].value` | Required | Telephone number, 7-20 characters |
+|`.telecom[0].system` | Required | Must be `phone`. |
+|`.telecom[0].value` | Required | Telephone number, 7-20 characters. |
 |`.telecom[1].system` | Conditional | Must be `fax` if second contact point is specified. |
 |`.telecom[1].value` | Conditional | Telephone number, 7-20 characters. Required if second contact point is specified.  |
-|`.address.line[]` | Optional | May contain 1 to 3 items |
-|`.address.line[0]` | Optional | 3-35 characters |
-|`.address.line[1]` | Optional | 3-30 characters |
-|`.address.line[2]` | Optional | 3-30 characters |
-|`.address.city` | Optional | 2-25 characters |
-|`.address.state` | Optional | 2 characters |
-|`.address.postalCode` | Optional | Format `[0-9]{9}` or `[0-9]{5}-[0-9]{4}` |
+|`.address.line[]` | Optional | May contain 1 to 3 items. |
+|`.address.line[0]` | Optional | 3-35 characters. |
+|`.address.line[1]` | Optional | 3-30 characters. |
+|`.address.line[2]` | Optional | 3-30 characters. |
+|`.address.city` | Optional | 2-25 characters. |
+|`.address.state` | Optional | 2 characters. |
+|`.address.postalCode` | Optional | Format `[0-9]{9}` or `[0-9]{5}-[0-9]{4}`. |
 
 #### `INPTCLAIMS` Supported Extensions
 
@@ -134,21 +144,21 @@ The following codes are supported. Individual data requirements are described be
 
 |Path|Required|Notes|
 |---|---|---|
-|`.purpose.coding[0].system` | Required | Ignored at the this time (TODO API-11250) |
-|`.purpose.coding[0].code` | Required | Must be `OUTPTCLAIMS` |
+|`.purpose.coding[0].system` | Required | Ignored at the this time (TODO API-11250). |
+|`.purpose.coding[0].code` | Required | Must be `OUTPTCLAIMS`. |
 |`.extension[]` | Optional | See supported extensions below. |
 |`.telecom[]` | Required | Must contain a `phone` contact point. May contain a `fax` contact point. |
-|`.telecom[0].system` | Required | Must be `phone` |
-|`.telecom[0].value` | Required | Telephone number, 7-20 characters |
+|`.telecom[0].system` | Required | Must be `phone`. |
+|`.telecom[0].value` | Required | Telephone number, 7-20 characters. |
 |`.telecom[1].system` | Conditional | Must be `fax` if second contact point is specified. |
 |`.telecom[1].value` | Conditional | Telephone number, 7-20 characters. Required if second contact point is specified.  |
-|`.address.line[]` | Optional | May contain 1 to 3 items |
-|`.address.line[0]` | Optional | 3-35 characters |
-|`.address.line[1]` | Optional | 3-30 characters |
-|`.address.line[2]` | Optional | 3-30 characters |
-|`.address.city` | Optional | 2-25 characters |
-|`.address.state` | Optional | 2 characters |
-|`.address.postalCode` | Optional | Format `[0-9]{9}` or `[0-9]{5}-[0-9]{4}` |
+|`.address.line[]` | Optional | May contain 1 to 3 items. |
+|`.address.line[0]` | Optional | 3-35 characters. |
+|`.address.line[1]` | Optional | 3-30 characters. |
+|`.address.line[2]` | Optional | 3-30 characters. |
+|`.address.city` | Optional | 2-25 characters. |
+|`.address.state` | Optional | 2 characters. |
+|`.address.postalCode` | Optional | Format `[0-9]{9}` or `[0-9]{5}-[0-9]{4}`. |
 
 #### `OUTPTCLAIMS` Supported Extensions
 
@@ -160,21 +170,21 @@ The following codes are supported. Individual data requirements are described be
 
 |Path|Required|Notes|
 |---|---|---|
-|`.purpose.coding[0].system` | Required | Ignored at the this time (TODO API-11250) |
-|`.purpose.coding[0].code` | Required | Must be `INQUIRY` |
+|`.purpose.coding[0].system` | Required | Ignored at the this time (TODO API-11250). |
+|`.purpose.coding[0].code` | Required | Must be `INQUIRY`. |
 |`.extension[]` | Optional | See supported extensions below. |
 |`.telecom[]` | Required | Must contain a `phone` contact point. May contain a `fax` contact point. |
-|`.telecom[0].system` | Required | Must be `phone` |
-|`.telecom[0].value` | Required | Telephone number, 7-20 characters |
+|`.telecom[0].system` | Required | Must be `phone`. |
+|`.telecom[0].value` | Required | Telephone number, 7-20 characters. |
 |`.telecom[1].system` | Conditional | Must be `fax` if second contact point is specified. |
 |`.telecom[1].value` | Conditional | Telephone number, 7-20 characters. Required if second contact point is specified.  |
-|`.address.line[]` | Optional | May contain 1 to 3 items |
-|`.address.line[0]` | Optional | 3-35 characters |
-|`.address.line[1]` | Optional | 3-30 characters |
-|`.address.line[2]` | Optional | 3-30 characters |
-|`.address.city` | Optional | 2-25 characters |
-|`.address.state` | Optional | 2 characters |
-|`.address.postalCode` | Optional | Format `[0-9]{9}` or `[0-9]{5}-[0-9]{4}` |
+|`.address.line[]` | Optional | May contain 1 to 3 items. |
+|`.address.line[0]` | Optional | 3-35 characters. |
+|`.address.line[1]` | Optional | 3-30 characters. |
+|`.address.line[2]` | Optional | 3-30 characters. |
+|`.address.city` | Optional | 2-25 characters. |
+|`.address.state` | Optional | 2 characters. |
+|`.address.postalCode` | Optional | Format `[0-9]{9}` or `[0-9]{5}-[0-9]{4}`. |
 
 #### `INQUIRY` Supported Extensions
 
@@ -186,12 +196,12 @@ The following codes are supported. Individual data requirements are described be
 
 |Path|Required|Notes|
 |---|---|---|
-|`.purpose.coding[0].system` | Required | Ignored at the this time (TODO API-11250) |
-|`.purpose.coding[0].code` | Required | Must be `PRECERT` |
+|`.purpose.coding[0].system` | Required | Ignored at the this time (TODO API-11250). |
+|`.purpose.coding[0].code` | Required | Must be `PRECERT`. |
 |`.extension[]` | Optional | See supported extensions below. |
 |`.telecom[]` | Required | Must contain a `phone` contact point. |
-|`.telecom[0].system` | Required | Must be `phone` |
-|`.telecom[0].value` | Required | Telephone number, 7-20 characters |
+|`.telecom[0].system` | Required | Must be `phone`. |
+|`.telecom[0].value` | Required | Telephone number, 7-20 characters. |
 
 #### `PRECERT` Supported Extensions
 
@@ -203,21 +213,21 @@ The following codes are supported. Individual data requirements are described be
 
 |Path|Required|Notes|
 |---|---|---|
-|`.purpose.coding[0].system` | Required | Ignored at the this time (TODO API-11250) |
-|`.purpose.coding[0].code` | Required | Must be `RXCLAIMS` |
+|`.purpose.coding[0].system` | Required | Ignored at the this time (TODO API-11250). |
+|`.purpose.coding[0].code` | Required | Must be `RXCLAIMS`. |
 |`.extension[]` | Optional | See supported extensions below. |
 |`.telecom[]` | Optional | May contain a `phone` and/or contain a `fax` contact point. |
-|`.telecom[0].system` | Required | Must be `phone` |
-|`.telecom[0].value` | Required | Telephone number, 7-20 characters |
+|`.telecom[0].system` | Required | Must be `phone`. |
+|`.telecom[0].value` | Required | Telephone number, 7-20 characters. |
 |`.telecom[1].system` | Conditional | Must be `fax` if second contact point is specified. |
 |`.telecom[1].value` | Conditional | Telephone number, 7-20 characters. Required if second contact point is specified.  |
-|`.address.line[]` | Optional | May contain 1 to 3 items |
-|`.address.line[0]` | Optional | 3-35 characters |
-|`.address.line[1]` | Optional | 3-30 characters |
-|`.address.line[2]` | Optional | 3-30 characters |
-|`.address.city` | Optional | 2-25 characters |
-|`.address.state` | Optional | 2 characters |
-|`.address.postalCode` | Optional | Format `[0-9]{9}` or `[0-9]{5}-[0-9]{4}` |
+|`.address.line[]` | Optional | May contain 1 to 3 items. |
+|`.address.line[0]` | Optional | 3-35 characters. |
+|`.address.line[1]` | Optional | 3-30 characters. |
+|`.address.line[2]` | Optional | 3-30 characters. |
+|`.address.city` | Optional | 2-25 characters. |
+|`.address.state` | Optional | 2 characters. |
+|`.address.postalCode` | Optional | Format `[0-9]{9}` or `[0-9]{5}-[0-9]{4}`. |
 
 #### `RXCLAIMS` Supported Extensions
 
@@ -229,24 +239,24 @@ The following codes are supported. Individual data requirements are described be
 
 |Path|Required|Notes|
 |---|---|---|
-|`.purpose.coding[0].system` | Required | Ignored at the this time (TODO API-11250) |
-|`.purpose.coding[0].code` | Required | Must be `VERIFY` |
+|`.purpose.coding[0].system` | Required | Ignored at the this time (TODO API-11250). |
+|`.purpose.coding[0].code` | Required | Must be `VERIFY`. |
 |`.telecom[]` | Required | Must contain a `phone` contact point. |
-|`.telecom[0].system` | Required | Must be `phone` |
-|`.telecom[0].value` | Required | Telephone number, 7-20 characters |
+|`.telecom[0].system` | Required | Must be `phone`. |
+|`.telecom[0].value` | Required | Telephone number, 7-20 characters. |
 
 # INCOMPLETE BELOW
 ----
 
 |Path|Required|Notes|
 |---|---|---
-|`.line[]` | Required | Must contain 1 to 3 items |
-|`.line[0]` | Required | 3-35 characters |
-|`.line[1]` | Optional | 3-30 characters |
-|`.line[2]` | Optional | 3-30 characters |
-|`.city` | Optional | 2-25 characters |
-|`.state` | Optional | 2 characters |
-|`.postalCode` | Optional | Format `[0-9]{9}` or `[0-9]{5}-[0-9]{4}` |
+|`.line[]` | Required | Must contain 1 to 3 items. |
+|`.line[0]` | Required | 3-35 characters. |
+|`.line[1]` | Optional | 3-30 characters. |
+|`.line[2]` | Optional | 3-30 characters. |
+|`.city` | Optional | 2-25 characters. |
+|`.state` | Optional | 2 characters. |
+|`.postalCode` | Optional | Format `[0-9]{9}` or `[0-9]{5}-[0-9]{4}`. |
 
 ## Supported Extensions
 
@@ -255,4 +265,4 @@ The following codes are supported. Individual data requirements are described be
 
 > Unsupported fields or extensions will be ignored.
 
-Example: [Organization](../vista-fhir-query/samples/coverageWrite.json)
+Example: [Organization](../vista-fhir-query/samples/organizationCreate.json)
