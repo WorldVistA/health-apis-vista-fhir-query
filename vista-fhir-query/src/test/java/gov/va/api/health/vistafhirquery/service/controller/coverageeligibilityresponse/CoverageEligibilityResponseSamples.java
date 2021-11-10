@@ -974,7 +974,7 @@ public class CoverageEligibilityResponseSamples {
               .file(SubscriberDates.FILE_NUMBER)
               .index(1)
               .field(SubscriberDates.DATE)
-              .value("05-20-2018")
+              .value("05202018")
               .build(),
           WriteableFilemanValue.builder()
               .file(SubscriberDates.FILE_NUMBER)

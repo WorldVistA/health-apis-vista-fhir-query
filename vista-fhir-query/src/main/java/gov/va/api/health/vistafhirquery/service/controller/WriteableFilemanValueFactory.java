@@ -9,6 +9,7 @@ import gov.va.api.health.r4.api.datatypes.Identifier;
 import gov.va.api.health.r4.api.elements.Extension;
 import gov.va.api.health.vistafhirquery.service.controller.ResourceExceptions.BadRequestPayload;
 import gov.va.api.lighthouse.charon.models.lhslighthouserpcgateway.LhsLighthouseRpcGatewayCoverageWrite.WriteableFilemanValue;
+import java.util.Optional;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Function;
 import java.util.function.Supplier;
@@ -76,6 +77,21 @@ public class WriteableFilemanValueFactory {
       return null;
     }
     return forInteger(field, index, extension.valueInteger());
+  }
+
+  /** Build an optional WriteableFilemanValue for a string. */
+  public Optional<WriteableFilemanValue> forOptionalString(
+      @NonNull String field, int index, String value) {
+    if (isBlank(value)) {
+      return Optional.empty();
+    }
+    return Optional.of(
+        WriteableFilemanValue.builder()
+            .file(file())
+            .index(index)
+            .field(field)
+            .value(value)
+            .build());
   }
 
   /** Build a WriteableFilemanValue pointer for the given file and index. */
@@ -174,29 +190,13 @@ public class WriteableFilemanValueFactory {
 
   /** Build a WriteableFilemanValue for a string, throwing if blank. */
   public WriteableFilemanValue forRequiredString(@NonNull String field, int index, String value) {
-    if (isBlank(value)) {
-      throw BadRequestPayload.because(file(), field, "string value is blank");
-    }
-    return WriteableFilemanValue.builder()
-        .file(file())
-        .index(index)
-        .field(field)
-        .value(value)
-        .build();
+    return forOptionalString(field, index, value)
+        .orElseThrow(() -> BadRequestPayload.because(file(), field, "string value is blank"));
   }
 
   /** Build a WriteableFilemanValue with a default index of 1. */
   public WriteableFilemanValue forString(@NonNull String field, int index, String value) {
-    if (isBlank(value)) {
-      return null;
-    }
-    // For the time being, we support writing one resource at a time so the index will always be 1
-    return WriteableFilemanValue.builder()
-        .file(file())
-        .index(index)
-        .field(field)
-        .value(value)
-        .build();
+    return forOptionalString(field, index, value).orElse(null);
   }
 
   public Function<PatientTypeCoordinates, WriteableFilemanValue> patientTypeCoordinatesToPointer(

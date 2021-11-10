@@ -385,7 +385,8 @@ public class R4CoverageEligibilityResponseToVistaFileTransformer {
                             CoverageEligibilityResponseStructureDefinitions.SUBSCRIBER_DATE_PERIOD)
                         .required(REQUIRED)
                         .filemanFactory(factoryRegistry().get(SubscriberDates.FILE_NUMBER))
-                        .zoneId(zoneId())
+                        .dateTimeFormatter(
+                            DateTimeFormatter.ofPattern("MMddyyyy").withZone(zoneId()))
                         .periodStartFieldNumber(SubscriberDates.DATE)
                         .periodEndFieldNumber(SubscriberDates.DATE)
                         .index(indexRegistry().get(SubscriberDates.FILE_NUMBER))

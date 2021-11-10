@@ -10,8 +10,11 @@ import gov.va.api.health.vistafhirquery.service.controller.ResourceExceptions.Ba
 import gov.va.api.health.vistafhirquery.service.controller.WriteableFilemanValueFactory;
 import gov.va.api.health.vistafhirquery.service.controller.extensionprocessing.ExtensionHandler.Required;
 import gov.va.api.lighthouse.charon.models.lhslighthouserpcgateway.LhsLighthouseRpcGatewayCoverageWrite.WriteableFilemanValue;
+import java.time.ZoneId;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.stream.Stream;
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
@@ -66,6 +69,7 @@ public class PeriodExtensionHandlerTest {
     return PeriodExtensionHandler.forDefiningUrl("http://fugazi.com/period")
         .required(Required.REQUIRED)
         .filemanFactory(WriteableFilemanValueFactory.forFile("888"))
+        .dateTimeFormatter(DateTimeFormatter.ofPattern("MM-dd-yyy").withZone(ZoneId.of("UTC")))
         .periodStartFieldNumber(".start")
         .periodEndFieldNumber(".end")
         .index(index)
@@ -89,5 +93,55 @@ public class PeriodExtensionHandlerTest {
   void handlePeriod(Period period, int index, List<WriteableFilemanValue> expected) {
     var sample = extensionWithPeriod(period);
     assertThat(_handler(index).handle(sample)).containsExactlyElementsOf(expected);
+  }
+
+  @Test
+  void handleRange() {
+    var handler =
+        PeriodExtensionHandler.forDefiningUrl("http://fugazi.com/period")
+            .required(Required.REQUIRED)
+            .filemanFactory(WriteableFilemanValueFactory.forFile("888"))
+            .dateTimeFormatter(DateTimeFormatter.ofPattern("MMddyyy").withZone(ZoneId.of("UTC")))
+            .periodStartFieldNumber(".range")
+            .periodEndFieldNumber(".range")
+            .index(1)
+            .build();
+    assertThat(handler.handle(extensionWithPeriod(Period.builder().start("2020-01-20").build())))
+        .containsOnly(
+            WriteableFilemanValue.builder()
+                .file("888")
+                .index(1)
+                .field(".range")
+                .value("01202020")
+                .build());
+    assertThat(
+            handler.handle(
+                extensionWithPeriod(
+                    Period.builder().start("2020-01-20").end("2021-05-20T10:00:01.000Z").build())))
+        .containsOnly(
+            WriteableFilemanValue.builder()
+                .file("888")
+                .index(1)
+                .field(".range")
+                .value("01202020-05202021")
+                .build());
+  }
+
+  @Test
+  void handleRangeWithNoStartThrows() {
+    var handler =
+        PeriodExtensionHandler.forDefiningUrl("http://fugazi.com/period")
+            .required(Required.REQUIRED)
+            .filemanFactory(WriteableFilemanValueFactory.forFile("888"))
+            .dateTimeFormatter(DateTimeFormatter.ofPattern("MMddyyy").withZone(ZoneId.of("UTC")))
+            .periodStartFieldNumber(".range")
+            .periodEndFieldNumber(".range")
+            .index(1)
+            .build();
+    assertThatExceptionOfType(BadExtension.class)
+        .isThrownBy(
+            () ->
+                handler.handle(
+                    extensionWithPeriod(Period.builder().end("2021-05-20T10:00:01.000Z").build())));
   }
 }

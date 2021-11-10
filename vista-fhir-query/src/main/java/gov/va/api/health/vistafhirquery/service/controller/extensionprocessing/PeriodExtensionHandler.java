@@ -5,10 +5,9 @@ import static gov.va.api.health.vistafhirquery.service.controller.R4Transformers
 import static gov.va.api.health.vistafhirquery.service.controller.R4Transformers.isBlank;
 
 import gov.va.api.health.r4.api.elements.Extension;
-import gov.va.api.health.vistafhirquery.service.controller.ResourceExceptions;
+import gov.va.api.health.vistafhirquery.service.controller.ResourceExceptions.BadRequestPayload.BadExtension;
 import gov.va.api.health.vistafhirquery.service.controller.WriteableFilemanValueFactory;
 import gov.va.api.lighthouse.charon.models.lhslighthouserpcgateway.LhsLighthouseRpcGatewayCoverageWrite.WriteableFilemanValue;
-import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Objects;
@@ -22,7 +21,7 @@ public class PeriodExtensionHandler extends AbstractExtensionHandler {
 
   @Getter private final String periodStartFieldNumber;
 
-  @Getter private final String periodEndFieldFormatter;
+  @Getter private final String periodEndFieldNumber;
 
   @Builder
   PeriodExtensionHandler(
@@ -32,42 +31,57 @@ public class PeriodExtensionHandler extends AbstractExtensionHandler {
       @NonNull String periodStartFieldNumber,
       @NonNull String periodEndFieldNumber,
       int index,
-      ZoneId zoneId) {
+      @NonNull DateTimeFormatter dateTimeFormatter) {
     super(definingUrl, required, filemanFactory, index);
-    this.dateTimeFormatter =
-        DateTimeFormatter.ofPattern("MM-dd-yyy")
-            .withZone(zoneId == null ? ZoneId.of("UTC") : zoneId);
+    this.dateTimeFormatter = dateTimeFormatter;
     this.periodStartFieldNumber = periodStartFieldNumber;
-    this.periodEndFieldFormatter = periodEndFieldNumber;
+    this.periodEndFieldNumber = periodEndFieldNumber;
   }
 
   public static PeriodExtensionHandlerBuilder forDefiningUrl(String definingUrl) {
     return PeriodExtensionHandler.builder().definingUrl(definingUrl);
   }
 
+  private String dateRange(String startDate, String endDate) {
+    if (isBlank(startDate)) {
+      throw BadExtension.because(definingUrl(), "Range does not have a start date.");
+    }
+    var range = formatDateString(startDate);
+    if (!isBlank(endDate)) {
+      range = range + "-" + formatDateString(endDate);
+    }
+    return range;
+  }
+
+  private String formatDateString(String dateString) {
+    if (isBlank(dateString)) {
+      return null;
+    }
+    return dateTimeFormatter().format(parseDateTime(dateString));
+  }
+
   @Override
   public List<WriteableFilemanValue> handle(Extension extension) {
     if (isBlank(extension.valuePeriod())) {
-      throw ResourceExceptions.BadRequestPayload.BadExtension.because(
-          extension.url(), ".valuePeriod is null");
+      throw BadExtension.because(extension.url(), ".valuePeriod is null");
     }
     var period = extension.valuePeriod();
     if (allBlank(period.start(), period.end())) {
-      throw ResourceExceptions.BadRequestPayload.BadExtension.because(
-          extension.url(), ".valuePeriod does not have a start or end date");
+      throw BadExtension.because(extension.url(), ".valuePeriod does not have a start or end date");
+    }
+    if (Objects.equals(periodStartFieldNumber(), periodEndFieldNumber())) {
+      var range = dateRange(period.start(), period.end());
+      return List.of(filemanFactory().forRequiredString(periodStartFieldNumber(), index(), range));
     }
     return Stream.of(
-            vistaFormatedDateFor(period.start(), periodStartFieldNumber()),
-            vistaFormatedDateFor(period.end(), periodEndFieldFormatter()))
+            filemanFactory()
+                .forOptionalString(
+                    periodStartFieldNumber(), index(), formatDateString(period.start()))
+                .orElse(null),
+            filemanFactory()
+                .forOptionalString(periodEndFieldNumber(), index(), formatDateString(period.end()))
+                .orElse(null))
         .filter(Objects::nonNull)
         .toList();
-  }
-
-  private WriteableFilemanValue vistaFormatedDateFor(String datetime, String fieldNumber) {
-    if (isBlank(datetime)) {
-      return null;
-    }
-    var vistaFormatedDate = dateTimeFormatter().format(parseDateTime(datetime));
-    return filemanFactory().forString(fieldNumber, index(), vistaFormatedDate);
   }
 }
