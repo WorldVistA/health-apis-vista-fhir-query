@@ -245,18 +245,76 @@ The following codes are supported. Individual data requirements are described be
 |`.telecom[0].system` | Required | Must be `phone`. |
 |`.telecom[0].value` | Required | Telephone number, 7-20 characters. |
 
-# INCOMPLETE BELOW
-----
+## Supported Identifiers
+
+Several identifiers are supported.
+
+- Primary payer IDs
+- Secondary institutional payer IDs
+- Secondary professional payer IDs
+- EDI 277 health care status notifications
+
+### Primary Payer IDs
+
+Two primary payer IDs are required and two additional payer IDs may be provided. Each identifier has the same structure.
 
 |Path|Required|Notes|
 |---|---|---
-|`.line[]` | Required | Must contain 1 to 3 items. |
-|`.line[0]` | Required | 3-35 characters. |
-|`.line[1]` | Optional | 3-30 characters. |
-|`.line[2]` | Optional | 3-30 characters. |
-|`.city` | Optional | 2-25 characters. |
-|`.state` | Optional | 2 characters. |
-|`.postalCode` | Optional | Format `[0-9]{9}` or `[0-9]{5}-[0-9]{4}`. |
+|`.type.coding[0].system` | Forbidden | |
+|`.type.coding[0].code` | Required | See below. |
+|`.value` | Required | |
+
+Supported codes
+
+- `INSTEDI` _(Required)_ Institutional payer ID for claims transmission
+- `PROFEDI` _(Required)_ Professional payer ID for claims transmission
+- `BIN` _(Optional)_ CHAMPUS fiscal intermediary number for claims transmission
+- `DENTALEDI` _(Optional)_ Payer ID for dental claims transmission
+
+### Secondary Institutional and Professions IDs
+
+Up to two secondary institutional payer IDs may be provided. Additionally, up to two secondary professional payer IDs may be provided. Each identifier has the same structure.
+
+|Path|Required|Notes|
+|---|---|---
+|`.type.coding[0].system` | Required | Secondary payer ID system. See below. |
+|`.type.coding[0].code` | Required | Payer qualifier codes. See below. |
+|`.value` | Required | |
+
+Secondary institutional payer ID systems
+
+- `urn:oid:2.16.840.1.113883.3.8901.3.1.36.68001` Use this if only supplying one.
+- `urn:oid:2.16.840.1.113883.3.8901.3.1.36.68003`
+
+Secondary professional payer IDs systems
+
+- `urn:oid:2.16.840.1.113883.3.8901.3.1.36.68005` Use this if only supplying one.
+- `urn:oid:2.16.840.1.113883.3.8901.3.1.36.68007`
+
+Payer Qualifier Codes
+
+- `PAYER ID #`
+- `CLAIM OFFICE #`
+- `NAIC CODE`
+- `FED TAXPAYER #`
+
+Rules
+
+- Identifiers `urn:oid:2.16.840.1.113883.3.8901.3.1.36.68001` and `urn:oid:2.16.840.1.113883.3.8901.3.1.36.68003` cannot have the same code.
+- Identifiers `urn:oid:2.16.840.1.113883.3.8901.3.1.36.68005` and `urn:oid:2.16.840.1.113883.3.8901.3.1.36.68007` cannot have the same code.
+
+### EDI 277 Healthcare Status Notifications
+
+EDI 277 identifier is required on create, but forbidden on update.
+
+|Path|Required|Notes|
+|---|---|---
+|`.type.coding[0].system` | Forbidden | |
+|`.type.coding[0].code` | Required | Must be `277EDI`. |
+|`.value` | Required | |
+
+# INCOMPLETE BELOW
+----
 
 ## Supported Extensions
 
