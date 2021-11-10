@@ -102,5 +102,6 @@ public interface R4VistaFhirQueryService
         R4CoverageApi,
         R4CoverageEligibilityResponseApi,
         R4EndpointApi,
+        R4MetadataApi,
         R4ObservationApi,
         R4OrganizationApi {}
