@@ -103,6 +103,13 @@ public class R4CoverageEligibilityResponseToVistaFileTransformer {
             .fieldNumber(EligibilityBenefit.QUANTITY_QUALIFIER)
             .codingSystem(
                 CoverageEligibilityResponseStructureDefinitions.BENEFIT_QUANTITY_CODE_SYSTEM)
+            .build(),
+        QuantityExtensionHandler.forDefiningUrl(
+                CoverageEligibilityResponseStructureDefinitions.BENEFIT_PERCENT)
+            .required(REQUIRED)
+            .filemanFactory(factoryRegistry.get(EligibilityBenefit.FILE_NUMBER))
+            .index(indexRegistry.get(EligibilityBenefit.FILE_NUMBER))
+            .valueFieldNumber(EligibilityBenefit.PERCENT)
             .build());
   }
 

@@ -351,6 +351,12 @@
                   }
                 },
                 {
+                  "url": "http://va.gov/fhir/StructureDefinition/coverageEligibilityResponse-benefitPercent",
+                  "valueQuantity": {
+                    "value": "66.6"
+                  }
+                },
+                {
                   "url": "http://va.gov/fhir/StructureDefinition/coverageEligibilityResponse-benefitQuantityCode",
                   "valueCodeableConcept" : {
                     "coding": [

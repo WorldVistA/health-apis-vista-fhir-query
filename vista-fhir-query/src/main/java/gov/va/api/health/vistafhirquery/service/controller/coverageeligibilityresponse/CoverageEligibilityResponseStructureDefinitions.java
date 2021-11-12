@@ -96,6 +96,8 @@ public class CoverageEligibilityResponseStructureDefinitions {
       "http://va.gov/fhir/StructureDefinition/coverageEligibilityResponse-healthcareServicesDelivery";
   public static final String BENEFIT_QUANTITY =
       "http://va.gov/fhir/StructureDefinition/coverageEligibilityResponse-benefitQuantity";
+  public static final String BENEFIT_PERCENT =
+      "http://va.gov/fhir/StructureDefinition/coverageEligibilityResponse-benefitPercent";
   public static final String BENEFIT_QUANTITY_CODE =
       "http://va.gov/fhir/StructureDefinition/coverageEligibilityResponse-benefitQuantityCode";
   public static final String BENEFIT_QUANTITY_CODE_SYSTEM =

@@ -90,6 +90,11 @@ public class CoverageEligibilityResponseSamples {
                           e.valueQuantity(
                               Quantity.builder().value(new BigDecimal("666.563")).build())),
                   createExtension(
+                      CoverageEligibilityResponseStructureDefinitions.BENEFIT_PERCENT,
+                      e ->
+                          e.valueQuantity(
+                              Quantity.builder().value(new BigDecimal("66.6")).build())),
+                  createExtension(
                       CoverageEligibilityResponseStructureDefinitions.BENEFIT_QUANTITY_CODE,
                       e ->
                           e.valueCodeableConcept(
@@ -593,6 +598,12 @@ public class CoverageEligibilityResponseSamples {
               .index(1)
               .field(EligibilityBenefit.QUANTITY)
               .value("666.563")
+              .build(),
+          WriteableFilemanValue.builder()
+              .file(EligibilityBenefit.FILE_NUMBER)
+              .index(1)
+              .field(EligibilityBenefit.PERCENT)
+              .value("66.6")
               .build(),
           WriteableFilemanValue.builder()
               .file(EligibilityBenefit.FILE_NUMBER)
