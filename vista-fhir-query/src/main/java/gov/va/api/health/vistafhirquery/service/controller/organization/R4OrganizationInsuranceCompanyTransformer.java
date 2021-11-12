@@ -443,12 +443,12 @@ public class R4OrganizationInsuranceCompanyTransformer {
                 OrganizationStructureDefinitions.PERFORMING_PROVIDER_SECOND_IDTYPE_UB_04),
             extensions.ofCodeableConceptFromExternalValue(
                 InsuranceCompany.REF_PROV_SEC_ID_DEF_CMS_1500,
-                OrganizationStructureDefinitions.REFERRNG_PROVIDER_SECOND_IDTYPE_CMS_1500_URN_OID,
-                OrganizationStructureDefinitions.REFERRNG_PROVIDER_SECOND_IDTYPE_CMS_1500),
+                OrganizationStructureDefinitions.REFERRING_PROVIDER_SECOND_IDTYPE_CMS_1500_URN_OID,
+                OrganizationStructureDefinitions.REFERRING_PROVIDER_SECOND_IDTYPE_CMS_1500),
             extensions.ofCodeableConceptFromExternalValue(
                 InsuranceCompany.REF_PROV_SEC_ID_REQ_ON_CLAIMS,
-                OrganizationStructureDefinitions.REFERRNG_PROVIDER_SECOND_IDTYPE_UB_04_URN_OID,
-                OrganizationStructureDefinitions.REFERRNG_PROVIDER_SECOND_IDTYPE_UB_04),
+                OrganizationStructureDefinitions.REFERRING_PROVIDER_SECOND_IDTYPE_UB_04_URN_OID,
+                OrganizationStructureDefinitions.REFERRING_PROVIDER_SECOND_IDTYPE_UB_04),
             extensions.ofYesNoBoolean(
                 InsuranceCompany.ATT_REND_ID_BILL_SEC_ID_PROF,
                 OrganizationStructureDefinitions

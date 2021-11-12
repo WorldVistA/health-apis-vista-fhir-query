@@ -959,7 +959,7 @@ public class OrganizationSamples {
                           .build())
                   .build(),
               Extension.builder()
-                  .url(OrganizationStructureDefinitions.REFERRNG_PROVIDER_SECOND_IDTYPE_CMS_1500)
+                  .url(OrganizationStructureDefinitions.REFERRING_PROVIDER_SECOND_IDTYPE_CMS_1500)
                   .valueCodeableConcept(
                       CodeableConcept.builder()
                           .coding(
@@ -968,12 +968,12 @@ public class OrganizationSamples {
                                       .code("REF PROV CMS 1500: EXT")
                                       .system(
                                           OrganizationStructureDefinitions
-                                              .REFERRNG_PROVIDER_SECOND_IDTYPE_CMS_1500_URN_OID)
+                                              .REFERRING_PROVIDER_SECOND_IDTYPE_CMS_1500_URN_OID)
                                       .build()))
                           .build())
                   .build(),
               Extension.builder()
-                  .url(OrganizationStructureDefinitions.REFERRNG_PROVIDER_SECOND_IDTYPE_UB_04)
+                  .url(OrganizationStructureDefinitions.REFERRING_PROVIDER_SECOND_IDTYPE_UB_04)
                   .valueCodeableConcept(
                       CodeableConcept.builder()
                           .coding(
@@ -982,7 +982,7 @@ public class OrganizationSamples {
                                       .code("NONE")
                                       .system(
                                           OrganizationStructureDefinitions
-                                              .REFERRNG_PROVIDER_SECOND_IDTYPE_UB_04_URN_OID)
+                                              .REFERRING_PROVIDER_SECOND_IDTYPE_UB_04_URN_OID)
                                       .build()))
                           .build())
                   .build(),

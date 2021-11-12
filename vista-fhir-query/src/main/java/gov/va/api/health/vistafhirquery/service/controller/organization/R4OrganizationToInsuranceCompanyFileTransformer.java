@@ -703,12 +703,12 @@ public class R4OrganizationToInsuranceCompanyFileTransformer {
             .required(REQUIRED)
             .build(),
         CodeableConceptExtensionHandler.forDefiningUrl(
-                OrganizationStructureDefinitions.REFERRNG_PROVIDER_SECOND_IDTYPE_UB_04)
+                OrganizationStructureDefinitions.REFERRING_PROVIDER_SECOND_IDTYPE_UB_04)
             .filemanFactory(filemanFactory)
             .fieldNumber(InsuranceCompany.REF_PROV_SEC_ID_REQ_ON_CLAIMS)
             .index(1)
             .codingSystem(
-                OrganizationStructureDefinitions.REFERRNG_PROVIDER_SECOND_IDTYPE_UB_04_URN_OID)
+                OrganizationStructureDefinitions.REFERRING_PROVIDER_SECOND_IDTYPE_UB_04_URN_OID)
             .required(REQUIRED)
             .build(),
         CodeableConceptExtensionHandler.forDefiningUrl(
@@ -746,12 +746,12 @@ public class R4OrganizationToInsuranceCompanyFileTransformer {
             .required(OPTIONAL)
             .build(),
         CodeableConceptExtensionHandler.forDefiningUrl(
-                OrganizationStructureDefinitions.REFERRNG_PROVIDER_SECOND_IDTYPE_CMS_1500)
+                OrganizationStructureDefinitions.REFERRING_PROVIDER_SECOND_IDTYPE_CMS_1500)
             .filemanFactory(filemanFactory)
             .fieldNumber(InsuranceCompany.REF_PROV_SEC_ID_DEF_CMS_1500)
             .index(1)
             .codingSystem(
-                OrganizationStructureDefinitions.REFERRNG_PROVIDER_SECOND_IDTYPE_CMS_1500_URN_OID)
+                OrganizationStructureDefinitions.REFERRING_PROVIDER_SECOND_IDTYPE_CMS_1500_URN_OID)
             .required(OPTIONAL)
             .build());
   }

@@ -99,16 +99,16 @@ public interface OrganizationStructureDefinitions {
   String PRINT_SEC_TERT_AUTO_CLAIMS_LOCALLY =
       "http://va.gov/fhir/StructureDefinition/organization-printSecTertAutoClaimsLocally";
 
-  String REFERRNG_PROVIDER_SECOND_IDTYPE_CMS_1500 =
-      "http://va.gov/fhir/StructureDefinition/organization-referrngProviderSecondIDTypeCMS1500";
+  String REFERRING_PROVIDER_SECOND_IDTYPE_CMS_1500 =
+      "http://va.gov/fhir/StructureDefinition/organization-referringProviderSecondIDTypeCMS1500";
 
-  String REFERRNG_PROVIDER_SECOND_IDTYPE_CMS_1500_URN_OID =
+  String REFERRING_PROVIDER_SECOND_IDTYPE_CMS_1500_URN_OID =
       "urn:oid:2.16.840.1.113883.3.8901.3.1.3558097.8001";
 
-  String REFERRNG_PROVIDER_SECOND_IDTYPE_UB_04 =
-      "http://va.gov/fhir/StructureDefinition/organization-referrngProviderSecondIDTypeUB04";
+  String REFERRING_PROVIDER_SECOND_IDTYPE_UB_04 =
+      "http://va.gov/fhir/StructureDefinition/organization-referringProviderSecondIDTypeUB04";
 
-  String REFERRNG_PROVIDER_SECOND_IDTYPE_UB_04_URN_OID =
+  String REFERRING_PROVIDER_SECOND_IDTYPE_UB_04_URN_OID =
       "urn:oid:2.16.840.1.113883.3.8901.3.1.3558097.8001";
 
   String SIGNATURE_REQUIRED_ON_BILL =

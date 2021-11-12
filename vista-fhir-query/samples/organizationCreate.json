@@ -152,7 +152,7 @@
       }
     },
     {
-      "url": "http://va.gov/fhir/StructureDefinition/organization-referrngProviderSecondIDTypeCMS1500",
+      "url": "http://va.gov/fhir/StructureDefinition/organization-referringProviderSecondIDTypeCMS1500",
       "valueCodeableConcept": {
         "coding": [
           {
@@ -163,7 +163,7 @@
       }
     },
     {
-      "url": "http://va.gov/fhir/StructureDefinition/organization-referrngProviderSecondIDTypeUB04",
+      "url": "http://va.gov/fhir/StructureDefinition/organization-referringProviderSecondIDTypeUB04",
       "valueCodeableConcept": {
         "coding": [
           {
