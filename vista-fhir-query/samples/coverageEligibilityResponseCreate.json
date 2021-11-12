@@ -1,8 +1,5 @@
 {
   "resourceType": "CoverageEligibilityResponse",
-  "meta": {
-    "source": "673"
-  },
   "patient": {
     "reference": "http://localhost:8090/data-query/r4/Patient/5000000347V502052",
     "identifier": {
