@@ -9,6 +9,7 @@ import gov.va.api.health.r4.api.datatypes.Coding;
 import gov.va.api.health.r4.api.datatypes.Identifier;
 import gov.va.api.health.r4.api.datatypes.Money;
 import gov.va.api.health.r4.api.datatypes.Period;
+import gov.va.api.health.r4.api.datatypes.Quantity;
 import gov.va.api.health.r4.api.elements.Extension;
 import gov.va.api.health.r4.api.elements.Meta;
 import gov.va.api.health.r4.api.elements.Reference;
@@ -81,6 +82,21 @@ public class CoverageEligibilityResponseSamples {
 
     private List<CoverageEligibilityResponse.Benefit> benefits() {
       return CoverageEligibilityResponse.Benefit.builder()
+          .extension(
+              List.of(
+                  createExtension(
+                      CoverageEligibilityResponseStructureDefinitions.BENEFIT_QUANTITY,
+                      e ->
+                          e.valueQuantity(
+                              Quantity.builder().value(new BigDecimal("666.563")).build())),
+                  createExtension(
+                      CoverageEligibilityResponseStructureDefinitions.BENEFIT_QUANTITY_CODE,
+                      e ->
+                          e.valueCodeableConcept(
+                              codeableConceptFor(
+                                  CoverageEligibilityResponseStructureDefinitions
+                                      .BENEFIT_QUANTITY_CODE_SYSTEM,
+                                  "M2")))))
           .type(
               CodeableConcept.builder()
                   .coding(
@@ -447,7 +463,9 @@ public class CoverageEligibilityResponseSamples {
                   List.of(
                       createExtension(
                           CoverageEligibilityResponseStructureDefinitions.BENEFIT_QUANTITY,
-                          e -> e.valueDecimal(new BigDecimal("365.666"))),
+                          e ->
+                              e.valueQuantity(
+                                  Quantity.builder().value(new BigDecimal("365.666")).build())),
                       createExtension(
                           CoverageEligibilityResponseStructureDefinitions.QUANTITY_QUALIFIER,
                           e ->
@@ -561,19 +579,21 @@ public class CoverageEligibilityResponseSamples {
                             .field(EligibilityBenefit.PERCENT)
                             .value("88.88")
                             .build(),
-                        WriteableFilemanValue.builder()
-                            .file(EligibilityBenefit.FILE_NUMBER)
-                            .index(1)
-                            .field(EligibilityBenefit.QUANTITY_QUALIFIER)
-                            // M2 Maximum
-                            .value("M2")
-                            .build(),
-                        WriteableFilemanValue.builder()
-                            .file(EligibilityBenefit.FILE_NUMBER)
-                            .index(1)
-                            .field(EligibilityBenefit.QUANTITY)
-                            .value("666")
-                            .build(),*/
+
+                        */
+          WriteableFilemanValue.builder()
+              .file(EligibilityBenefit.FILE_NUMBER)
+              .index(1)
+              .field(EligibilityBenefit.QUANTITY_QUALIFIER)
+              // M2 Maximum
+              .value("M2")
+              .build(),
+          WriteableFilemanValue.builder()
+              .file(EligibilityBenefit.FILE_NUMBER)
+              .index(1)
+              .field(EligibilityBenefit.QUANTITY)
+              .value("666.563")
+              .build(),
           WriteableFilemanValue.builder()
               .file(EligibilityBenefit.FILE_NUMBER)
               .index(1)

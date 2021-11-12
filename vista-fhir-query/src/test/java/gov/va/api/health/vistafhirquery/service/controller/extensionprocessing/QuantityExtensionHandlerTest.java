@@ -12,6 +12,7 @@ import gov.va.api.health.vistafhirquery.service.controller.WriteableFilemanValue
 import gov.va.api.lighthouse.charon.models.lhslighthouserpcgateway.LhsLighthouseRpcGatewayCoverageWrite.WriteableFilemanValue;
 import java.math.BigDecimal;
 import java.util.stream.Stream;
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
@@ -29,8 +30,8 @@ public class QuantityExtensionHandlerTest {
   private QuantityExtensionHandler _handler(int index) {
     return QuantityExtensionHandler.forDefiningUrl("http://fugazi.com/quantity")
         .required(REQUIRED)
-        .valueFieldNumber("1")
-        .unitFieldNumber("2")
+        .valueFieldNumber(".value")
+        .unitFieldNumber(".unit")
         .index(index)
         .filemanFactory(WriteableFilemanValueFactory.forFile("888"))
         .build();
@@ -59,14 +60,34 @@ public class QuantityExtensionHandlerTest {
             WriteableFilemanValue.builder()
                 .file("888")
                 .index(index)
-                .field("1")
+                .field(".value")
                 .value("7.88")
                 .build(),
             WriteableFilemanValue.builder()
                 .file("888")
                 .index(index)
-                .field("2")
+                .field(".unit")
                 .value("SHANKS")
+                .build());
+  }
+
+  @Test
+  void handlerDoesNotRequireUnitField() {
+    var handler =
+        QuantityExtensionHandler.forDefiningUrl("http://fugazi.com/quantity")
+            .required(REQUIRED)
+            .filemanFactory(WriteableFilemanValueFactory.forFile("888"))
+            .valueFieldNumber(".value")
+            .index(1)
+            .build();
+    var sample = extensionWithQuantity(Quantity.builder().value(new BigDecimal("8.88")).build());
+    assertThat(handler.handle(sample))
+        .containsOnly(
+            WriteableFilemanValue.builder()
+                .file("888")
+                .index(1)
+                .field(".value")
+                .value("8.88")
                 .build());
   }
 }

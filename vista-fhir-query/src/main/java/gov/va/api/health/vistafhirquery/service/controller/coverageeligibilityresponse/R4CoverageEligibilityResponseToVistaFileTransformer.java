@@ -25,9 +25,9 @@ import gov.va.api.health.vistafhirquery.service.controller.RecordCoordinates;
 import gov.va.api.health.vistafhirquery.service.controller.ResourceExceptions.BadRequestPayload;
 import gov.va.api.health.vistafhirquery.service.controller.extensionprocessing.CodeableConceptExtensionHandler;
 import gov.va.api.health.vistafhirquery.service.controller.extensionprocessing.ComplexExtensionHandler;
-import gov.va.api.health.vistafhirquery.service.controller.extensionprocessing.DecimalExtensionHandler;
 import gov.va.api.health.vistafhirquery.service.controller.extensionprocessing.IntegerExtensionHandler;
 import gov.va.api.health.vistafhirquery.service.controller.extensionprocessing.PeriodExtensionHandler;
+import gov.va.api.health.vistafhirquery.service.controller.extensionprocessing.QuantityExtensionHandler;
 import gov.va.api.health.vistafhirquery.service.controller.extensionprocessing.R4ExtensionProcessor;
 import gov.va.api.health.vistafhirquery.service.controller.extensionprocessing.StringExtensionHandler;
 import gov.va.api.lighthouse.charon.models.lhslighthouserpcgateway.EligibilityBenefit;
@@ -81,8 +81,29 @@ public class R4CoverageEligibilityResponseToVistaFileTransformer {
                 indexRegistry().get(EligibilityBenefit.FILE_NUMBER),
                 benefit.type(),
                 CoverageEligibilityResponseStructureDefinitions.ELIGIBILITY_BENEFIT_INFO));
+    filemanValues.addAll(benefitExtensionProcessor().process(benefit.extension()));
     filemanValues.add(money(benefit.allowedMoney(), benefit.usedMoney()));
     return filemanValues.stream();
+  }
+
+  private R4ExtensionProcessor benefitExtensionProcessor() {
+    return R4ExtensionProcessor.of(
+        QuantityExtensionHandler.forDefiningUrl(
+                CoverageEligibilityResponseStructureDefinitions.BENEFIT_QUANTITY)
+            .required(REQUIRED)
+            .filemanFactory(factoryRegistry().get(EligibilityBenefit.FILE_NUMBER))
+            .index(indexRegistry().get(EligibilityBenefit.FILE_NUMBER))
+            .valueFieldNumber(EligibilityBenefit.QUANTITY)
+            .build(),
+        CodeableConceptExtensionHandler.forDefiningUrl(
+                CoverageEligibilityResponseStructureDefinitions.BENEFIT_QUANTITY_CODE)
+            .required(REQUIRED)
+            .filemanFactory(factoryRegistry().get(EligibilityBenefit.FILE_NUMBER))
+            .index(indexRegistry().get(EligibilityBenefit.FILE_NUMBER))
+            .fieldNumber(EligibilityBenefit.QUANTITY_QUALIFIER)
+            .codingSystem(
+                CoverageEligibilityResponseStructureDefinitions.BENEFIT_QUANTITY_CODE_SYSTEM)
+            .build());
   }
 
   WriteableFilemanValue dateTimePeriod(Period period) {
@@ -499,13 +520,13 @@ public class R4CoverageEligibilityResponseToVistaFileTransformer {
             .required(REQUIRED)
             .childExtensions(
                 List.of(
-                    DecimalExtensionHandler.forDefiningUrl(
+                    QuantityExtensionHandler.forDefiningUrl(
                             CoverageEligibilityResponseStructureDefinitions.BENEFIT_QUANTITY)
                         .required(REQUIRED)
                         .filemanFactory(
                             factoryRegistry().get(HealthcareServicesDelivery.FILE_NUMBER))
                         .index(indexRegistry().get(HealthcareServicesDelivery.FILE_NUMBER))
-                        .fieldNumber(HealthcareServicesDelivery.BENEFIT_QUANTITY)
+                        .valueFieldNumber(HealthcareServicesDelivery.BENEFIT_QUANTITY)
                         .build(),
                     CodeableConceptExtensionHandler.forDefiningUrl(
                             CoverageEligibilityResponseStructureDefinitions.QUANTITY_QUALIFIER)

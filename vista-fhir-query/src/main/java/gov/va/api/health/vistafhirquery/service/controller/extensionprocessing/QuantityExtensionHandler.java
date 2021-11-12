@@ -2,11 +2,11 @@ package gov.va.api.health.vistafhirquery.service.controller.extensionprocessing;
 
 import static gov.va.api.health.vistafhirquery.service.controller.R4Transformers.isBlank;
 
-import gov.va.api.health.r4.api.datatypes.Quantity;
 import gov.va.api.health.r4.api.elements.Extension;
 import gov.va.api.health.vistafhirquery.service.controller.ResourceExceptions.BadRequestPayload.BadExtension;
 import gov.va.api.health.vistafhirquery.service.controller.WriteableFilemanValueFactory;
 import gov.va.api.lighthouse.charon.models.lhslighthouserpcgateway.LhsLighthouseRpcGatewayCoverageWrite.WriteableFilemanValue;
+import java.util.ArrayList;
 import java.util.List;
 import lombok.Builder;
 import lombok.Getter;
@@ -23,7 +23,7 @@ public class QuantityExtensionHandler extends AbstractExtensionHandler {
       @NonNull String definingUrl,
       @NonNull ExtensionHandler.Required required,
       @NonNull String valueFieldNumber,
-      @NonNull String unitFieldNumber,
+      String unitFieldNumber,
       int index) {
     super(definingUrl, required, filemanFactory, index);
     this.valueFieldNumber = valueFieldNumber;
@@ -37,21 +37,26 @@ public class QuantityExtensionHandler extends AbstractExtensionHandler {
   @Override
   public List<WriteableFilemanValue> handle(Extension extension) {
     if (isBlank(extension.valueQuantity())) {
-      throw BadExtension.because(extension.url(), ".valueQuantity is null");
+      throw BadExtension.because(definingUrl(), ".valueQuantity is null");
     }
     var quantity = extension.valueQuantity();
-    validQuantityOrDie(extension.url(), quantity);
-    return List.of(
-        filemanFactory().forString(valueFieldNumber(), index(), quantity.value().toString()),
-        filemanFactory().forString(unitFieldNumber(), index(), quantity.unit()));
-  }
-
-  private void validQuantityOrDie(String definingUrl, Quantity quantity) {
     if (isBlank(quantity.value())) {
-      throw BadExtension.because(definingUrl, ".valueQuantity.value is null");
+      throw BadExtension.because(definingUrl(), ".valueQuantity.value is null");
     }
-    if (isBlank(quantity.unit())) {
-      throw BadExtension.because(definingUrl, ".valueQuantity.unit is null");
+    List<WriteableFilemanValue> filemanValues = new ArrayList<>(2);
+    filemanValues.add(
+        filemanFactory()
+            .forRequiredString(valueFieldNumber(), index(), quantity.value().toPlainString()));
+    if (!isBlank(unitFieldNumber())) {
+      filemanFactory()
+          .forOptionalString(unitFieldNumber(), index(), quantity.unit())
+          .ifPresentOrElse(
+              filemanValues::add,
+              () -> {
+                throw BadExtension.because(
+                    definingUrl(), ".unit is required but was not specified.");
+              });
     }
+    return filemanValues;
   }
 }

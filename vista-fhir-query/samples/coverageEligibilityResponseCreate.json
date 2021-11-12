@@ -125,7 +125,9 @@
               "extension": [
                 {
                   "url": "http://va.gov/fhir/StructureDefinition/coverageEligibilityResponse-benefitQuantity",
-                  "valueDecimal": "365.666"
+                  "valueQuantity": {
+                    "value": "365.666"
+                  }
                 },
                 {
                   "url": "http://va.gov/fhir/StructureDefinition/coverageEligibilityResponse-quantityQualifier",
@@ -344,6 +346,25 @@
           },
           "benefit": [
             {
+              "extension": [
+                {
+                  "url": "http://va.gov/fhir/StructureDefinition/coverageEligibilityResponse-benefitQuantity",
+                  "valueQuantity": {
+                    "value": "666.563"
+                  }
+                },
+                {
+                  "url": "http://va.gov/fhir/StructureDefinition/coverageEligibilityResponse-benefitQuantityCode",
+                  "valueCodeableConcept" : {
+                    "coding": [
+                      {
+                        "system": "2.16.840.1.113883.3.8901.3.1.3658002.801",
+                        "code": "M2"
+                      }
+                    ]
+                  }
+                }
+              ],
               "type": {
                 "coding": [
                   {
