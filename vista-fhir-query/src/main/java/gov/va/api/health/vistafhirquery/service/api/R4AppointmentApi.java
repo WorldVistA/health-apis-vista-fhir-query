@@ -18,8 +18,80 @@ import javax.ws.rs.Path;
 public interface R4AppointmentApi {
   @GET
   @Operation(
+      summary = "Appointment Read",
+      description = "https://www.hl7.org/fhir/R4/appointment.html",
+      tags = {"Appointment"})
+  @Path("/hcs/{site}/Appointment/{id}")
+  @ApiResponses({
+    @ApiResponse(
+        responseCode = "200",
+        description = "Record found",
+        content = {
+          @Content(
+              mediaType = "application/fhir+json",
+              schema = @Schema(implementation = Appointment.class))
+        }),
+    @ApiResponse(
+        responseCode = "400",
+        description = "Bad request",
+        content = {
+          @Content(
+              mediaType = "application/fhir+json",
+              schema = @Schema(implementation = OperationOutcome.class))
+        }),
+    @ApiResponse(
+        responseCode = "401",
+        description = "Unauthorized",
+        content = {
+          @Content(
+              mediaType = "application/fhir+json",
+              schema = @Schema(implementation = OperationOutcome.class))
+        }),
+    @ApiResponse(
+        responseCode = "403",
+        description = "Forbidden",
+        content = {
+          @Content(
+              mediaType = "application/fhir+json",
+              schema = @Schema(implementation = OperationOutcome.class))
+        }),
+    @ApiResponse(
+        responseCode = "404",
+        description = "Not found",
+        content = {
+          @Content(
+              mediaType = "application/fhir+json",
+              schema = @Schema(implementation = OperationOutcome.class))
+        }),
+    @ApiResponse(
+        responseCode = "500",
+        description = "Server Error",
+        content = {
+          @Content(
+              mediaType = "application/fhir+json",
+              schema = @Schema(implementation = OperationOutcome.class))
+        })
+  })
+  Appointment appointmentRead(
+      @Parameter(hidden = true) HttpServletRequest request,
+      @Parameter(
+              in = ParameterIn.PATH,
+              name = "site",
+              required = true,
+              description = "The id of the site where this resource can be found.")
+          String site,
+      @Parameter(
+              in = ParameterIn.PATH,
+              name = "id",
+              required = true,
+              description =
+                  "The logical id of the resource. Once assigned, this value never changes.")
+          String id);
+
+  @GET
+  @Operation(
       summary = "Appointment Search",
-      description = "https://hl7.org/fhir/us/carin/StructureDefinition/carin-bb-Appointment",
+      description = "https://www.hl7.org/fhir/R4/appointment.html",
       tags = {"Appointment"})
   @Path("/hcs/{site}/Appointment")
   @ApiResponses({

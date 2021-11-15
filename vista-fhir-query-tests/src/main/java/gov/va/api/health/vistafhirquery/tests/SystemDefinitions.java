@@ -31,6 +31,7 @@ public final class SystemDefinitions {
 
   private static TestIds idsForLocalEnvironment() {
     return TestIds.builder()
+        .appointment("I3-KHQ4cxv5wNA3A6sawDxVtim61Nu7oEarzxdGh0rK0aqHGhoA2iaX0o")
         .coverage("I3-KIP2d05814vy8hy5ghAbLQwDUt9O6qLsSCqMjdnOSKF")
         .insurancePlan("I3-1JeCN3qnboBvfJAeuA5VVg")
         .organizations(
@@ -47,6 +48,7 @@ public final class SystemDefinitions {
 
   private static TestIds idsForProductionEnvironment() {
     return TestIds.builder()
+        .appointment("TODO https://vajira.max.gov/browse/API-8891")
         .coverage("TODO https://vajira.max.gov/browse/API-8891")
         .insurancePlan("TODO https://vajira.max.gov/browse/API-8891")
         .organizations(
@@ -63,6 +65,7 @@ public final class SystemDefinitions {
 
   private static TestIds idsForSyntheticEnvironment() {
     return TestIds.builder()
+        .appointment("TODO https://vajira.max.gov/browse/API-11187")
         .coverage("I3-onSd2F0QCJnTLBUa2wtl7ghktwQt7TS4TXKJMwHzDo9")
         .insurancePlan("I3-35bba1Pto08dShHpQSSihU")
         .organizations(

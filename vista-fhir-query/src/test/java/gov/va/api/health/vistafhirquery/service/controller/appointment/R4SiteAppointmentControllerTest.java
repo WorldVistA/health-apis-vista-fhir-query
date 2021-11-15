@@ -15,6 +15,7 @@ import gov.va.api.health.vistafhirquery.service.charonclient.CharonResponse;
 import gov.va.api.health.vistafhirquery.service.config.LinkProperties;
 import gov.va.api.health.vistafhirquery.service.config.VistaApiConfig;
 import gov.va.api.health.vistafhirquery.service.controller.DateSearchBoundaries;
+import gov.va.api.health.vistafhirquery.service.controller.MockWitnessProtection;
 import gov.va.api.health.vistafhirquery.service.controller.R4BundlerFactory;
 import gov.va.api.health.vistafhirquery.service.controller.witnessprotection.AlternatePatientIds;
 import gov.va.api.lighthouse.charon.api.v1.RpcInvocationResultV1;
@@ -31,7 +32,10 @@ import org.mockito.junit.jupiter.MockitoExtension;
 @ExtendWith(MockitoExtension.class)
 public class R4SiteAppointmentControllerTest {
   @Mock CharonClient charonClient;
+
   @Mock VistaApiConfig vistaApiConfig;
+
+  MockWitnessProtection witnessProtection = new MockWitnessProtection();
 
   private R4SiteAppointmentController _controller() {
     return R4SiteAppointmentController.builder()
@@ -48,6 +52,7 @@ public class R4SiteAppointmentControllerTest {
                 .build())
         .charonClient(charonClient)
         .vistaApiConfig(vistaApiConfig)
+        .witnessProtection(witnessProtection)
         .build();
   }
 
@@ -80,13 +85,29 @@ public class R4SiteAppointmentControllerTest {
   }
 
   @Test
+  void read() {
+    var httpRequest = requestFromUri("?patient=p1");
+    var rpcRequest =
+        VprGetPatientData.Request.builder()
+            .context(Optional.ofNullable(vistaApiConfig.getVprGetPatientDataContext()))
+            .dfn(VprGetPatientData.Request.PatientId.forIcn("I3-p1"))
+            .type(Set.of(VprGetPatientData.Domains.appointments))
+            .build();
+    var charonRequest = charonRequestFor(rpcRequest);
+    var charonResponse =
+        AppointmentSamples.Vista.create().results(AppointmentSamples.Vista.create().appointment());
+    when(charonClient.request(any(CharonRequest.class)))
+        .thenReturn(charonResponseFor(charonRequest, charonResponse));
+    witnessProtection.add("p1", "sNp1+673+AA;2931013.07;23");
+    var actual = _controller().appointmentRead(httpRequest, "673", "p1");
+    assertThat(json(actual)).isEqualTo(json(AppointmentSamples.R4.create().appointment()));
+  }
+
+  @Test
   void searchByPatient() {
     var httpRequest = requestFromUri("?_count=15&patient=p1");
-
     String[] date = new String[] {"1991"};
-
     DateSearchBoundaries boundaries = DateSearchBoundaries.of(date);
-
     var rpcRequest =
         VprGetPatientData.Request.builder()
             .context(Optional.ofNullable(vistaApiConfig.getVprGetPatientDataContext()))
@@ -97,10 +118,8 @@ public class R4SiteAppointmentControllerTest {
             .build();
     var charonRequest = charonRequestFor(rpcRequest);
     var charonResponse = AppointmentSamples.Vista.create().results();
-
     when(charonClient.request(any(CharonRequest.class)))
         .thenReturn(charonResponseFor(charonRequest, charonResponse));
-
     var actual = _controller().appointmentSearch(httpRequest, "673", date, "p1", 15);
     var expected =
         AppointmentSamples.R4.asBundle(
@@ -111,7 +130,6 @@ public class R4SiteAppointmentControllerTest {
                 BundleLink.LinkRelation.self,
                 "http://fugazi.com/hcs/673/r4/Appointment",
                 "_count=15&patient=p1"));
-
     assertThat(json(actual)).isEqualTo(json(expected));
   }
 }

@@ -31,6 +31,7 @@ public class VprGetPatientDataMocks implements MockService {
 
   private List<Consumer<MockServerClient>> supportedRequests =
       List.of(
+          this::appointmentRead,
           this::appointmentSearch,
           this::appointmentSearchDate,
           this::observationReadLabs,
@@ -40,6 +41,28 @@ public class VprGetPatientDataMocks implements MockService {
   private void addSupportedQuery(RpcDetails body) {
     supportedQueries.add(
         "[POST] http://localhost:" + port() + "/rpc with RPC Details like " + json(body));
+  }
+
+  void appointmentRead(MockServerClient mock) {
+    var details =
+        VprGetPatientData.Request.builder()
+            .context(Optional.of("MOCKSERVICES"))
+            .dfn(forIcn("1011537977V693883"))
+            .type(Set.of(Domains.appointments))
+            .id(Optional.of("A;2931013.07;23"))
+            .build()
+            .asDetails();
+
+    supportedQueries.add(
+        "[POST] http://localhost:" + port() + "/v1/rpc with RPC Details like " + json(details));
+    mock.when(rpcQueryV1_WithExpectedRpcDetails(port(), details))
+        .respond(
+            response()
+                .withStatusCode(200)
+                .withHeader(contentTypeApplicationJson())
+                .withBody(
+                    rpcInvocationResultV1_OkWithContent(
+                        "/vistalinkapi-vprgetpatientdata-appointment-readresponse.xml")));
   }
 
   void appointmentSearch(MockServerClient mock) {

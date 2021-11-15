@@ -1,18 +1,25 @@
 package gov.va.api.health.vistafhirquery.service.controller.appointment;
 
+import static gov.va.api.health.vistafhirquery.service.controller.R4Controllers.verifyAndGetResult;
 import static gov.va.api.health.vistafhirquery.service.controller.R4Transformers.toLocalDateMacroString;
 import static java.util.stream.Collectors.toList;
 
+import gov.va.api.health.ids.client.IdEncoder;
 import gov.va.api.health.r4.api.resources.Appointment;
 import gov.va.api.health.vistafhirquery.service.api.R4AppointmentApi;
 import gov.va.api.health.vistafhirquery.service.charonclient.CharonClient;
 import gov.va.api.health.vistafhirquery.service.charonclient.CharonRequest;
+import gov.va.api.health.vistafhirquery.service.charonclient.CharonResponse;
 import gov.va.api.health.vistafhirquery.service.config.VistaApiConfig;
 import gov.va.api.health.vistafhirquery.service.controller.DateSearchBoundaries;
 import gov.va.api.health.vistafhirquery.service.controller.R4BundlerFactory;
 import gov.va.api.health.vistafhirquery.service.controller.R4Bundling;
 import gov.va.api.health.vistafhirquery.service.controller.R4Transformation;
+import gov.va.api.health.vistafhirquery.service.controller.ResourceExceptions;
+import gov.va.api.health.vistafhirquery.service.controller.SegmentedVistaIdentifier;
+import gov.va.api.health.vistafhirquery.service.controller.witnessprotection.WitnessProtection;
 import gov.va.api.lighthouse.charon.models.vprgetpatientdata.VprGetPatientData;
+import gov.va.api.lighthouse.charon.models.vprgetpatientdata.VprGetPatientData.Request.PatientId;
 import java.util.Optional;
 import java.util.Set;
 import javax.servlet.http.HttpServletRequest;
@@ -46,7 +53,30 @@ public class R4SiteAppointmentController implements R4AppointmentApi {
 
   private final VistaApiConfig vistaApiConfig;
 
-  /** Search for Appointment records by Patient. */
+  private final WitnessProtection witnessProtection;
+
+  /** Read by id. */
+  @SneakyThrows
+  @GetMapping(value = "/hcs/{site}/r4/Appointment/{id}")
+  public Appointment appointmentRead(
+      HttpServletRequest request,
+      @PathVariable("site") String site,
+      @PathVariable("id") String id) {
+    SegmentedVistaIdentifier ids = parseOrDie(id);
+    var rpcRequest =
+        VprGetPatientData.Request.builder()
+            .context(Optional.ofNullable(vistaApiConfig.getVprGetPatientDataContext()))
+            .dfn(PatientId.forIcn(ids.patientIdentifier()))
+            .type(Set.of(VprGetPatientData.Domains.appointments))
+            .id(Optional.of(ids.recordId()))
+            .build();
+    var charonResponse = charonRequest(site, rpcRequest);
+    var resources =
+        transformation(site, ids.patientIdentifier()).toResource().apply(charonResponse.value());
+    return verifyAndGetResult(resources, id);
+  }
+
+  /** Search for appointment records by patient. */
   @SneakyThrows
   @GetMapping(value = "/hcs/{site}/r4/Appointment")
   public Appointment.Bundle appointmentSearch(
@@ -59,30 +89,19 @@ public class R4SiteAppointmentController implements R4AppointmentApi {
               required = false,
               defaultValue = "${vista-fhir-query.default-page-size}")
           int count) {
-
     if (date == null || date.length == 0) {
       date = new String[] {"ge1901", "lt2700"};
     }
-
     DateSearchBoundaries boundaries = DateSearchBoundaries.of(date);
-
     var rpcRequest =
         VprGetPatientData.Request.builder()
             .context(Optional.ofNullable(vistaApiConfig.getVprGetPatientDataContext()))
-            .dfn(VprGetPatientData.Request.PatientId.forIcn(patientIcn))
+            .dfn(PatientId.forIcn(patientIcn))
             .type(Set.of(VprGetPatientData.Domains.appointments))
             .start(toLocalDateMacroString(boundaries.start()))
             .stop(toLocalDateMacroString(boundaries.stop()))
             .build();
-
-    var charonRequest =
-        CharonRequest.<VprGetPatientData.Request, VprGetPatientData.Response.Results>builder()
-            .vista(site)
-            .rpcRequest(rpcRequest)
-            .responseType(VprGetPatientData.Response.Results.class)
-            .build();
-    var charonResponse = charonClient.request(charonRequest);
-
+    var charonResponse = charonRequest(site, rpcRequest);
     return bundlerFactory
         .forTransformation(transformation(site, patientIcn))
         .site(charonResponse.invocationResult().vista())
@@ -92,6 +111,25 @@ public class R4SiteAppointmentController implements R4AppointmentApi {
         .request(request)
         .build()
         .apply(charonResponse.value());
+  }
+
+  private CharonResponse<VprGetPatientData.Request, VprGetPatientData.Response.Results>
+      charonRequest(String site, VprGetPatientData.Request rpcRequest) {
+    var charonRequest =
+        CharonRequest.<VprGetPatientData.Request, VprGetPatientData.Response.Results>builder()
+            .vista(site)
+            .rpcRequest(rpcRequest)
+            .responseType(VprGetPatientData.Response.Results.class)
+            .build();
+    return charonClient.request(charonRequest);
+  }
+
+  private SegmentedVistaIdentifier parseOrDie(String publicId) {
+    try {
+      return SegmentedVistaIdentifier.unpack(witnessProtection.toPrivateId(publicId));
+    } catch (IdEncoder.BadId | IllegalArgumentException e) {
+      throw ResourceExceptions.NotFound.because("Could not unpack id: " + publicId);
+    }
   }
 
   private R4Transformation<VprGetPatientData.Response.Results, Appointment> transformation(
