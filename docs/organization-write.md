@@ -42,7 +42,7 @@ The following codes are supported. Individual data requirements are described be
 
 |Path|Required|Notes|
 |---|---|---|
-|`.purpose.coding[0].system` | Required | Must be `http://terminology.hl7.org/CodeSystem/contactentity-type` |
+|`.purpose.coding[0].system` | Required | *WARNING* System will change https://vajira.max.gov/browse/API-11250. Currently using `http://terminology.hl7.org/CodeSystem/contactentity-type`  |
 |`.purpose.coding[0].code` | Required | Must be `APPEAL`. |
 |`.extension[]` | Optional | See supported extensions below. |
 |`.telecom[]` | Required | Must contain a `phone` contact point. May contain a `fax` contact point. |
@@ -70,7 +70,7 @@ The following codes are supported. Individual data requirements are described be
 
 |Path|Required|Notes|
 |---|---|---|
-|`.purpose.coding[0].system` | Required | Must be `http://terminology.hl7.org/CodeSystem/contactentity-type`. |
+|`.purpose.coding[0].system` | Required | *WARNING* System will change https://vajira.max.gov/browse/API-11250. Currently using `http://terminology.hl7.org/CodeSystem/contactentity-type` . |
 |`.purpose.coding[0].code` | Required | Must be `BILL`. |
 |`.extension[]` | Optional | See supported extensions below. |
 |`.telecom[]` | Required | Must contain a `phone` contact point. |
@@ -89,7 +89,7 @@ The following codes are supported. Individual data requirements are described be
 
 |Path|Required|Notes|
 |---|---|---|
-|`.purpose.coding[0].system` | Required | Must be `http://terminology.hl7.org/CodeSystem/contactentity-type`. |
+|`.purpose.coding[0].system` | Required | *WARNING* System will change https://vajira.max.gov/browse/API-11250. Currently using `http://terminology.hl7.org/CodeSystem/contactentity-type` . |
 |`.purpose.coding[0].code` | Required | Must be `DENTALCLAIMS`. |
 |`.extension[]` | Optional | See supported extensions below. |
 |`.telecom[]` | Optional | May contain a `phone` and/or contain a `fax` contact point. |
@@ -116,7 +116,7 @@ The following codes are supported. Individual data requirements are described be
 
 |Path|Required|Notes|
 |---|---|---|
-|`.purpose.coding[0].system` | Required | Must be `http://terminology.hl7.org/CodeSystem/contactentity-type`. |
+|`.purpose.coding[0].system` | Required | *WARNING* System will change https://vajira.max.gov/browse/API-11250. Currently using `http://terminology.hl7.org/CodeSystem/contactentity-type` . |
 |`.purpose.coding[0].code` | Required | Must be `INPTCLAIMS`. |
 |`.extension[]` | Optional | See supported extensions below. |
 |`.telecom[]` | Required | Must contain a `phone` contact point. May contain a `fax` contact point. |
@@ -144,7 +144,7 @@ The following codes are supported. Individual data requirements are described be
 
 |Path|Required|Notes|
 |---|---|---|
-|`.purpose.coding[0].system` | Required | Must be `http://terminology.hl7.org/CodeSystem/contactentity-type`. |
+|`.purpose.coding[0].system` | Required | *WARNING* System will change https://vajira.max.gov/browse/API-11250. Currently using `http://terminology.hl7.org/CodeSystem/contactentity-type` . |
 |`.purpose.coding[0].code` | Required | Must be `OUTPTCLAIMS`. |
 |`.extension[]` | Optional | See supported extensions below. |
 |`.telecom[]` | Required | Must contain a `phone` contact point. May contain a `fax` contact point. |
@@ -172,7 +172,7 @@ The following codes are supported. Individual data requirements are described be
 
 |Path|Required|Notes|
 |---|---|---|
-|`.purpose.coding[0].system` | Required | Must be `http://terminology.hl7.org/CodeSystem/contactentity-type`. |
+|`.purpose.coding[0].system` | Required | *WARNING* System will change https://vajira.max.gov/browse/API-11250. Currently using `http://terminology.hl7.org/CodeSystem/contactentity-type` . |
 |`.purpose.coding[0].code` | Required | Must be `INQUIRY`. |
 |`.extension[]` | Optional | See supported extensions below. |
 |`.telecom[]` | Required | Must contain a `phone` contact point. May contain a `fax` contact point. |
@@ -200,7 +200,7 @@ The following codes are supported. Individual data requirements are described be
 
 |Path|Required|Notes|
 |---|---|---|
-|`.purpose.coding[0].system` | Required | Must be `http://terminology.hl7.org/CodeSystem/contactentity-type`. |
+|`.purpose.coding[0].system` | Required | *WARNING* System will change https://vajira.max.gov/browse/API-11250. Currently using `http://terminology.hl7.org/CodeSystem/contactentity-type` . |
 |`.purpose.coding[0].code` | Required | Must be `PRECERT`. |
 |`.extension[]` | Optional | See supported extensions below. |
 |`.telecom[]` | Required | Must contain a `phone` contact point. |
@@ -219,7 +219,7 @@ The following codes are supported. Individual data requirements are described be
 
 |Path|Required|Notes|
 |---|---|---|
-|`.purpose.coding[0].system` | Required | Must be `http://terminology.hl7.org/CodeSystem/contactentity-type`. |
+|`.purpose.coding[0].system` | Required | *WARNING* System will change https://vajira.max.gov/browse/API-11250. Currently using `http://terminology.hl7.org/CodeSystem/contactentity-type` . |
 |`.purpose.coding[0].code` | Required | Must be `RXCLAIMS`. |
 |`.extension[]` | Optional | See supported extensions below. |
 |`.telecom[]` | Optional | May contain a `phone` and/or contain a `fax` contact point. |
@@ -247,7 +247,7 @@ The following codes are supported. Individual data requirements are described be
 
 |Path|Required|Notes|
 |---|---|---|
-|`.purpose.coding[0].system` | Required | Must be `http://terminology.hl7.org/CodeSystem/contactentity-type`. |
+|`.purpose.coding[0].system` | Required | *WARNING* System will change https://vajira.max.gov/browse/API-11250. Currently using `http://terminology.hl7.org/CodeSystem/contactentity-type` . |
 |`.purpose.coding[0].code` | Required | Must be `VERIFY`. |
 |`.telecom[]` | Required | Must contain a `phone` contact point. |
 |`.telecom[0].system` | Required | Must be `phone`. |
