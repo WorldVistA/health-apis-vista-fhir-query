@@ -23,7 +23,6 @@ Supported fields
 |`.address[0].city` | Optional | 2-25 characters. |
 |`.address[0].state` | Optional | 2 characters. |
 |`.address[0].postalCode` | Optional | Format `[0-9]{9}` or `[0-9]{5}-[0-9]{4}`. |
-ucture)|
 |`.contact[]` | Required | See [Supported Contacts](#supported-contacts) below. |
 |`.telecom[]` | Required | Must contain a `phone` and `fax` contact point. |
 |`.telecom[0].system` | Required | Must be `phone`. |
@@ -43,7 +42,7 @@ The following codes are supported. Individual data requirements are described be
 
 |Path|Required|Notes|
 |---|---|---|
-|`.purpose.coding[0].system` | Required | Ignored at the this time (TODO API-11250). |
+|`.purpose.coding[0].system` | Required | Must be `http://terminology.hl7.org/CodeSystem/contactentity-type` |
 |`.purpose.coding[0].code` | Required | Must be `APPEAL`. |
 |`.extension[]` | Optional | See supported extensions below. |
 |`.telecom[]` | Required | Must contain a `phone` contact point. May contain a `fax` contact point. |
@@ -71,7 +70,7 @@ The following codes are supported. Individual data requirements are described be
 
 |Path|Required|Notes|
 |---|---|---|
-|`.purpose.coding[0].system` | Required | Ignored at the this time (TODO API-11250). |
+|`.purpose.coding[0].system` | Required | Must be `http://terminology.hl7.org/CodeSystem/contactentity-type`. |
 |`.purpose.coding[0].code` | Required | Must be `BILL`. |
 |`.extension[]` | Optional | See supported extensions below. |
 |`.telecom[]` | Required | Must contain a `phone` contact point. |
@@ -90,7 +89,7 @@ The following codes are supported. Individual data requirements are described be
 
 |Path|Required|Notes|
 |---|---|---|
-|`.purpose.coding[0].system` | Required | Ignored at the this time (TODO API-11250). |
+|`.purpose.coding[0].system` | Required | Must be `http://terminology.hl7.org/CodeSystem/contactentity-type`. |
 |`.purpose.coding[0].code` | Required | Must be `DENTALCLAIMS`. |
 |`.extension[]` | Optional | See supported extensions below. |
 |`.telecom[]` | Optional | May contain a `phone` and/or contain a `fax` contact point. |
@@ -117,7 +116,7 @@ The following codes are supported. Individual data requirements are described be
 
 |Path|Required|Notes|
 |---|---|---|
-|`.purpose.coding[0].system` | Required | Ignored at the this time (TODO API-11250). |
+|`.purpose.coding[0].system` | Required | Must be `http://terminology.hl7.org/CodeSystem/contactentity-type`. |
 |`.purpose.coding[0].code` | Required | Must be `INPTCLAIMS`. |
 |`.extension[]` | Optional | See supported extensions below. |
 |`.telecom[]` | Required | Must contain a `phone` contact point. May contain a `fax` contact point. |
@@ -145,7 +144,7 @@ The following codes are supported. Individual data requirements are described be
 
 |Path|Required|Notes|
 |---|---|---|
-|`.purpose.coding[0].system` | Required | Ignored at the this time (TODO API-11250). |
+|`.purpose.coding[0].system` | Required | Must be `http://terminology.hl7.org/CodeSystem/contactentity-type`. |
 |`.purpose.coding[0].code` | Required | Must be `OUTPTCLAIMS`. |
 |`.extension[]` | Optional | See supported extensions below. |
 |`.telecom[]` | Required | Must contain a `phone` contact point. May contain a `fax` contact point. |
@@ -173,7 +172,7 @@ The following codes are supported. Individual data requirements are described be
 
 |Path|Required|Notes|
 |---|---|---|
-|`.purpose.coding[0].system` | Required | Ignored at the this time (TODO API-11250). |
+|`.purpose.coding[0].system` | Required | Must be `http://terminology.hl7.org/CodeSystem/contactentity-type`. |
 |`.purpose.coding[0].code` | Required | Must be `INQUIRY`. |
 |`.extension[]` | Optional | See supported extensions below. |
 |`.telecom[]` | Required | Must contain a `phone` contact point. May contain a `fax` contact point. |
@@ -201,7 +200,7 @@ The following codes are supported. Individual data requirements are described be
 
 |Path|Required|Notes|
 |---|---|---|
-|`.purpose.coding[0].system` | Required | Ignored at the this time (TODO API-11250). |
+|`.purpose.coding[0].system` | Required | Must be `http://terminology.hl7.org/CodeSystem/contactentity-type`. |
 |`.purpose.coding[0].code` | Required | Must be `PRECERT`. |
 |`.extension[]` | Optional | See supported extensions below. |
 |`.telecom[]` | Required | Must contain a `phone` contact point. |
@@ -220,7 +219,7 @@ The following codes are supported. Individual data requirements are described be
 
 |Path|Required|Notes|
 |---|---|---|
-|`.purpose.coding[0].system` | Required | Ignored at the this time (TODO API-11250). |
+|`.purpose.coding[0].system` | Required | Must be `http://terminology.hl7.org/CodeSystem/contactentity-type`. |
 |`.purpose.coding[0].code` | Required | Must be `RXCLAIMS`. |
 |`.extension[]` | Optional | See supported extensions below. |
 |`.telecom[]` | Optional | May contain a `phone` and/or contain a `fax` contact point. |
@@ -248,7 +247,7 @@ The following codes are supported. Individual data requirements are described be
 
 |Path|Required|Notes|
 |---|---|---|
-|`.purpose.coding[0].system` | Required | Ignored at the this time (TODO API-11250). |
+|`.purpose.coding[0].system` | Required | Must be `http://terminology.hl7.org/CodeSystem/contactentity-type`. |
 |`.purpose.coding[0].code` | Required | Must be `VERIFY`. |
 |`.telecom[]` | Required | Must contain a `phone` contact point. |
 |`.telecom[0].system` | Required | Must be `phone`. |
@@ -269,7 +268,7 @@ Two primary payer IDs are required and two additional payer IDs may be provided.
 
 |Path|Required|Notes|
 |---|---|---
-|`.type.coding[0].system` | Forbidden | |
+|`.type.coding[0].system` | Forbidden | There is no system for primary payer ID codes. |
 |`.type.coding[0].code` | Required | See below. |
 |`.value` | Required | |
 
@@ -356,8 +355,8 @@ EDI 277 identifier is required on create, but forbidden on update.
 | `http://va.gov/fhir/StructureDefinition/organization-electronicInsuranceType` | `valueCodeableConcept` | Required | `.coding[0].system` is `urn:oid:2.16.840.1.113883.3.8901.3.1.36.38009`. `.coding[0].value` identifies the type of insurance company and is one of `COMMERCIAL`, `GROUP POLICY`, `HMO`, `MEDICAID`, `MEDICARE`, `OTHER`. | 
 | `http://va.gov/fhir/StructureDefinition/organization-performingProviderSecondIDTypeCMS1500` | `valueCodeableConcept` | Optional | `.coding[0].system` is `urn:oid:2.16.840.1.113883.3.8901.3.1.3558097.8001`. `.coding[0].value` is _IB Provider ID Number Type Codes_ defined below. | 
 | `http://va.gov/fhir/StructureDefinition/organization-performingProviderSecondIDTypeUB04` | `valueCodeableConcept` | Optional | `.coding[0].system` is `urn:oid:2.16.840.1.113883.3.8901.3.1.3558097.8001`. `.coding[0].value` is _IB Provider ID Number Type Codes_ defined below. | 
-| `http://va.gov/fhir/StructureDefinition/organization-referrngProviderSecondIDTypeCMS1500` | `valueCodeableConcept` | Optional | `.coding[0].system` is `urn:oid:2.16.840.1.113883.3.8901.3.1.3558097.8001`. `.coding[0].value` is _IB Provider ID Number Type Codes_ defined below. | 
-| `http://va.gov/fhir/StructureDefinition/organization-referrngProviderSecondIDTypeUB04` | `valueCodeableConcept` | Optional | `.coding[0].system` is `urn:oid:2.16.840.1.113883.3.8901.3.1.3558097.8001`. `.coding[0].value` is _IB Provider ID Number Type Codes_ defined below. | 
+| `http://va.gov/fhir/StructureDefinition/organization-referringProviderSecondIDTypeCMS1500` | `valueCodeableConcept` | Optional | `.coding[0].system` is `urn:oid:2.16.840.1.113883.3.8901.3.1.3558097.8001`. `.coding[0].value` is _IB Provider ID Number Type Codes_ defined below. | 
+| `http://va.gov/fhir/StructureDefinition/organization-referringProviderSecondIDTypeUB04` | `valueCodeableConcept` | Optional | `.coding[0].system` is `urn:oid:2.16.840.1.113883.3.8901.3.1.3558097.8001`. `.coding[0].value` is _IB Provider ID Number Type Codes_ defined below. | 
 | `http://va.gov/fhir/StructureDefinition/organization-filingTimeFrame` | `valueString` | Required | Maximum amount of time from date of service that the insurance company allows for submitting claims. Answer must be 3-30 characters in length. Examples: 90 days, 6 months, 1 year, 18 months, March 30 after year of service.| 
 | `http://va.gov/fhir/StructureDefinition/organization-planStandardFilingTimeFrame` | `valueQuantity` | Required | `.system` is `urn:oid:2.16.840.1.113883.3.8901.3.3558013`. `.unit` is _Insurance Filing Time Frame Codes_ defined below. `.value` is number in declared units. | 
 | `http://hl7.org/fhir/us/davinci-pdex-plan-net/StructureDefinition/via-intermediary` | `valueReference` | Required | `.reference` is a relative Organization reference to the payer, e.g., `Organization/I3-450NAk1LKUAXKzQ35A62U1`  | 
@@ -421,8 +420,8 @@ Used with
 
 - `http://va.gov/fhir/StructureDefinition/organization-performingProviderSecondIDTypeCMS1500`
 - `http://va.gov/fhir/StructureDefinition/organization-performingProviderSecondIDTypeUB04`
-- `http://va.gov/fhir/StructureDefinition/organization-referrngProviderSecondIDTypeCMS1500`
-- `http://va.gov/fhir/StructureDefinition/organization-referrngProviderSecondIDTypeUB04`
+- `http://va.gov/fhir/StructureDefinition/organization-referringProviderSecondIDTypeCMS1500`
+- `http://va.gov/fhir/StructureDefinition/organization-referringProviderSecondIDTypeUB04`
 
 This is the type of performing provider secondary id that the insurance company expects on CMS-1500 or UB-04 bills received from VA. When the payer-specific provider id is extracted, this field is used to determine where to get the default data from if another secondary id is not entered for the claim.
 
