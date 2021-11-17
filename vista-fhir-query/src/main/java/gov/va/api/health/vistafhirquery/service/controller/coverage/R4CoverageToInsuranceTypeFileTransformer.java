@@ -62,7 +62,7 @@ public class R4CoverageToInsuranceTypeFileTransformer {
           case 3 -> "TERTIARY";
           default -> throw new IllegalArgumentException("Unexpected order value: " + order);
         };
-    return filemanValue.forString(InsuranceType.COORDINATION_OF_BENEFITS, 1, priority);
+    return filemanValue.forRequiredString(InsuranceType.COORDINATION_OF_BENEFITS, 1, priority);
   }
 
   private Optional<Extension> extensionForSystem(String system) {
@@ -127,7 +127,8 @@ public class R4CoverageToInsuranceTypeFileTransformer {
     if (!isMemberId) {
       throw BadRequestPayload.because(InsuranceType.PATIENT_ID, "identifier of type MB not found");
     }
-    return filemanValue.forIdentifier(InsuranceType.PATIENT_ID, 1, beneficiary.identifier());
+    return filemanValue.forRequiredIdentifier(
+        InsuranceType.PATIENT_ID, 1, beneficiary.identifier());
   }
 
   WriteableFilemanValue patientRelationshipHipaa(CodeableConcept relationship) {
@@ -165,7 +166,7 @@ public class R4CoverageToInsuranceTypeFileTransformer {
     List<WriteableFilemanValue> dates = new ArrayList<>(2);
     var start = Instant.parse(period.start());
     var effectiveDate =
-        filemanValue.forString(
+        filemanValue.forRequiredString(
             InsuranceType.EFFECTIVE_DATE_OF_POLICY, 1, vistaDateFormatter().format(start));
     dates.add(effectiveDate);
     if (isBlank(period.end())) {
@@ -176,28 +177,25 @@ public class R4CoverageToInsuranceTypeFileTransformer {
     if (end.isBefore(start)) {
       throw BadRequestPayload.because("Coverage expiration Date is before start date.");
     }
+    /* When expiration date (conditionally required) is present,
+     * any failure to process it should result in failure. */
     var expire =
-        filemanValue.forString(
+        filemanValue.forRequiredString(
             InsuranceType.INSURANCE_EXPIRATION_DATE, 1, vistaDateFormatter().format(end));
     dates.add(expire);
     return dates;
   }
 
   WriteableFilemanValue stopPolicyFromBilling(Extension extension) {
-    var wfv = filemanValue.forBoolean(InsuranceType.STOP_POLICY_FROM_BILLING, 1, extension);
-    if (isBlank(wfv)) {
-      throw BadRequestPayload.because(
-          InsuranceType.STOP_POLICY_FROM_BILLING,
-          "Could not map extension to fileman value: " + extension);
-    }
-    return wfv;
+    return filemanValue.forRequiredBoolean(
+        InsuranceType.STOP_POLICY_FROM_BILLING, 1, extension, value -> value ? "YES" : "NO");
   }
 
   WriteableFilemanValue subscriberId(String subscriberId) {
     if (isBlank(subscriberId)) {
       throw BadRequestPayload.because(InsuranceType.SUBSCRIBER_ID, "subscriberId is null");
     }
-    return filemanValue.forString(InsuranceType.SUBSCRIBER_ID, 1, subscriberId);
+    return filemanValue.forRequiredString(InsuranceType.SUBSCRIBER_ID, 1, subscriberId);
   }
 
   /** Create a set of writeable fileman values. */

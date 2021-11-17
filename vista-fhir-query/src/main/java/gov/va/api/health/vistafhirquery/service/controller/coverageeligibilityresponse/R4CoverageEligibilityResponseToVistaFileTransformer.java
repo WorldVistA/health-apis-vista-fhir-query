@@ -297,7 +297,7 @@ public class R4CoverageEligibilityResponseToVistaFileTransformer {
     filemanValues.add(
         factoryRegistry()
             .get(HealthcareServicesDelivery.FILE_NUMBER)
-            .forInteger(
+            .forRequiredInteger(
                 HealthcareServicesDelivery.SEQUENCE,
                 indexRegistry().get(HealthcareServicesDelivery.FILE_NUMBER),
                 indexRegistry().get(HealthcareServicesDelivery.FILE_NUMBER)));
@@ -311,7 +311,7 @@ public class R4CoverageEligibilityResponseToVistaFileTransformer {
     filemanValues.add(
         factoryRegistry()
             .get(SubscriberAdditionalInfo.FILE_NUMBER)
-            .forInteger(
+            .forRequiredInteger(
                 SubscriberAdditionalInfo.SEQUENCE,
                 indexRegistry().get(SubscriberAdditionalInfo.FILE_NUMBER),
                 indexRegistry().get(SubscriberAdditionalInfo.FILE_NUMBER)));
@@ -325,14 +325,14 @@ public class R4CoverageEligibilityResponseToVistaFileTransformer {
     filemanValues.add(
         factoryRegistry()
             .get(SubscriberReferenceId.FILE_NUMBER)
-            .forInteger(
+            .forRequiredInteger(
                 SubscriberReferenceId.SEQUENCE,
                 indexRegistry().get(SubscriberReferenceId.FILE_NUMBER),
                 indexRegistry().get(SubscriberReferenceId.FILE_NUMBER)));
     filemanValues.add(
         factoryRegistry()
             .get(SubscriberDates.FILE_NUMBER)
-            .forInteger(
+            .forRequiredInteger(
                 SubscriberDates.SEQUENCE,
                 indexRegistry().get(SubscriberDates.FILE_NUMBER),
                 indexRegistry().get(SubscriberDates.FILE_NUMBER)));
@@ -388,7 +388,7 @@ public class R4CoverageEligibilityResponseToVistaFileTransformer {
     filemanValues.add(
         factoryRegistry()
             .get(EligibilityBenefit.FILE_NUMBER)
-            .forInteger(
+            .forRequiredInteger(
                 EligibilityBenefit.EB_NUMBER,
                 indexRegistry().get(EligibilityBenefit.FILE_NUMBER),
                 indexRegistry().get(EligibilityBenefit.FILE_NUMBER)));
@@ -727,7 +727,7 @@ public class R4CoverageEligibilityResponseToVistaFileTransformer {
     vistaFields.add(
         factoryRegistry()
             .get(HealthCareCodeInformation.FILE_NUMBER)
-            .forInteger(
+            .forRequiredInteger(
                 HealthCareCodeInformation.SEQUENCE,
                 indexRegistry().get(HealthCareCodeInformation.FILE_NUMBER),
                 indexRegistry().get(HealthCareCodeInformation.FILE_NUMBER)));

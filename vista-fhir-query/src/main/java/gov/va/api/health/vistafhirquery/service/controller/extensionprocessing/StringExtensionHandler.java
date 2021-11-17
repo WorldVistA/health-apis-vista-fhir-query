@@ -33,6 +33,6 @@ public class StringExtensionHandler extends AbstractSingleFieldExtensionHandler 
     if (isBlank(value)) {
       throw BadExtension.because(extension.url(), ".valueString is null");
     }
-    return List.of(filemanFactory().forString(fieldNumber(), index(), value));
+    return List.of(filemanFactory().forRequiredString(fieldNumber(), index(), value));
   }
 }

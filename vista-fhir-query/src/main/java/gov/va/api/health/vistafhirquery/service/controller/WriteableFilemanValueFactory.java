@@ -36,47 +36,35 @@ public class WriteableFilemanValueFactory {
 
   public Function<Extension, WriteableFilemanValue> extensionToInteger(
       String field, Supplier<Integer> index) {
-    return extension -> forInteger(field, index.get(), extension);
-  }
-
-  /** Build a WriteableFilemanValue from a Boolean value. */
-  public WriteableFilemanValue forBoolean(String field, int index, Boolean value) {
-    if (value == null) {
-      return null;
-    }
-    return forString(field, index, value ? "YES" : "NO");
-  }
-
-  /** Build a WriteableFilemanValue using the extension.valueBoolean field. */
-  public WriteableFilemanValue forBoolean(String field, int index, Extension extension) {
-    if (extension == null) {
-      return null;
-    }
-    return forBoolean(field, index, extension.valueBoolean());
-  }
-
-  /** Build a WriteableFilemanValue using the identifer.value field. */
-  public WriteableFilemanValue forIdentifier(String field, int index, Identifier identifier) {
-    if (identifier == null) {
-      return null;
-    }
-    return forString(field, index, identifier.value());
+    return extension -> forOptionalInteger(field, index.get(), extension).orElse(null);
   }
 
   /** Build a WriteableFilemanValue from an Integer value. */
-  public WriteableFilemanValue forInteger(String field, int index, Integer value) {
+  public Optional<WriteableFilemanValue> forOptionalInteger(
+      @NonNull String field, int index, Integer value) {
     if (value == null) {
-      return null;
+      return Optional.empty();
     }
-    return forString(field, index, "" + value);
+    return forOptionalString(field, index, "" + value);
   }
 
   /** Build a WriteableFilemanValue using the extension.valueInteger field. */
-  public WriteableFilemanValue forInteger(String field, int index, Extension extension) {
+  public Optional<WriteableFilemanValue> forOptionalInteger(
+      @NonNull String field, int index, Extension extension) {
     if (extension == null) {
-      return null;
+      return Optional.empty();
     }
-    return forInteger(field, index, extension.valueInteger());
+    return forOptionalInteger(field, index, extension.valueInteger());
+  }
+
+  /** Build a WriteableFilemanValue pointer for the given file and index. */
+  public Optional<WriteableFilemanValue> forOptionalPointer(
+      @NonNull String file, int index, String ien) {
+    if (isBlank(ien)) {
+      return Optional.empty();
+    }
+    return Optional.of(
+        WriteableFilemanValue.builder().file(file).field("ien").index(index).value(ien).build());
   }
 
   /** Build an optional WriteableFilemanValue for a string. */
@@ -94,12 +82,17 @@ public class WriteableFilemanValueFactory {
             .build());
   }
 
-  /** Build a WriteableFilemanValue pointer for the given file and index. */
-  public WriteableFilemanValue forPointer(@NonNull String file, int index, String ien) {
-    if (isBlank(ien)) {
-      return null;
+  /** Build a WriteableFilemanValue from a Boolean extension. */
+  public WriteableFilemanValue forRequiredBoolean(
+      @NonNull String field,
+      int index,
+      Extension value,
+      @NonNull Function<Boolean, String> mapper) {
+    if (value == null || value.valueBoolean() == null) {
+      throw BadRequestPayload.because(
+          file(), field, "Required field .valueBoolean was found to be null.");
     }
-    return WriteableFilemanValue.builder().file(file).field("ien").index(index).value(ien).build();
+    return forRequiredBoolean(field, index, value.valueBoolean(), mapper);
   }
 
   /** Build a WriteableFilemanValue from a Boolean value. */
@@ -151,6 +144,13 @@ public class WriteableFilemanValueFactory {
     return forRequiredString(field, index, identifier.value());
   }
 
+  /** Build a WriteableFilemanValue from an Integer value. */
+  public WriteableFilemanValue forRequiredInteger(@NonNull String field, int index, Integer value) {
+    return forOptionalInteger(field, index, value)
+        .orElseThrow(
+            () -> BadRequestPayload.because(file(), field, "Required integer value is null."));
+  }
+
   /**
    * Creates a pointer using the Dynamic IEN Macro to a parent file (e.g.
    * 355.321^1^IEN^${355.32^1^IEN}).
@@ -180,37 +180,28 @@ public class WriteableFilemanValueFactory {
     if (isBlank(value)) {
       throw BadRequestPayload.because(file(), field, "Required pointer was found to be null.");
     }
-    return WriteableFilemanValue.builder()
-        .file(file())
-        .index(index)
-        .field(field)
-        .value("`" + value)
-        .build();
+    return forRequiredString(field, index, "`" + value);
   }
 
   /** Build a WriteableFilemanValue for a string, throwing if blank. */
   public WriteableFilemanValue forRequiredString(@NonNull String field, int index, String value) {
     return forOptionalString(field, index, value)
-        .orElseThrow(() -> BadRequestPayload.because(file(), field, "string value is blank"));
-  }
-
-  /** Build a WriteableFilemanValue with a default index of 1. */
-  public WriteableFilemanValue forString(@NonNull String field, int index, String value) {
-    return forOptionalString(field, index, value).orElse(null);
+        .orElseThrow(
+            () -> BadRequestPayload.because(file(), field, "Required string value is blank."));
   }
 
   public Function<PatientTypeCoordinates, WriteableFilemanValue> patientTypeCoordinatesToPointer(
       String file, Supplier<Integer> index) {
-    return coordinates -> forPointer(file, index.get(), coordinates.ien());
+    return coordinates -> forOptionalPointer(file, index.get(), coordinates.ien()).orElse(null);
   }
 
   public Function<RecordCoordinates, WriteableFilemanValue> recordCoordinatesToPointer(
       String file, Supplier<Integer> index) {
-    return coordinates -> forPointer(file, index.get(), coordinates.ien());
+    return coordinates -> forOptionalPointer(file, index.get(), coordinates.ien()).orElse(null);
   }
 
   public <T> Function<T, WriteableFilemanValue> toString(
       String field, Supplier<Integer> index, Function<T, String> valueOf) {
-    return (T item) -> forString(field, index.get(), valueOf.apply(item));
+    return (T item) -> forOptionalString(field, index.get(), valueOf.apply(item)).orElse(null);
   }
 }

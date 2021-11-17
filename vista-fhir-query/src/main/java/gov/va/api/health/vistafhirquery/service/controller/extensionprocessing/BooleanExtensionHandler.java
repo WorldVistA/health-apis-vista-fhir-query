@@ -40,7 +40,8 @@ public class BooleanExtensionHandler extends AbstractSingleFieldExtensionHandler
       throw BadExtension.because(definingUrl(), "extension.valueBoolean is null");
     }
     var filemanValue =
-        filemanFactory().forString(fieldNumber(), index(), booleanStringMapping().get(value));
-    return filemanValue == null ? List.of() : List.of(filemanValue);
+        filemanFactory()
+            .forOptionalString(fieldNumber(), index(), booleanStringMapping().get(value));
+    return filemanValue.isEmpty() ? List.of() : List.of(filemanValue.get());
   }
 }

@@ -71,12 +71,7 @@ public class R4InsurancePlanToGroupInsurancePlanFileTransformer {
   }
 
   WriteableFilemanValue extensionToBooleanWriteableFilemanValue(Extension extension, String field) {
-    var wfv = filemanFactory.forBoolean(field, 1, extension);
-    if (isBlank(wfv)) {
-      throw ResourceExceptions.BadRequestPayload.because(
-          field, "extension is null or has no boolean value");
-    }
-    return wfv;
+    return filemanFactory.forRequiredBoolean(field, 1, extension, value -> value ? "YES" : "NO");
   }
 
   String extractCodeFromCoding(CodeableConcept c) {
@@ -117,7 +112,7 @@ public class R4InsurancePlanToGroupInsurancePlanFileTransformer {
     if (isBlank(name)) {
       throw ResourceExceptions.BadRequestPayload.because("name is null");
     }
-    return filemanFactory.forString(GroupInsurancePlan.GROUP_NAME, 1, name);
+    return filemanFactory.forRequiredString(GroupInsurancePlan.GROUP_NAME, 1, name);
   }
 
   WriteableFilemanValue groupNumber(List<Identifier> identifiers) {
@@ -172,9 +167,9 @@ public class R4InsurancePlanToGroupInsurancePlanFileTransformer {
     }
     /* TODO https://vajira.max.gov/browse/API-11253 verify system is urn:oid:2.16.840.1.113883.3.8901.3.1.3558013 */
     return List.of(
-        filemanFactory.forString(
+        filemanFactory.forRequiredString(
             GroupInsurancePlan.PLAN_STANDARD_FTF, 1, extension.valueQuantity().unit()),
-        filemanFactory.forString(
+        filemanFactory.forRequiredString(
             GroupInsurancePlan.PLAN_STANDARD_FTF_VALUE,
             1,
             extension.valueQuantity().value().toString()));

@@ -69,8 +69,7 @@ public class R4OrganizationToInsuranceCompanyFileTransformer {
   }
 
   private void addRequiredFields(Set<WriteableFilemanValue> fields) {
-    fields.add(
-        insuranceCompanyCoordinatesOrDie(InsuranceCompany.NAME, 1, organization.name(), "name"));
+    fields.add(insuranceCompanyCoordinatesOrDie(InsuranceCompany.NAME, 1, organization.name()));
     fields.addAll(
         address(
             InsuranceCompany.STREET_ADDRESS_LINE_1_,
@@ -176,12 +175,12 @@ public class R4OrganizationToInsuranceCompanyFileTransformer {
       lines = emptyList();
     }
     for (int i = 0; i < lines.size(); i++) {
-      addressValues.add(filemanFactory.forString(arrayLines[i], 1, lines.get(i)));
+      addressValues.add(filemanFactory.forRequiredString(arrayLines[i], 1, lines.get(i)));
       /* TODO https://vajira.max.gov/browse/API-10394 require max line size, see vivian */
     }
-    addressValues.add(filemanFactory.forString(city, 1, address.city()));
-    addressValues.add(filemanFactory.forString(state, 1, address.state()));
-    addressValues.add(filemanFactory.forString(zipcode, 1, address.postalCode()));
+    addressValues.add(filemanFactory.forRequiredString(city, 1, address.city()));
+    addressValues.add(filemanFactory.forRequiredString(state, 1, address.state()));
+    addressValues.add(filemanFactory.forRequiredString(zipcode, 1, address.postalCode()));
     return addressValues;
   }
 
@@ -281,8 +280,7 @@ public class R4OrganizationToInsuranceCompanyFileTransformer {
     if (isBlank(companyNameReference)) {
       return Optional.empty();
     }
-    return Optional.ofNullable(
-        filemanFactory.forString(fieldNumber, 1, companyNameReference.display()));
+    return filemanFactory.forOptionalString(fieldNumber, 1, companyNameReference.display());
   }
 
   private Set<WriteableFilemanValue> contactDentalClaims(Contact contact) {
@@ -417,8 +415,7 @@ public class R4OrganizationToInsuranceCompanyFileTransformer {
             .orElseThrow(
                 () ->
                     BadRequestPayload.because(fieldNumber, contactType + " contact point is null"));
-    return insuranceCompanyCoordinatesOrDie(
-        fieldNumber, 1, contactPoint.value(), contactType + " contact point value");
+    return insuranceCompanyCoordinatesOrDie(fieldNumber, 1, contactPoint.value());
   }
 
   Optional<ContactPoint> contactPointForSystem(
@@ -803,7 +800,7 @@ public class R4OrganizationToInsuranceCompanyFileTransformer {
     if (identifier.get().value().isBlank()) {
       throw BadRequestPayload.because(fieldNumber, fieldName + "identifier.value is null");
     }
-    return Optional.ofNullable(filemanFactory.forString(fieldNumber, 1, identifier.get().value()));
+    return filemanFactory.forOptionalString(fieldNumber, 1, identifier.get().value());
   }
 
   Optional<Identifier> identifierForPredicate(
@@ -827,12 +824,8 @@ public class R4OrganizationToInsuranceCompanyFileTransformer {
 
   @SuppressWarnings("SameParameterValue")
   private WriteableFilemanValue insuranceCompanyCoordinatesOrDie(
-      String field, int index, String value, String fieldName) {
-    var wfv = filemanFactory.forString(field, index, value);
-    if (isBlank(value)) {
-      throw BadRequestPayload.because(field, fieldName + " is null");
-    }
-    return wfv;
+      String field, int index, String value) {
+    return filemanFactory.forRequiredString(field, index, value);
   }
 
   List<WriteableFilemanValue> n277EdiIdentifier() {
@@ -887,8 +880,8 @@ public class R4OrganizationToInsuranceCompanyFileTransformer {
           idField, descriptiveName + " identifier.type.coding.code only one code is allowed.");
     }
     return List.of(
-        filemanFactory.forString(idField, 1, identifier.get().value()),
-        filemanFactory.forString(qualifierField, 1, matchingCodes.get(0)));
+        filemanFactory.forRequiredString(idField, 1, identifier.get().value()),
+        filemanFactory.forRequiredString(qualifierField, 1, matchingCodes.get(0)));
   }
 
   /** Create a set of writeable fileman values. */

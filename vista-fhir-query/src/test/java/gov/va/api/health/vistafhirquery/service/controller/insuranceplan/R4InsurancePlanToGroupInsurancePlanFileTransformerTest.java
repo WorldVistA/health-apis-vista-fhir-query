@@ -115,7 +115,7 @@ public class R4InsurancePlanToGroupInsurancePlanFileTransformerTest {
   @Test
   void requiredFields() {
     assertBadRequestBodyThrown(
-        () -> _transformer().extensionToBooleanWriteableFilemanValue(null, null));
+        () -> _transformer().extensionToBooleanWriteableFilemanValue(null, ".1234"));
   }
 
   @Test

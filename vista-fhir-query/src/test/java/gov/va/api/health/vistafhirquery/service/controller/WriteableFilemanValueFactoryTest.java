@@ -1,10 +1,13 @@
 package gov.va.api.health.vistafhirquery.service.controller;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 
 import gov.va.api.health.r4.api.datatypes.Identifier;
 import gov.va.api.health.r4.api.elements.Extension;
+import gov.va.api.health.vistafhirquery.service.controller.ResourceExceptions.BadRequestPayload;
 import gov.va.api.lighthouse.charon.models.lhslighthouserpcgateway.LhsLighthouseRpcGatewayCoverageWrite.WriteableFilemanValue;
+import java.util.function.Function;
 import org.junit.jupiter.api.Test;
 
 public class WriteableFilemanValueFactoryTest {
@@ -35,50 +38,86 @@ public class WriteableFilemanValueFactoryTest {
   }
 
   @Test
-  void forBoolean() {
-    assertThat(factory.forBoolean("x", 1, (Boolean) null)).isNull();
-    assertThat(factory.forBoolean("x", 1, true)).isEqualTo(writeableFilemanValue("x", 1, "YES"));
-    assertThat(factory.forBoolean("x", 1, false)).isEqualTo(writeableFilemanValue("x", 1, "NO"));
-  }
-
-  @Test
   void forBooleanExtension() {
-    assertThat(factory.forBoolean("x", 1, (Extension) null)).isNull();
-    assertThat(factory.forBoolean("x", 1, Extension.builder().build())).isNull();
+    Function<Boolean, String> boolToString = value -> value ? "YES" : "NO";
+    assertThatExceptionOfType(BadRequestPayload.class)
+        .isThrownBy(() -> factory.forRequiredBoolean("x", 1, (Extension) null, boolToString));
+    assertThatExceptionOfType(BadRequestPayload.class)
+        .isThrownBy(
+            () -> factory.forRequiredBoolean("x", 1, Extension.builder().build(), boolToString));
     var extension = Extension.builder().build();
-    assertThat(factory.forBoolean("x", 1, extension.valueBoolean(true)))
+    assertThat(factory.forRequiredBoolean("x", 1, extension.valueBoolean(true), boolToString))
         .isEqualTo(writeableFilemanValue("x", 1, "YES"));
-    assertThat(factory.forBoolean("x", 1, extension.valueBoolean(false)))
+    assertThat(factory.forRequiredBoolean("x", 1, extension.valueBoolean(false), boolToString))
         .isEqualTo(writeableFilemanValue("x", 1, "NO"));
   }
 
   @Test
-  void forIdentifier() {
-    assertThat(factory.forIdentifier("x", 1, null)).isNull();
-    assertThat(factory.forIdentifier("x", 1, Identifier.builder().build())).isNull();
-    assertThat(factory.forIdentifier("x", 1, Identifier.builder().value("shanktopus").build()))
+  void forIntegerExtension() {
+    assertThat(factory.forOptionalInteger("x", 1, (Extension) null)).isEmpty();
+    assertThat(factory.forOptionalInteger("x", 1, Extension.builder().build())).isEmpty();
+    assertThat(factory.forOptionalInteger("x", 1, Extension.builder().valueInteger(8).build()))
+        .contains(writeableFilemanValue("x", 1, "8"));
+  }
+
+  @Test
+  void forOptionalInteger() {
+    assertThat(factory.forOptionalInteger("x", 1, (Integer) null)).isEmpty();
+    assertThat(factory.forOptionalInteger("x", 1, 8)).contains(writeableFilemanValue("x", 1, "8"));
+  }
+
+  @Test
+  void forOptionalPointer() {
+    assertThat(factory.forOptionalPointer("fugazi", 1, null)).isEmpty();
+    assertThat(factory.forOptionalPointer("fugazi", 1, " ")).isEmpty();
+    assertThat(factory.forOptionalPointer("fugazi", 1, "8"))
+        .contains(writeableFilemanValue("ien", 1, "8"));
+  }
+
+  @Test
+  void forOptionalString() {
+    assertThat(factory.forOptionalString("x", 1, null)).isEmpty();
+    assertThat(factory.forOptionalString("x", 1, " ")).isEmpty();
+    assertThat(factory.forOptionalString("x", 1, "shanktopus"))
+        .contains(writeableFilemanValue("x", 1, "shanktopus"));
+  }
+
+  @Test
+  void forRequiredBoolean() {
+    Function<Boolean, String> boolToString = value -> value ? "YES" : "NO";
+    assertThatExceptionOfType(BadRequestPayload.class)
+        .isThrownBy(() -> factory.forRequiredBoolean("x", 1, (Boolean) null, boolToString));
+    assertThat(factory.forRequiredBoolean("x", 1, true, boolToString))
+        .isEqualTo(writeableFilemanValue("x", 1, "YES"));
+    assertThat(factory.forRequiredBoolean("x", 1, false, boolToString))
+        .isEqualTo(writeableFilemanValue("x", 1, "NO"));
+  }
+
+  @Test
+  void forRequiredIdentifier() {
+    assertThatExceptionOfType(BadRequestPayload.class)
+        .isThrownBy(() -> factory.forRequiredIdentifier("x", 1, null));
+    assertThatExceptionOfType(BadRequestPayload.class)
+        .isThrownBy(() -> factory.forRequiredIdentifier("x", 1, Identifier.builder().build()));
+    assertThat(
+            factory.forRequiredIdentifier("x", 1, Identifier.builder().value("shanktopus").build()))
         .isEqualTo(writeableFilemanValue("x", 1, "shanktopus"));
   }
 
   @Test
-  void forInteger() {
-    assertThat(factory.forInteger("x", 1, (Integer) null)).isNull();
-    assertThat(factory.forInteger("x", 1, 8)).isEqualTo(writeableFilemanValue("x", 1, "8"));
+  void forRequiredInteger() {
+    assertThatExceptionOfType(BadRequestPayload.class)
+        .isThrownBy(() -> factory.forRequiredInteger("x", 1, (Integer) null));
+    assertThat(factory.forRequiredInteger("x", 1, 8)).isEqualTo(writeableFilemanValue("x", 1, "8"));
   }
 
   @Test
-  void forIntegerExtension() {
-    assertThat(factory.forInteger("x", 1, (Extension) null)).isNull();
-    assertThat(factory.forInteger("x", 1, Extension.builder().build())).isNull();
-    assertThat(factory.forInteger("x", 1, Extension.builder().valueInteger(8).build()))
-        .isEqualTo(writeableFilemanValue("x", 1, "8"));
-  }
-
-  @Test
-  void forString() {
-    assertThat(factory.forString("x", 1, null)).isNull();
-    assertThat(factory.forString("x", 1, " ")).isNull();
-    assertThat(factory.forString("x", 1, "shanktopus"))
+  void forRequiredString() {
+    assertThatExceptionOfType(BadRequestPayload.class)
+        .isThrownBy(() -> factory.forRequiredString("x", 1, null));
+    assertThatExceptionOfType(BadRequestPayload.class)
+        .isThrownBy(() -> factory.forRequiredString("x", 1, " "));
+    assertThat(factory.forRequiredString("x", 1, "shanktopus"))
         .isEqualTo(writeableFilemanValue("x", 1, "shanktopus"));
   }
 
@@ -101,14 +140,6 @@ public class WriteableFilemanValueFactoryTest {
                 .apply(
                     PatientTypeCoordinates.builder().site("666").icn("123V456").ien("123").build()))
         .isEqualTo(writeableFilemanValue("ien", 3, "123"));
-  }
-
-  @Test
-  void pointer() {
-    assertThat(factory.forPointer("fugazi", 1, null)).isNull();
-    assertThat(factory.forPointer("fugazi", 1, " ")).isNull();
-    assertThat(factory.forPointer("fugazi", 1, "8"))
-        .isEqualTo(writeableFilemanValue("ien", 1, "8"));
   }
 
   @Test

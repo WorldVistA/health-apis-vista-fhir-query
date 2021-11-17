@@ -134,7 +134,8 @@ public class R4ExtensionProcessorTest {
 
     @Override
     public List<WriteableFilemanValue> handle(Extension extension) {
-      return List.of(filemanFactory().forString(fieldNumber(), index(), extension.valueCode()));
+      return List.of(
+          filemanFactory().forRequiredString(fieldNumber(), index(), extension.valueCode()));
     }
   }
 
@@ -152,7 +153,8 @@ public class R4ExtensionProcessorTest {
     @Override
     public List<WriteableFilemanValue> handle(Extension extension) {
       return List.of(
-          filemanFactory().forString(fieldNumber(), index(), extension.valueBoolean().toString()));
+          filemanFactory()
+              .forRequiredString(fieldNumber(), index(), extension.valueBoolean().toString()));
     }
   }
 }

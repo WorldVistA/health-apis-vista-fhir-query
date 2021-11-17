@@ -72,7 +72,7 @@ public class CodeableConceptExtensionHandler extends AbstractSingleFieldExtensio
           definingUrl(),
           "Found " + codes.size() + " matching codes for systems " + codingSystems());
     }
-    return List.of(filemanFactory().forString(fieldNumber(), index(), codes.get(0)));
+    return List.of(filemanFactory().forRequiredString(fieldNumber(), index(), codes.get(0)));
   }
 
   public static class CodeableConceptExtensionHandlerBuilder {

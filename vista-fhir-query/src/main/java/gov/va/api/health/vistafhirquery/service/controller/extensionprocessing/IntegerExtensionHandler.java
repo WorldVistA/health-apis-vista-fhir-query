@@ -34,7 +34,7 @@ public class IntegerExtensionHandler extends AbstractSingleFieldExtensionHandler
       throw ResourceExceptions.BadRequestPayload.BadExtension.because(
           definingUrl(), "extension.valueInteger is null");
     }
-    var filemanValue = filemanFactory().forInteger(fieldNumber(), index(), value);
-    return filemanValue == null ? List.of() : List.of(filemanValue);
+    var filemanValue = filemanFactory().forOptionalInteger(fieldNumber(), index(), value);
+    return filemanValue.isEmpty() ? List.of() : List.of(filemanValue.get());
   }
 }
