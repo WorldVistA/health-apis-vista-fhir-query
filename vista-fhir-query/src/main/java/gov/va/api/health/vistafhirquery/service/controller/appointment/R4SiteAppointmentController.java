@@ -90,7 +90,7 @@ public class R4SiteAppointmentController implements R4AppointmentApi {
               defaultValue = "${vista-fhir-query.default-page-size}")
           int count) {
     if (date == null || date.length == 0) {
-      date = new String[] {"ge1901", "lt2700"};
+      date = new String[] {"ge1900"};
     }
     DateSearchBoundaries boundaries = DateSearchBoundaries.of(date);
     var rpcRequest =

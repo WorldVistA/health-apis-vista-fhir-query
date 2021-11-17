@@ -72,9 +72,7 @@ public class VprGetPatientDataMocks implements MockService {
             .dfn(forIcn("1011537977V693883"))
             .type(Set.of(Domains.appointments))
             // default lower bound
-            .start(Optional.of("${local-fileman-date(1901-01-01T00:00:00Z)}"))
-            // default upper bound
-            .stop(Optional.of("${local-fileman-date(2700-01-01T00:00:00Z)}"))
+            .start(Optional.of("${local-fileman-date(1900-01-01T00:00:00Z)}"))
             .build()
             .asDetails();
 
