@@ -1,5 +1,12 @@
 package gov.va.api.health.vistafhirquery.service.controller.organization;
 
+import static gov.va.api.health.vistafhirquery.service.controller.R4Transformers.allBlank;
+import static gov.va.api.health.vistafhirquery.service.controller.R4Transformers.asCodeableConcept;
+import static gov.va.api.health.vistafhirquery.service.controller.R4Transformers.emptyToNull;
+import static gov.va.api.health.vistafhirquery.service.controller.R4Transformers.isBlank;
+import static gov.va.api.lighthouse.charon.models.lhslighthouserpcgateway.LhsLighthouseRpcGateway.allFieldsOfSubfile;
+import static java.util.Collections.emptyList;
+
 import gov.va.api.health.r4.api.datatypes.Address;
 import gov.va.api.health.r4.api.datatypes.CodeableConcept;
 import gov.va.api.health.r4.api.datatypes.Coding;
@@ -16,10 +23,6 @@ import gov.va.api.lighthouse.charon.models.lhslighthouserpcgateway.InsuranceComp
 import gov.va.api.lighthouse.charon.models.lhslighthouserpcgateway.LhsLighthouseRpcGatewayResponse;
 import gov.va.api.lighthouse.charon.models.lhslighthouserpcgateway.N277EdiIdNumber;
 import gov.va.api.lighthouse.charon.models.lhslighthouserpcgateway.Payer;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.NonNull;
-
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -30,13 +33,9 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
-
-import static gov.va.api.health.vistafhirquery.service.controller.R4Transformers.allBlank;
-import static gov.va.api.health.vistafhirquery.service.controller.R4Transformers.asCodeableConcept;
-import static gov.va.api.health.vistafhirquery.service.controller.R4Transformers.emptyToNull;
-import static gov.va.api.health.vistafhirquery.service.controller.R4Transformers.isBlank;
-import static gov.va.api.lighthouse.charon.models.lhslighthouserpcgateway.LhsLighthouseRpcGateway.allFieldsOfSubfile;
-import static java.util.Collections.emptyList;
+import lombok.Builder;
+import lombok.Getter;
+import lombok.NonNull;
 
 public class R4OrganizationInsuranceCompanyTransformer {
   // The following list can be generated using:
