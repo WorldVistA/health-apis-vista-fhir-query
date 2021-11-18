@@ -1,18 +1,5 @@
 {
   "resourceType": "CoverageEligibilityResponse",
-  "patient": {
-    "reference": "http://localhost:8090/data-query/r4/Patient/5000000347V502052",
-    "identifier": {
-      "type": {
-        "coding": [
-          {
-            "code": "MB"
-          }
-        ]
-      },
-      "value": "1234"
-    }
-  },
   "extension": [
     {
       "url": "http://va.gov/fhir/StructureDefinition/coverageEligibilityResponse-militaryInfoStatus",
@@ -101,15 +88,46 @@
       "value": "TN-1234"
     }
   ],
+  "status": "active",
+  "purpose": [ "benefits" ],
+  "patient": {
+    "reference": "http://localhost:8090/data-query/r4/Patient/5000000347V502052",
+    "identifier": {
+      "type": {
+        "coding": [
+          {
+            "code": "MB"
+          }
+        ]
+      },
+      "value": "1234"
+    }
+  },
   "servicedDate": "2010-01-20",
+  "created": "2021-11-11T11:11:11Z",
+  "_request": {
+    "url": "http://hl7.org/fhir/StructureDefinition/data-absent-reason",
+    "valueCodeableConcept": {
+      "coding": [
+        {
+          "system": "http://terminology.hl7.org/CodeSystem/data-absent-reason",
+          "code": "unsupported",
+          "display": "Unsupported"
+        }
+      ],
+      "text": "Unsupported"
+    }
+  },
+  "outcome": "complete",
   "insurer": {
-    "reference": "http://localhost:8095/site/673/r4/Organization/I3-1Rgkl3lKGigfVAwV0w9mpFTHOMkyYBwic"
+    "reference": "http://localhost:8095/hcs/673/r4/Organization/I3-1Rgkl3lKGigfVAwV0w9mpFTHOMkyYBwic"
   },
   "insurance": [
     {
       "coverage": {
-        "reference": "Coverage/I3-KIP2d05814vy8hy5ghAbLQwDUt9O6qLsSCqMjdnOSKF"
+        "reference": "http://localhost:8095/hcs/673/r4/Coverage/I3-KIP2d05814vy8hy5ghAbLQwDUt9O6qLsSCqMjdnOSKF"
       },
+      "inforce": "true",
       "benefitPeriod": {
         "start": "2004-02-03",
         "end": "2007-05-06"
@@ -245,6 +263,28 @@
               ]
             },
             {
+              "url": "http://va.gov/fhir/StructureDefinition/coverageEligibilityResponse-subscriberDate",,
+              "extension": [
+                {
+                  "url": "http://va.gov/fhir/StructureDefinition/coverageEligibilityResponse-subscriberDatePeriod",
+                  "valuePeriod": {
+                    "start": "2018-05-20"
+                  }
+                },
+                {
+                  "url": "http://va.gov/fhir/StructureDefinition/coverageEligibilityResponse-subscriberDateKind",
+                  "valueCodeableConcept": {
+                    "coding": [
+                      {
+                        "system": "urn:oid:2.16.840.1.113883.3.8901.3.1.36580288.8003",
+                        "code": "346"
+                      }
+                    ]
+                  }
+                }
+              ]
+            },
+            {
               "url": "http://va.gov/fhir/StructureDefinition/coverageEligibilityResponse-subscriberReferenceId",
               "extension": [
                 {
@@ -267,28 +307,6 @@
                   "valueString": "PLAN ID"
                 }
               ]
-            },
-            {
-              "extension": [
-                {
-                  "url": "http://va.gov/fhir/StructureDefinition/coverageEligibilityResponse-subscriberDatePeriod",
-                  "valuePeriod": {
-                    "start": "2018-05-20"
-                  }
-                },
-                {
-                  "url": "http://va.gov/fhir/StructureDefinition/coverageEligibilityResponse-subscriberDateKind",
-                  "valueCodeableConcept": {
-                    "coding": [
-                      {
-                        "system": "urn:oid:2.16.840.1.113883.3.8901.3.1.36580288.8003",
-                        "code": "346"
-                      }
-                    ]
-                  }
-                }
-              ],
-              "url": "http://va.gov/fhir/StructureDefinition/coverageEligibilityResponse-subscriberDate"
             }
           ],
           "category": {
@@ -317,6 +335,8 @@
               ]
             }
           ],
+          "excluded": "true",
+          "description": "This is a conditional coverage.",
           "network": {
             "coding": [
               {
