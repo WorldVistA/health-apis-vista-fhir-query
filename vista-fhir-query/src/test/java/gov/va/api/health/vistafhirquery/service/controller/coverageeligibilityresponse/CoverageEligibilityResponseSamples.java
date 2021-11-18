@@ -504,7 +504,7 @@ public class CoverageEligibilityResponseSamples {
                                       .build())),
                       createExtension(
                           CoverageEligibilityResponseStructureDefinitions.TIME_PERIODS,
-                          e -> e.valueInteger(3)),
+                          e -> e.valueDecimal(new BigDecimal("3"))),
                       createExtension(
                           CoverageEligibilityResponseStructureDefinitions.TIME_PERIOD_QUALIFIER,
                           e ->

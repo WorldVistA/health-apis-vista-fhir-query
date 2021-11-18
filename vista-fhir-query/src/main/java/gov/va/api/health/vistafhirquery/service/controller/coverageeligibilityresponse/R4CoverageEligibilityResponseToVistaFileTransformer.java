@@ -25,7 +25,7 @@ import gov.va.api.health.vistafhirquery.service.controller.RecordCoordinates;
 import gov.va.api.health.vistafhirquery.service.controller.ResourceExceptions.BadRequestPayload;
 import gov.va.api.health.vistafhirquery.service.controller.extensionprocessing.CodeableConceptExtensionHandler;
 import gov.va.api.health.vistafhirquery.service.controller.extensionprocessing.ComplexExtensionHandler;
-import gov.va.api.health.vistafhirquery.service.controller.extensionprocessing.IntegerExtensionHandler;
+import gov.va.api.health.vistafhirquery.service.controller.extensionprocessing.DecimalExtensionHandler;
 import gov.va.api.health.vistafhirquery.service.controller.extensionprocessing.PeriodExtensionHandler;
 import gov.va.api.health.vistafhirquery.service.controller.extensionprocessing.QuantityExtensionHandler;
 import gov.va.api.health.vistafhirquery.service.controller.extensionprocessing.R4ExtensionProcessor;
@@ -566,7 +566,7 @@ public class R4CoverageEligibilityResponseToVistaFileTransformer {
                             CoverageEligibilityResponseStructureDefinitions
                                 .UNITS_OF_MEASUREMENT_SYSTEM)
                         .build(),
-                    IntegerExtensionHandler.forDefiningUrl(
+                    DecimalExtensionHandler.forDefiningUrl(
                             CoverageEligibilityResponseStructureDefinitions.TIME_PERIODS)
                         .required(REQUIRED)
                         .filemanFactory(

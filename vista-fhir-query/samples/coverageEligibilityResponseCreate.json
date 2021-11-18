@@ -154,7 +154,7 @@
                 },
                 {
                   "url": "http://va.gov/fhir/StructureDefinition/coverageEligibilityResponse-timePeriods",
-                  "valueInteger": "3"
+                  "valueDecimal": "3"
                 },
                 {
                   "url": "http://va.gov/fhir/StructureDefinition/coverageEligibilityResponse-timePeriodQualifier",
