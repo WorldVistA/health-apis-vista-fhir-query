@@ -596,7 +596,7 @@ public class OrganizationSamples {
                   .coding(
                       Collections.singletonList(
                           Coding.builder()
-                              .system("http://terminology.hl7.org/CodeSystem/contactentity-type")
+                              .system("https://va.gov/fhir/CodeSystem/organization-contactType")
                               .code("APPEAL")
                               .display("APPEAL")
                               .build()))
@@ -663,7 +663,7 @@ public class OrganizationSamples {
                   .coding(
                       Collections.singletonList(
                           Coding.builder()
-                              .system("http://terminology.hl7.org/CodeSystem/contactentity-type")
+                              .system("https://va.gov/fhir/CodeSystem/organization-contactType")
                               .code("DENTALCLAIMS")
                               .display("DENTALCLAIMS")
                               .build()))
@@ -702,7 +702,7 @@ public class OrganizationSamples {
                   .coding(
                       Collections.singletonList(
                           Coding.builder()
-                              .system("http://terminology.hl7.org/CodeSystem/contactentity-type")
+                              .system("https://va.gov/fhir/CodeSystem/organization-contactType")
                               .code("INPTCLAIMS")
                               .display("INPTCLAIMS")
                               .build()))
@@ -741,7 +741,7 @@ public class OrganizationSamples {
                   .coding(
                       Collections.singletonList(
                           Coding.builder()
-                              .system("http://terminology.hl7.org/CodeSystem/contactentity-type")
+                              .system("https://va.gov/fhir/CodeSystem/organization-contactType")
                               .code("OUTPTCLAIMS")
                               .display("OUTPTCLAIMS")
                               .build()))
@@ -780,7 +780,7 @@ public class OrganizationSamples {
                   .coding(
                       Collections.singletonList(
                           Coding.builder()
-                              .system("http://terminology.hl7.org/CodeSystem/contactentity-type")
+                              .system("https://va.gov/fhir/CodeSystem/organization-contactType")
                               .code("RXCLAIMS")
                               .display("RXCLAIMS")
                               .build()))
@@ -1155,7 +1155,7 @@ public class OrganizationSamples {
                   .coding(
                       Collections.singletonList(
                           Coding.builder()
-                              .system("http://terminology.hl7.org/CodeSystem/contactentity-type")
+                              .system("https://va.gov/fhir/CodeSystem/organization-contactType")
                               .code("INQUIRY")
                               .display("INQUIRY")
                               .build()))
@@ -1208,7 +1208,7 @@ public class OrganizationSamples {
                   .coding(
                       Collections.singletonList(
                           Coding.builder()
-                              .system("http://terminology.hl7.org/CodeSystem/contactentity-type")
+                              .system("https://va.gov/fhir/CodeSystem/organization-contactType")
                               .code("PRECERT")
                               .display("PRECERT")
                               .build()))
@@ -1273,7 +1273,7 @@ public class OrganizationSamples {
                   .coding(
                       Collections.singletonList(
                           Coding.builder()
-                              .system("http://terminology.hl7.org/CodeSystem/contactentity-type")
+                              .system("https://va.gov/fhir/CodeSystem/organization-contactType")
                               .code("VERIFY")
                               .display("VERIFY")
                               .build()))

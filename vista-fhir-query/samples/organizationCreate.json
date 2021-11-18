@@ -317,7 +317,7 @@
       "purpose": {
         "coding": [
           {
-            "system": "http://terminology.hl7.org/CodeSystem/contactentity-type",
+            "system": "https://va.gov/fhir/CodeSystem/organization-contactType",
             "code": "APPEAL",
             "display": "APPEAL"
           }
@@ -361,7 +361,7 @@
       "purpose": {
         "coding": [
           {
-            "system": "http://terminology.hl7.org/CodeSystem/contactentity-type",
+            "system": "https://va.gov/fhir/CodeSystem/organization-contactType",
             "code": "DENTALCLAIMS",
             "display": "DENTALCLAIMS"
           }
@@ -373,7 +373,7 @@
       "purpose": {
         "coding": [
           {
-            "system": "http://terminology.hl7.org/CodeSystem/contactentity-type",
+            "system": "https://va.gov/fhir/CodeSystem/organization-contactType",
             "code": "INPTCLAIMS",
             "display": "INPTCLAIMS"
           }
@@ -403,7 +403,7 @@
       "purpose": {
         "coding": [
           {
-            "system": "http://terminology.hl7.org/CodeSystem/contactentity-type",
+            "system": "https://va.gov/fhir/CodeSystem/organization-contactType",
             "code": "OUTPTCLAIMS",
             "display": "OUTPTCLAIMS"
           }
@@ -429,7 +429,7 @@
       "purpose": {
         "coding": [
           {
-            "system": "http://terminology.hl7.org/CodeSystem/contactentity-type",
+            "system": "https://va.gov/fhir/CodeSystem/organization-contactType",
             "code": "RXCLAIMS",
             "display": "RXCLAIMS"
           }
@@ -449,7 +449,7 @@
       "purpose": {
         "coding": [
           {
-            "system": "http://terminology.hl7.org/CodeSystem/contactentity-type",
+            "system": "https://va.gov/fhir/CodeSystem/organization-contactType",
             "code": "INQUIRY",
             "display": "INQUIRY"
           }
@@ -467,7 +467,7 @@
       "purpose": {
         "coding": [
           {
-            "system": "http://terminology.hl7.org/CodeSystem/contactentity-type",
+            "system": "https://va.gov/fhir/CodeSystem/organization-contactType",
             "code": "PRECERT",
             "display": "PRECERT"
           }
@@ -485,7 +485,7 @@
       "purpose": {
         "coding": [
           {
-            "system": "http://terminology.hl7.org/CodeSystem/contactentity-type",
+            "system": "https://va.gov/fhir/CodeSystem/organization-contactType",
             "code": "VERIFY",
             "display": "VERIFY"
           }

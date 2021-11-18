@@ -32,7 +32,8 @@ Supported fields
 
 ## Supported Contacts
 
-Nine contact numbers are required. Each is determined based on the contact purpose using the `.purpose.coding[0].code` value. Currently, the system is ignored. (TODO https://vajira.max.gov/browse/API-11250)
+Nine contact numbers are required. Each is determined based on the contact purpose using the `.purpose.coding[0].code`
+value. Currently, the system is ignored. (TODO https://vajira.max.gov/browse/API-11250)
 The following codes are supported. Individual data requirements are described below.
 
 
@@ -42,7 +43,7 @@ The following codes are supported. Individual data requirements are described be
 
 |Path|Required|Notes|
 |---|---|---|
-|`.purpose.coding[0].system` | Required | *WARNING* System will change https://vajira.max.gov/browse/API-11250. Currently using `http://terminology.hl7.org/CodeSystem/contactentity-type`  |
+|`.purpose.coding[0].system` | Required | `https://va.gov/fhir/CodeSystem/organization-contactType`  |
 |`.purpose.coding[0].code` | Required | Must be `APPEAL`. |
 |`.extension[]` | Optional | See supported extensions below. |
 |`.telecom[]` | Required | Must contain a `phone` contact point. May contain a `fax` contact point. |
@@ -70,7 +71,7 @@ The following codes are supported. Individual data requirements are described be
 
 |Path|Required|Notes|
 |---|---|---|
-|`.purpose.coding[0].system` | Required | *WARNING* System will change https://vajira.max.gov/browse/API-11250. Currently using `http://terminology.hl7.org/CodeSystem/contactentity-type` . |
+|`.purpose.coding[0].system` | Required | `http://terminology.hl7.org/CodeSystem/contactentity-type` |
 |`.purpose.coding[0].code` | Required | Must be `BILL`. |
 |`.extension[]` | Optional | See supported extensions below. |
 |`.telecom[]` | Required | Must contain a `phone` contact point. |
@@ -89,7 +90,7 @@ The following codes are supported. Individual data requirements are described be
 
 |Path|Required|Notes|
 |---|---|---|
-|`.purpose.coding[0].system` | Required | *WARNING* System will change https://vajira.max.gov/browse/API-11250. Currently using `http://terminology.hl7.org/CodeSystem/contactentity-type` . |
+|`.purpose.coding[0].system` | Required | `https://va.gov/fhir/CodeSystem/organization-contactType` |
 |`.purpose.coding[0].code` | Required | Must be `DENTALCLAIMS`. |
 |`.extension[]` | Optional | See supported extensions below. |
 |`.telecom[]` | Optional | May contain a `phone` and/or contain a `fax` contact point. |
@@ -116,7 +117,7 @@ The following codes are supported. Individual data requirements are described be
 
 |Path|Required|Notes|
 |---|---|---|
-|`.purpose.coding[0].system` | Required | *WARNING* System will change https://vajira.max.gov/browse/API-11250. Currently using `http://terminology.hl7.org/CodeSystem/contactentity-type` . |
+|`.purpose.coding[0].system` | Required | `https://va.gov/fhir/CodeSystem/organization-contactType` |
 |`.purpose.coding[0].code` | Required | Must be `INPTCLAIMS`. |
 |`.extension[]` | Optional | See supported extensions below. |
 |`.telecom[]` | Required | Must contain a `phone` contact point. May contain a `fax` contact point. |
@@ -144,7 +145,7 @@ The following codes are supported. Individual data requirements are described be
 
 |Path|Required|Notes|
 |---|---|---|
-|`.purpose.coding[0].system` | Required | *WARNING* System will change https://vajira.max.gov/browse/API-11250. Currently using `http://terminology.hl7.org/CodeSystem/contactentity-type` . |
+|`.purpose.coding[0].system` | Required | `https://va.gov/fhir/CodeSystem/organization-contactType` |
 |`.purpose.coding[0].code` | Required | Must be `OUTPTCLAIMS`. |
 |`.extension[]` | Optional | See supported extensions below. |
 |`.telecom[]` | Required | Must contain a `phone` contact point. May contain a `fax` contact point. |
@@ -172,7 +173,7 @@ The following codes are supported. Individual data requirements are described be
 
 |Path|Required|Notes|
 |---|---|---|
-|`.purpose.coding[0].system` | Required | *WARNING* System will change https://vajira.max.gov/browse/API-11250. Currently using `http://terminology.hl7.org/CodeSystem/contactentity-type` . |
+|`.purpose.coding[0].system` | Required | `https://va.gov/fhir/CodeSystem/organization-contactType` |
 |`.purpose.coding[0].code` | Required | Must be `INQUIRY`. |
 |`.extension[]` | Optional | See supported extensions below. |
 |`.telecom[]` | Required | Must contain a `phone` contact point. May contain a `fax` contact point. |
@@ -200,7 +201,7 @@ The following codes are supported. Individual data requirements are described be
 
 |Path|Required|Notes|
 |---|---|---|
-|`.purpose.coding[0].system` | Required | *WARNING* System will change https://vajira.max.gov/browse/API-11250. Currently using `http://terminology.hl7.org/CodeSystem/contactentity-type` . |
+|`.purpose.coding[0].system` | Required | `https://va.gov/fhir/CodeSystem/organization-contactType` |
 |`.purpose.coding[0].code` | Required | Must be `PRECERT`. |
 |`.extension[]` | Optional | See supported extensions below. |
 |`.telecom[]` | Required | Must contain a `phone` contact point. |
@@ -219,7 +220,7 @@ The following codes are supported. Individual data requirements are described be
 
 |Path|Required|Notes|
 |---|---|---|
-|`.purpose.coding[0].system` | Required | *WARNING* System will change https://vajira.max.gov/browse/API-11250. Currently using `http://terminology.hl7.org/CodeSystem/contactentity-type` . |
+|`.purpose.coding[0].system` | Required | `https://va.gov/fhir/CodeSystem/organization-contactType` |
 |`.purpose.coding[0].code` | Required | Must be `RXCLAIMS`. |
 |`.extension[]` | Optional | See supported extensions below. |
 |`.telecom[]` | Optional | May contain a `phone` and/or contain a `fax` contact point. |
@@ -247,7 +248,7 @@ The following codes are supported. Individual data requirements are described be
 
 |Path|Required|Notes|
 |---|---|---|
-|`.purpose.coding[0].system` | Required | *WARNING* System will change https://vajira.max.gov/browse/API-11250. Currently using `http://terminology.hl7.org/CodeSystem/contactentity-type` . |
+|`.purpose.coding[0].system` | Required | `https://va.gov/fhir/CodeSystem/organization-contactType` |
 |`.purpose.coding[0].code` | Required | Must be `VERIFY`. |
 |`.telecom[]` | Required | Must contain a `phone` contact point. |
 |`.telecom[0].system` | Required | Must be `phone`. |
@@ -283,7 +284,8 @@ Supported codes
 <details>
 <summary><strong>Secondary Institutional and Professions IDs</strong></summary>
 
-Up to two secondary institutional payer IDs may be provided. Additionally, up to two secondary professional payer IDs may be provided. Each identifier has the same structure.
+Up to two secondary institutional payer IDs may be provided. Additionally, up to two secondary professional payer IDs
+may be provided. Each identifier has the same structure.
 
 |Path|Required|Notes|
 |---|---|---
@@ -310,8 +312,10 @@ Payer Qualifier Codes
 
 Rules
 
-- Identifiers `urn:oid:2.16.840.1.113883.3.8901.3.1.36.68001` and `urn:oid:2.16.840.1.113883.3.8901.3.1.36.68003` cannot have the same code.
-- Identifiers `urn:oid:2.16.840.1.113883.3.8901.3.1.36.68005` and `urn:oid:2.16.840.1.113883.3.8901.3.1.36.68007` cannot have the same code.
+- Identifiers `urn:oid:2.16.840.1.113883.3.8901.3.1.36.68001` and `urn:oid:2.16.840.1.113883.3.8901.3.1.36.68003` cannot
+  have the same code.
+- Identifiers `urn:oid:2.16.840.1.113883.3.8901.3.1.36.68005` and `urn:oid:2.16.840.1.113883.3.8901.3.1.36.68007` cannot
+  have the same code.
 
 </details>
 <details>
@@ -349,16 +353,23 @@ EDI 277 identifier is required on create, but forbidden on update.
 | `http://va.gov/fhir/StructureDefinition/organization-printSecMedClaimsWOMRALocally` | `valueBoolean` | Required | `true` indicates secondary Medicare claims to this payer which have not been transmitted to Medicare and for which no MRA has been received, must be printed locally. |
 | `http://va.gov/fhir/StructureDefinition/organization-ambulatorySurgeryRevenueCode` | `valueCodeableConcept` | Optional | `.coding[0].system` is `urn:oid:2.16.840.1.113883.6.301.3`. `.coding[0].value` is the revenue code that will automatically be generated for this insurance company if a billable ambulatory surgical code is listed as a procedure in this this bill. | 
 | `http://va.gov/fhir/StructureDefinition/organization-prescriptionRevenueCode` | `valueCodeableConcept` | Optional | `.coding[0].system` is `urn:oid:2.16.840.1.113883.6.301.3`. `.coding[0].value` is the revenue code that will automatically be generated for this insurance company if a prescription refill is listed on this bill. | 
-| `http://va.gov/fhir/StructureDefinition/organization-typeOfCoverage` | `valueCodeableConcept` | Required | `.coding[0].system` is `urn:oid:2.16.840.1.113883.3.8901.3.36.8013`. `.coding[0].value` is _Type of Coverage Codes_ defined below. | 
-| `http://va.gov/fhir/StructureDefinition/organization-willReimburseForCare` | `valueCodeableConcept` | Required | `.coding[0].system` is `urn:oid:2.16.840.1.113883.3.8901.3.1.36.1`. `.coding[0].value` is _Will Reimburse For Care Codes_ defined below. | 
+| `http://va.gov/fhir/StructureDefinition/organization-typeOfCoverage` | `valueCodeableConcept` | Required | `.coding[0].system` is `urn:oid:2.16.840.1.113883.3.8901.3.36.8013`. `.coding[0].value` is _
+Type of Coverage Codes_ defined below. |
+| `http://va.gov/fhir/StructureDefinition/organization-willReimburseForCare` | `valueCodeableConcept` | Required | `.coding[0].system` is `urn:oid:2.16.840.1.113883.3.8901.3.1.36.1`. `.coding[0].value` is _
+Will Reimburse For Care Codes_ defined below. |
 | `http://va.gov/fhir/StructureDefinition/organization-electronicTransmissionMode` | `valueCodeableConcept` | Required | `.coding[0].system` is `urn:oid:2.16.840.1.113883.3.8901.3.1.36.38001`. `.coding[0].value` is `YES-LIVE` for production claims or `YES-TEST` for test claims. | 
 | `http://va.gov/fhir/StructureDefinition/organization-electronicInsuranceType` | `valueCodeableConcept` | Required | `.coding[0].system` is `urn:oid:2.16.840.1.113883.3.8901.3.1.36.38009`. `.coding[0].value` identifies the type of insurance company and is one of `COMMERCIAL`, `GROUP POLICY`, `HMO`, `MEDICAID`, `MEDICARE`, `OTHER`. | 
-| `http://va.gov/fhir/StructureDefinition/organization-performingProviderSecondIDTypeCMS1500` | `valueCodeableConcept` | Optional | `.coding[0].system` is `urn:oid:2.16.840.1.113883.3.8901.3.1.3558097.8001`. `.coding[0].value` is _IB Provider ID Number Type Codes_ defined below. | 
-| `http://va.gov/fhir/StructureDefinition/organization-performingProviderSecondIDTypeUB04` | `valueCodeableConcept` | Optional | `.coding[0].system` is `urn:oid:2.16.840.1.113883.3.8901.3.1.3558097.8001`. `.coding[0].value` is _IB Provider ID Number Type Codes_ defined below. | 
-| `http://va.gov/fhir/StructureDefinition/organization-referringProviderSecondIDTypeCMS1500` | `valueCodeableConcept` | Optional | `.coding[0].system` is `urn:oid:2.16.840.1.113883.3.8901.3.1.3558097.8001`. `.coding[0].value` is _IB Provider ID Number Type Codes_ defined below. | 
-| `http://va.gov/fhir/StructureDefinition/organization-referringProviderSecondIDTypeUB04` | `valueCodeableConcept` | Optional | `.coding[0].system` is `urn:oid:2.16.840.1.113883.3.8901.3.1.3558097.8001`. `.coding[0].value` is _IB Provider ID Number Type Codes_ defined below. | 
+| `http://va.gov/fhir/StructureDefinition/organization-performingProviderSecondIDTypeCMS1500` | `valueCodeableConcept` | Optional | `.coding[0].system` is `urn:oid:2.16.840.1.113883.3.8901.3.1.3558097.8001`. `.coding[0].value` is _
+IB Provider ID Number Type Codes_ defined below. |
+| `http://va.gov/fhir/StructureDefinition/organization-performingProviderSecondIDTypeUB04` | `valueCodeableConcept` | Optional | `.coding[0].system` is `urn:oid:2.16.840.1.113883.3.8901.3.1.3558097.8001`. `.coding[0].value` is _
+IB Provider ID Number Type Codes_ defined below. |
+| `http://va.gov/fhir/StructureDefinition/organization-referringProviderSecondIDTypeCMS1500` | `valueCodeableConcept` | Optional | `.coding[0].system` is `urn:oid:2.16.840.1.113883.3.8901.3.1.3558097.8001`. `.coding[0].value` is _
+IB Provider ID Number Type Codes_ defined below. |
+| `http://va.gov/fhir/StructureDefinition/organization-referringProviderSecondIDTypeUB04` | `valueCodeableConcept` | Optional | `.coding[0].system` is `urn:oid:2.16.840.1.113883.3.8901.3.1.3558097.8001`. `.coding[0].value` is _
+IB Provider ID Number Type Codes_ defined below. |
 | `http://va.gov/fhir/StructureDefinition/organization-filingTimeFrame` | `valueString` | Required | Maximum amount of time from date of service that the insurance company allows for submitting claims. Answer must be 3-30 characters in length. Examples: 90 days, 6 months, 1 year, 18 months, March 30 after year of service.| 
-| `http://va.gov/fhir/StructureDefinition/organization-planStandardFilingTimeFrame` | `valueQuantity` | Required | `.system` is `urn:oid:2.16.840.1.113883.3.8901.3.3558013`. `.unit` is _Insurance Filing Time Frame Codes_ defined below. `.value` is number in declared units. | 
+| `http://va.gov/fhir/StructureDefinition/organization-planStandardFilingTimeFrame` | `valueQuantity` | Required | `.system` is `urn:oid:2.16.840.1.113883.3.8901.3.3558013`. `.unit` is _
+Insurance Filing Time Frame Codes_ defined below. `.value` is number in declared units. |
 | `http://hl7.org/fhir/us/davinci-pdex-plan-net/StructureDefinition/via-intermediary` | `valueReference` | Required | `.reference` is a relative Organization reference to the payer, e.g., `Organization/I3-450NAk1LKUAXKzQ35A62U1`  | 
 
 <details>
@@ -370,7 +381,8 @@ Used with
 
 - `http://va.gov/fhir/StructureDefinition/organization-typeOfCoverage`
 
-If this insurance carrier provides only one type of coverage then choose the value that best describes this carriers type of coverage. If this carrier provides more than one type of coverage then use `HEALTH INSURANCE`.
+If this insurance carrier provides only one type of coverage then choose the value that best describes this carriers
+type of coverage. If this carrier provides more than one type of coverage then use `HEALTH INSURANCE`.
 
 - `BLUE CROSS`
 - `BLUE SHIELD`
@@ -403,7 +415,8 @@ Used with
 
 - `http://va.gov/fhir/StructureDefinition/organization-willReimburseForCare`
 
-This code denotes under which circumstances this insurance carrier will reimburse the Dept. of Veterans Affairs for care received.
+This code denotes under which circumstances this insurance carrier will reimburse the Dept. of Veterans Affairs for care
+received.
 
 - `REIMBURSE`
 - `WILL REIMBURSE IF TREATED UNDER VAR 6046(C) OR VAR 6060.2(A)`
@@ -423,7 +436,9 @@ Used with
 - `http://va.gov/fhir/StructureDefinition/organization-referringProviderSecondIDTypeCMS1500`
 - `http://va.gov/fhir/StructureDefinition/organization-referringProviderSecondIDTypeUB04`
 
-This is the type of performing provider secondary id that the insurance company expects on CMS-1500 or UB-04 bills received from VA. When the payer-specific provider id is extracted, this field is used to determine where to get the default data from if another secondary id is not entered for the claim.
+This is the type of performing provider secondary id that the insurance company expects on CMS-1500 or UB-04 bills
+received from VA. When the payer-specific provider id is extracted, this field is used to determine where to get the
+default data from if another secondary id is not entered for the claim.
 
 - `BLUE CROSS`
 - `BLUE SHIELD`
@@ -462,7 +477,8 @@ Used with
 
 - `http://va.gov/fhir/StructureDefinition/organization-planStandardFilingTimeFrame`
 
-The time frame is the maximum amount of time from the date of service that the insurance company or plan allows for submitting claims.
+The time frame is the maximum amount of time from the date of service that the insurance company or plan allows for
+submitting claims.
 
 - `DAYS`
 - `DAYS OF FOLLOWING YEAR`

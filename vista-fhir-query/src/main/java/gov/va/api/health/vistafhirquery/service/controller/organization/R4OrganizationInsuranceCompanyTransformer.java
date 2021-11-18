@@ -1,12 +1,5 @@
 package gov.va.api.health.vistafhirquery.service.controller.organization;
 
-import static gov.va.api.health.vistafhirquery.service.controller.R4Transformers.allBlank;
-import static gov.va.api.health.vistafhirquery.service.controller.R4Transformers.asCodeableConcept;
-import static gov.va.api.health.vistafhirquery.service.controller.R4Transformers.emptyToNull;
-import static gov.va.api.health.vistafhirquery.service.controller.R4Transformers.isBlank;
-import static gov.va.api.lighthouse.charon.models.lhslighthouserpcgateway.LhsLighthouseRpcGateway.allFieldsOfSubfile;
-import static java.util.Collections.emptyList;
-
 import gov.va.api.health.r4.api.datatypes.Address;
 import gov.va.api.health.r4.api.datatypes.CodeableConcept;
 import gov.va.api.health.r4.api.datatypes.Coding;
@@ -23,18 +16,27 @@ import gov.va.api.lighthouse.charon.models.lhslighthouserpcgateway.InsuranceComp
 import gov.va.api.lighthouse.charon.models.lhslighthouserpcgateway.LhsLighthouseRpcGatewayResponse;
 import gov.va.api.lighthouse.charon.models.lhslighthouserpcgateway.N277EdiIdNumber;
 import gov.va.api.lighthouse.charon.models.lhslighthouserpcgateway.Payer;
+import lombok.Builder;
+import lombok.Getter;
+import lombok.NonNull;
+
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.NonNull;
+
+import static gov.va.api.health.vistafhirquery.service.controller.R4Transformers.allBlank;
+import static gov.va.api.health.vistafhirquery.service.controller.R4Transformers.asCodeableConcept;
+import static gov.va.api.health.vistafhirquery.service.controller.R4Transformers.emptyToNull;
+import static gov.va.api.health.vistafhirquery.service.controller.R4Transformers.isBlank;
+import static gov.va.api.lighthouse.charon.models.lhslighthouserpcgateway.LhsLighthouseRpcGateway.allFieldsOfSubfile;
+import static java.util.Collections.emptyList;
 
 public class R4OrganizationInsuranceCompanyTransformer {
   // The following list can be generated using:
@@ -596,12 +598,12 @@ public class R4OrganizationInsuranceCompanyTransformer {
     if (isBlank(purpose)) {
       return null;
     }
+    var system = "https://va.gov/fhir/CodeSystem/organization-contactType";
+    if ("BILL".equals(purpose.toUpperCase(Locale.US))) {
+      system = "http://terminology.hl7.org/CodeSystem/contactentity-type";
+    }
     return asCodeableConcept(
-        Coding.builder()
-            .code(purpose)
-            .display(purpose)
-            .system("http://terminology.hl7.org/CodeSystem/contactentity-type")
-            .build());
+        Coding.builder().code(purpose).display(purpose).system(system).build());
   }
 
   /** Transform an RPC response to fhir. */
