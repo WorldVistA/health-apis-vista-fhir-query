@@ -25,6 +25,7 @@ import gov.va.api.health.vistafhirquery.service.controller.RecordCoordinates;
 import gov.va.api.health.vistafhirquery.service.controller.ResourceExceptions.BadRequestPayload;
 import gov.va.api.health.vistafhirquery.service.controller.extensionprocessing.CodeableConceptExtensionHandler;
 import gov.va.api.health.vistafhirquery.service.controller.extensionprocessing.ComplexExtensionHandler;
+import gov.va.api.health.vistafhirquery.service.controller.extensionprocessing.DateTimeExtensionHandler;
 import gov.va.api.health.vistafhirquery.service.controller.extensionprocessing.DecimalExtensionHandler;
 import gov.va.api.health.vistafhirquery.service.controller.extensionprocessing.PeriodExtensionHandler;
 import gov.va.api.health.vistafhirquery.service.controller.extensionprocessing.QuantityExtensionHandler;
@@ -37,6 +38,7 @@ import gov.va.api.lighthouse.charon.models.lhslighthouserpcgateway.IivResponse;
 import gov.va.api.lighthouse.charon.models.lhslighthouserpcgateway.InsuranceType;
 import gov.va.api.lighthouse.charon.models.lhslighthouserpcgateway.LhsLighthouseRpcGatewayCoverageWrite.WriteableFilemanValue;
 import gov.va.api.lighthouse.charon.models.lhslighthouserpcgateway.Payer;
+import gov.va.api.lighthouse.charon.models.lhslighthouserpcgateway.PlanCoverageLimitations;
 import gov.va.api.lighthouse.charon.models.lhslighthouserpcgateway.ServiceTypes;
 import gov.va.api.lighthouse.charon.models.lhslighthouserpcgateway.SubscriberAdditionalInfo;
 import gov.va.api.lighthouse.charon.models.lhslighthouserpcgateway.SubscriberDates;
@@ -111,6 +113,13 @@ public class R4CoverageEligibilityResponseToVistaFileTransformer {
             .index(indexRegistry.get(EligibilityBenefit.FILE_NUMBER))
             .valueFieldNumber(EligibilityBenefit.PERCENT)
             .build());
+  }
+
+  String coverageStatus(Boolean status) {
+    if (status == null || !status) {
+      return "NOT COVERED";
+    }
+    return "COVERED";
   }
 
   WriteableFilemanValue dateTimePeriod(Period period) {
@@ -258,6 +267,15 @@ public class R4CoverageEligibilityResponseToVistaFileTransformer {
     Set<WriteableFilemanValue> filemanValues = new HashSet<>();
     insurance.item().stream().flatMap(this::item).forEach(filemanValues::add);
     filemanValues.add(dateTimePeriod(insurance.benefitPeriod()));
+    filemanValues.addAll(insuranceExtensionProcessor().process(insurance.extension()));
+    filemanValues.add(
+        factoryRegistry()
+            .get(PlanCoverageLimitations.FILE_NUMBER)
+            .forRequiredBoolean(
+                PlanCoverageLimitations.COVERAGE_STATUS,
+                indexRegistry().get(PlanCoverageLimitations.FILE_NUMBER),
+                insurance.inforce(),
+                this::coverageStatus));
     patientCoordinatesForReference(insurance.coverage())
         .map(
             id ->
@@ -274,6 +292,18 @@ public class R4CoverageEligibilityResponseToVistaFileTransformer {
                   ".insurance[].coverage is a required field for writing to vista.");
             });
     return filemanValues.stream();
+  }
+
+  private R4ExtensionProcessor insuranceExtensionProcessor() {
+    return R4ExtensionProcessor.of(
+        DateTimeExtensionHandler.forDefiningUrl(
+                CoverageEligibilityResponseStructureDefinitions.EFFECTIVE_DATE)
+            .required(REQUIRED)
+            .filemanFactory(factoryRegistry().get(PlanCoverageLimitations.FILE_NUMBER))
+            .dateTimeFormatter(DateTimeFormatter.ofPattern("yyyy-MM-dd").withZone(zoneId()))
+            .dateTimeFieldNumber(PlanCoverageLimitations.EFFECTIVE_DATE)
+            .index(indexRegistry().get(PlanCoverageLimitations.FILE_NUMBER))
+            .build());
   }
 
   private Stream<WriteableFilemanValue> item(Item item) {
@@ -521,6 +551,14 @@ public class R4CoverageEligibilityResponseToVistaFileTransformer {
                         .index(indexRegistry().get(SubscriberAdditionalInfo.FILE_NUMBER))
                         .fieldNumber(SubscriberAdditionalInfo.NATURE_OF_INJURY_TEXT)
                         .build()))
+            .build(),
+        CodeableConceptExtensionHandler.forDefiningUrl(
+                CoverageEligibilityResponseStructureDefinitions.COVERAGE_CATEGORY)
+            .required(REQUIRED)
+            .filemanFactory(factoryRegistry().get(PlanCoverageLimitations.FILE_NUMBER))
+            .index(indexRegistry().get(PlanCoverageLimitations.FILE_NUMBER))
+            .fieldNumber(PlanCoverageLimitations.COVERAGE_CATEGORY)
+            .codingSystem(CoverageEligibilityResponseStructureDefinitions.COVERAGE_CATEGORY_SYSTEM)
             .build(),
         ComplexExtensionHandler.forDefiningUrl(
                 CoverageEligibilityResponseStructureDefinitions.HEALTHCARE_SERVICES_DELIVERY)

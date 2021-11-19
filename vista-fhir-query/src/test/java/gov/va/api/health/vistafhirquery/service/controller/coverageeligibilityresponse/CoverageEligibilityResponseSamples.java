@@ -200,6 +200,12 @@ public class CoverageEligibilityResponseSamples {
           .servicedDate("2010-01-20")
           .insurance(
               Insurance.builder()
+                  .extension(
+                      List.of(
+                          createExtension(
+                              CoverageEligibilityResponseStructureDefinitions.EFFECTIVE_DATE,
+                              e -> e.valueDateTime("1992-01-12T00:00:00Z"))))
+                  .inforce(true)
                   .coverage(
                       Reference.builder()
                           .reference(
@@ -355,6 +361,13 @@ public class CoverageEligibilityResponseSamples {
 
     private List<Extension> itemExtensions() {
       return List.of(
+          createExtension(
+              CoverageEligibilityResponseStructureDefinitions.COVERAGE_CATEGORY,
+              e ->
+                  e.valueCodeableConcept(
+                      codeableConceptFor(
+                          CoverageEligibilityResponseStructureDefinitions.COVERAGE_CATEGORY_SYSTEM,
+                          "MENTAL HEALTH"))),
           Extension.builder()
               .url(CoverageEligibilityResponseStructureDefinitions.SUBSCRIBER_DATE)
               .extension(
@@ -652,6 +665,24 @@ public class CoverageEligibilityResponseSamples {
               .index(1)
               .field(SubscriberDates.SEQUENCE)
               .value("1")
+              .build(),
+          WriteableFilemanValue.builder()
+              .file(PlanCoverageLimitations.FILE_NUMBER)
+              .index(1)
+              .field(PlanCoverageLimitations.COVERAGE_STATUS)
+              .value("COVERED")
+              .build(),
+          WriteableFilemanValue.builder()
+              .file(PlanCoverageLimitations.FILE_NUMBER)
+              .index(1)
+              .field(PlanCoverageLimitations.COVERAGE_CATEGORY)
+              .value("MENTAL HEALTH")
+              .build(),
+          WriteableFilemanValue.builder()
+              .file(PlanCoverageLimitations.FILE_NUMBER)
+              .index(1)
+              .field(PlanCoverageLimitations.EFFECTIVE_DATE)
+              .value("1992-01-12")
               .build());
     }
 
@@ -920,7 +951,7 @@ public class CoverageEligibilityResponseSamples {
       Map<String, Values> fields = new HashMap<>();
       fields.put(PlanCoverageLimitations.COVERAGE_CATEGORY, Values.of("MENTAL HEALTH", "4"));
       fields.put(PlanCoverageLimitations.COVERAGE_STATUS, Values.of("CONDITIONAL COVERAGE", "2"));
-      fields.put(PlanCoverageLimitations.EFFECTIVE_DATE, Values.of("JAN 12, 1992", "2920112"));
+      fields.put(PlanCoverageLimitations.EFFECTIVE_DATE, Values.of("JAN 12,1992", "2920112"));
       fields.put(PlanCoverageLimitations.PLAN, Values.of("BCBS OF FL", "87"));
       return Map.copyOf(fields);
     }

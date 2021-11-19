@@ -125,4 +125,10 @@ public class CoverageEligibilityResponseStructureDefinitions {
   public static final String DELIVERY_PATTERN =
       "http://va.gov/fhir/StructureDefinition/coverageEligibilityResponse-deliveryPattern";
   public static final String DELIVERY_PATTERN_SYSTEM = "2.16.840.1.113883.3.8901.3.1.3658027.8009";
+  // Plan Coverage Limitations (355.32)
+  public static final String COVERAGE_CATEGORY =
+      "http://va.gov/fhir/StructureDefinition/coverageEligibilityResponse-coverageCategory";
+  public static final String EFFECTIVE_DATE =
+      "http://va.gov/fhir/StructureDefinition/coverageEligibilityResponse-effectiveDate";
+  public static final String COVERAGE_CATEGORY_SYSTEM = "2.16.840.1.113883.3.8901.3.1.3558032.8003";
 }

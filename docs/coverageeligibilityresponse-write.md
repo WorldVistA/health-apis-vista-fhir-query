@@ -18,6 +18,7 @@
 | `.outcome` | Required | Must be `complete`. |
 | `.insurer.reference` | Required | Must be a full or relative url to an `Organization` with type `pay`. |
 | `.insurance[]` | Required | ToDo https://vajira.max.gov/browse/API-11395 -- come back and reevaluate this statement after KBS feedback -- Must contain 1 entry. |
+| `.insurance[0].extension[]` | Required | See [Insurance Extensions](#insurance-extensions) below. |
 | `.insurance[0].coverage.reference` | Required | Must be a full or relative url to the `Coverage` resource. |
 | `.insurance[0].inforce` | Required | - `true` for `COVERED` or `CONDITIONAL COVERAGE` (see `.insurance[0].item[].excluded` and `.insurance[0].item[].description`) <br> - `false` for `NOT COVERED` |
 | `.insurance[0].benefitPeriod.start` | Required | |
@@ -171,6 +172,13 @@ This code indicates the claimant's military rank.
 | `diagnosisCodeQualifier` | `valueString` | Required | ToDo https://vajira.max.gov/browse/API-11395 verify allowed values from KBS.  |
 | `primaryOrSecondary` | `valueString` | Required | `P` for Primary or `S` for secondary. | 
 
+### Insurance Extensions
+
+| Defining URL | Type | Required | Notes |
+|---|---|---|---|
+| `http://va.gov/fhir/StructureDefinition/coverageEligibilityResponse-effectiveDate` | `valueDateTime` | Required |  |
+
+
 ### Insurance Item Extensions
 
 | Defining URL | Type | Required | Notes |
@@ -179,6 +187,22 @@ This code indicates the claimant's military rank.
 | `http://va.gov/fhir/StructureDefinition/coverageEligibilityResponse-subscriberAdditionalInfo` | Complex | Required | See [Subscriber Additional Info](#subscriber-additional-info). |
 | `http://va.gov/fhir/StructureDefinition/coverageEligibilityResponse-subscriberDate` | Complex | Required | See [Subscriber Date](#subscriber-date). |
 | `http://va.gov/fhir/StructureDefinition/coverageEligibilityResponse-subscriberReferenceId` | Complex | Required | See [Subscriber Reference Id](#subscriber-reference-id). |
+| `http://va.gov/fhir/StructureDefinition/coverageEligibilityResponse-coverageCategory` | `valueCodeableConcept` | Required | `.coding[0].system` must be `2.16.840.1.113883.3.8901.3.1.3558032.8003`. `.coding[0].value` must be _Coverage Category Code_ defined below. |
+
+<details><summary><strong>Category Coverage Code</strong></summary>
+
+
+The type of coverage that the insurance company plan has reimbursement limits on.
+
+- `DENTAL`
+- `INPATIENT`
+- `LONG TERM CARE`
+- `MENTAL HEALTH`
+- `OUTPATIENT`
+- `PHARMACY`
+- `PROSTHETICS`
+
+</details>
 
 #### Healthcare Services Delivery
 

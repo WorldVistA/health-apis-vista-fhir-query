@@ -132,9 +132,26 @@
         "start": "2004-02-03",
         "end": "2007-05-06"
       },
+      "extension": [
+        {
+          "url": "http://va.gov/fhir/StructureDefinition/coverageEligibilityResponse-effectiveDate",
+          "valueDateTime": "2000-01-02"
+          }
+        ],
       "item": [
         {
           "extension": [
+            {
+              "url": "http://va.gov/fhir/StructureDefinition/coverageEligibilityResponse-coverageCategory",
+              "valueCodeableConcept": {
+                "coding": [
+                  {
+                    "system": "2.16.840.1.113883.3.8901.3.1.3558032.8003",
+                    "code": "MENTAL HEALTH"
+                  }
+                ]
+              }
+            },
             {
               "url": "http://va.gov/fhir/StructureDefinition/coverageEligibilityResponse-healthcareServicesDelivery",
               "extension": [
