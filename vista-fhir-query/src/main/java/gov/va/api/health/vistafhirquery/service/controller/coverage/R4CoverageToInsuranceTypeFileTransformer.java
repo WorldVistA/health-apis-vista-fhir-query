@@ -4,6 +4,7 @@ import static gov.va.api.health.vistafhirquery.service.controller.R4Transformers
 import static gov.va.api.health.vistafhirquery.service.controller.R4Transformers.recordCoordinatesForReference;
 import static gov.va.api.health.vistafhirquery.service.controller.WriteableFilemanValueFactory.autoincrement;
 import static gov.va.api.health.vistafhirquery.service.controller.WriteableFilemanValueFactory.index;
+import static java.util.stream.Collectors.toList;
 
 import gov.va.api.health.r4.api.datatypes.CodeableConcept;
 import gov.va.api.health.r4.api.datatypes.Period;
@@ -74,32 +75,43 @@ public class R4CoverageToInsuranceTypeFileTransformer {
 
   WriteableFilemanValue groupPlan(List<CoverageClass> coverageTypes) {
     if (isBlank(coverageTypes)) {
-      throw BadRequestPayload.because(InsuranceType.GROUP_PLAN, "class is null");
+      throw BadRequestPayload.because(InsuranceType.GROUP_PLAN, ".class is null");
+    }
+    var filteredCoverageTypes =
+        coverageTypes.stream()
+            .filter(
+                c -> {
+                  if (c.type() == null) {
+                    return false;
+                  }
+                  return c.type().coding().stream()
+                      .anyMatch(coding -> "group".equals(coding.code()));
+                })
+            .collect(toList());
+    if (filteredCoverageTypes.size() != 1) {
+      throw BadRequestPayload.because(
+          InsuranceType.GROUP_PLAN,
+          "Expected 1 .class for type `group`, but got " + filteredCoverageTypes.size());
     }
     // Group slice cardinality is 0..1
-    return coverageTypes.stream()
-        .filter(
-            c -> {
-              if (c.type() == null) {
-                return false;
-              }
-              return c.type().coding().stream().anyMatch(coding -> "group".equals(coding.code()));
-            })
-        .map(
-            c ->
-                recordCoordinatesForReference(Reference.builder().reference(c.value()).build())
-                    .orElse(null))
+    return filteredCoverageTypes.stream()
         .findFirst()
+        .flatMap(
+            c -> recordCoordinatesForReference(Reference.builder().reference(c.value()).build()))
         .map(filemanValue.recordCoordinatesToPointer(GroupInsurancePlan.FILE_NUMBER, index(1)))
         .orElseThrow(
             () ->
                 BadRequestPayload.because(
-                    InsuranceType.GROUP_PLAN, "class type 'group' not found"));
+                    InsuranceType.GROUP_PLAN, ".class type 'group' id is unknown/invalid"));
   }
 
   WriteableFilemanValue insuranceType(List<Reference> payors) {
     if (isBlank(payors)) {
       throw BadRequestPayload.because(InsuranceType.INSURANCE_TYPE, "payor is null");
+    }
+    if (payors.size() != 1) {
+      throw BadRequestPayload.because(
+          InsuranceType.INSURANCE_TYPE, "Expected 1 payor, but got " + payors.size());
     }
     // Cardinality 1..* but vista expects a single pointer
     return IntStream.range(0, payors.size())
@@ -138,7 +150,7 @@ public class R4CoverageToInsuranceTypeFileTransformer {
     if (relationship.coding().size() != 1) {
       throw BadRequestPayload.because(
           InsuranceType.PT_RELATIONSHIP_HIPAA,
-          "Unexpected relationship code count: " + relationship.coding().size());
+          "Expected 1 relationship code, but got " + relationship.coding().size());
     }
     /* TODO https://vajira.max.gov/browse/API-11160 verify system is http://terminology.hl7.org/CodeSystem/subscriber-relationship */
     return relationship.coding().stream()

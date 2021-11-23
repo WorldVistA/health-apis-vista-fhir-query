@@ -132,10 +132,21 @@ public class R4InsurancePlanToGroupInsurancePlanFileTransformerTest {
     // Empty
     var planClass = InsurancePlan.Plan.builder().build();
     assertBadRequestBodyThrown(() -> _transformer().typeOfPlan(List.of(planClass)));
+    // Null coding
+    planClass.type(CodeableConcept.builder().build());
+    assertBadRequestBodyThrown(() -> _transformer().typeOfPlan(List.of(planClass)));
     // Wrong system
     planClass.type(
         CodeableConcept.builder()
             .coding(List.of(Coding.builder().system("WRONG_SYSTEM").build()))
+            .build());
+    assertBadRequestBodyThrown(() -> _transformer().typeOfPlan(List.of(planClass)));
+    // More than one plan
+    assertBadRequestBodyThrown(() -> _transformer().typeOfPlan(List.of(planClass, planClass)));
+    // More than one coding
+    planClass.type(
+        CodeableConcept.builder()
+            .coding(List.of(Coding.builder().build(), Coding.builder().build()))
             .build());
     assertBadRequestBodyThrown(() -> _transformer().typeOfPlan(List.of(planClass)));
   }

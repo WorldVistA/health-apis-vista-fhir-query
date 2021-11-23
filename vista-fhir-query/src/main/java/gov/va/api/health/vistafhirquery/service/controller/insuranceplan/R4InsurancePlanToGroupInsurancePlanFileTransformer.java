@@ -267,13 +267,33 @@ public class R4InsurancePlanToGroupInsurancePlanFileTransformer {
   }
 
   WriteableFilemanValue typeOfPlan(List<InsurancePlan.Plan> plan) {
+    if (isBlank(plan)) {
+      throw ResourceExceptions.BadRequestPayload.because(
+          GroupInsurancePlan.TYPE_OF_PLAN, "plan is null");
+    }
+    if (plan.size() != 1) {
+      throw ResourceExceptions.BadRequestPayload.because(
+          GroupInsurancePlan.TYPE_OF_PLAN, "Expected 1 plan, but got " + plan.size());
+    }
+    var type = plan.get(0).type();
+    if (isBlank(type)) {
+      throw ResourceExceptions.BadRequestPayload.because(
+          GroupInsurancePlan.TYPE_OF_PLAN, "plan type is null");
+    }
+    if (isBlank(type.coding())) {
+      throw ResourceExceptions.BadRequestPayload.because(
+          GroupInsurancePlan.TYPE_OF_PLAN, "plan type coding is null");
+    }
+    if (type.coding().size() != 1) {
+      throw ResourceExceptions.BadRequestPayload.because(
+          GroupInsurancePlan.TYPE_OF_PLAN,
+          "Expected 1 plan type coding, but got " + type.coding().size());
+    }
     return extractFromListOrDie(
         "plan",
-        plan,
-        c ->
-            codeableconceptHasCodingSystem(
-                c.type(), InsurancePlanStructureDefinitions.TYPE_OF_PLAN),
-        c -> c.type().coding().stream().findFirst().map(Coding::display).orElse(null),
+        type.coding(),
+        c -> InsurancePlanStructureDefinitions.TYPE_OF_PLAN.equals(c.system()),
+        Coding::display,
         GroupInsurancePlan.TYPE_OF_PLAN,
         InsurancePlanStructureDefinitions.TYPE_OF_PLAN + " system type not found");
   }

@@ -69,7 +69,7 @@ public class R4OrganizationToInsuranceCompanyFileTransformer {
   }
 
   private void addRequiredFields(Set<WriteableFilemanValue> fields) {
-    fields.add(insuranceCompanyCoordinatesOrDie(InsuranceCompany.NAME, 1, organization.name()));
+    fields.add(insuranceCompanyCoordinatesOrDie(InsuranceCompany.NAME, 1, organization().name()));
     fields.addAll(
         address(
             InsuranceCompany.STREET_ADDRESS_LINE_1_,
@@ -78,21 +78,21 @@ public class R4OrganizationToInsuranceCompanyFileTransformer {
             InsuranceCompany.CITY,
             InsuranceCompany.STATE,
             InsuranceCompany.ZIP_CODE,
-            addressOrDie(organization.address())));
+            addressOrDie(organization().address())));
     fields.addAll(contacts());
     fields.add(
         contactPoint(
-            organization.telecom(),
+            organization().telecom(),
             InsuranceCompany.FAX_NUMBER,
             "organization",
             ContactPointSystem.fax));
     fields.add(
         contactPoint(
-            organization.telecom(),
+            organization().telecom(),
             InsuranceCompany.PHONE_NUMBER,
             "organization",
             ContactPointSystem.phone));
-    fields.addAll(extensionProcessor.process(organization.extension()));
+    fields.addAll(extensionProcessor.process(organization().extension()));
     fields.add(
         identifier(
                 "edi id number inst",
@@ -454,7 +454,8 @@ public class R4OrganizationToInsuranceCompanyFileTransformer {
     }
     if (purpose.coding().size() != 1) {
       throw BadRequestPayload.because(
-          "Cannot determine purpose: Unexpected number of codings " + purpose.coding().size());
+          "Cannot determine purpose: expected 1 number of codings but got "
+              + purpose.coding().size());
     }
     /* TODO https://vajira.max.gov/browse/API-11250 Fix system */
     var purposeCode = purpose.coding().get(0).code();
@@ -790,7 +791,7 @@ public class R4OrganizationToInsuranceCompanyFileTransformer {
   Optional<WriteableFilemanValue> identifier(
       String fieldName, String fieldNumber, String identifierCode, boolean required) {
     Optional<Identifier> identifier =
-        identifierForPredicate(organization.identifier(), c -> identifierCode.equals(c.code()));
+        identifierForPredicate(organization().identifier(), c -> identifierCode.equals(c.code()));
     if (identifier.isEmpty() && required) {
       throw BadRequestPayload.because(fieldNumber, fieldName + " identifier is required");
     }
@@ -831,7 +832,7 @@ public class R4OrganizationToInsuranceCompanyFileTransformer {
   List<WriteableFilemanValue> n277EdiIdentifier() {
     Optional<Identifier> identifier =
         identifierForPredicate(
-            organization.identifier(),
+            organization().identifier(),
             c -> OrganizationStructureDefinitions.N277_EDI_ID_NUMBER_CODE.equals(c.code()));
     if (identifier.isEmpty()) {
       throw BadRequestPayload.because(
@@ -862,7 +863,8 @@ public class R4OrganizationToInsuranceCompanyFileTransformer {
   List<WriteableFilemanValue> optionalIdentifierFieldAndQualifier(
       String descriptiveName, String idField, String qualifierField, String identifierSystem) {
     Optional<Identifier> identifier =
-        identifierForPredicate(organization.identifier(), c -> identifierSystem.equals(c.system()));
+        identifierForPredicate(
+            organization().identifier(), c -> identifierSystem.equals(c.system()));
     if (identifier.isEmpty()) {
       return List.of();
     }

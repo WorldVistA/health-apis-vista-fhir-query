@@ -67,6 +67,10 @@ public class R4CoverageToInsuranceTypeFileTransformerTest {
             .coding(List.of(Coding.builder().code("NOT_GROUP").build()))
             .build());
     assertBadRequestBodyThrown(() -> _transformer().groupPlan(List.of(covClass)));
+    // More than one
+    covClass.type(
+        CodeableConcept.builder().coding(List.of(Coding.builder().code("group").build())).build());
+    assertBadRequestBodyThrown(() -> _transformer().groupPlan(List.of(covClass, covClass)));
   }
 
   @Test
@@ -79,6 +83,11 @@ public class R4CoverageToInsuranceTypeFileTransformerTest {
             _transformer()
                 .insuranceType(
                     List.of(Reference.builder().reference("Organization/NOPE").build())));
+    // More than one
+    assertBadRequestBodyThrown(
+        () ->
+            _transformer()
+                .insuranceType(List.of(Reference.builder().build(), Reference.builder().build())));
   }
 
   @Test
