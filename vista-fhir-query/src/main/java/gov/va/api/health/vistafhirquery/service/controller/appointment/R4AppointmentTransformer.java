@@ -14,6 +14,7 @@ import gov.va.api.lighthouse.charon.models.CodeAndNameXmlAttribute;
 import gov.va.api.lighthouse.charon.models.ValueOnlyXmlAttribute;
 import gov.va.api.lighthouse.charon.models.vprgetpatientdata.Appointments;
 import gov.va.api.lighthouse.charon.models.vprgetpatientdata.VprGetPatientData;
+import java.time.Instant;
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Stream;
@@ -30,22 +31,20 @@ public class R4AppointmentTransformer {
 
   @NonNull VprGetPatientData.Response.Results rpcResults;
 
-  private Appointment.AppointmentStatus appointmentStatus(ValueOnlyXmlAttribute status) {
-
-    if (status == null) {
+  private AppointmentStatus appointmentStatus(ValueOnlyXmlAttribute status, String dateTime) {
+    if (status == null || status.value() == null) {
       return null;
     }
-
     String appointmentStatus = status.value();
-
     switch (appointmentStatus) {
       case "NO-SHOW":
         return AppointmentStatus.noshow;
       case "CANCELLED":
         return AppointmentStatus.cancelled;
-        // Intentionally falling through for SCHEDULED/KEPT and NO ACTION TAKEN
       case "SCHEDULED/KEPT":
+        return bookedOrFulfilledStatus(dateTime);
       case "NO ACTION TAKEN":
+        // Intentionally falling through NO ACTION TAKEN
       default:
         return AppointmentStatus.booked;
     }
@@ -64,6 +63,15 @@ public class R4AppointmentTransformer {
                 .asList())
         .text(type.name())
         .build();
+  }
+
+  AppointmentStatus bookedOrFulfilledStatus(String dateTime) {
+    if (dateTime == null) {
+      return AppointmentStatus.booked;
+    }
+    return Instant.parse(dateTime).isBefore(Instant.now())
+        ? AppointmentStatus.fulfilled
+        : AppointmentStatus.booked;
   }
 
   String idFrom(String id) {
@@ -86,7 +94,6 @@ public class R4AppointmentTransformer {
       return null;
     }
     String code = serviceCategoryCode(serviceCategory.value());
-
     if (code == null) {
       return null;
     }
@@ -134,19 +141,18 @@ public class R4AppointmentTransformer {
   }
 
   private Appointment toAppointment(Appointments.Appointment rpcAppointment) {
-
     if (rpcAppointment == null) {
       return null;
     }
-
+    String dateTime = toHumanDateTime(rpcAppointment.dateTime());
     return Appointment.builder()
         .id(idFrom(rpcAppointment.id().value()))
         .meta(Meta.builder().source(site).build())
-        .status(appointmentStatus(rpcAppointment.apptStatus()))
+        .status(appointmentStatus(rpcAppointment.apptStatus(), dateTime))
         .serviceCategory(serviceCategory(rpcAppointment.service()))
         .serviceType(serviceType(rpcAppointment.clinicStop()))
         .appointmentType(appointmentType(rpcAppointment.type()))
-        .start(toHumanDateTime(rpcAppointment.dateTime()))
+        .start(dateTime)
         .participant(participants())
         .build();
   }
