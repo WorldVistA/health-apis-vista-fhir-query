@@ -122,6 +122,7 @@ public class CoverageSamples {
           .status(Status.active)
           .subscriberId("R50797108")
           .beneficiary(beneficiary(patient))
+          .dependent("67890")
           .relationship(relationship())
           .period(period())
           .payor(
@@ -144,10 +145,6 @@ public class CoverageSamples {
 
     private List<Extension> extensions() {
       return List.of(
-          Extension.builder()
-              .url("http://va.gov/fhir/StructureDefinition/coverage-pharmacyPersonCode")
-              .valueInteger(67890)
-              .build(),
           Extension.builder()
               .url("http://va.gov/fhir/StructureDefinition/coverage-stopPolicyFromBilling")
               .valueBoolean(true)

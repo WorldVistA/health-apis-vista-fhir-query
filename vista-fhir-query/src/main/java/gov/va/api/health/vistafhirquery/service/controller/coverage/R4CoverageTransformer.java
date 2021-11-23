@@ -106,16 +106,7 @@ public class R4CoverageTransformer {
 
   private List<Extension> extensions(FilemanEntry entry) {
     // ToDo update urls (needs to substitute host/base-path per env) and use the correct host
-    List<Extension> extensions = new ArrayList<>(2);
-    entry
-        .external(InsuranceType.PHARMACY_PERSON_CODE, Integer::valueOf)
-        .map(
-            value ->
-                Extension.builder()
-                    .url(CoverageStructureDefinitions.PHARMACY_PERSON_CODE)
-                    .valueInteger(value)
-                    .build())
-        .ifPresent(extensions::add);
+    List<Extension> extensions = new ArrayList<>(1);
     entry
         .internal(
             InsuranceType.STOP_POLICY_FROM_BILLING,
@@ -210,6 +201,7 @@ public class R4CoverageTransformer {
         .status(Status.active)
         .subscriberId(entry.external(InsuranceType.SUBSCRIBER_ID).orElse(null))
         .beneficiary(beneficiary(patientIcn, entry.external(InsuranceType.PATIENT_ID)))
+        .dependent(entry.external(InsuranceType.PHARMACY_PERSON_CODE).orElse(null))
         .relationship(relationship(entry))
         .period(period(entry))
         .payor(payors(entry))

@@ -2,10 +2,6 @@
   "resourceType": "Coverage",
   "extension": [
     {
-      "url": "http://va.gov/fhir/StructureDefinition/coverage-pharmacyPersonCode",
-      "valueInteger": 2
-    },
-    {
       "url": "http://va.gov/fhir/StructureDefinition/coverage-stopPolicyFromBilling",
       "valueBoolean": false
     }
@@ -25,6 +21,7 @@
       "value": "1234"
     }
   },
+  "dependent": "2",
   "relationship": {
     "coding": [
       {

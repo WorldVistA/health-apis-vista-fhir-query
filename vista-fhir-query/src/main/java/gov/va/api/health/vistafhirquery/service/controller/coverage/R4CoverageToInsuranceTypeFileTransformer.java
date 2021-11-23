@@ -4,6 +4,7 @@ import static gov.va.api.health.vistafhirquery.service.controller.R4Transformers
 import static gov.va.api.health.vistafhirquery.service.controller.R4Transformers.recordCoordinatesForReference;
 import static gov.va.api.health.vistafhirquery.service.controller.WriteableFilemanValueFactory.autoincrement;
 import static gov.va.api.health.vistafhirquery.service.controller.WriteableFilemanValueFactory.index;
+import static java.util.function.Function.identity;
 import static java.util.stream.Collectors.toList;
 
 import gov.va.api.health.r4.api.datatypes.CodeableConcept;
@@ -231,10 +232,10 @@ public class R4CoverageToInsuranceTypeFileTransformer {
                   "extension not found: " + CoverageStructureDefinitions.STOP_POLICY_FROM_BILLING);
             });
     fields.add(patientRelationshipHipaa(coverage().relationship()));
-    extensionForSystem(CoverageStructureDefinitions.PHARMACY_PERSON_CODE)
-        .map(filemanValue.extensionToInteger(InsuranceType.PHARMACY_PERSON_CODE, index(1)))
-        .ifPresent(fields::add);
     fields.add(patientId(coverage().beneficiary()));
+    Optional.ofNullable(coverage().dependent())
+        .map(filemanValue.toString(InsuranceType.PHARMACY_PERSON_CODE, index(1), identity()))
+        .ifPresent(fields::add);
     fields.add(subscriberId(coverage().subscriberId()));
     fields.addAll(policyStartAndEndDates(coverage().period()));
     return fields;
