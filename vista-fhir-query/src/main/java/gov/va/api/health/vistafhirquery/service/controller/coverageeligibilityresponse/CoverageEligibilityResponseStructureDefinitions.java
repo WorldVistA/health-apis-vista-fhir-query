@@ -1,6 +1,10 @@
 package gov.va.api.health.vistafhirquery.service.controller.coverageeligibilityresponse;
 
 public class CoverageEligibilityResponseStructureDefinitions {
+  public static final String REQUESTED_SERVICE_TYPE =
+      "http://va.gov/fhir/StructureDefinition/coverageEligibilityResponse-requestedServiceType";
+  public static final String REQUESTED_SERVICE_TYPE_SYSTEM =
+      "2.16.840.1.113883.3.8901.3.1.280312.888002";
   public static final String ELIGIBILITY_BENEFIT_INFO =
       "urn:oid:2.16.840.1.113883.3.8901.3.1.3658002.8002";
 

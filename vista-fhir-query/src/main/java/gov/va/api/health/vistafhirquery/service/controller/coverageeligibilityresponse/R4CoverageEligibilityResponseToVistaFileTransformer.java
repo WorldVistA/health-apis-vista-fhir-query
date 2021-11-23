@@ -467,6 +467,15 @@ public class R4CoverageEligibilityResponseToVistaFileTransformer {
 
   private R4ExtensionProcessor itemExtensionProcessor() {
     return R4ExtensionProcessor.of(
+        CodeableConceptExtensionHandler.forDefiningUrl(
+                CoverageEligibilityResponseStructureDefinitions.REQUESTED_SERVICE_TYPE)
+            .required(REQUIRED)
+            .fieldNumber(InsuranceType.REQUESTED_SERVICE_TYPE)
+            .filemanFactory(factoryRegistry.get(InsuranceType.FILE_NUMBER))
+            .index(indexRegistry.get(InsuranceType.FILE_NUMBER))
+            .codingSystem(
+                CoverageEligibilityResponseStructureDefinitions.REQUESTED_SERVICE_TYPE_SYSTEM)
+            .build(),
         ComplexExtensionHandler.forDefiningUrl(
                 CoverageEligibilityResponseStructureDefinitions.SUBSCRIBER_DATE)
             .required(REQUIRED)

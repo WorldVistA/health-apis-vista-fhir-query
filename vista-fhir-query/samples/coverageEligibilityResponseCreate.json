@@ -142,6 +142,17 @@
         {
           "extension": [
             {
+              "url": "http://va.gov/fhir/StructureDefinition/coverageEligibilityResponse-requestedServiceType",
+              "valueCodeableConcept": {
+                "coding": [
+                  {
+                    "system": "http://terminology.hl7.org/CodeSystem/ex-benefitcategory",
+                    "code": "23"
+                  }
+                ]
+              }
+            },
+            {
               "url": "http://va.gov/fhir/StructureDefinition/coverageEligibilityResponse-coverageCategory",
               "valueCodeableConcept": {
                 "coding": [

@@ -39,7 +39,6 @@ import gov.va.api.lighthouse.charon.models.lhslighthouserpcgateway.SubscriberRef
 import java.math.BigDecimal;
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Consumer;
@@ -366,6 +365,14 @@ public class CoverageEligibilityResponseSamples {
     private List<Extension> itemExtensions() {
       return List.of(
           createExtension(
+              CoverageEligibilityResponseStructureDefinitions.REQUESTED_SERVICE_TYPE,
+              e ->
+                  e.valueCodeableConcept(
+                      codeableConceptFor(
+                          CoverageEligibilityResponseStructureDefinitions
+                              .REQUESTED_SERVICE_TYPE_SYSTEM,
+                          "23"))),
+          createExtension(
               CoverageEligibilityResponseStructureDefinitions.COVERAGE_CATEGORY,
               e ->
                   e.valueCodeableConcept(
@@ -607,7 +614,6 @@ public class CoverageEligibilityResponseSamples {
               .file(EligibilityBenefit.FILE_NUMBER)
               .index(1)
               .field(EligibilityBenefit.QUANTITY_QUALIFIER)
-              // M2 Maximum
               .value("M2")
               .build(),
           WriteableFilemanValue.builder()
@@ -714,7 +720,7 @@ public class CoverageEligibilityResponseSamples {
                       .status("1")
                       .file(InsuranceType.FILE_NUMBER)
                       .ien(id)
-                      .fields(Map.of())
+                      .fields(insuranceTypeFields())
                       .build(),
                   FilemanEntry.builder()
                       .status("1")
@@ -744,12 +750,13 @@ public class CoverageEligibilityResponseSamples {
     }
 
     private Map<String, Values> healthCareCodeInformationFields() {
-      Map<String, Values> fields = new HashMap<>();
-      fields.put(HealthCareCodeInformation.DIAGNOSIS_CODE, Values.of("100.81", "100.81"));
-      fields.put(
-          HealthCareCodeInformation.DIAGNOSIS_CODE_QUALIFIER, Values.of("ICD-9-CM", "ICD-9-CM"));
-      fields.put(HealthCareCodeInformation.PRIMARY_OR_SECONDARY, Values.of("PRIMARY", "P"));
-      return Map.copyOf(fields);
+      return Map.of(
+          HealthCareCodeInformation.DIAGNOSIS_CODE,
+          Values.of("100.81", "100.81"),
+          HealthCareCodeInformation.DIAGNOSIS_CODE_QUALIFIER,
+          Values.of("ICD-9-CM", "ICD-9-CM"),
+          HealthCareCodeInformation.PRIMARY_OR_SECONDARY,
+          Values.of("PRIMARY", "P"));
     }
 
     public List<WriteableFilemanValue> healthCareCodeInformationFilemanValues() {
@@ -885,18 +892,27 @@ public class CoverageEligibilityResponseSamples {
     }
 
     private Map<String, Values> iivFields() {
-      Map<String, Values> fields = new HashMap<>();
-      fields.put(IivResponse.MESSAGE_CONTROL_ID, Values.of("MCI-1234", "MCI-1234"));
-      fields.put(IivResponse.PAYER, Values.of("8", "8"));
-      fields.put(IivResponse.TRACE_NUMBER, Values.of("TN-1234", "TN-1234"));
-      fields.put(IivResponse.SERVICE_DATE, Values.of("01-20-2010", "01-20-2010"));
-      fields.put(IivResponse.MILITARY_INFO_STATUS_CODE, Values.of("P", "P"));
-      fields.put(IivResponse.MILITARY_EMPLOYMENT_STATUS, Values.of("CC", "Closed-Captions"));
-      fields.put(IivResponse.MILITARY_GOVT_AFFILIATION_CODE, Values.of("C", "ARMY"));
-      fields.put(IivResponse.MILITARY_PERSONNEL_DESCRIPTION, Values.of("ARMY", "ARMY"));
-      fields.put(IivResponse.MILITARY_SERVICE_RANK_CODE, Values.of("C1", "CAPTAIN"));
-      fields.put(IivResponse.DATE_TIME_PERIOD, Values.of("02032004-05062007", "02032004-05062007"));
-      return Map.copyOf(fields);
+      return Map.of(
+          IivResponse.MESSAGE_CONTROL_ID,
+          Values.of("MCI-1234", "MCI-1234"),
+          IivResponse.PAYER,
+          Values.of("8", "8"),
+          IivResponse.TRACE_NUMBER,
+          Values.of("TN-1234", "TN-1234"),
+          IivResponse.SERVICE_DATE,
+          Values.of("01-20-2010", "01-20-2010"),
+          IivResponse.MILITARY_INFO_STATUS_CODE,
+          Values.of("P", "P"),
+          IivResponse.MILITARY_EMPLOYMENT_STATUS,
+          Values.of("CC", "Closed-Captions"),
+          IivResponse.MILITARY_GOVT_AFFILIATION_CODE,
+          Values.of("C", "ARMY"),
+          IivResponse.MILITARY_PERSONNEL_DESCRIPTION,
+          Values.of("ARMY", "ARMY"),
+          IivResponse.MILITARY_SERVICE_RANK_CODE,
+          Values.of("C1", "CAPTAIN"),
+          IivResponse.DATE_TIME_PERIOD,
+          Values.of("02032004-05062007", "02032004-05062007"));
     }
 
     public List<WriteableFilemanValue> iivResponseFilemanValues() {
@@ -963,14 +979,32 @@ public class CoverageEligibilityResponseSamples {
               .build());
     }
 
+    private Map<String, Values> insuranceTypeFields() {
+      return Map.of(InsuranceType.REQUESTED_SERVICE_TYPE, Values.of("23", "23"));
+    }
+
+    public List<WriteableFilemanValue> insuranceTypeFilemanValue() {
+      return List.of(
+          WriteableFilemanValue.builder()
+              .file(InsuranceType.FILE_NUMBER)
+              .index(1)
+              .field(InsuranceType.REQUESTED_SERVICE_TYPE)
+              .value("23")
+              .build());
+    }
+
     private Map<String, Values> planLimitationFields() {
-      Map<String, Values> fields = new HashMap<>();
-      fields.put(PlanCoverageLimitations.COVERAGE_CATEGORY, Values.of("MENTAL HEALTH", "4"));
-      fields.put(PlanCoverageLimitations.COVERAGE_STATUS, Values.of("CONDITIONAL COVERAGE", "2"));
-      fields.put(PlanCoverageLimitations.EFFECTIVE_DATE, Values.of("JAN 12,1992", "2920112"));
-      fields.put(PlanCoverageLimitations.LIMITATION_COMMENT, Values.of("LIMITED", "LIMITED"));
-      fields.put(PlanCoverageLimitations.PLAN, Values.of("BCBS OF FL", "87"));
-      return Map.copyOf(fields);
+      return Map.of(
+          PlanCoverageLimitations.COVERAGE_CATEGORY,
+          Values.of("MENTAL HEALTH", "4"),
+          PlanCoverageLimitations.COVERAGE_STATUS,
+          Values.of("CONDITIONAL COVERAGE", "2"),
+          PlanCoverageLimitations.EFFECTIVE_DATE,
+          Values.of("JAN 12,1992", "2920112"),
+          PlanCoverageLimitations.PLAN,
+          Values.of("BCBS OF FL", "87"),
+          PlanCoverageLimitations.LIMITATION_COMMENT,
+          Values.of("LIMITED", "LIMITED"));
     }
 
     public List<WriteableFilemanValue> serviceTypesFilemanValues() {
@@ -984,20 +1018,19 @@ public class CoverageEligibilityResponseSamples {
     }
 
     private Map<String, Values> subscriberAdditionalInfoFields() {
-      Map<String, Values> fields = new HashMap<>();
-      fields.put(SubscriberAdditionalInfo.SEQUENCE, Values.of("1", "01"));
-      fields.put(SubscriberAdditionalInfo.PLACE_OF_SERVICE, Values.of("12", "HOME"));
-      fields.put(SubscriberAdditionalInfo.QUALIFIER, Values.of("NI", "NATURE OF INJURY CODE"));
-      fields.put(
+      return Map.of(
+          SubscriberAdditionalInfo.SEQUENCE,
+          Values.of("1", "01"),
+          SubscriberAdditionalInfo.PLACE_OF_SERVICE,
+          Values.of("12", "HOME"),
+          SubscriberAdditionalInfo.QUALIFIER,
+          Values.of("NI", "NATURE OF INJURY CODE"),
           SubscriberAdditionalInfo.NATURE_OF_INJURY_CODE,
-          Values.of("GR", "NATURE OF INJURY (NCCI)"));
-      fields.put(
+          Values.of("GR", "NATURE OF INJURY (NCCI)"),
           SubscriberAdditionalInfo.NATURE_OF_INJURY_CATEGORY,
-          Values.of("NI", "NATURE OF INJURY CODE"));
-      fields.put(
+          Values.of("NI", "NATURE OF INJURY CODE"),
           SubscriberAdditionalInfo.NATURE_OF_INJURY_TEXT,
           Values.of("ARM IS BORKED", "ARM IS BORKED"));
-      return Map.copyOf(fields);
     }
 
     public List<WriteableFilemanValue> subscriberAdditionalInfoFilemanValues() {
@@ -1041,10 +1074,11 @@ public class CoverageEligibilityResponseSamples {
     }
 
     private Map<String, Values> subscriberDatesFields() {
-      Map<String, Values> fields = new HashMap<>();
-      fields.put(SubscriberDates.DATE, Values.of("MAY 20, 2018", "05-20-2018"));
-      fields.put(SubscriberDates.DATE_QUALIFIER, Values.of("PLAN BEGIN", "346"));
-      return Map.copyOf(fields);
+      return Map.of(
+          SubscriberDates.DATE,
+          Values.of("MAY 20, 2018", "05-20-2018"),
+          SubscriberDates.DATE_QUALIFIER,
+          Values.of("PLAN BEGIN", "346"));
     }
 
     public List<WriteableFilemanValue> subscriberDatesFilemanValues() {
@@ -1064,12 +1098,16 @@ public class CoverageEligibilityResponseSamples {
     }
 
     private Map<String, Values> subscriberReferenceIdFields() {
-      Map<String, Values> fields = new HashMap<>();
-      fields.put(SubscriberReferenceId.SEQUENCE, Values.of("1", "01"));
-      fields.put(SubscriberReferenceId.REFERENCE_ID, Values.of("REF123", "REF123-"));
-      fields.put(SubscriberReferenceId.REFERENCE_ID_QUALIFIER, Values.of("18", "PLAN NUMBER"));
-      fields.put(SubscriberReferenceId.DESCRIPTION, Values.of("BCBS", "BCBS-"));
-      return Map.copyOf(fields);
+
+      return Map.of(
+          SubscriberReferenceId.SEQUENCE,
+          Values.of("1", "01"),
+          SubscriberReferenceId.REFERENCE_ID,
+          Values.of("REF123", "REF123-"),
+          SubscriberReferenceId.REFERENCE_ID_QUALIFIER,
+          Values.of("18", "PLAN NUMBER"),
+          SubscriberReferenceId.DESCRIPTION,
+          Values.of("BCBS", "BCBS-"));
     }
 
     public List<WriteableFilemanValue> subscriberReferenceIdFilemanValues() {

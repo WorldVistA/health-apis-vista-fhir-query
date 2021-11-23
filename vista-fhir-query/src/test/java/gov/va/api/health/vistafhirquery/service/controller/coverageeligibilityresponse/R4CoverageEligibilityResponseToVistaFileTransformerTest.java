@@ -118,6 +118,7 @@ public class R4CoverageEligibilityResponseToVistaFileTransformerTest {
                     samples.healthcareServicesDeliveryFilemanValues(),
                     samples.ienMacroPointers(),
                     samples.iivResponseFilemanValues(),
+                    samples.insuranceTypeFilemanValue(),
                     samples.serviceTypesFilemanValues(),
                     samples.subscriberAdditionalInfoFilemanValues(),
                     samples.subscriberDatesFilemanValues(),

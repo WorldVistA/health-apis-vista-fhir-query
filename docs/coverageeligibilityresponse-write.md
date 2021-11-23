@@ -188,6 +188,7 @@ This code indicates the claimant's military rank.
 | `http://va.gov/fhir/StructureDefinition/coverageEligibilityResponse-subscriberDate` | Complex | Required | See [Subscriber Date](#subscriber-date). |
 | `http://va.gov/fhir/StructureDefinition/coverageEligibilityResponse-subscriberReferenceId` | Complex | Required | See [Subscriber Reference Id](#subscriber-reference-id). |
 | `http://va.gov/fhir/StructureDefinition/coverageEligibilityResponse-coverageCategory` | `valueCodeableConcept` | Required | `.coding[0].system` must be `2.16.840.1.113883.3.8901.3.1.3558032.8003`. `.coding[0].value` must be _Coverage Category Code_ defined below. |
+| `http://va.gov/fhir/StructureDefinition/coverageEligibilityResponse-requestedServiceType` | `valueCodeableConcept` | Required | `.coding[0].system` must be `2.16.840.1.113883.3.8901.3.1.280312.888002`. `.coding[0].value` must be _Requested Service Type Code_ defined below. |
 
 <details><summary><strong>Category Coverage Code</strong></summary>
 
@@ -201,6 +202,58 @@ The type of coverage that the insurance company plan has reimbursement limits on
 - `OUTPATIENT`
 - `PHARMACY`
 - `PROSTHETICS`
+
+</details>
+
+<details><summary><strong>Requested Service Type Code</strong></summary>
+
+X.12 271 EB04 (Insurance Type)
+
+- `12` (Medicare 2ndary Working Aged Beneficiary or Spouse with Employer GHP)
+- `13` (Medicare 2ndary ESRD Beneficiary in the 12 month coordination period with Employer GHP)
+- `14` (Medicare 2ndary, No-fault Insurance including Auto is Primary)
+- `15` (Medicare 2ndary Workers Compensation)
+- `16` (Medicare 2ndary PHS or Other Federal Agency)
+- `41` (Medicare 2ndary Black Lung)
+- `42` (Medicare 2ndary Veterans Admin)
+- `43` (Medicare 2ndary Disabled Beneficial <65 with Large LGHP)
+- `47` (Medicare 2ndary, Other Liability Insurance is Primary)
+- `AP` (Auto Insurance Policy)
+- `C1` (Commercial)
+- `CO` (COBRA)
+- `CP` (Medicare Conditionally Primary)
+- `D` (Disability)
+- `DB` (Disability Benefits)
+- `EP` (Exclusive Provider Organization)
+- `FF` (Family or Friends)
+- `GP` (Group Policy)
+- `HM` (HMO)
+- `HN` (HMO - Medicare Risk)
+- `HS` (Special Low Income Medicare Beneficiary)
+- `IN` (Indemnity)
+- `IP` (Individual Policy)
+- `LC` (Long Term Care)
+- `LD` (Long Term Policy)
+- `LI` (Life Insurance)
+- `LT` (Litigation)
+- `MA` (Medicare Part A)
+- `MB` (Medicare Part B)
+- `MC` (Medicaid)
+- `MH` (Medigap Part A)
+- `MI` (Medigap Part B)
+- `MP` (Medicare Primary)
+- `OT` (Other)
+- `PE` (Property Insurance - Personal)
+- `PL` (Personal)
+- `PP` (Personal Payment/Cash - No Insurance)
+- `PR` (PPO)
+- `PS` (Point of Service (POS))
+- `QM` (Qualified Medicare Beneficiary)
+- `RP` (Property Insurance - Real)
+- `SP` (Supplemental Policy)
+- `TF` (TEFRA)
+- `WC` (Workers Compensation)
+- `WU` (Wrap Up Policy)
 
 </details>
 
