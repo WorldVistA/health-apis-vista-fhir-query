@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<FindBugsFilter>
+  <!-- Exclusions can be defined here and should include a comment on why the finding can be ignored -->
+
+  <!--
+To support local testing, we allow the vista.api.principal-file property to be overwritten by user input.
+In a real-world environment, the property will be loaded once on start from application.properties
+preventing user input from affecting application behavior.
+ -->
+  <Match>
+    <Or>
+      <Class name="gov.va.api.health.vistafhirquery.interactivetests.InteractiveTestContext"/>
+    </Or>
+    <Bug pattern="PATH_TRAVERSAL_IN"/>
+  </Match>
+
+  <Match>
+    <Or>
+      <Class name="gov.va.api.health.vistafhirquery.interactivetests.InteractiveTestContext"/>
+    </Or>
+    <Bug pattern="CRLF_INJECTION_LOGS"/>
+  </Match>
+  <Match>
+    <Or>
+      <Class name="gov.va.api.health.vistafhirquery.interactivetests.InteractiveTestContext"/>
+    </Or>
+    <Bug pattern="DMI_HARDCODED_ABSOLUTE_FILENAME"/>
+  </Match>
+</FindBugsFilter>

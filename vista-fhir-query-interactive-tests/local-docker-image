@@ -35,7 +35,9 @@ run() {
   if [ -f "${secrets}" ]; then SECRETS_OPTION="--env-file=${secrets}"; fi
   docker run \
     --rm \
+    -it \
     --network="host" \
+    -v "$(pwd)/test_properties:/sentinel/test_properties" \
     ${SECRETS_OPTION:-} \
      vasdvp/health-apis-vista-fhir-query-interactive-tests:latest $@
 }
