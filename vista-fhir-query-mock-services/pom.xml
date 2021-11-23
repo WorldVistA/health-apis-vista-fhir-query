@@ -8,13 +8,13 @@
     <relativePath/>
   </parent>
   <artifactId>vista-fhir-query-mock-services</artifactId>
-  <version>1.0.199-SNAPSHOT</version>
+  <version>1.0.199</version>
   <packaging>jar</packaging>
   <properties>
     <docker.organization>ghcr.io/department-of-veterans-affairs</docker.organization>
     <fhir-resources.version>8.0.22</fhir-resources.version>
     <mockserver.version>5.11.2</mockserver.version>
-    <charon.version>4.0.55</charon.version>
+    <charon.version>4.0.57</charon.version>
   </properties>
   <dependencies>
     <dependency>
