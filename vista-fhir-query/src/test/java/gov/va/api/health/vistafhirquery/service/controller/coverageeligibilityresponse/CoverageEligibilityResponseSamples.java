@@ -29,6 +29,7 @@ import gov.va.api.lighthouse.charon.models.lhslighthouserpcgateway.LhsLighthouse
 import gov.va.api.lighthouse.charon.models.lhslighthouserpcgateway.LhsLighthouseRpcGatewayResponse;
 import gov.va.api.lighthouse.charon.models.lhslighthouserpcgateway.LhsLighthouseRpcGatewayResponse.FilemanEntry;
 import gov.va.api.lighthouse.charon.models.lhslighthouserpcgateway.LhsLighthouseRpcGatewayResponse.Values;
+import gov.va.api.lighthouse.charon.models.lhslighthouserpcgateway.LimitationComment;
 import gov.va.api.lighthouse.charon.models.lhslighthouserpcgateway.Payer;
 import gov.va.api.lighthouse.charon.models.lhslighthouserpcgateway.PlanCoverageLimitations;
 import gov.va.api.lighthouse.charon.models.lhslighthouserpcgateway.ServiceTypes;
@@ -221,6 +222,8 @@ public class CoverageEligibilityResponseSamples {
                   .item(
                       Item.builder()
                           .extension(itemExtensions())
+                          .excluded(true)
+                          .description("LIMITED")
                           .category(
                               codeableConceptFor(
                                   CoverageEligibilityResponseStructureDefinitions.SERVICE_TYPES,
@@ -355,6 +358,7 @@ public class CoverageEligibilityResponseSamples {
                                           .build()))
                               .build())
                       .excluded(true)
+                      .description("LIMITED")
                       .build()))
           .build();
     }
@@ -670,7 +674,7 @@ public class CoverageEligibilityResponseSamples {
               .file(PlanCoverageLimitations.FILE_NUMBER)
               .index(1)
               .field(PlanCoverageLimitations.COVERAGE_STATUS)
-              .value("COVERED")
+              .value("CONDITIONAL COVERAGE")
               .build(),
           WriteableFilemanValue.builder()
               .file(PlanCoverageLimitations.FILE_NUMBER)
@@ -683,6 +687,18 @@ public class CoverageEligibilityResponseSamples {
               .index(1)
               .field(PlanCoverageLimitations.EFFECTIVE_DATE)
               .value("1992-01-12")
+              .build(),
+          WriteableFilemanValue.builder()
+              .file(LimitationComment.FILE_NUMBER)
+              .index(1)
+              .field(LimitationComment.LIMITATION_COMMENT)
+              .value("LIMITED")
+              .build(),
+          WriteableFilemanValue.builder()
+              .file(LimitationComment.FILE_NUMBER)
+              .index(1)
+              .field("IEN")
+              .value("${355.32^1^IEN}")
               .build());
     }
 
@@ -952,6 +968,7 @@ public class CoverageEligibilityResponseSamples {
       fields.put(PlanCoverageLimitations.COVERAGE_CATEGORY, Values.of("MENTAL HEALTH", "4"));
       fields.put(PlanCoverageLimitations.COVERAGE_STATUS, Values.of("CONDITIONAL COVERAGE", "2"));
       fields.put(PlanCoverageLimitations.EFFECTIVE_DATE, Values.of("JAN 12,1992", "2920112"));
+      fields.put(PlanCoverageLimitations.LIMITATION_COMMENT, Values.of("LIMITED", "LIMITED"));
       fields.put(PlanCoverageLimitations.PLAN, Values.of("BCBS OF FL", "87"));
       return Map.copyOf(fields);
     }

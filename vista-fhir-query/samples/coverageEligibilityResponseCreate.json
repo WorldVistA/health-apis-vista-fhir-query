@@ -280,7 +280,7 @@
               ]
             },
             {
-              "url": "http://va.gov/fhir/StructureDefinition/coverageEligibilityResponse-subscriberDate",,
+              "url": "http://va.gov/fhir/StructureDefinition/coverageEligibilityResponse-subscriberDate",
               "extension": [
                 {
                   "url": "http://va.gov/fhir/StructureDefinition/coverageEligibilityResponse-subscriberDatePeriod",

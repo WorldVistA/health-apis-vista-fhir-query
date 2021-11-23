@@ -145,6 +145,11 @@ public class R4Transformers {
     return value == null;
   }
 
+  /** Returns true if Boolean is null or false . */
+  public static boolean nullOrfalse(Boolean bool) {
+    return null == bool || !bool;
+  }
+
   /** Build an identifier from a patient icn, site, and vista record id. */
   public static String patientCoordinateStringFrom(String patientIcn, String site, String ien) {
     return PatientTypeCoordinates.builder().icn(patientIcn).site(site).ien(ien).build().toString();

@@ -3,6 +3,7 @@ package gov.va.api.health.vistafhirquery.service.controller.coverageeligibilityr
 import static gov.va.api.health.fhir.api.FhirDateTime.parseDateTime;
 import static gov.va.api.health.vistafhirquery.service.controller.R4Transformers.allBlank;
 import static gov.va.api.health.vistafhirquery.service.controller.R4Transformers.isBlank;
+import static gov.va.api.health.vistafhirquery.service.controller.R4Transformers.nullOrfalse;
 import static gov.va.api.health.vistafhirquery.service.controller.R4Transformers.patientCoordinatesForReference;
 import static gov.va.api.health.vistafhirquery.service.controller.R4Transformers.recordCoordinatesForReference;
 import static gov.va.api.health.vistafhirquery.service.controller.WriteableFilemanValueFactory.index;
@@ -37,6 +38,7 @@ import gov.va.api.lighthouse.charon.models.lhslighthouserpcgateway.HealthcareSer
 import gov.va.api.lighthouse.charon.models.lhslighthouserpcgateway.IivResponse;
 import gov.va.api.lighthouse.charon.models.lhslighthouserpcgateway.InsuranceType;
 import gov.va.api.lighthouse.charon.models.lhslighthouserpcgateway.LhsLighthouseRpcGatewayCoverageWrite.WriteableFilemanValue;
+import gov.va.api.lighthouse.charon.models.lhslighthouserpcgateway.LimitationComment;
 import gov.va.api.lighthouse.charon.models.lhslighthouserpcgateway.Payer;
 import gov.va.api.lighthouse.charon.models.lhslighthouserpcgateway.PlanCoverageLimitations;
 import gov.va.api.lighthouse.charon.models.lhslighthouserpcgateway.ServiceTypes;
@@ -45,6 +47,7 @@ import gov.va.api.lighthouse.charon.models.lhslighthouserpcgateway.SubscriberDat
 import gov.va.api.lighthouse.charon.models.lhslighthouserpcgateway.SubscriberReferenceId;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
@@ -115,11 +118,14 @@ public class R4CoverageEligibilityResponseToVistaFileTransformer {
             .build());
   }
 
-  String coverageStatus(Boolean status) {
-    if (status == null || !status) {
+  String coverageStatus(Boolean status, Boolean anyExcluded) {
+    if (nullOrfalse(status)) {
       return "NOT COVERED";
     }
-    return "COVERED";
+    if (nullOrfalse(anyExcluded)) {
+      return "COVERED";
+    }
+    return "CONDITIONAL COVERAGE";
   }
 
   WriteableFilemanValue dateTimePeriod(Period period) {
@@ -147,6 +153,31 @@ public class R4CoverageEligibilityResponseToVistaFileTransformer {
             IivResponse.DATE_TIME_PERIOD,
             indexRegistry().get(IivResponse.FILE_NUMBER),
             vistaDateTimePeriod);
+  }
+
+  private List<WriteableFilemanValue> description(String description, Boolean excluded) {
+    Optional<WriteableFilemanValue> limitationComment =
+        factoryRegistry()
+            .get(LimitationComment.FILE_NUMBER)
+            .forOptionalString(
+                LimitationComment.LIMITATION_COMMENT,
+                indexRegistry().get(PlanCoverageLimitations.FILE_NUMBER),
+                description);
+    if (!nullOrfalse(excluded) && limitationComment.isEmpty()) {
+      throw new BadRequestPayload(
+          "insurance[0].item[].description is required when insurance[0].item[].excluded is true");
+    }
+    if (limitationComment.isEmpty()) {
+      return Collections.emptyList();
+    }
+    return List.of(
+        limitationComment.get(),
+        factoryRegistry
+            .get(LimitationComment.FILE_NUMBER)
+            .forRequiredParentFileUsingIenMacro(
+                indexRegistry.getAndIncrement(LimitationComment.FILE_NUMBER),
+                PlanCoverageLimitations.FILE_NUMBER,
+                indexRegistry.get(PlanCoverageLimitations.FILE_NUMBER)));
   }
 
   private R4ExtensionProcessor extensionProcessor() {
@@ -268,6 +299,7 @@ public class R4CoverageEligibilityResponseToVistaFileTransformer {
     insurance.item().stream().flatMap(this::item).forEach(filemanValues::add);
     filemanValues.add(dateTimePeriod(insurance.benefitPeriod()));
     filemanValues.addAll(insuranceExtensionProcessor().process(insurance.extension()));
+    Boolean anyExcluded = insurance.item().stream().anyMatch(i -> !nullOrfalse(i.excluded()));
     filemanValues.add(
         factoryRegistry()
             .get(PlanCoverageLimitations.FILE_NUMBER)
@@ -275,7 +307,7 @@ public class R4CoverageEligibilityResponseToVistaFileTransformer {
                 PlanCoverageLimitations.COVERAGE_STATUS,
                 indexRegistry().get(PlanCoverageLimitations.FILE_NUMBER),
                 insurance.inforce(),
-                this::coverageStatus));
+                status -> coverageStatus(status, anyExcluded)));
     patientCoordinatesForReference(insurance.coverage())
         .map(
             id ->
@@ -429,6 +461,7 @@ public class R4CoverageEligibilityResponseToVistaFileTransformer {
                 indexRegistry().getAndIncrement(EligibilityBenefit.FILE_NUMBER),
                 IivResponse.FILE_NUMBER,
                 indexRegistry().get(IivResponse.FILE_NUMBER)));
+    filemanValues.addAll(description(item.description(), item.excluded()));
     return filemanValues.stream();
   }
 
