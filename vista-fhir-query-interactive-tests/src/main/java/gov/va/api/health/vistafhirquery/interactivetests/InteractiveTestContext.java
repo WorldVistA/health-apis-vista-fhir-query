@@ -3,11 +3,10 @@ package gov.va.api.health.vistafhirquery.interactivetests;
 import gov.va.api.health.r4.api.resources.Resource;
 import io.restassured.RestAssured;
 import io.restassured.specification.RequestSpecification;
-import lombok.SneakyThrows;
-import lombok.extern.slf4j.Slf4j;
-
 import java.io.FileInputStream;
 import java.util.Properties;
+import lombok.SneakyThrows;
+import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 public class InteractiveTestContext implements TestContext {
