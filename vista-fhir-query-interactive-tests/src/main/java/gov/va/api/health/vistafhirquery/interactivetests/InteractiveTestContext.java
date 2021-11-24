@@ -11,11 +11,14 @@ import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 public class InteractiveTestContext implements TestContext {
-  private static final String PROPERTIES_FILE_BASE_PATH = "/sentinel/test_properties";
   String name;
   Properties properties;
+  String propertiesFileLocation;
 
+  /** Constructor that loads properties files for the test execution. */
   public InteractiveTestContext(String name) {
+    this.propertiesFileLocation =
+            System.getProperty("interactive-tests.test-properties", System.getProperty("user.dir"));
     loadProperties(name);
     this.name = name;
   }
@@ -28,7 +31,7 @@ public class InteractiveTestContext implements TestContext {
             .resourceName(resource.getClass().getSimpleName())
             .site(properties.getProperty("site"))
             .build()
-            .url();
+            .createUrl();
     var token = InteractiveTokenClient.builder().ctx(this).build().clientCredentialsToken();
     log.info("Client Credentials Token is: {}", token);
     RequestSpecification requestSpecification = RestAssured.given();
@@ -46,11 +49,11 @@ public class InteractiveTestContext implements TestContext {
   private void loadProperties(String name) {
     var properties = new Properties();
     try (FileInputStream testProperties =
-        new FileInputStream(PROPERTIES_FILE_BASE_PATH + "/" + name + ".properties")) {
+        new FileInputStream(propertiesFileLocation + "/" + name + ".properties")) {
       properties.load(testProperties);
     }
     try (FileInputStream globalProperties =
-        new FileInputStream(PROPERTIES_FILE_BASE_PATH + "/global.properties")) {
+        new FileInputStream(propertiesFileLocation + "/global.properties")) {
       properties.load(globalProperties);
     }
     this.properties = properties;

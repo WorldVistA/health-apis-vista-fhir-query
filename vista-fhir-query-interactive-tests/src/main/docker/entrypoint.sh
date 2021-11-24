@@ -11,8 +11,9 @@ main() {
 
   SYSTEM_PROPERTIES=
   addToSystemProperties "interactive-tests" "true"
+  addToSystemProperties "interactive-tests.test-properties" "/sentinel/test_properties"
 
-  local output="$(java-tests \
+  output="$(java-tests \
     --module-name "vista-fhir-query-interactive-tests" \
     list)"
 
@@ -28,7 +29,8 @@ main() {
     run run \
     --module-name "vista-fhir-query-interactive-tests" \
     --test-pattern ".*$choice" \
-    $SYSTEM_PROPERTIES
+    $SYSTEM_PROPERTIES \
+    $@
   done
   exit $?
 }
