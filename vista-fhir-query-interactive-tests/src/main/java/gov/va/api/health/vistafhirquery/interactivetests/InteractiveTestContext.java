@@ -18,7 +18,7 @@ public class InteractiveTestContext implements TestContext {
   /** Constructor that loads properties files for the test execution. */
   public InteractiveTestContext(String name) {
     this.propertiesFileLocation =
-            System.getProperty("interactive-tests.test-properties", System.getProperty("user.dir"));
+        System.getProperty("interactive-tests.test-properties", System.getProperty("user.dir"));
     loadProperties(name);
     this.name = name;
   }
