@@ -1,10 +1,13 @@
 package gov.va.api.health.vistafhirquery.interactivetests;
 
 import gov.va.api.health.r4.api.resources.Resource;
-import java.io.FileInputStream;
-import java.util.Properties;
+import io.restassured.RestAssured;
+import io.restassured.specification.RequestSpecification;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
+
+import java.io.FileInputStream;
+import java.util.Properties;
 
 @Slf4j
 public class InteractiveTestContext implements TestContext {
@@ -29,9 +32,12 @@ public class InteractiveTestContext implements TestContext {
     // TODO: get auth token
     var token = InteractiveTokenClient.builder().build().clientCredentialsToken();
     log.info("Token is PLACEHOLDER: {}", token);
-    InteractiveTestClient client = InteractiveTestClient.builder().url(url).body(resource).build();
-    client.request();
-    // TODO: Save request to disk
+    // TODO: Add auth token header to request
+    RequestSpecification requestSpecification = RestAssured.given();
+    var response =
+        requestSpecification.header("Content-Type", "application/json").body(resource).post(url);
+    log.info(response.body().prettyPrint());
+    // TODO: Save response to disk
   }
 
   @SneakyThrows

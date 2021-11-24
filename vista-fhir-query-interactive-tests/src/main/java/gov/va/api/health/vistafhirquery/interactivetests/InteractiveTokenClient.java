@@ -4,6 +4,7 @@ import lombok.Builder;
 
 @Builder
 public class InteractiveTokenClient implements TokenClient {
+
   @Override
   public String clientCredentialsToken() {
     return null;
