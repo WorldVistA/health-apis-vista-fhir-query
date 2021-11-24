@@ -30,6 +30,8 @@
 
 target/
 
+/vista-fhir-query-interactive-tests/test_properties/responses
+
 secrets.conf
 ids.conf
 *.pem

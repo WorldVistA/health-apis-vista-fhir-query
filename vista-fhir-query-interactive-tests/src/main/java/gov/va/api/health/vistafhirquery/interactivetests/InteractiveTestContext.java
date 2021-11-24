@@ -3,7 +3,11 @@ package gov.va.api.health.vistafhirquery.interactivetests;
 import gov.va.api.health.r4.api.resources.Resource;
 import io.restassured.RestAssured;
 import io.restassured.specification.RequestSpecification;
+import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileWriter;
+import java.nio.charset.StandardCharsets;
+import java.time.Instant;
 import java.util.Map;
 import java.util.Properties;
 import lombok.SneakyThrows;
@@ -24,6 +28,7 @@ public class InteractiveTestContext implements TestContext {
   }
 
   @Override
+  @SneakyThrows
   public void create(Resource resource) {
     var url =
         InteractiveTestUrlBuilder.builder()
@@ -41,8 +46,15 @@ public class InteractiveTestContext implements TestContext {
             .headers(Map.of("Authorization", "Bearer " + token))
             .body(resource)
             .post(url);
-    log.info(response.body().prettyPrint());
-    // TODO: Save response to disk
+    new File(propertiesFileLocation + "/responses").mkdir();
+    new File(propertiesFileLocation + "/responses/" + name + ".response").createNewFile();
+    FileWriter fw =
+        new FileWriter(
+            propertiesFileLocation + "/responses/" + name + ".response_" + Instant.now(),
+            StandardCharsets.UTF_8);
+    fw.write(String.format("%s%n", response.statusCode()));
+    fw.write(response.prettyPrint());
+    fw.close();
   }
 
   @SneakyThrows
