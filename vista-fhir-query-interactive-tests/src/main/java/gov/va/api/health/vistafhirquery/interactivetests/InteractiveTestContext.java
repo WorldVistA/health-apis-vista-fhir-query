@@ -4,6 +4,7 @@ import gov.va.api.health.r4.api.resources.Resource;
 import io.restassured.RestAssured;
 import io.restassured.specification.RequestSpecification;
 import java.io.FileInputStream;
+import java.util.Map;
 import java.util.Properties;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
@@ -28,13 +29,15 @@ public class InteractiveTestContext implements TestContext {
             .site(properties.getProperty("site"))
             .build()
             .url();
-    // TODO: get auth token
-    var token = InteractiveTokenClient.builder().build().clientCredentialsToken();
-    log.info("Token is PLACEHOLDER: {}", token);
-    // TODO: Add auth token header to request
+    var token = InteractiveTokenClient.builder().ctx(this).build().clientCredentialsToken();
+    log.info("Client Credentials Token is: {}", token);
     RequestSpecification requestSpecification = RestAssured.given();
     var response =
-        requestSpecification.header("Content-Type", "application/json").body(resource).post(url);
+        requestSpecification
+            .header("Content-Type", "application/json")
+            .headers(Map.of("Authorization", "Bearer " + token))
+            .body(resource)
+            .post(url);
     log.info(response.body().prettyPrint());
     // TODO: Save response to disk
   }

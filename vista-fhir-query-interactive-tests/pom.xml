@@ -12,12 +12,18 @@
   <packaging>jar</packaging>
   <properties>
     <fhir-resources.version>8.0.22</fhir-resources.version>
+    <oauth-java.version>0.0.14</oauth-java.version>
   </properties>
   <dependencies>
     <dependency>
       <groupId>gov.va.api.health</groupId>
       <artifactId>us-core-r4</artifactId>
       <version>${fhir-resources.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>gov.va.api.lighthouse</groupId>
+      <artifactId>test-clients</artifactId>
+      <version>${oauth-java.version}</version>
     </dependency>
     <dependency>
       <groupId>gov.va.api.health</groupId>

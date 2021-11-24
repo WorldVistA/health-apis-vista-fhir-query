@@ -19,7 +19,7 @@ public class CoverageCreateForPatientTest {
     InteractiveTestContext ctx = new InteractiveTestContext("CoverageCreateForPatient");
     ctx.create(
         Coverage.builder()
-            .resourceType(ctx.property("ResourceType"))
+            .resourceType("Coverage")
             .extension(
                 List.of(
                     Extension.builder()
@@ -35,7 +35,7 @@ public class CoverageCreateForPatientTest {
             .subscriberId("R50797108")
             .beneficiary(
                 Reference.builder()
-                    .reference("http://localhost:8090/data-query/r4/Patient/195607")
+                    .reference(ctx.property("beneficiary"))
                     .identifier(
                         Identifier.builder()
                             .type(
@@ -58,11 +58,7 @@ public class CoverageCreateForPatientTest {
                     .build())
             .period(
                 Period.builder().start("1992-01-12T05:00:00Z").end("2025-01-01T05:00:00Z").build())
-            .payor(
-                Reference.builder()
-                    .reference("http://localhost:8095/r4/Organization/I3-450NAk1LKUAaaGqyCDA9S9")
-                    .build()
-                    .asList())
+            .payor(Reference.builder().reference(ctx.property("payor")).build().asList())
             .order(1)
             .coverageClass(
                 Coverage.CoverageClass.builder()

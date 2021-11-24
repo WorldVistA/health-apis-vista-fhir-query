@@ -34,3 +34,4 @@ secrets.conf
 ids.conf
 *.pem
 DeleteMe*
+global.properties
