@@ -1,51 +1,62 @@
 package gov.va.api.health.vistafhirquery.interactivetests;
 
+import gov.va.api.health.fhir.api.IsResource;
 import gov.va.api.health.r4.api.resources.Resource;
 import io.restassured.RestAssured;
+import io.restassured.response.Response;
 import io.restassured.specification.RequestSpecification;
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.FileWriter;
 import java.nio.charset.StandardCharsets;
 import java.time.Instant;
 import java.util.Map;
-import java.util.Properties;
 import lombok.SneakyThrows;
+import lombok.experimental.Delegate;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
-public class InteractiveTestContext implements TestContext {
-  String name;
-  Properties properties;
-  String propertiesFileLocation;
+public class InteractiveTestContext implements TestContext, TestProperties {
+  private final String name;
+
+  @Delegate private final TestProperties properties;
+
+  private final File propertiesFileLocation;
 
   /** Constructor that loads properties files for the test execution. */
   public InteractiveTestContext(String name) {
-    this.propertiesFileLocation =
-        System.getProperty("interactive-tests.test-properties", System.getProperty("user.dir"));
-    loadProperties(name);
     this.name = name;
+    this.propertiesFileLocation =
+        new File(
+            System.getProperty(
+                "interactive-tests.test-properties", System.getProperty("user.dir")));
+    this.properties =
+        HierarchicalTestProperties.builder()
+            .globalPropertiesFile(new File(propertiesFileLocation, "global.properties"))
+            .testPropertiesFile(new File(propertiesFileLocation, name + ".properties"))
+            .build();
   }
 
   @Override
   @SneakyThrows
   public void create(Resource resource) {
-    var url =
-        InteractiveTestUrlBuilder.builder()
-            .baseUrl(properties.getProperty("baseurl"))
-            .resourceName(resource.getClass().getSimpleName())
-            .site(properties.getProperty("site"))
-            .build()
-            .createUrl();
+    var url = urlsFor(resource).create();
     var token = InteractiveTokenClient.builder().ctx(this).build().clientCredentialsToken();
-    log.info("Client Credentials Token is: {}", token);
+    log.info("Requesting {}", url);
+    log.info("Authorization:\nexport T=\"{}\"", token);
     RequestSpecification requestSpecification = RestAssured.given();
     var response =
         requestSpecification
+            .log()
+            .everything()
             .header("Content-Type", "application/json")
             .headers(Map.of("Authorization", "Bearer " + token))
             .body(resource)
             .post(url);
+    saveResultsToDisk(response);
+  }
+
+  @SneakyThrows
+  private void saveResultsToDisk(Response response) {
     new File(propertiesFileLocation + "/responses").mkdir();
     new File(propertiesFileLocation + "/responses/" + name + ".response").createNewFile();
     FileWriter fw =
@@ -57,29 +68,12 @@ public class InteractiveTestContext implements TestContext {
     fw.close();
   }
 
-  @SneakyThrows
-  private void loadProperties(String name) {
-    var properties = new Properties();
-    try (FileInputStream testProperties =
-        new FileInputStream(propertiesFileLocation + "/" + name + ".properties")) {
-      properties.load(testProperties);
-    }
-    try (FileInputStream globalProperties =
-        new FileInputStream(propertiesFileLocation + "/global.properties")) {
-      properties.load(globalProperties);
-    }
-    this.properties = properties;
-    log.info("Properties are: {}", properties.stringPropertyNames());
-  }
-
   @Override
-  public String property(String key) {
-    var value = properties.getProperty(key);
-    if (value == null) {
-      throw new IllegalArgumentException(
-          String.format(
-              "Missing configuration property: %s. Check the %s.properties file.", key, name));
-    }
-    return value;
+  public <T extends IsResource> ResourceUrls urlsFor(Class<T> resourceType) {
+    return StandardResourceUrls.builder()
+        .baseUrl(property("baseurl"))
+        .resourceName(resourceType.getSimpleName())
+        .site(property("site"))
+        .build();
   }
 }

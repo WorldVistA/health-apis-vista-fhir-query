@@ -7,7 +7,7 @@ import lombok.Builder;
 import lombok.SneakyThrows;
 
 @Builder
-public class InteractiveTestUrlBuilder implements TestUrlBuilder {
+public class StandardResourceUrls implements ResourceUrls {
   String baseUrl;
 
   String site;
@@ -16,21 +16,21 @@ public class InteractiveTestUrlBuilder implements TestUrlBuilder {
 
   @Override
   @SneakyThrows
-  public URL createUrl() {
-    return new URL(String.format("%s/%s/r4/%s", baseUrl, site, resourceName));
+  public URL create() {
+    return new URL(String.format("%s/hcs/%s/r4/%s", baseUrl, site, resourceName));
   }
 
   @Override
   @SneakyThrows
-  public URL readUrl(String id) {
-    return new URL(String.format("%s/%s/r4/%s/%s", baseUrl, site, resourceName, id));
+  public URL read(String id) {
+    return new URL(String.format("%s/hcs/%s/r4/%s/%s", baseUrl, site, resourceName, id));
   }
 
   @Override
   @SneakyThrows
-  public URL searchUrl(Map<String, String> parameters) {
+  public URL search(Map<String, String> parameters) {
     return new URL(
-        String.format("%s/%s/r4/%s?", baseUrl, site, resourceName)
+        String.format("%s/hcs/%s/r4/%s?", baseUrl, site, resourceName)
             + parameters.entrySet().stream()
                 .map(e -> e.getKey() + "=" + e.getValue())
                 .collect(Collectors.joining("&")));
@@ -38,7 +38,7 @@ public class InteractiveTestUrlBuilder implements TestUrlBuilder {
 
   @Override
   @SneakyThrows
-  public URL updateUrl(String id) {
-    return new URL(String.format("%s/%s/r4/%s/%s", baseUrl, site, resourceName, id));
+  public URL update(String id) {
+    return new URL(String.format("%s/hcs/%s/r4/%s/%s", baseUrl, site, resourceName, id));
   }
 }

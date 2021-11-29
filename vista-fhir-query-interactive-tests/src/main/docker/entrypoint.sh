@@ -9,6 +9,7 @@ cd $SENTINEL_BASE_DIR
 
 main() {
 
+  echo "$@"
   SYSTEM_PROPERTIES=
   addToSystemProperties "interactive-tests" "true"
   addToSystemProperties "interactive-tests.test-properties" "/sentinel/test_properties"
@@ -17,22 +18,33 @@ main() {
     --module-name "vista-fhir-query-interactive-tests" \
     list)"
 
-  local prettyTestNames=("quit")
+  local prettyTestNames=("Quit")
   for test in ${output}; do
     prettyTestNames+=("$(echo $test | sed -n -e 's/^.*interactivetests.//p')")
   done
 
   echo "Select a test to run from the below choices. 1 to quit."
-  select choice in ${prettyTestNames[*]}; do
-    if [[ $choice == "quit" ]]; then break; fi
-    java-tests \
-    run run \
-    --module-name "vista-fhir-query-interactive-tests" \
-    --test-pattern ".*$choice" \
-    $SYSTEM_PROPERTIES \
-    $@
+  local status=0
+  while [ true ]
+  do
+    select choice in ${prettyTestNames[*]}
+    do
+      echo "$choice"
+      if [ "${choice,,}" == "quit" ]; then return $status; fi
+      if [[ "${choice}" != *Test ]]; then continue; fi
+      if ! java-tests \
+        run run \
+        --module-name "vista-fhir-query-interactive-tests" \
+        --test-pattern ".*$choice" \
+        $SYSTEM_PROPERTIES \
+        $@
+      then
+        echo "Failed to execute $choice"
+        status=1
+      fi
+    done
   done
-  exit $?
+  return $status
 }
 
 addToSystemProperties() {

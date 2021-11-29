@@ -5,8 +5,9 @@ import gov.va.api.health.r4.api.datatypes.Coding;
 import gov.va.api.health.r4.api.datatypes.Identifier;
 import gov.va.api.health.r4.api.datatypes.Period;
 import gov.va.api.health.r4.api.elements.Extension;
-import gov.va.api.health.r4.api.elements.Reference;
 import gov.va.api.health.r4.api.resources.Coverage;
+import gov.va.api.health.r4.api.resources.Organization;
+import gov.va.api.health.r4.api.resources.Patient;
 import java.util.List;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.condition.EnabledIfSystemProperty;
@@ -16,7 +17,7 @@ public class CoverageCreateForPatientTest {
   @Test
   @EnabledIfSystemProperty(named = "interactive-tests", matches = "true")
   void coverageWrite() {
-    InteractiveTestContext ctx = new InteractiveTestContext("CoverageCreateForPatient");
+    TestContext ctx = new InteractiveTestContext("CoverageCreateForPatient");
     ctx.create(
         Coverage.builder()
             .resourceType("Coverage")
@@ -34,8 +35,8 @@ public class CoverageCreateForPatientTest {
             .status(Coverage.Status.active)
             .subscriberId("R50797108")
             .beneficiary(
-                Reference.builder()
-                    .reference(ctx.property("beneficiary"))
+                ctx.urlsFor(Patient.class)
+                    .reference(ctx.property("patient"))
                     .identifier(
                         Identifier.builder()
                             .type(
@@ -43,8 +44,7 @@ public class CoverageCreateForPatientTest {
                                     .coding(Coding.builder().code("MB").build().asList())
                                     .build())
                             .value("1234")
-                            .build())
-                    .build())
+                            .build()))
             .relationship(
                 CodeableConcept.builder()
                     .coding(
@@ -58,7 +58,7 @@ public class CoverageCreateForPatientTest {
                     .build())
             .period(
                 Period.builder().start("1992-01-12T05:00:00Z").end("2025-01-01T05:00:00Z").build())
-            .payor(Reference.builder().reference(ctx.property("payor")).build().asList())
+            .payor(ctx.urlsFor(Organization.class).reference(ctx.property("payorId")).asList())
             .order(1)
             .coverageClass(
                 Coverage.CoverageClass.builder()
@@ -71,7 +71,7 @@ public class CoverageCreateForPatientTest {
                                     .build()
                                     .asList())
                             .build())
-                    .value("InsurancePlan/I3-1JeCN3qnboBvfJAeuA5VVg")
+                    .value("InsurancePlan/" + ctx.property("insurancePlanId"))
                     .build()
                     .asList())
             .build());

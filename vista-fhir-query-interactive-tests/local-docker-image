@@ -33,11 +33,12 @@ run() {
   esac
   local secrets=config/secrets.conf
   if [ -f "${secrets}" ]; then SECRETS_OPTION="--env-file=${secrets}"; fi
+  SCRIPT_PATH=$(dirname $(readlink -f "$0"))
   docker run \
     --rm \
     -it \
     --network="host" \
-    -v "$(pwd)/test_properties:/sentinel/test_properties" \
+    -v "${SCRIPT_PATH}/test_properties:/sentinel/test_properties" \
     ${SECRETS_OPTION:-} \
      vasdvp/health-apis-vista-fhir-query-interactive-tests:latest $@
 }

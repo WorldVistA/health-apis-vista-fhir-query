@@ -9,7 +9,7 @@ import lombok.Builder;
 @Builder
 public class InteractiveTokenClient implements TokenClient {
 
-  InteractiveTestContext ctx;
+  TestContext ctx;
 
   @Override
   public String clientCredentialsToken() {
