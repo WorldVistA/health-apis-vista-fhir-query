@@ -13,6 +13,7 @@ Supported fields
 | `.beneficiary.identifier` | Required | |
 | `.beneficiary.identifier.type.coding[0].code` | Required | Must be `MB`. |
 | `.beneficiary.identifier.value` | Required | Subscriber's primary ID number. This number is assigned by the payer and can be found on the subscriber's insurance card. |
+| `.dependent` | Optional | This is the code that is assigned by the payer to identify the patient. The payer may use a unique person code to identify each specific person on the pharmacy insurance policy. This code may also describe the patient's relationship to the cardholder. E.g., `1` card holder, `2` spouse, `3` - `999` dependents and others. |
 | `.relationship.coding[]` | Required | Must contain 1 entry. |
 | `.relationship.coding[0].system` | Required | Must be `http://terminology.hl7.org/CodeSystem/subscriber-relationship` |
 | `.relationship.coding[0].code` | Required | |
@@ -30,7 +31,6 @@ Supported fields
 
 | Defining URL | Type | Required | Notes |
 |---|---|---|---|
-| `http://va.gov/fhir/StructureDefinition/coverage-pharmacyPersonCode` | `valueInteger` | Optional | This is the code that is assigned by the payer to identify the patient. The payer may use a unique person code to identify each specific person on the pharmacy insurance policy. This code may also describe the patient's relationship to the cardholder. E.g., `1` card holder, `2` spouse, `3` - `999` dependents and others. |
 | `http://va.gov/fhir/StructureDefinition/coverage-stopPolicyFromBilling` | `valueBoolean` | Required | Determines whether or not claims may be created for the insurance policy. This field is used primarily for CHAMPUS policies. If the patient is covered under CHAMPUS, but it is known that claims should never be submitted to the CHAMPUS Fiscal Intermediary. A `true` value will prohibit Pharmacy claims submissions to the CHAMPUS Fiscal Intermediary. |
 
 > Unsupported fields or extensions will be ignored.
