@@ -1,5 +1,9 @@
 package gov.va.api.health.vistafhirquery.interactivetests;
 
+import static java.nio.charset.StandardCharsets.UTF_8;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
+import gov.va.api.health.autoconfig.configuration.JacksonConfig;
 import gov.va.api.health.fhir.api.IsResource;
 import gov.va.api.health.r4.api.resources.Resource;
 import io.restassured.RestAssured;
@@ -7,12 +11,14 @@ import io.restassured.response.Response;
 import io.restassured.specification.RequestSpecification;
 import java.io.File;
 import java.io.FileWriter;
-import java.nio.charset.StandardCharsets;
+import java.net.URL;
 import java.time.Instant;
 import java.util.Map;
+import java.util.Optional;
 import lombok.SneakyThrows;
 import lombok.experimental.Delegate;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.util.FileSystemUtils;
 
 @Slf4j
 public class InteractiveTestContext implements TestContext, TestProperties {
@@ -46,26 +52,39 @@ public class InteractiveTestContext implements TestContext, TestProperties {
     RequestSpecification requestSpecification = RestAssured.given();
     var response =
         requestSpecification
-            .log()
-            .everything()
             .header("Content-Type", "application/json")
             .headers(Map.of("Authorization", "Bearer " + token))
             .body(resource)
             .post(url);
-    saveResultsToDisk(response);
+    saveResultsToDisk(url, response, Optional.of(resource));
   }
 
   @SneakyThrows
-  private void saveResultsToDisk(Response response) {
-    new File(propertiesFileLocation + "/responses").mkdir();
-    new File(propertiesFileLocation + "/responses/" + name + ".response").createNewFile();
-    FileWriter fw =
-        new FileWriter(
-            propertiesFileLocation + "/responses/" + name + ".response_" + Instant.now(),
-            StandardCharsets.UTF_8);
-    fw.write(String.format("%s%n", response.statusCode()));
-    fw.write(response.prettyPrint());
-    fw.close();
+  private void saveResultsToDisk(URL url, Response response, Optional<Resource> body) {
+    var resultsDir = new File(propertiesFileLocation, "results");
+    var testResultsDir = new File(resultsDir, name);
+    if (testResultsDir.exists()) {
+      FileSystemUtils.deleteRecursively(testResultsDir);
+    }
+    testResultsDir.mkdirs();
+    var responseFile = new File(testResultsDir, "response.json");
+    writeFile(responseFile, response.prettyPrint());
+    ObjectMapper mapper = JacksonConfig.createMapper();
+    var responseMetaFile = new File(testResultsDir, "meta.json");
+    writeFile(
+        responseMetaFile,
+        mapper
+            .writerWithDefaultPrettyPrinter()
+            .writeValueAsString(
+                TestMeta.builder()
+                    .requestUrl(url.toString())
+                    .time(Instant.now())
+                    .httpStatus(response.getStatusCode())
+                    .build()));
+    if (body.isPresent()) {
+      var requestFile = new File(testResultsDir, "request.json");
+      writeFile(requestFile, mapper.writerWithDefaultPrettyPrinter().writeValueAsString(body));
+    }
   }
 
   @Override
@@ -75,5 +94,13 @@ public class InteractiveTestContext implements TestContext, TestProperties {
         .resourceName(resourceType.getSimpleName())
         .site(property("site"))
         .build();
+  }
+
+  @SneakyThrows
+  private void writeFile(File file, String body) {
+    file.createNewFile();
+    try (var writer = new FileWriter(file, UTF_8)) {
+      writer.write(body);
+    }
   }
 }
