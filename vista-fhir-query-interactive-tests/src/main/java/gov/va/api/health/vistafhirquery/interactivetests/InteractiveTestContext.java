@@ -88,6 +88,22 @@ public class InteractiveTestContext implements TestContext, TestProperties {
   }
 
   @Override
+  @SneakyThrows
+  public void search(Resource resource, Map<String, String> map) {
+    var url = urlsFor(resource).search(map);
+    var token = InteractiveTokenClient.builder().ctx(this).build().clientCredentialsToken();
+    log.info("Requesting {}", url);
+    log.info("Authorization:\nexport T=\"{}\"", token);
+    RequestSpecification requestSpecification = RestAssured.given();
+    var response =
+        requestSpecification
+            .accept("application/json")
+            .headers(Map.of("Authorization", "Bearer " + token))
+            .get(url);
+    saveResultsToDisk(url, response, Optional.empty());
+  }
+
+  @Override
   public <T extends IsResource> ResourceUrls urlsFor(Class<T> resourceType) {
     return StandardResourceUrls.builder()
         .baseUrl(property("baseurl"))
