@@ -1,6 +1,8 @@
-package gov.va.api.health.vistafhirquery.interactivetests;
+package gov.va.api.health.vistafhirquery.interactivetests.coverage;
 
 import gov.va.api.health.r4.api.resources.Coverage;
+import gov.va.api.health.vistafhirquery.interactivetests.InteractiveTestContext;
+import gov.va.api.health.vistafhirquery.interactivetests.TestContext;
 import java.util.Map;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.Test;

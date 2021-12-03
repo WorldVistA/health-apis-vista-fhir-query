@@ -9,6 +9,8 @@ public interface TestContext {
 
   String property(String key);
 
+  void read(Resource resource, String id);
+
   void search(Resource resource, Map<String, String> map);
 
   <T extends IsResource> ResourceUrls urlsFor(Class<T> resourceType);

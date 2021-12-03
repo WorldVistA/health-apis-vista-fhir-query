@@ -52,11 +52,26 @@ public class InteractiveTestContext implements TestContext, TestProperties {
     RequestSpecification requestSpecification = RestAssured.given();
     var response =
         requestSpecification
-            .header("Content-Type", "application/json")
+            .accept("application/json")
             .headers(Map.of("Authorization", "Bearer " + token))
             .body(resource)
             .post(url);
     saveResultsToDisk(url, response, Optional.of(resource));
+  }
+
+  @Override
+  public void read(Resource resource, String id) {
+    var url = urlsFor(resource).read(id);
+    var token = InteractiveTokenClient.builder().ctx(this).build().clientCredentialsToken();
+    log.info("Requesting {}", url);
+    log.info("Authorization:\nexport T=\"{}\"", token);
+    RequestSpecification requestSpecification = RestAssured.given();
+    var response =
+        requestSpecification
+            .accept("application/json")
+            .headers(Map.of("Authorization", "Bearer " + token))
+            .get(url);
+    saveResultsToDisk(url, response, Optional.empty());
   }
 
   @SneakyThrows

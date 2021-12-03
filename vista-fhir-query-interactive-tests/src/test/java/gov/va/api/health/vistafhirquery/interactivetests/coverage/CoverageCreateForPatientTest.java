@@ -1,4 +1,4 @@
-package gov.va.api.health.vistafhirquery.interactivetests;
+package gov.va.api.health.vistafhirquery.interactivetests.coverage;
 
 import gov.va.api.health.r4.api.datatypes.CodeableConcept;
 import gov.va.api.health.r4.api.datatypes.Coding;
@@ -8,6 +8,8 @@ import gov.va.api.health.r4.api.elements.Extension;
 import gov.va.api.health.r4.api.resources.Coverage;
 import gov.va.api.health.r4.api.resources.Organization;
 import gov.va.api.health.r4.api.resources.Patient;
+import gov.va.api.health.vistafhirquery.interactivetests.InteractiveTestContext;
+import gov.va.api.health.vistafhirquery.interactivetests.TestContext;
 import java.util.List;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.condition.EnabledIfSystemProperty;
