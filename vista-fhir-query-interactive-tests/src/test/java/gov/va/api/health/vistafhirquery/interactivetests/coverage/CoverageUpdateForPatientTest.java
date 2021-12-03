@@ -1,4 +1,4 @@
-package gov.va.api.health.vistafhirquery.interactivetests;
+package gov.va.api.health.vistafhirquery.interactivetests.coverage;
 
 import gov.va.api.health.r4.api.datatypes.CodeableConcept;
 import gov.va.api.health.r4.api.datatypes.Coding;
@@ -8,7 +8,8 @@ import gov.va.api.health.r4.api.elements.Extension;
 import gov.va.api.health.r4.api.resources.Coverage;
 import gov.va.api.health.r4.api.resources.Organization;
 import gov.va.api.health.r4.api.resources.Patient;
-import java.util.List;
+import gov.va.api.health.vistafhirquery.interactivetests.InteractiveTestContext;
+import gov.va.api.health.vistafhirquery.interactivetests.TestContext;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.condition.EnabledIfSystemProperty;
 
@@ -22,18 +23,14 @@ public class CoverageUpdateForPatientTest {
         Coverage.builder()
             .id(ctx.property("coverageId"))
             .extension(
-                List.of(
-                    Extension.builder()
-                        .url("http://va.gov/fhir/StructureDefinition/coverage-pharmacyPersonCode")
-                        .valueInteger(2)
-                        .build(),
-                    Extension.builder()
-                        .url(
-                            "http://va.gov/fhir/StructureDefinition/coverage-stopPolicyFromBilling")
-                        .valueBoolean(
-                            Boolean.parseBoolean(ctx.property("coverageStopPolicyFromBilling")))
-                        .build()))
+                Extension.builder()
+                    .url("http://va.gov/fhir/StructureDefinition/coverage-stopPolicyFromBilling")
+                    .valueBoolean(
+                        Boolean.parseBoolean(ctx.property("coverageStopPolicyFromBilling")))
+                    .build()
+                    .asList())
             .status(Coverage.Status.active)
+            .dependent("2")
             .subscriberId("R50797108")
             .beneficiary(
                 ctx.urlsFor(Patient.class)

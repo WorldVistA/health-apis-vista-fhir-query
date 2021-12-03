@@ -10,7 +10,6 @@ import gov.va.api.health.r4.api.resources.Organization;
 import gov.va.api.health.r4.api.resources.Patient;
 import gov.va.api.health.vistafhirquery.interactivetests.InteractiveTestContext;
 import gov.va.api.health.vistafhirquery.interactivetests.TestContext;
-import java.util.List;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.condition.EnabledIfSystemProperty;
 
@@ -23,18 +22,14 @@ public class CoverageCreateForPatientTest {
     ctx.create(
         Coverage.builder()
             .extension(
-                List.of(
-                    Extension.builder()
-                        .url("http://va.gov/fhir/StructureDefinition/coverage-pharmacyPersonCode")
-                        .valueInteger(2)
-                        .build(),
-                    Extension.builder()
-                        .url(
-                            "http://va.gov/fhir/StructureDefinition/coverage-stopPolicyFromBilling")
-                        .valueBoolean(false)
-                        .build()))
+                Extension.builder()
+                    .url("http://va.gov/fhir/StructureDefinition/coverage-stopPolicyFromBilling")
+                    .valueBoolean(false)
+                    .build()
+                    .asList())
             .status(Coverage.Status.active)
             .subscriberId("R50797108")
+            .dependent("2")
             .beneficiary(
                 ctx.urlsFor(Patient.class)
                     .reference(ctx.property("patient"))
