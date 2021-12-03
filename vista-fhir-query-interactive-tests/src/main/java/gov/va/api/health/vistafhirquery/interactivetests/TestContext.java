@@ -13,6 +13,8 @@ public interface TestContext {
 
   void search(Resource resource, Map<String, String> map);
 
+  void update(Resource resource);
+
   <T extends IsResource> ResourceUrls urlsFor(Class<T> resourceType);
 
   default <T extends IsResource> ResourceUrls urlsFor(T resource) {

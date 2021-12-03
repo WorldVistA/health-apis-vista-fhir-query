@@ -46,32 +46,25 @@ public class InteractiveTestContext implements TestContext, TestProperties {
   @SneakyThrows
   public void create(Resource resource) {
     var url = urlsFor(resource).create();
-    var token = InteractiveTokenClient.builder().ctx(this).build().clientCredentialsToken();
     log.info("Requesting {}", url);
-    log.info("Authorization:\nexport T=\"{}\"", token);
-    RequestSpecification requestSpecification = RestAssured.given();
-    var response =
-        requestSpecification
-            .accept("application/json")
-            .headers(Map.of("Authorization", "Bearer " + token))
-            .body(resource)
-            .post(url);
+    var response = requestSpecification().body(resource).post(url);
     saveResultsToDisk(url, response, Optional.of(resource));
   }
 
   @Override
   public void read(Resource resource, String id) {
     var url = urlsFor(resource).read(id);
-    var token = InteractiveTokenClient.builder().ctx(this).build().clientCredentialsToken();
     log.info("Requesting {}", url);
-    log.info("Authorization:\nexport T=\"{}\"", token);
-    RequestSpecification requestSpecification = RestAssured.given();
-    var response =
-        requestSpecification
-            .accept("application/json")
-            .headers(Map.of("Authorization", "Bearer " + token))
-            .get(url);
+    var response = requestSpecification().get(url);
     saveResultsToDisk(url, response, Optional.empty());
+  }
+
+  private RequestSpecification requestSpecification() {
+    var token = InteractiveTokenClient.builder().ctx(this).build().clientCredentialsToken();
+    log.info("Authorization:\nexport T=\"{}\"", token);
+    return RestAssured.given()
+        .accept("application/json")
+        .headers(Map.of("Authorization", "Bearer " + token));
   }
 
   @SneakyThrows
@@ -106,16 +99,18 @@ public class InteractiveTestContext implements TestContext, TestProperties {
   @SneakyThrows
   public void search(Resource resource, Map<String, String> map) {
     var url = urlsFor(resource).search(map);
-    var token = InteractiveTokenClient.builder().ctx(this).build().clientCredentialsToken();
     log.info("Requesting {}", url);
-    log.info("Authorization:\nexport T=\"{}\"", token);
-    RequestSpecification requestSpecification = RestAssured.given();
-    var response =
-        requestSpecification
-            .accept("application/json")
-            .headers(Map.of("Authorization", "Bearer " + token))
-            .get(url);
+    var response = requestSpecification().get(url);
     saveResultsToDisk(url, response, Optional.empty());
+  }
+
+  @Override
+  @SneakyThrows
+  public void update(Resource resource) {
+    var url = urlsFor(resource).update(resource.id());
+    log.info("Requesting {}", url);
+    var response = requestSpecification().body(resource).put(url);
+    saveResultsToDisk(url, response, Optional.of(resource));
   }
 
   @Override
