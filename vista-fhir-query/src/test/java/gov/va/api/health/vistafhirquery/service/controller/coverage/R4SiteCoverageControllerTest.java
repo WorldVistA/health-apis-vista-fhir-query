@@ -16,8 +16,8 @@ import gov.va.api.health.vistafhirquery.service.charonclient.CharonClient;
 import gov.va.api.health.vistafhirquery.service.config.LinkProperties;
 import gov.va.api.health.vistafhirquery.service.controller.PatientTypeCoordinates;
 import gov.va.api.health.vistafhirquery.service.controller.R4BundlerFactory;
+import gov.va.api.health.vistafhirquery.service.controller.RequestPayloadExceptions.MissingRequiredField;
 import gov.va.api.health.vistafhirquery.service.controller.ResourceExceptions;
-import gov.va.api.health.vistafhirquery.service.controller.ResourceExceptions.BadRequestPayload;
 import gov.va.api.health.vistafhirquery.service.controller.ResourceExceptions.CannotUpdateResourceWithMismatchedIds;
 import gov.va.api.health.vistafhirquery.service.controller.witnessprotection.AlternatePatientIds;
 import gov.va.api.health.vistafhirquery.service.controller.witnessprotection.WitnessProtection;
@@ -166,23 +166,6 @@ public class R4SiteCoverageControllerTest {
     assertThat(response.getStatus()).isEqualTo(200);
   }
 
-  @Test
-  void updateThrowsBadRequestPayloadForResourcesThatCannotBeProcessed() {
-    var response = new MockHttpServletResponse();
-    assertThatExceptionOfType(BadRequestPayload.class)
-        .isThrownBy(
-            () ->
-                _controller()
-                    .coverageUpdate(
-                        response,
-                        "123",
-                        "public-c1",
-                        CoverageSamples.R4
-                            .create()
-                            .coverage("123", "ip1", "p1")
-                            .beneficiary(null)));
-  }
-
   @ParameterizedTest
   @NullAndEmptySource
   @ValueSource(strings = {"456"})
@@ -222,6 +205,23 @@ public class R4SiteCoverageControllerTest {
                         "123",
                         "public-c1",
                         CoverageSamples.R4.create().coverage("123", "ip1", "p1")));
+  }
+
+  @Test
+  void updateThrowsForResourcesThatCannotBeProcessed() {
+    var response = new MockHttpServletResponse();
+    assertThatExceptionOfType(MissingRequiredField.class)
+        .isThrownBy(
+            () ->
+                _controller()
+                    .coverageUpdate(
+                        response,
+                        "123",
+                        "public-c1",
+                        CoverageSamples.R4
+                            .create()
+                            .coverage("123", "ip1", "p1")
+                            .beneficiary(null)));
   }
 
   @Test

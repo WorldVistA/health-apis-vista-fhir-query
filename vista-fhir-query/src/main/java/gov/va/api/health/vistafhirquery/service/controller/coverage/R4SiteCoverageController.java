@@ -22,7 +22,7 @@ import gov.va.api.health.vistafhirquery.service.controller.R4Bundler;
 import gov.va.api.health.vistafhirquery.service.controller.R4BundlerFactory;
 import gov.va.api.health.vistafhirquery.service.controller.R4Bundling;
 import gov.va.api.health.vistafhirquery.service.controller.R4Transformation;
-import gov.va.api.health.vistafhirquery.service.controller.ResourceExceptions.BadRequestPayload;
+import gov.va.api.health.vistafhirquery.service.controller.RequestPayloadExceptions.MissingRequiredField;
 import gov.va.api.health.vistafhirquery.service.controller.recordcontext.CreatePatientRecordWriteContext;
 import gov.va.api.health.vistafhirquery.service.controller.recordcontext.PatientRecordWriteContext;
 import gov.va.api.health.vistafhirquery.service.controller.recordcontext.UpdatePatientRecordWriteContext;
@@ -68,7 +68,7 @@ public class R4SiteCoverageController implements R4CoverageApi {
 
   private static String beneficiaryOrDie(Coverage body) {
     return referenceIdFromUri(body.beneficiary())
-        .orElseThrow(() -> BadRequestPayload.because("Beneficiary reference not found."));
+        .orElseThrow(() -> MissingRequiredField.forJsonPath(".beneficiary.reference"));
   }
 
   public static Request coverageByPatientIcn(String patientIcn) {

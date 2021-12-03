@@ -7,10 +7,14 @@ import gov.va.api.health.r4.api.datatypes.CodeableConcept;
 import gov.va.api.health.r4.api.datatypes.Coding;
 import gov.va.api.health.r4.api.datatypes.Identifier;
 import gov.va.api.health.r4.api.datatypes.Period;
-import gov.va.api.health.r4.api.elements.Extension;
 import gov.va.api.health.r4.api.elements.Reference;
 import gov.va.api.health.r4.api.resources.Coverage;
 import gov.va.api.health.r4.api.resources.Coverage.CoverageClass;
+import gov.va.api.health.vistafhirquery.service.controller.RequestPayloadExceptions.InvalidDateRange;
+import gov.va.api.health.vistafhirquery.service.controller.RequestPayloadExceptions.InvalidReferenceId;
+import gov.va.api.health.vistafhirquery.service.controller.RequestPayloadExceptions.MissingRequiredField;
+import gov.va.api.health.vistafhirquery.service.controller.RequestPayloadExceptions.UnexpectedNumberOfValues;
+import gov.va.api.health.vistafhirquery.service.controller.RequestPayloadExceptions.UnexpectedValueForField;
 import gov.va.api.health.vistafhirquery.service.controller.ResourceExceptions.BadRequestPayload;
 import gov.va.api.lighthouse.charon.models.lhslighthouserpcgateway.InsuranceType;
 import gov.va.api.lighthouse.charon.models.lhslighthouserpcgateway.LhsLighthouseRpcGatewayCoverageWrite.WriteableFilemanValue;
@@ -33,19 +37,20 @@ public class R4CoverageToInsuranceTypeFileTransformerTest {
 
   @Test
   void coordinationOfBenefits() {
-    assertBadRequestBodyThrown(() -> _transformer().coordinationOfBenefits(null));
-    assertThatExceptionOfType(IllegalArgumentException.class)
+    assertThatExceptionOfType(MissingRequiredField.class)
+        .isThrownBy(() -> _transformer().coordinationOfBenefits(null));
+    assertThatExceptionOfType(UnexpectedValueForField.class)
         .isThrownBy(() -> _transformer().coordinationOfBenefits(0));
     assertThat(_transformer().coordinationOfBenefits(1).value()).isEqualTo("PRIMARY");
     assertThat(_transformer().coordinationOfBenefits(2).value()).isEqualTo("SECONDARY");
     assertThat(_transformer().coordinationOfBenefits(3).value()).isEqualTo("TERTIARY");
-    assertThatExceptionOfType(IllegalArgumentException.class)
+    assertThatExceptionOfType(UnexpectedValueForField.class)
         .isThrownBy(() -> _transformer().coordinationOfBenefits(4));
   }
 
   @Test
   void empty() {
-    assertThatExceptionOfType(BadRequestPayload.class)
+    assertThatExceptionOfType(UnexpectedValueForField.class)
         .isThrownBy(
             () ->
                 R4CoverageToInsuranceTypeFileTransformer.builder()
@@ -57,82 +62,96 @@ public class R4CoverageToInsuranceTypeFileTransformerTest {
   @Test
   void groupPlan() {
     // Null
-    assertBadRequestBodyThrown(() -> _transformer().groupPlan(null));
+    assertThatExceptionOfType(MissingRequiredField.class)
+        .isThrownBy(() -> _transformer().groupPlan(null));
     // Empty
     var covClass = CoverageClass.builder().build();
-    assertBadRequestBodyThrown(() -> _transformer().groupPlan(List.of(covClass)));
+    assertThatExceptionOfType(UnexpectedNumberOfValues.class)
+        .isThrownBy(() -> _transformer().groupPlan(List.of(covClass)));
     // Not group plan
     covClass.type(
         CodeableConcept.builder()
             .coding(List.of(Coding.builder().code("NOT_GROUP").build()))
             .build());
-    assertBadRequestBodyThrown(() -> _transformer().groupPlan(List.of(covClass)));
+    assertThatExceptionOfType(UnexpectedNumberOfValues.class)
+        .isThrownBy(() -> _transformer().groupPlan(List.of(covClass)));
     // More than one
     covClass.type(
         CodeableConcept.builder().coding(List.of(Coding.builder().code("group").build())).build());
-    assertBadRequestBodyThrown(() -> _transformer().groupPlan(List.of(covClass, covClass)));
+    assertThatExceptionOfType(UnexpectedNumberOfValues.class)
+        .isThrownBy(() -> _transformer().groupPlan(List.of(covClass, covClass)));
   }
 
   @Test
   void insuranceType() {
     // Null
-    assertBadRequestBodyThrown(() -> _transformer().insuranceType(null));
+    assertThatExceptionOfType(MissingRequiredField.class)
+        .isThrownBy(() -> _transformer().insuranceType(null));
     // Not a valid record coordinate id
-    assertBadRequestBodyThrown(
-        () ->
-            _transformer()
-                .insuranceType(
-                    List.of(Reference.builder().reference("Organization/NOPE").build())));
+    assertThatExceptionOfType(InvalidReferenceId.class)
+        .isThrownBy(
+            () ->
+                _transformer()
+                    .insuranceType(
+                        List.of(Reference.builder().reference("Organization/NOPE").build())));
     // More than one
-    assertBadRequestBodyThrown(
-        () ->
-            _transformer()
-                .insuranceType(List.of(Reference.builder().build(), Reference.builder().build())));
+    assertThatExceptionOfType(UnexpectedNumberOfValues.class)
+        .isThrownBy(
+            () ->
+                _transformer()
+                    .insuranceType(
+                        List.of(Reference.builder().build(), Reference.builder().build())));
   }
 
   @Test
   void patientId() {
     // Null
-    assertBadRequestBodyThrown(() -> _transformer().patientId(null));
+    assertThatExceptionOfType(MissingRequiredField.class)
+        .isThrownBy(() -> _transformer().patientId(null));
     // Not MB
-    assertBadRequestBodyThrown(
-        () ->
-            _transformer()
-                .patientId(
-                    Reference.builder()
-                        .identifier(
-                            Identifier.builder()
-                                .type(
-                                    CodeableConcept.builder()
-                                        .coding(List.of(Coding.builder().code("NOT_MB").build()))
-                                        .build())
-                                .build())
-                        .build()));
+    assertThatExceptionOfType(UnexpectedNumberOfValues.class)
+        .isThrownBy(
+            () ->
+                _transformer()
+                    .patientId(
+                        Reference.builder()
+                            .identifier(
+                                Identifier.builder()
+                                    .type(
+                                        CodeableConcept.builder()
+                                            .coding(
+                                                List.of(Coding.builder().code("NOT_MB").build()))
+                                            .build())
+                                    .build())
+                            .build()));
   }
 
   @Test
   void patientRelationshipHipaa() {
     // Null
-    assertBadRequestBodyThrown(() -> _transformer().patientRelationshipHipaa(null));
+    assertThatExceptionOfType(MissingRequiredField.class)
+        .isThrownBy(() -> _transformer().patientRelationshipHipaa(null));
     // Too Many Codes
-    assertBadRequestBodyThrown(
-        () ->
-            _transformer()
-                .patientRelationshipHipaa(
-                    CodeableConcept.builder()
-                        .coding(
-                            List.of(
-                                Coding.builder().code("spouse").build(),
-                                Coding.builder().code("other").build()))
-                        .build()));
+    assertThatExceptionOfType(UnexpectedNumberOfValues.class)
+        .isThrownBy(
+            () ->
+                _transformer()
+                    .patientRelationshipHipaa(
+                        CodeableConcept.builder()
+                            .coding(
+                                List.of(
+                                    Coding.builder().code("spouse").build(),
+                                    Coding.builder().code("other").build()))
+                            .build()));
     // Not a valid code
-    assertBadRequestBodyThrown(
-        () ->
-            _transformer()
-                .patientRelationshipHipaa(
-                    CodeableConcept.builder()
-                        .coding(List.of(Coding.builder().code("NOPE").build()))
-                        .build()));
+    assertThatExceptionOfType(UnexpectedNumberOfValues.class)
+        .isThrownBy(
+            () ->
+                _transformer()
+                    .patientRelationshipHipaa(
+                        CodeableConcept.builder()
+                            .coding(List.of(Coding.builder().code("NOPE").build()))
+                            .build()));
   }
 
   @Test
@@ -171,19 +190,18 @@ public class R4CoverageToInsuranceTypeFileTransformerTest {
             .start(start.toString())
             .end(start.minus(1, ChronoUnit.HOURS).toString())
             .build();
-    assertThatExceptionOfType(BadRequestPayload.class)
+    assertThatExceptionOfType(InvalidDateRange.class)
         .isThrownBy(() -> _transformer().policyStartAndEndDates(period));
   }
 
   @Test
   void requiredFields() {
-    assertBadRequestBodyThrown(() -> _transformer().policyStartAndEndDates(null));
-    assertBadRequestBodyThrown(
-        () -> _transformer().policyStartAndEndDates(Period.builder().build()));
-    assertBadRequestBodyThrown(() -> _transformer().stopPolicyFromBilling(null));
-    assertBadRequestBodyThrown(
-        () -> _transformer().stopPolicyFromBilling(Extension.builder().build()));
-    assertBadRequestBodyThrown(() -> _transformer().subscriberId(null));
+    assertThatExceptionOfType(MissingRequiredField.class)
+        .isThrownBy(() -> _transformer().policyStartAndEndDates(null));
+    assertThatExceptionOfType(MissingRequiredField.class)
+        .isThrownBy(() -> _transformer().policyStartAndEndDates(Period.builder().build()));
+    assertThatExceptionOfType(MissingRequiredField.class)
+        .isThrownBy(() -> _transformer().subscriberId(null));
   }
 
   @Test
