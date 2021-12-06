@@ -1,5 +1,6 @@
 package gov.va.api.health.vistafhirquery.service.controller;
 
+import static gov.va.api.health.vistafhirquery.service.controller.R4Transformers.allBlank;
 import static gov.va.api.health.vistafhirquery.service.controller.R4Transformers.isBlank;
 import static java.lang.String.format;
 
@@ -55,6 +56,17 @@ public class RequestPayloadExceptions {
     }
   }
 
+  public static class MissingConditionalField extends BadRequestPayload {
+    MissingConditionalField(String message) {
+      super(message);
+    }
+
+    public static MissingConditionalField forJsonPath(String jsonPath, String condition) {
+      return new MissingConditionalField(
+          "Conditional field " + jsonPath + " is missing. Condition: " + condition);
+    }
+  }
+
   public static class UnexpectedNumberOfValues extends BadRequestPayload {
     UnexpectedNumberOfValues(String message) {
       super(message);
@@ -85,18 +97,50 @@ public class RequestPayloadExceptions {
 
     @Builder
     private static UnexpectedValueForField unexpectedValueForField(
-        @NonNull String jsonPath, List<?> supportedValues, String valueSet, Object valueReceived) {
-      if (isBlank(supportedValues) && isBlank(valueSet)) {
-        throw new IllegalStateException("One of supportedValues or valueSet should be populated.");
+        @NonNull String jsonPath,
+        List<?> supportedValues,
+        String valueSet,
+        String dataType,
+        Object valueReceived) {
+      if (allBlank(supportedValues, valueSet, dataType)) {
+        throw new IllegalStateException(
+            "One of supportedValues, valueSet, or dataType should be populated.");
       }
       var message = "Unexpected value for field " + jsonPath + ": ";
       if (!isBlank(valueSet)) {
         message +=
             format("Expected value from value-set (%s), but got (%s).", valueSet, valueReceived);
-      } else {
+      }
+      if (!isBlank(supportedValues)) {
         message += format("Expected one of (%s), but got (%s).", supportedValues, valueReceived);
       }
+      if (!isBlank(dataType)) {
+        message +=
+            format(
+                "Expected value to be of data type (%s), but got (%s).", dataType, valueReceived);
+      }
       return new UnexpectedValueForField(message);
+    }
+  }
+
+  public static class ExactlyOneOfFields extends BadRequestPayload {
+    ExactlyOneOfFields(String message) {
+      super(message);
+    }
+
+    @Builder
+    private static ExactlyOneOfFields exactlyOneOfFields(
+        @NonNull List<String> mutexFields, List<String> providedFields) {
+      if (isBlank(mutexFields)) {
+        throw new IllegalStateException("mutexFields should be populated.");
+      }
+      var message = format("Exactly one of (%s) should be provided, ", mutexFields);
+      if (!isBlank(providedFields)) {
+        message += format("but none were provided");
+      } else {
+        message += format("but (%s) were provided.", providedFields);
+      }
+      return new ExactlyOneOfFields(message);
     }
   }
 }

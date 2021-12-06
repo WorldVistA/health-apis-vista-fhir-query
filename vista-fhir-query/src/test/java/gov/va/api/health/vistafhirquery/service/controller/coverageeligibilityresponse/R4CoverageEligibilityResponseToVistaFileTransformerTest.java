@@ -8,7 +8,10 @@ import gov.va.api.health.r4.api.datatypes.Coding;
 import gov.va.api.health.r4.api.datatypes.Identifier;
 import gov.va.api.health.r4.api.datatypes.Money;
 import gov.va.api.health.r4.api.datatypes.Period;
-import gov.va.api.health.vistafhirquery.service.controller.ResourceExceptions.BadRequestPayload;
+import gov.va.api.health.vistafhirquery.service.controller.RequestPayloadExceptions.ExactlyOneOfFields;
+import gov.va.api.health.vistafhirquery.service.controller.RequestPayloadExceptions.MissingRequiredField;
+import gov.va.api.health.vistafhirquery.service.controller.RequestPayloadExceptions.UnexpectedNumberOfValues;
+import gov.va.api.health.vistafhirquery.service.controller.RequestPayloadExceptions.UnexpectedValueForField;
 import java.math.BigDecimal;
 import java.util.Collection;
 import java.util.List;
@@ -28,10 +31,10 @@ public class R4CoverageEligibilityResponseToVistaFileTransformerTest {
   @Test
   void invalidDateTimePeriodThrows() {
     // Period is null
-    assertThatExceptionOfType(BadRequestPayload.class)
+    assertThatExceptionOfType(MissingRequiredField.class)
         .isThrownBy(() -> _transformer().dateTimePeriod(null));
     // Start is not populated
-    assertThatExceptionOfType(BadRequestPayload.class)
+    assertThatExceptionOfType(MissingRequiredField.class)
         .isThrownBy(
             () -> _transformer().dateTimePeriod(Period.builder().end("2021-08-08").build()));
   }
@@ -39,17 +42,17 @@ public class R4CoverageEligibilityResponseToVistaFileTransformerTest {
   @Test
   void invalidIdentifierThrows() {
     // identifier.type is null
-    assertThatExceptionOfType(BadRequestPayload.class)
+    assertThatExceptionOfType(MissingRequiredField.class)
         .isThrownBy(() -> _transformer().identifier(Identifier.builder().build()));
     // identifier.type.text is null
-    assertThatExceptionOfType(BadRequestPayload.class)
+    assertThatExceptionOfType(MissingRequiredField.class)
         .isThrownBy(
             () ->
                 _transformer()
                     .identifier(
                         Identifier.builder().type(CodeableConcept.builder().build()).build()));
     // identifier type is unknown
-    assertThatExceptionOfType(IllegalArgumentException.class)
+    assertThatExceptionOfType(UnexpectedValueForField.class)
         .isThrownBy(
             () ->
                 _transformer()
@@ -62,10 +65,10 @@ public class R4CoverageEligibilityResponseToVistaFileTransformerTest {
   @Test
   void invalidMoneyThrows() {
     // Both null
-    assertThatExceptionOfType(BadRequestPayload.class)
+    assertThatExceptionOfType(ExactlyOneOfFields.class)
         .isThrownBy(() -> _transformer().money(null, null));
     // Both non-null
-    assertThatExceptionOfType(BadRequestPayload.class)
+    assertThatExceptionOfType(ExactlyOneOfFields.class)
         .isThrownBy(
             () ->
                 _transformer()
@@ -77,12 +80,12 @@ public class R4CoverageEligibilityResponseToVistaFileTransformerTest {
   @Test
   void invalidProcedureCodingThrows() {
     // Null checks
-    assertThatExceptionOfType(BadRequestPayload.class)
+    assertThatExceptionOfType(MissingRequiredField.class)
         .isThrownBy(() -> _transformer().procedureCoding(null));
-    assertThatExceptionOfType(BadRequestPayload.class)
+    assertThatExceptionOfType(MissingRequiredField.class)
         .isThrownBy(() -> _transformer().procedureCoding(CodeableConcept.builder().build()));
     // Too many codings
-    assertThatExceptionOfType(BadRequestPayload.class)
+    assertThatExceptionOfType(UnexpectedNumberOfValues.class)
         .isThrownBy(
             () ->
                 _transformer()
@@ -95,10 +98,10 @@ public class R4CoverageEligibilityResponseToVistaFileTransformerTest {
   @Test
   void invalidProcedureModifierThrows() {
     // Null
-    assertThatExceptionOfType(BadRequestPayload.class)
+    assertThatExceptionOfType(MissingRequiredField.class)
         .isThrownBy(() -> _transformer().procedureModifier(null));
     // Too manies
-    assertThatExceptionOfType(BadRequestPayload.class)
+    assertThatExceptionOfType(UnexpectedNumberOfValues.class)
         .isThrownBy(
             () ->
                 _transformer()

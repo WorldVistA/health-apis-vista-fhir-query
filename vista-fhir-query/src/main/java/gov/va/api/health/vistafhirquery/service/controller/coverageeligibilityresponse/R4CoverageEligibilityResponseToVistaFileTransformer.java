@@ -23,7 +23,12 @@ import gov.va.api.health.r4.api.resources.CoverageEligibilityResponse.Item;
 import gov.va.api.health.vistafhirquery.service.controller.FilemanFactoryRegistry;
 import gov.va.api.health.vistafhirquery.service.controller.FilemanIndexRegistry;
 import gov.va.api.health.vistafhirquery.service.controller.RecordCoordinates;
-import gov.va.api.health.vistafhirquery.service.controller.ResourceExceptions.BadRequestPayload;
+import gov.va.api.health.vistafhirquery.service.controller.RequestPayloadExceptions.ExactlyOneOfFields;
+import gov.va.api.health.vistafhirquery.service.controller.RequestPayloadExceptions.InvalidReferenceId;
+import gov.va.api.health.vistafhirquery.service.controller.RequestPayloadExceptions.MissingConditionalField;
+import gov.va.api.health.vistafhirquery.service.controller.RequestPayloadExceptions.MissingRequiredField;
+import gov.va.api.health.vistafhirquery.service.controller.RequestPayloadExceptions.UnexpectedNumberOfValues;
+import gov.va.api.health.vistafhirquery.service.controller.RequestPayloadExceptions.UnexpectedValueForField;
 import gov.va.api.health.vistafhirquery.service.controller.extensionprocessing.CodeableConceptExtensionHandler;
 import gov.va.api.health.vistafhirquery.service.controller.extensionprocessing.ComplexExtensionHandler;
 import gov.va.api.health.vistafhirquery.service.controller.extensionprocessing.DateTimeExtensionHandler;
@@ -130,16 +135,10 @@ public class R4CoverageEligibilityResponseToVistaFileTransformer {
 
   WriteableFilemanValue dateTimePeriod(Period period) {
     if (isBlank(period)) {
-      throw BadRequestPayload.because(
-          IivResponse.FILE_NUMBER,
-          IivResponse.DATE_TIME_PERIOD,
-          ".benefitPeriod is a required field.");
+      throw MissingRequiredField.forJsonPath(".insurance[].benefitPeriod");
     }
     if (isBlank(period.start())) {
-      throw BadRequestPayload.because(
-          IivResponse.FILE_NUMBER,
-          IivResponse.DATE_TIME_PERIOD,
-          ".benefitPeriod requires a start date.");
+      throw MissingRequiredField.forJsonPath(".insurance[].benefitPeriod.start");
     }
     var formatter = DateTimeFormatter.ofPattern("MMddyyyy").withZone(zoneId());
     var vistaDateTimePeriod = formatter.format(parseDateTime(period.start()));
@@ -164,8 +163,8 @@ public class R4CoverageEligibilityResponseToVistaFileTransformer {
                 indexRegistry().get(PlanCoverageLimitations.FILE_NUMBER),
                 description);
     if (!nullOrfalse(excluded) && limitationComment.isEmpty()) {
-      throw new BadRequestPayload(
-          "insurance[0].item[].description is required when insurance[0].item[].excluded is true");
+      throw MissingConditionalField.forJsonPath(
+          "insurance[0].item[].description", "required when insurance[0].item[].excluded is true");
     }
     if (limitationComment.isEmpty()) {
       return Collections.emptyList();
@@ -266,7 +265,7 @@ public class R4CoverageEligibilityResponseToVistaFileTransformer {
 
   WriteableFilemanValue identifier(@NonNull Identifier identifier) {
     if (isBlank(identifier.type()) || isBlank(identifier.type().text())) {
-      throw new BadRequestPayload("Unknown Identifier: " + identifier);
+      throw MissingRequiredField.forJsonPath(".identifier[].type.text");
     }
     switch (identifier.type().text()) {
       case "MSH-10":
@@ -282,14 +281,17 @@ public class R4CoverageEligibilityResponseToVistaFileTransformer {
             .forRequiredIdentifier(
                 IivResponse.TRACE_NUMBER, indexRegistry().get(IivResponse.FILE_NUMBER), identifier);
       default:
-        throw new IllegalArgumentException("Unknown Identifier type: " + identifier.type().text());
+        throw UnexpectedValueForField.builder()
+            .jsonPath(".identifier[].type.text")
+            .supportedValues(List.of("MSH-10", "MSA-3"))
+            .valueReceived(identifier.type().text())
+            .build();
     }
   }
 
   private String ienForPayerFileOrDie(RecordCoordinates coordinates) {
     if (!Payer.FILE_NUMBER.equals(coordinates.file())) {
-      throw BadRequestPayload.because(
-          IivResponse.FILE_NUMBER, IivResponse.PAYER, ".insurer reference was not to a payer.");
+      throw InvalidReferenceId.builder().jsonPath(".insurer").referenceType("Organization").build();
     }
     return coordinates.ien();
   }
@@ -320,8 +322,7 @@ public class R4CoverageEligibilityResponseToVistaFileTransformer {
         .ifPresentOrElse(
             filemanValues::add,
             () -> {
-              throw BadRequestPayload.because(
-                  ".insurance[].coverage is a required field for writing to vista.");
+              throw MissingRequiredField.forJsonPath(".insurance[].coverage");
             });
     return filemanValues.stream();
   }
@@ -691,16 +692,25 @@ public class R4CoverageEligibilityResponseToVistaFileTransformer {
 
   WriteableFilemanValue money(Money allowed, Money used) {
     if (allBlank(allowed, used)) {
-      throw BadRequestPayload.because(
-          EligibilityBenefit.FILE_NUMBER,
-          EligibilityBenefit.MONETARY_AMOUNT,
-          "Expected one of allowedMoney or usedMoney, but got neither.");
+      throw ExactlyOneOfFields.builder()
+          .mutexFields(
+              List.of(
+                  ".insurance[].item[].benefit.allowedMoney",
+                  ".insurance[].item[].benefit.usedMoney"))
+          .providedFields(List.of())
+          .build();
     }
     if (!isBlank(allowed) && !isBlank(used)) {
-      throw BadRequestPayload.because(
-          EligibilityBenefit.FILE_NUMBER,
-          EligibilityBenefit.MONETARY_AMOUNT,
-          "Expected one of allowedMoney or usedMoney, but got both.");
+      throw ExactlyOneOfFields.builder()
+          .mutexFields(
+              List.of(
+                  ".insurance[].item[].benefit.allowedMoney",
+                  ".insurance[].item[].benefit.usedMoney"))
+          .providedFields(
+              List.of(
+                  ".insurance[].item[].benefit.allowedMoney",
+                  ".insurance[].item[].benefit.usedMoney"))
+          .build();
     }
     var money = isBlank(allowed) ? used : allowed;
     return factoryRegistry()
@@ -713,16 +723,14 @@ public class R4CoverageEligibilityResponseToVistaFileTransformer {
 
   List<WriteableFilemanValue> procedureCoding(CodeableConcept productOrService) {
     if (isBlank(productOrService) || isBlank(productOrService.coding())) {
-      throw BadRequestPayload.because(
-          EligibilityBenefit.FILE_NUMBER,
-          EligibilityBenefit.PROCEDURE_CODING_METHOD,
-          "Required productOrService.coding is missing");
+      throw MissingRequiredField.forJsonPath("insurance[].item[].productOrService.coding");
     }
     if (productOrService.coding().size() != 1) {
-      throw BadRequestPayload.because(
-          EligibilityBenefit.FILE_NUMBER,
-          EligibilityBenefit.PROCEDURE_CODING_METHOD,
-          "productOrService expected 1 coding but got " + productOrService.coding().size());
+      throw UnexpectedNumberOfValues.builder()
+          .jsonPath("insurance[].item[].productOrService.coding[]")
+          .expectedCount(1)
+          .receivedCount(productOrService.coding().size())
+          .build();
     }
     Coding productOrServiceCoding = productOrService.coding().get(0);
     return Stream.of(
@@ -743,12 +751,14 @@ public class R4CoverageEligibilityResponseToVistaFileTransformer {
 
   WriteableFilemanValue procedureModifier(List<CodeableConcept> modifier) {
     if (isBlank(modifier)) {
-      throw BadRequestPayload.because(
-          EligibilityBenefit.PROCEDURE_MODIFIER_1, "Required item modifier is missing");
+      throw MissingRequiredField.forJsonPath(".insurance[].item[].modifier[]");
     }
     if (modifier.size() != 1) {
-      throw BadRequestPayload.because(
-          EligibilityBenefit.PROCEDURE_MODIFIER_1, "More than one item modifier provided");
+      throw UnexpectedNumberOfValues.builder()
+          .receivedCount(modifier.size())
+          .expectedCount(1)
+          .jsonPath(".insurance[].item[].modifier[]")
+          .build();
     }
     return factoryRegistry()
         .get(EligibilityBenefit.FILE_NUMBER)
@@ -775,10 +785,10 @@ public class R4CoverageEligibilityResponseToVistaFileTransformer {
                             IivResponse.PAYER, indexRegistry().get(IivResponse.FILE_NUMBER), p))
             .orElseThrow(
                 () ->
-                    BadRequestPayload.because(
-                        IivResponse.FILE_NUMBER,
-                        IivResponse.PAYER,
-                        "The .insurer field was not a valid reference.")));
+                    InvalidReferenceId.builder()
+                        .jsonPath(".insurer")
+                        .referenceType("Organization")
+                        .build()));
     vistaFields.add(
         Optional.ofNullable(coverageEligibilityResponse().servicedDate())
             .map(FhirDateTime::parseDateTime)
@@ -792,13 +802,18 @@ public class R4CoverageEligibilityResponseToVistaFileTransformer {
                         identity()))
             .orElseThrow(
                 () ->
-                    BadRequestPayload.because(
-                        IivResponse.FILE_NUMBER,
-                        IivResponse.SERVICE_DATE,
-                        "The .servicedDate field was not a valid date.")));
+                    UnexpectedValueForField.builder()
+                        .valueReceived(coverageEligibilityResponse().servicedDate())
+                        .dataType("https://www.hl7.org/fhir/datatypes.html#date")
+                        .jsonPath(".servicedDate")
+                        .build()));
     if (coverageEligibilityResponse().insurance() == null
         || coverageEligibilityResponse().insurance().size() != 1) {
-      throw BadRequestPayload.because("Writing to vista requires exactly one .insurance[] field.");
+      throw UnexpectedNumberOfValues.builder()
+          .jsonPath(".insurance[]")
+          .expectedCount(1)
+          .receivedCount(coverageEligibilityResponse().insurance().size())
+          .build();
     }
     coverageEligibilityResponse().insurance().stream()
         .flatMap(this::insurance)
