@@ -1,6 +1,7 @@
 package gov.va.api.health.vistafhirquery.interactivetests;
 
 import static java.nio.charset.StandardCharsets.UTF_8;
+import static org.apache.commons.lang3.StringUtils.isNotBlank;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import gov.va.api.health.autoconfig.configuration.JacksonConfig;
@@ -51,6 +52,14 @@ public class InteractiveTestContext implements TestContext, TestProperties {
     saveResultsToDisk(url, response, Optional.of(resource));
   }
 
+  private void logMetadata(TestMeta metadata) {
+    log.info("URL ...... {}", metadata.requestUrl());
+    log.info("Status ... {}", metadata.httpStatus());
+    if (isNotBlank(metadata.created())) {
+      log.info("Created .. {}", metadata.created());
+    }
+  }
+
   @Override
   public void read(Resource resource, String id) {
     var url = urlsFor(resource).read(id);
@@ -79,16 +88,17 @@ public class InteractiveTestContext implements TestContext, TestProperties {
     writeFile(responseFile, response.prettyPrint());
     ObjectMapper mapper = JacksonConfig.createMapper();
     var responseMetaFile = new File(testResultsDir, "meta.json");
+    TestMeta metadata =
+        TestMeta.builder()
+            .requestUrl(url.toString())
+            .time(Instant.now())
+            .httpStatus(response.getStatusCode())
+            .created(response.getHeader("Location"))
+            .responseHeaders(response.getHeaders().asList())
+            .build();
+    logMetadata(metadata);
     writeFile(
-        responseMetaFile,
-        mapper
-            .writerWithDefaultPrettyPrinter()
-            .writeValueAsString(
-                TestMeta.builder()
-                    .requestUrl(url.toString())
-                    .time(Instant.now())
-                    .httpStatus(response.getStatusCode())
-                    .build()));
+        responseMetaFile, mapper.writerWithDefaultPrettyPrinter().writeValueAsString(metadata));
     if (body.isPresent()) {
       var requestFile = new File(testResultsDir, "request.json");
       writeFile(requestFile, mapper.writerWithDefaultPrettyPrinter().writeValueAsString(body));

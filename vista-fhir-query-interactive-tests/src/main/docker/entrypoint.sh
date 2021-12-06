@@ -42,6 +42,7 @@ main() {
         echo "Failed to execute $choice"
         status=1
       fi
+      break
     done
   done
   return $status
