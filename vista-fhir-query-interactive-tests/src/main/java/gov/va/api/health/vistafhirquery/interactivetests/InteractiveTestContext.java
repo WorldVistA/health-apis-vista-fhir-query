@@ -61,7 +61,7 @@ public class InteractiveTestContext implements TestContext, TestProperties {
   }
 
   @Override
-  public void read(Resource resource, String id) {
+  public <T extends IsResource> void read(Class<T> resource, String id) {
     var url = urlsFor(resource).read(id);
     log.info("Requesting {}", url);
     var response = requestSpecification().get(url);
@@ -106,8 +106,7 @@ public class InteractiveTestContext implements TestContext, TestProperties {
   }
 
   @Override
-  @SneakyThrows
-  public void search(Resource resource, Map<String, String> map) {
+  public <T extends IsResource> void search(Class<T> resource, Map<String, String> map) {
     var url = urlsFor(resource).search(map);
     log.info("Requesting {}", url);
     var response = requestSpecification().get(url);

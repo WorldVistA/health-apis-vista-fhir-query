@@ -9,9 +9,9 @@ public interface TestContext {
 
   String property(String key);
 
-  void read(Resource resource, String id);
+  <T extends IsResource> void read(Class<T> resource, String id);
 
-  void search(Resource resource, Map<String, String> map);
+  <T extends IsResource> void search(Class<T> resource, Map<String, String> map);
 
   void update(Resource resource);
 

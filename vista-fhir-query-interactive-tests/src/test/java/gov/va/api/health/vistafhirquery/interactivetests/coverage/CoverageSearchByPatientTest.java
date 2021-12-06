@@ -15,6 +15,6 @@ public class CoverageSearchByPatientTest {
   @EnabledIfSystemProperty(named = "interactive-tests", matches = "true")
   void get() {
     TestContext ctx = new InteractiveTestContext("CoverageSearchByPatient");
-    ctx.search(Coverage.builder().build(), Map.of("patient", ctx.property("patient")));
+    ctx.search(Coverage.class, Map.of("patient", ctx.property("patient")));
   }
 }
