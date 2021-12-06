@@ -1,5 +1,8 @@
 package gov.va.api.health.vistafhirquery.interactivetests.organization;
 
+import static gov.va.api.health.r4.api.datatypes.ContactPoint.ContactPointSystem.fax;
+import static gov.va.api.health.r4.api.datatypes.ContactPoint.ContactPointSystem.phone;
+
 import gov.va.api.health.r4.api.datatypes.Address;
 import gov.va.api.health.r4.api.datatypes.CodeableConcept;
 import gov.va.api.health.r4.api.datatypes.Coding;
@@ -12,14 +15,10 @@ import gov.va.api.health.r4.api.elements.Reference;
 import gov.va.api.health.r4.api.resources.Organization;
 import gov.va.api.health.vistafhirquery.interactivetests.InteractiveTestContext;
 import gov.va.api.health.vistafhirquery.interactivetests.TestContext;
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.condition.EnabledIfSystemProperty;
-
 import java.math.BigDecimal;
 import java.util.List;
-
-import static gov.va.api.health.r4.api.datatypes.ContactPoint.ContactPointSystem.fax;
-import static gov.va.api.health.r4.api.datatypes.ContactPoint.ContactPointSystem.phone;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.condition.EnabledIfSystemProperty;
 
 public class OrganizationCreateTest {
 
