@@ -10,7 +10,7 @@ import gov.va.api.health.r4.api.datatypes.Period;
 import gov.va.api.health.r4.api.elements.Reference;
 import gov.va.api.health.r4.api.resources.Coverage;
 import gov.va.api.health.r4.api.resources.Coverage.CoverageClass;
-import gov.va.api.health.vistafhirquery.service.controller.RequestPayloadExceptions.InvalidDateRange;
+import gov.va.api.health.vistafhirquery.service.controller.RequestPayloadExceptions.EndDateOccursBeforeStartDate;
 import gov.va.api.health.vistafhirquery.service.controller.RequestPayloadExceptions.InvalidReferenceId;
 import gov.va.api.health.vistafhirquery.service.controller.RequestPayloadExceptions.MissingRequiredField;
 import gov.va.api.health.vistafhirquery.service.controller.RequestPayloadExceptions.UnexpectedNumberOfValues;
@@ -190,7 +190,7 @@ public class R4CoverageToInsuranceTypeFileTransformerTest {
             .start(start.toString())
             .end(start.minus(1, ChronoUnit.HOURS).toString())
             .build();
-    assertThatExceptionOfType(InvalidDateRange.class)
+    assertThatExceptionOfType(EndDateOccursBeforeStartDate.class)
         .isThrownBy(() -> _transformer().policyStartAndEndDates(period));
   }
 

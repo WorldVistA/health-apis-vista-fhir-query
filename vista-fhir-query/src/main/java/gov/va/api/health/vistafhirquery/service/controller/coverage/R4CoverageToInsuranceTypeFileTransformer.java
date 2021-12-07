@@ -17,7 +17,7 @@ import gov.va.api.health.r4.api.resources.Coverage.Status;
 import gov.va.api.health.vistafhirquery.service.controller.FilemanFactoryRegistry;
 import gov.va.api.health.vistafhirquery.service.controller.FilemanIndexRegistry;
 import gov.va.api.health.vistafhirquery.service.controller.PatientTypeCoordinates;
-import gov.va.api.health.vistafhirquery.service.controller.RequestPayloadExceptions.InvalidDateRange;
+import gov.va.api.health.vistafhirquery.service.controller.RequestPayloadExceptions.EndDateOccursBeforeStartDate;
 import gov.va.api.health.vistafhirquery.service.controller.RequestPayloadExceptions.InvalidReferenceId;
 import gov.va.api.health.vistafhirquery.service.controller.RequestPayloadExceptions.MissingRequiredField;
 import gov.va.api.health.vistafhirquery.service.controller.RequestPayloadExceptions.UnexpectedNumberOfValues;
@@ -66,7 +66,7 @@ public class R4CoverageToInsuranceTypeFileTransformer {
   @SuppressWarnings("UnnecessaryParentheses")
   WriteableFilemanValue coordinationOfBenefits(Integer order) {
     if (isBlank(order)) {
-      throw MissingRequiredField.forJsonPath(".order");
+      throw MissingRequiredField.builder().jsonPath(".order").build();
     }
     var priority =
         switch (order) {
@@ -101,7 +101,7 @@ public class R4CoverageToInsuranceTypeFileTransformer {
 
   WriteableFilemanValue groupPlan(List<CoverageClass> coverageTypes) {
     if (isBlank(coverageTypes)) {
-      throw MissingRequiredField.forJsonPath(".class");
+      throw MissingRequiredField.builder().jsonPath(".class").build();
     }
     var filteredCoverageTypes =
         coverageTypes.stream()
@@ -147,7 +147,7 @@ public class R4CoverageToInsuranceTypeFileTransformer {
 
   WriteableFilemanValue insuranceType(List<Reference> payors) {
     if (isBlank(payors)) {
-      throw MissingRequiredField.forJsonPath(".payor");
+      throw MissingRequiredField.builder().jsonPath(".payor").build();
     }
     if (payors.size() != 1) {
       throw UnexpectedNumberOfValues.builder()
@@ -173,7 +173,7 @@ public class R4CoverageToInsuranceTypeFileTransformer {
 
   WriteableFilemanValue patientId(Reference beneficiary) {
     if (isBlank(beneficiary) || isBlank(beneficiary.identifier())) {
-      throw MissingRequiredField.forJsonPath(".beneficiary.identifier");
+      throw MissingRequiredField.builder().jsonPath(".beneficiary.identifier").build();
     }
     var isMemberId =
         Optional.ofNullable(beneficiary.identifier().type()).map(CodeableConcept::coding).stream()
@@ -198,7 +198,7 @@ public class R4CoverageToInsuranceTypeFileTransformer {
 
   WriteableFilemanValue patientRelationshipHipaa(CodeableConcept relationship) {
     if (isBlank(relationship) || isBlank(relationship.coding())) {
-      throw MissingRequiredField.forJsonPath(".relationship.coding[]");
+      throw MissingRequiredField.builder().jsonPath(".relationship.coding[]").build();
     }
     var relationships =
         relationship.coding().stream()
@@ -235,7 +235,7 @@ public class R4CoverageToInsuranceTypeFileTransformer {
 
   List<WriteableFilemanValue> policyStartAndEndDates(Period period) {
     if (isBlank(period) || isBlank(period.start())) {
-      throw MissingRequiredField.forJsonPath(".period.start");
+      throw MissingRequiredField.builder().jsonPath(".period.start").build();
     }
     List<WriteableFilemanValue> dates = new ArrayList<>(2);
     var start = Instant.parse(period.start());
@@ -252,10 +252,7 @@ public class R4CoverageToInsuranceTypeFileTransformer {
     }
     var end = Instant.parse(period.end());
     if (!end.isAfter(start)) {
-      throw InvalidDateRange.builder()
-          .jsonPath(".period")
-          .message(".end date occurs before .start")
-          .build();
+      throw EndDateOccursBeforeStartDate.builder().jsonPath(".period").build();
     }
     /* When expiration date (conditionally required) is present,
      * any failure to process it should result in failure. */
@@ -272,7 +269,7 @@ public class R4CoverageToInsuranceTypeFileTransformer {
 
   WriteableFilemanValue subscriberId(String subscriberId) {
     if (isBlank(subscriberId)) {
-      throw MissingRequiredField.forJsonPath(".subscriberId");
+      throw MissingRequiredField.builder().jsonPath(".subscriberId").build();
     }
     return factoryRegistry()
         .get(InsuranceType.FILE_NUMBER)

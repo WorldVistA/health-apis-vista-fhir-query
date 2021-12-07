@@ -68,7 +68,8 @@ public class R4SiteCoverageController implements R4CoverageApi {
 
   private static String beneficiaryOrDie(Coverage body) {
     return referenceIdFromUri(body.beneficiary())
-        .orElseThrow(() -> MissingRequiredField.forJsonPath(".beneficiary.reference"));
+        .orElseThrow(
+            () -> MissingRequiredField.builder().jsonPath(".beneficiary.reference").build());
   }
 
   public static Request coverageByPatientIcn(String patientIcn) {

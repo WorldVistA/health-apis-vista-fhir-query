@@ -24,8 +24,8 @@ import gov.va.api.health.vistafhirquery.service.controller.FilemanFactoryRegistr
 import gov.va.api.health.vistafhirquery.service.controller.FilemanIndexRegistry;
 import gov.va.api.health.vistafhirquery.service.controller.RecordCoordinates;
 import gov.va.api.health.vistafhirquery.service.controller.RequestPayloadExceptions.ExactlyOneOfFields;
+import gov.va.api.health.vistafhirquery.service.controller.RequestPayloadExceptions.InvalidConditionalField;
 import gov.va.api.health.vistafhirquery.service.controller.RequestPayloadExceptions.InvalidReferenceId;
-import gov.va.api.health.vistafhirquery.service.controller.RequestPayloadExceptions.MissingConditionalField;
 import gov.va.api.health.vistafhirquery.service.controller.RequestPayloadExceptions.MissingRequiredField;
 import gov.va.api.health.vistafhirquery.service.controller.RequestPayloadExceptions.UnexpectedNumberOfValues;
 import gov.va.api.health.vistafhirquery.service.controller.RequestPayloadExceptions.UnexpectedValueForField;
@@ -135,10 +135,10 @@ public class R4CoverageEligibilityResponseToVistaFileTransformer {
 
   WriteableFilemanValue dateTimePeriod(Period period) {
     if (isBlank(period)) {
-      throw MissingRequiredField.forJsonPath(".insurance[].benefitPeriod");
+      throw MissingRequiredField.builder().jsonPath(".insurance[].benefitPeriod").build();
     }
     if (isBlank(period.start())) {
-      throw MissingRequiredField.forJsonPath(".insurance[].benefitPeriod.start");
+      throw MissingRequiredField.builder().jsonPath(".insurance[].benefitPeriod.start").build();
     }
     var formatter = DateTimeFormatter.ofPattern("MMddyyyy").withZone(zoneId());
     var vistaDateTimePeriod = formatter.format(parseDateTime(period.start()));
@@ -163,8 +163,10 @@ public class R4CoverageEligibilityResponseToVistaFileTransformer {
                 indexRegistry().get(PlanCoverageLimitations.FILE_NUMBER),
                 description);
     if (!nullOrfalse(excluded) && limitationComment.isEmpty()) {
-      throw MissingConditionalField.forJsonPath(
-          "insurance[0].item[].description", "required when insurance[0].item[].excluded is true");
+      throw InvalidConditionalField.builder()
+          .jsonPath("insurance[0].item[].description")
+          .condition("Must be populated when insurance[0].item[].excluded is true.")
+          .build();
     }
     if (limitationComment.isEmpty()) {
       return Collections.emptyList();
@@ -265,7 +267,7 @@ public class R4CoverageEligibilityResponseToVistaFileTransformer {
 
   WriteableFilemanValue identifier(@NonNull Identifier identifier) {
     if (isBlank(identifier.type()) || isBlank(identifier.type().text())) {
-      throw MissingRequiredField.forJsonPath(".identifier[].type.text");
+      throw MissingRequiredField.builder().jsonPath(".identifier[].type.text").build();
     }
     switch (identifier.type().text()) {
       case "MSH-10":
@@ -322,7 +324,7 @@ public class R4CoverageEligibilityResponseToVistaFileTransformer {
         .ifPresentOrElse(
             filemanValues::add,
             () -> {
-              throw MissingRequiredField.forJsonPath(".insurance[].coverage");
+              throw MissingRequiredField.builder().jsonPath(".insurance[].coverage").build();
             });
     return filemanValues.stream();
   }
@@ -693,23 +695,16 @@ public class R4CoverageEligibilityResponseToVistaFileTransformer {
   WriteableFilemanValue money(Money allowed, Money used) {
     if (allBlank(allowed, used)) {
       throw ExactlyOneOfFields.builder()
-          .mutexFields(
-              List.of(
-                  ".insurance[].item[].benefit.allowedMoney",
-                  ".insurance[].item[].benefit.usedMoney"))
+          .jsonPath(".insurance[].item[].benefit")
+          .exactlyOneOfFields(List.of(".allowedMoney", ".usedMoney"))
           .providedFields(List.of())
           .build();
     }
     if (!isBlank(allowed) && !isBlank(used)) {
       throw ExactlyOneOfFields.builder()
-          .mutexFields(
-              List.of(
-                  ".insurance[].item[].benefit.allowedMoney",
-                  ".insurance[].item[].benefit.usedMoney"))
-          .providedFields(
-              List.of(
-                  ".insurance[].item[].benefit.allowedMoney",
-                  ".insurance[].item[].benefit.usedMoney"))
+          .jsonPath(".insurance[].item[].benefit")
+          .exactlyOneOfFields(List.of(".allowedMoney", ".usedMoney"))
+          .providedFields(List.of(".allowedMoney", ".usedMoney"))
           .build();
     }
     var money = isBlank(allowed) ? used : allowed;
@@ -723,7 +718,9 @@ public class R4CoverageEligibilityResponseToVistaFileTransformer {
 
   List<WriteableFilemanValue> procedureCoding(CodeableConcept productOrService) {
     if (isBlank(productOrService) || isBlank(productOrService.coding())) {
-      throw MissingRequiredField.forJsonPath("insurance[].item[].productOrService.coding");
+      throw MissingRequiredField.builder()
+          .jsonPath("insurance[].item[].productOrService.coding")
+          .build();
     }
     if (productOrService.coding().size() != 1) {
       throw UnexpectedNumberOfValues.builder()
@@ -751,7 +748,7 @@ public class R4CoverageEligibilityResponseToVistaFileTransformer {
 
   WriteableFilemanValue procedureModifier(List<CodeableConcept> modifier) {
     if (isBlank(modifier)) {
-      throw MissingRequiredField.forJsonPath(".insurance[].item[].modifier[]");
+      throw MissingRequiredField.builder().jsonPath(".insurance[].item[].modifier[]").build();
     }
     if (modifier.size() != 1) {
       throw UnexpectedNumberOfValues.builder()
