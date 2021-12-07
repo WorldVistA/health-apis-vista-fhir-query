@@ -11,7 +11,6 @@ import gov.va.api.health.r4.api.datatypes.ContactPoint;
 import gov.va.api.health.r4.api.datatypes.Identifier;
 import gov.va.api.health.r4.api.datatypes.Quantity;
 import gov.va.api.health.r4.api.elements.Extension;
-import gov.va.api.health.r4.api.elements.Meta;
 import gov.va.api.health.r4.api.elements.Reference;
 import gov.va.api.health.r4.api.resources.Organization;
 import gov.va.api.health.vistafhirquery.interactivetests.InteractiveTestContext;
