@@ -21,14 +21,15 @@ import java.util.List;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.condition.EnabledIfSystemProperty;
 
-public class OrganizationCreateTest {
+public class OrganizationUpdateTest {
 
   @Test
   @EnabledIfSystemProperty(named = "interactive-tests", matches = "true")
-  void organizationCreate() {
-    TestContext ctx = new InteractiveTestContext("OrganizationCreate");
-    ctx.create(
+  void organizationUpdate() {
+    TestContext ctx = new InteractiveTestContext("OrganizationUpdate");
+    ctx.update(
         Organization.builder()
+            .id(ctx.property("organizationId"))
             .extension(
                 List.of(
                     Extension.builder()
