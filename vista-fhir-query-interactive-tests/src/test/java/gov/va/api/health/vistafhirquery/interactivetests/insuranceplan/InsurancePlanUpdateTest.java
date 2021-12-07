@@ -1,5 +1,9 @@
 package gov.va.api.health.vistafhirquery.interactivetests.insuranceplan;
 
+import static java.lang.Boolean.parseBoolean;
+import static java.lang.Double.parseDouble;
+import static java.math.BigDecimal.valueOf;
+
 import gov.va.api.health.r4.api.datatypes.CodeableConcept;
 import gov.va.api.health.r4.api.datatypes.Coding;
 import gov.va.api.health.r4.api.datatypes.Identifier;
@@ -9,7 +13,6 @@ import gov.va.api.health.r4.api.elements.Reference;
 import gov.va.api.health.r4.api.resources.InsurancePlan;
 import gov.va.api.health.vistafhirquery.interactivetests.InteractiveTestContext;
 import gov.va.api.health.vistafhirquery.interactivetests.TestContext;
-import java.math.BigDecimal;
 import java.util.List;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.condition.EnabledIfSystemProperty;
@@ -29,36 +32,35 @@ public class InsurancePlanUpdateTest {
                     Extension.builder()
                         .url(
                             "http://va.gov/fhir/StructureDefinition/insuranceplan-isUtilizationReviewRequired")
-                        .valueBoolean(true)
+                        .valueBoolean(parseBoolean(ctx.property("isUtilizationReviewRequired")))
                         .build(),
                     Extension.builder()
                         .url(
                             "http://va.gov/fhir/StructureDefinition/insuranceplan-isPreCertificationRequired")
-                        .valueBoolean(true)
+                        .valueBoolean(parseBoolean(ctx.property("isPreCertificationRequired")))
                         .build(),
                     Extension.builder()
                         .url(
                             "http://va.gov/fhir/StructureDefinition/insuranceplan-excludePreexistingConditions")
-                        .valueBoolean(false)
+                        .valueBoolean(parseBoolean(ctx.property("excludePreexistingConditions")))
                         .build(),
                     Extension.builder()
                         .url(
                             "http://va.gov/fhir/StructureDefinition/insuranceplan-areBenefitsAssignable")
-                        .valueBoolean(true)
+                        .valueBoolean(parseBoolean(ctx.property("areBenefitsAssignable")))
                         .build(),
                     Extension.builder()
                         .url(
                             "http://va.gov/fhir/StructureDefinition/insuranceplan-isCertificationRequiredForAmbulatoryCare")
-                        .valueBoolean(true)
+                        .valueBoolean(
+                            parseBoolean(ctx.property("isCertificationRequiredForAmbulatoryCare")))
                         .build(),
                     Extension.builder()
                         .url(
                             "http://va.gov/fhir/StructureDefinition/insuranceplan-planStandardFilingTimeFrame")
                         .valueQuantity(
                             Quantity.builder()
-                                .value(
-                                    BigDecimal.valueOf(
-                                        Double.parseDouble(ctx.property("quantityValue"))))
+                                .value(valueOf(parseDouble(ctx.property("quantityValue"))))
                                 .unit(ctx.property("quantityUnit"))
                                 .system("urn:oid:2.16.840.1.113883.3.8901.3.1.3558013")
                                 .build())
@@ -67,19 +69,19 @@ public class InsurancePlanUpdateTest {
                 List.of(
                     Identifier.builder()
                         .system("urn:oid:2.16.840.1.113883.3.8901.3.1.355803.28002")
-                        .value(ctx.property("identifier"))
+                        .value(ctx.property("groupNumber"))
                         .build(),
                     Identifier.builder()
                         .system("urn:oid:2.16.840.1.113883.3.8901.3.1.355803.68001")
-                        .value("VA96554")
+                        .value(ctx.property("planId"))
                         .build(),
                     Identifier.builder()
                         .system("urn:oid:2.16.840.1.113883.3.8901.3.1.355803.68002")
-                        .value("88888888")
+                        .value(ctx.property("bankingIdentificationNumber"))
                         .build(),
                     Identifier.builder()
                         .system("urn:oid:2.16.840.1.113883.3.8901.3.1.355803.68003")
-                        .value("121212121212")
+                        .value(ctx.property("processorControlNumber"))
                         .build()))
             .type(
                 CodeableConcept.builder()
