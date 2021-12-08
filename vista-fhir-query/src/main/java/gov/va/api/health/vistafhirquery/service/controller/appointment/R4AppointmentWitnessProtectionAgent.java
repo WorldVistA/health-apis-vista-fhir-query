@@ -1,5 +1,6 @@
 package gov.va.api.health.vistafhirquery.service.controller.appointment;
 
+import gov.va.api.health.fhir.api.Safe;
 import gov.va.api.health.r4.api.resources.Appointment;
 import gov.va.api.health.vistafhirquery.service.controller.witnessprotection.ProtectedReference;
 import gov.va.api.health.vistafhirquery.service.controller.witnessprotection.ProtectedReferenceFactory;
@@ -18,6 +19,9 @@ public class R4AppointmentWitnessProtectionAgent implements WitnessProtectionAge
 
   @Override
   public Stream<ProtectedReference> referencesOf(Appointment resource) {
-    return Stream.of(protectedReferenceFactory.forResource(resource, resource::id));
+    return Stream.concat(
+        Stream.of(protectedReferenceFactory.forResource(resource, resource::id)),
+        Safe.stream(resource.participant())
+            .map(p -> protectedReferenceFactory.forReferenceWithoutSite(p.actor()).orElse(null)));
   }
 }
