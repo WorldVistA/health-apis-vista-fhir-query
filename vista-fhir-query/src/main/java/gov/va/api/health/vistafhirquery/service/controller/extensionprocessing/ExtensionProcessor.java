@@ -1,4 +1,4 @@
-package gov.va.api.health.vistafhirquery.service.controller;
+package gov.va.api.health.vistafhirquery.service.controller.extensionprocessing;
 
 import static gov.va.api.lighthouse.charon.models.lhslighthouserpcgateway.LhsLighthouseRpcGatewayCoverageWrite.WriteableFilemanValue;
 

@@ -98,6 +98,7 @@ public class R4CoverageEligibilityResponseToVistaFileTransformer {
 
   private R4ExtensionProcessor benefitExtensionProcessor() {
     return R4ExtensionProcessor.of(
+        ".insurance[].item[].benefit[].extension[]",
         QuantityExtensionHandler.forDefiningUrl(
                 CoverageEligibilityResponseStructureDefinitions.BENEFIT_QUANTITY)
             .required(REQUIRED)
@@ -183,6 +184,7 @@ public class R4CoverageEligibilityResponseToVistaFileTransformer {
 
   private R4ExtensionProcessor extensionProcessor() {
     return R4ExtensionProcessor.of(
+        ".extension[]",
         CodeableConceptExtensionHandler.forDefiningUrl(
                 CoverageEligibilityResponseStructureDefinitions
                     .MILITARY_INFO_STATUS_CODE_DEFINITION)
@@ -232,6 +234,7 @@ public class R4CoverageEligibilityResponseToVistaFileTransformer {
             .build(),
         ComplexExtensionHandler.forDefiningUrl(
                 CoverageEligibilityResponseStructureDefinitions.HEALTH_CARE_CODE_DEFINITION)
+            .jsonPath(".extension[]")
             .required(REQUIRED)
             .childExtensions(
                 List.of(
@@ -331,6 +334,7 @@ public class R4CoverageEligibilityResponseToVistaFileTransformer {
 
   private R4ExtensionProcessor insuranceExtensionProcessor() {
     return R4ExtensionProcessor.of(
+        ".insurance[].extension[]",
         DateTimeExtensionHandler.forDefiningUrl(
                 CoverageEligibilityResponseStructureDefinitions.EFFECTIVE_DATE)
             .required(REQUIRED)
@@ -470,6 +474,7 @@ public class R4CoverageEligibilityResponseToVistaFileTransformer {
 
   private R4ExtensionProcessor itemExtensionProcessor() {
     return R4ExtensionProcessor.of(
+        ".insurance[].item[].extension[]",
         CodeableConceptExtensionHandler.forDefiningUrl(
                 CoverageEligibilityResponseStructureDefinitions.REQUESTED_SERVICE_TYPE)
             .required(REQUIRED)
@@ -481,6 +486,7 @@ public class R4CoverageEligibilityResponseToVistaFileTransformer {
             .build(),
         ComplexExtensionHandler.forDefiningUrl(
                 CoverageEligibilityResponseStructureDefinitions.SUBSCRIBER_DATE)
+            .jsonPath(".insurance[].item[].extension[]")
             .required(REQUIRED)
             .childExtensions(
                 List.of(
@@ -507,6 +513,7 @@ public class R4CoverageEligibilityResponseToVistaFileTransformer {
             .build(),
         ComplexExtensionHandler.forDefiningUrl(
                 CoverageEligibilityResponseStructureDefinitions.SUBSCRIBER_REFERENCE_ID_DEFINITION)
+            .jsonPath(".insurance[].item[].extension[]")
             .required(REQUIRED)
             .childExtensions(
                 List.of(
@@ -541,6 +548,7 @@ public class R4CoverageEligibilityResponseToVistaFileTransformer {
         ComplexExtensionHandler.forDefiningUrl(
                 CoverageEligibilityResponseStructureDefinitions
                     .SUBSCRIBER_ADDITIONAL_INFO_DEFINITION)
+            .jsonPath(".insurance[].item[].extension[]")
             .required(REQUIRED)
             .childExtensions(
                 List.of(
@@ -607,6 +615,7 @@ public class R4CoverageEligibilityResponseToVistaFileTransformer {
             .build(),
         ComplexExtensionHandler.forDefiningUrl(
                 CoverageEligibilityResponseStructureDefinitions.HEALTHCARE_SERVICES_DELIVERY)
+            .jsonPath(".insurance[].item[].extension[]")
             .required(REQUIRED)
             .childExtensions(
                 List.of(

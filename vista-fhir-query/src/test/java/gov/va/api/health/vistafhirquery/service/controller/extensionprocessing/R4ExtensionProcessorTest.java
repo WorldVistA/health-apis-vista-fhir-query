@@ -7,7 +7,10 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 
 import gov.va.api.health.r4.api.elements.Extension;
-import gov.va.api.health.vistafhirquery.service.controller.ResourceExceptions;
+import gov.va.api.health.vistafhirquery.service.controller.RequestPayloadExceptions.DuplicateExtension;
+import gov.va.api.health.vistafhirquery.service.controller.RequestPayloadExceptions.MissingDefinitionUrl;
+import gov.va.api.health.vistafhirquery.service.controller.RequestPayloadExceptions.MissingRequiredExtension;
+import gov.va.api.health.vistafhirquery.service.controller.RequestPayloadExceptions.UnknownExtension;
 import gov.va.api.health.vistafhirquery.service.controller.WriteableFilemanValueFactory;
 import java.util.ArrayList;
 import java.util.List;
@@ -57,36 +60,37 @@ public class R4ExtensionProcessorTest {
   }
 
   @Test
-  void processThrowsBadPayloadWhenDuplicateExtensionIsFound() {
+  void processThrowsWhenDuplicateExtensionIsFound() {
     var extensions = extensions();
     extensions.add(Extension.builder().url("SUSHI").valueCode("JAPANESE").build());
-    assertThatExceptionOfType(ResourceExceptions.BadRequestPayload.class)
+    assertThatExceptionOfType(DuplicateExtension.class)
         .isThrownBy(() -> processor().process(extensions));
   }
 
   @Test
-  void processThrowsBadPayloadWhenExtensionHasBadDefiningUrl() {
-    assertThatExceptionOfType(ResourceExceptions.BadRequestPayload.class)
+  void processThrowsWhenExtensionHasBadDefiningUrl() {
+    assertThatExceptionOfType(MissingDefinitionUrl.class)
         .isThrownBy(() -> processor().process(Extension.builder().build().asList()));
   }
 
   @Test
-  void processThrowsBadPayloadWhenMissingRequiredExtension() {
+  void processThrowsWhenMissingRequiredExtension() {
     var extensions = extensions();
     extensions.remove(0);
-    assertThatExceptionOfType(ResourceExceptions.BadRequestPayload.class)
+    assertThatExceptionOfType(MissingRequiredExtension.class)
         .isThrownBy(() -> processor().process(extensions));
   }
 
   @Test
-  void processThrowsBadPayloadWhenNoMatchingHandlerIsFound() {
-    assertThatExceptionOfType(ResourceExceptions.BadRequestPayload.class)
+  void processThrowsWhenNoMatchingHandlerIsFound() {
+    assertThatExceptionOfType(UnknownExtension.class)
         .isThrownBy(() -> processor().process(Extension.builder().url("DOENER").build().asList()));
   }
 
   private R4ExtensionProcessor processor() {
     WriteableFilemanValueFactory filemanFactory = WriteableFilemanValueFactory.forFile("FOODS");
     return R4ExtensionProcessor.of(
+        ".fooPath",
         FoobarExtensionHandler.builder()
             .filemanFactory(filemanFactory)
             .definingUrl("HUNGRY")

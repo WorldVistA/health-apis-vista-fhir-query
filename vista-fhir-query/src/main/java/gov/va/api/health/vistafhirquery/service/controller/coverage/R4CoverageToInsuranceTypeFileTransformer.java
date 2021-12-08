@@ -89,6 +89,7 @@ public class R4CoverageToInsuranceTypeFileTransformer {
 
   private R4ExtensionProcessor extensionProcessor() {
     return R4ExtensionProcessor.of(
+        ".extension[]",
         BooleanExtensionHandler.forDefiningUrl(
                 CoverageStructureDefinitions.STOP_POLICY_FROM_BILLING)
             .required(Required.REQUIRED)

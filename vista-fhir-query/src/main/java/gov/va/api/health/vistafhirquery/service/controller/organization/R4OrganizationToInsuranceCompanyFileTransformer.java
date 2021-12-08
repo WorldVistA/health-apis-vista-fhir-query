@@ -18,13 +18,13 @@ import gov.va.api.health.r4.api.elements.Extension;
 import gov.va.api.health.r4.api.elements.Reference;
 import gov.va.api.health.r4.api.resources.Organization;
 import gov.va.api.health.r4.api.resources.Organization.Contact;
-import gov.va.api.health.vistafhirquery.service.controller.ExtensionProcessor;
 import gov.va.api.health.vistafhirquery.service.controller.RecordCoordinates;
 import gov.va.api.health.vistafhirquery.service.controller.ResourceExceptions.BadRequestPayload;
 import gov.va.api.health.vistafhirquery.service.controller.WriteableFilemanValueFactory;
 import gov.va.api.health.vistafhirquery.service.controller.extensionprocessing.BooleanExtensionHandler;
 import gov.va.api.health.vistafhirquery.service.controller.extensionprocessing.CodeableConceptExtensionHandler;
 import gov.va.api.health.vistafhirquery.service.controller.extensionprocessing.ExtensionHandler;
+import gov.va.api.health.vistafhirquery.service.controller.extensionprocessing.ExtensionProcessor;
 import gov.va.api.health.vistafhirquery.service.controller.extensionprocessing.QuantityExtensionHandler;
 import gov.va.api.health.vistafhirquery.service.controller.extensionprocessing.R4ExtensionProcessor;
 import gov.va.api.health.vistafhirquery.service.controller.extensionprocessing.ReferenceExtensionHandler;
@@ -57,7 +57,8 @@ public class R4OrganizationToInsuranceCompanyFileTransformer {
 
   @NonNull Organization organization;
 
-  ExtensionProcessor extensionProcessor = R4ExtensionProcessor.of(extensionHandlers());
+  ExtensionProcessor extensionProcessor =
+      R4ExtensionProcessor.of(".extension", extensionHandlers());
 
   boolean include277EdiNumber;
 

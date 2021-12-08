@@ -1,6 +1,5 @@
 package gov.va.api.health.vistafhirquery.service.controller.extensionprocessing;
 
-import static gov.va.api.health.vistafhirquery.service.controller.ResourceExceptions.BadRequestPayload.BadExtension;
 import static gov.va.api.health.vistafhirquery.service.controller.extensionprocessing.ExtensionHandler.Required.REQUIRED;
 import static gov.va.api.lighthouse.charon.models.lhslighthouserpcgateway.LhsLighthouseRpcGatewayCoverageWrite.WriteableFilemanValue;
 import static java.util.function.Function.identity;
@@ -10,7 +9,10 @@ import static org.apache.commons.lang3.StringUtils.isBlank;
 
 import gov.va.api.health.fhir.api.Safe;
 import gov.va.api.health.r4.api.elements.Extension;
-import gov.va.api.health.vistafhirquery.service.controller.ExtensionProcessor;
+import gov.va.api.health.vistafhirquery.service.controller.RequestPayloadExceptions.DuplicateExtension;
+import gov.va.api.health.vistafhirquery.service.controller.RequestPayloadExceptions.MissingDefinitionUrl;
+import gov.va.api.health.vistafhirquery.service.controller.RequestPayloadExceptions.MissingRequiredExtension;
+import gov.va.api.health.vistafhirquery.service.controller.RequestPayloadExceptions.UnknownExtension;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
@@ -22,6 +24,8 @@ import lombok.NonNull;
 
 @AllArgsConstructor
 public class R4ExtensionProcessor implements ExtensionProcessor {
+  private final String jsonPath;
+
   private final Map<String, ExtensionHandler> handlers;
 
   private final Set<ExtensionHandler> requiredHandlers;
@@ -29,24 +33,26 @@ public class R4ExtensionProcessor implements ExtensionProcessor {
   private final Set<ExtensionHandler> usedHandlers;
 
   /** Get an extension processor that will use the given handlers. */
-  public static R4ExtensionProcessor of(@NonNull ExtensionHandler... handlers) {
-    return of(Arrays.asList(handlers));
+  public static R4ExtensionProcessor of(String jsonPath, @NonNull ExtensionHandler... handlers) {
+    return of(jsonPath, Arrays.asList(handlers));
   }
 
   /** Get an extension processor that will use the given list of handlers. */
-  public static R4ExtensionProcessor of(@NonNull List<ExtensionHandler> handlers) {
+  public static R4ExtensionProcessor of(String jsonPath, @NonNull List<ExtensionHandler> handlers) {
     Map<String, ExtensionHandler> handlerMap =
         handlers.stream().collect(toMap(ExtensionHandler::definingUrl, identity()));
     Set<ExtensionHandler> requiredHandlers =
         handlerMap.values().stream().filter(e -> REQUIRED.equals(e.required())).collect(toSet());
-    return new R4ExtensionProcessor(handlerMap, requiredHandlers, new HashSet<>());
+    return new R4ExtensionProcessor(jsonPath, handlerMap, requiredHandlers, new HashSet<>());
   }
 
   private void allRequiredExtensionsPresentOrDie() {
     if (!requiredHandlers.isEmpty()) {
-      throw BadExtension.because(
-          "Missing required extensions: "
-              + requiredHandlers.stream().map(ExtensionHandler::definingUrl).toList());
+      var firstHandler = requiredHandlers.stream().findFirst().get();
+      throw MissingRequiredExtension.builder()
+          .jsonPath(jsonPath)
+          .definingUrl(firstHandler.definingUrl())
+          .build();
     }
   }
 
@@ -54,7 +60,7 @@ public class R4ExtensionProcessor implements ExtensionProcessor {
     hasDefiningUrlOrDie(ex);
     var matchingHandler = handlers.get(ex.url());
     if (matchingHandler == null) {
-      throw BadExtension.because("Unknown extension found: " + ex.url());
+      throw UnknownExtension.builder().jsonPath(jsonPath).definingUrl(ex.url()).build();
     }
     if (REQUIRED.equals(matchingHandler.required())) {
       requiredHandlers.remove(matchingHandler);
@@ -64,7 +70,7 @@ public class R4ExtensionProcessor implements ExtensionProcessor {
 
   private void hasDefiningUrlOrDie(Extension ex) {
     if (isBlank(ex.url())) {
-      throw BadExtension.because("Extensions must contain a defining URL.");
+      throw MissingDefinitionUrl.builder().jsonPath(jsonPath).build();
     }
   }
 
@@ -82,7 +88,10 @@ public class R4ExtensionProcessor implements ExtensionProcessor {
 
   private void uniqueExtensionOrDie(ExtensionHandler matchingHandler) {
     if (!usedHandlers.add(matchingHandler)) {
-      throw BadExtension.because(matchingHandler.definingUrl(), "Extensions must be unique.");
+      throw DuplicateExtension.builder()
+          .jsonPath(jsonPath)
+          .definingUrl(matchingHandler.definingUrl())
+          .build();
     }
   }
 }

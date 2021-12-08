@@ -25,6 +25,13 @@ public class RequestPayloadExceptions {
     }
   }
 
+  public static class DuplicateExtension extends InvalidExtension {
+    @Builder
+    DuplicateExtension(String jsonPath, String definingUrl) {
+      super(jsonPath, definingUrl, "Defined extension is duplicated.");
+    }
+  }
+
   public static class EndDateOccursBeforeStartDate extends InvalidField {
     @Builder
     EndDateOccursBeforeStartDate(String jsonPath) {
@@ -34,7 +41,7 @@ public class RequestPayloadExceptions {
 
   @EqualsAndHashCode(callSuper = true)
   public static class InvalidConditionalField extends InvalidField {
-    @Getter private final String condition;
+    @NonNull @Getter private final String condition;
 
     @Builder
     InvalidConditionalField(String jsonPath, @NonNull String condition) {
@@ -45,6 +52,21 @@ public class RequestPayloadExceptions {
     @Override
     public String getMessage() {
       return super.getMessage() + ", Condition: " + condition();
+    }
+  }
+
+  @EqualsAndHashCode(callSuper = true)
+  public static class InvalidExtension extends InvalidField {
+    @NonNull @Getter private final String definingUrl;
+
+    InvalidExtension(String jsonPath, String definingUrl, String problem) {
+      super(jsonPath, problem);
+      this.definingUrl = definingUrl;
+    }
+
+    @Override
+    public String getMessage() {
+      return super.getMessage() + ", Extension: " + definingUrl();
     }
   }
 
@@ -65,6 +87,20 @@ public class RequestPayloadExceptions {
     @Builder
     InvalidReferenceId(String jsonPath, String referenceType) {
       super(jsonPath, format("Invalid %s id.", referenceType));
+    }
+  }
+
+  public static class MissingDefinitionUrl extends InvalidExtension {
+    @Builder
+    MissingDefinitionUrl(String jsonPath) {
+      super(jsonPath, "", "An extension is missing it's .url field and cannot be processed.");
+    }
+  }
+
+  public static class MissingRequiredExtension extends InvalidExtension {
+    @Builder
+    MissingRequiredExtension(String jsonPath, String definingUrl) {
+      super(jsonPath, definingUrl, "Required extension is missing.");
     }
   }
 
@@ -149,6 +185,13 @@ public class RequestPayloadExceptions {
         message += format("but (%s) were provided.", providedFields);
       }
       return new ExactlyOneOfFields(jsonPath, message);
+    }
+  }
+
+  public static class UnknownExtension extends InvalidExtension {
+    @Builder
+    UnknownExtension(String jsonPath, String definingUrl) {
+      super(jsonPath, definingUrl, "Defined extension is unknown.");
     }
   }
 }

@@ -14,6 +14,8 @@ import lombok.Getter;
 @Builder
 @AllArgsConstructor
 public class ComplexExtensionHandler implements ExtensionHandler {
+  @Getter private final String jsonPath;
+
   @Getter private final String definingUrl;
 
   @Getter private final Required required;
@@ -30,6 +32,6 @@ public class ComplexExtensionHandler implements ExtensionHandler {
       throw ResourceExceptions.BadRequestPayload.BadExtension.because(
           extension.url(), ".extension is empty");
     }
-    return R4ExtensionProcessor.of(childExtensions()).process(extension.extension());
+    return R4ExtensionProcessor.of(jsonPath(), childExtensions()).process(extension.extension());
   }
 }
