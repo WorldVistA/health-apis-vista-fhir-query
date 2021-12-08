@@ -6,6 +6,7 @@ import static org.junit.jupiter.params.provider.Arguments.arguments;
 
 import gov.va.api.health.r4.api.elements.Extension;
 import gov.va.api.health.vistafhirquery.service.controller.RequestPayloadExceptions.ExtensionMissingRequiredField;
+import gov.va.api.health.vistafhirquery.service.controller.RequestPayloadExceptions.UnexpectedValueForExtensionField;
 import gov.va.api.health.vistafhirquery.service.controller.WriteableFilemanValueFactory;
 import gov.va.api.health.vistafhirquery.service.controller.extensionprocessing.ExtensionHandler.Required;
 import gov.va.api.lighthouse.charon.models.lhslighthouserpcgateway.LhsLighthouseRpcGatewayCoverageWrite.WriteableFilemanValue;
@@ -13,6 +14,7 @@ import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.stream.Stream;
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
@@ -68,5 +70,12 @@ public class DateTimeExtensionHandlerTest {
   void handleDateTime(String dateTime, List<WriteableFilemanValue> expected) {
     var sample = extensionWithDateTime(dateTime);
     assertThat(_handler(1).handle(".fugazi", sample)).containsExactlyElementsOf(expected);
+  }
+
+  @Test
+  void misformattedDateThrows() {
+    var sample = extensionWithDateTime("Jan 20, 2020");
+    assertThatExceptionOfType(UnexpectedValueForExtensionField.class)
+        .isThrownBy(() -> _handler(1).handle(".dateTime", sample));
   }
 }

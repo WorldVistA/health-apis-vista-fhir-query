@@ -5,13 +5,16 @@ import static gov.va.api.health.vistafhirquery.service.controller.R4Transformers
 import static gov.va.api.health.vistafhirquery.service.controller.R4Transformers.isBlank;
 
 import gov.va.api.health.r4.api.elements.Extension;
-import gov.va.api.health.vistafhirquery.service.controller.RequestPayloadExceptions;
+import gov.va.api.health.vistafhirquery.service.controller.RequestPayloadExceptions.ExtensionMissingRequiredField;
+import gov.va.api.health.vistafhirquery.service.controller.RequestPayloadExceptions.UnexpectedValueForExtensionField;
 import gov.va.api.health.vistafhirquery.service.controller.ResourceExceptions.BadRequestPayload.BadExtension;
 import gov.va.api.health.vistafhirquery.service.controller.WriteableFilemanValueFactory;
 import gov.va.api.lighthouse.charon.models.lhslighthouserpcgateway.LhsLighthouseRpcGatewayCoverageWrite.WriteableFilemanValue;
+import java.time.DateTimeException;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.stream.Stream;
 import lombok.Builder;
 import lombok.Getter;
@@ -43,50 +46,58 @@ public class PeriodExtensionHandler extends AbstractExtensionHandler {
     return PeriodExtensionHandler.builder().definingUrl(definingUrl);
   }
 
-  private String dateRange(String startDate, String endDate) {
+  private String dateRange(Optional<String> startDate, Optional<String> endDate) {
     if (isBlank(startDate)) {
       throw BadExtension.because(definingUrl(), "Range does not have a start date.");
     }
-    var range = formatDateString(startDate);
-    if (!isBlank(endDate)) {
-      range = range + "-" + formatDateString(endDate);
+    var range = startDate.get();
+    if (endDate.isPresent()) {
+      range = range + "-" + endDate.get();
     }
     return range;
   }
 
-  private String formatDateString(String dateString) {
+  private Optional<String> formatDateString(String jsonPath, String dateString) {
     if (isBlank(dateString)) {
-      return null;
+      return Optional.empty();
     }
-    return dateTimeFormatter().format(parseDateTime(dateString));
+    try {
+      var dateTime = parseDateTime(dateString);
+      return Optional.of(dateTimeFormatter().format(dateTime));
+    } catch (DateTimeException | IllegalArgumentException e) {
+      throw UnexpectedValueForExtensionField.builder()
+          .jsonPath(jsonPath)
+          .definingUrl(definingUrl())
+          .dataType("http://hl7.org/fhir/R4/datatypes.html#dateTime")
+          .valueReceived(dateString)
+          .build();
+    }
   }
 
   @Override
   public List<WriteableFilemanValue> handle(String jsonPath, Extension extension) {
     if (isBlank(extension.valuePeriod())) {
-      throw RequestPayloadExceptions.ExtensionMissingRequiredField.builder()
+      throw ExtensionMissingRequiredField.builder()
           .jsonPath(jsonPath)
           .definingUrl(definingUrl())
           .requiredFieldJsonPath(".valuePeriod")
           .build();
     }
-    var period = extension.valuePeriod();
-    if (allBlank(period.start(), period.end())) {
+    var start = formatDateString(".valuePeriod.start", extension.valuePeriod().start());
+    var end = formatDateString(".valuePeriod.end", extension.valuePeriod().end());
+    if (allBlank(start, end)) {
       throw BadExtension.because(extension.url(), ".valuePeriod does not have a start or end date");
     }
     if (Objects.equals(periodStartFieldNumber(), periodEndFieldNumber())) {
-      var range = dateRange(period.start(), period.end());
+      var range = dateRange(start, end);
       return List.of(filemanFactory().forRequiredString(periodStartFieldNumber(), index(), range));
     }
     return Stream.of(
             filemanFactory()
-                .forOptionalString(
-                    periodStartFieldNumber(), index(), formatDateString(period.start()))
-                .orElse(null),
-            filemanFactory()
-                .forOptionalString(periodEndFieldNumber(), index(), formatDateString(period.end()))
-                .orElse(null))
-        .filter(Objects::nonNull)
+                .forOptionalString(periodStartFieldNumber(), index(), start.orElse(null)),
+            filemanFactory().forOptionalString(periodEndFieldNumber(), index(), end.orElse(null)))
+        .filter(Optional::isPresent)
+        .map(Optional::get)
         .toList();
   }
 }

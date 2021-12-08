@@ -5,8 +5,10 @@ import static gov.va.api.health.vistafhirquery.service.controller.R4Transformers
 
 import gov.va.api.health.r4.api.elements.Extension;
 import gov.va.api.health.vistafhirquery.service.controller.RequestPayloadExceptions;
+import gov.va.api.health.vistafhirquery.service.controller.RequestPayloadExceptions.UnexpectedValueForExtensionField;
 import gov.va.api.health.vistafhirquery.service.controller.WriteableFilemanValueFactory;
 import gov.va.api.lighthouse.charon.models.lhslighthouserpcgateway.LhsLighthouseRpcGatewayCoverageWrite.WriteableFilemanValue;
+import java.time.DateTimeException;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 import lombok.Builder;
@@ -44,11 +46,18 @@ public class DateTimeExtensionHandler extends AbstractExtensionHandler {
           .requiredFieldJsonPath(".valueDateTime")
           .build();
     }
-    return List.of(
-        filemanFactory()
-            .forRequiredString(
-                dateTimeFieldNumber(),
-                index(),
-                dateTimeFormatter().format(parseDateTime(extension.valueDateTime()))));
+    String vistaDate;
+    try {
+      var dateTime = parseDateTime(extension.valueDateTime());
+      vistaDate = dateTimeFormatter().format(dateTime);
+    } catch (DateTimeException | IllegalArgumentException e) {
+      throw UnexpectedValueForExtensionField.builder()
+          .jsonPath(jsonPath)
+          .definingUrl(definingUrl())
+          .dataType("http://hl7.org/fhir/R4/datatypes.html#dateTime")
+          .valueReceived(extension.valueDateTime())
+          .build();
+    }
+    return List.of(filemanFactory().forRequiredString(dateTimeFieldNumber(), index(), vistaDate));
   }
 }

@@ -7,6 +7,7 @@ import static org.junit.jupiter.params.provider.Arguments.arguments;
 import gov.va.api.health.r4.api.datatypes.Period;
 import gov.va.api.health.r4.api.elements.Extension;
 import gov.va.api.health.vistafhirquery.service.controller.RequestPayloadExceptions.ExtensionMissingRequiredField;
+import gov.va.api.health.vistafhirquery.service.controller.RequestPayloadExceptions.UnexpectedValueForExtensionField;
 import gov.va.api.health.vistafhirquery.service.controller.ResourceExceptions.BadRequestPayload.BadExtension;
 import gov.va.api.health.vistafhirquery.service.controller.WriteableFilemanValueFactory;
 import gov.va.api.health.vistafhirquery.service.controller.extensionprocessing.ExtensionHandler.Required;
@@ -18,6 +19,7 @@ import java.util.stream.Stream;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.CsvSource;
 import org.junit.jupiter.params.provider.MethodSource;
 
 public class PeriodExtensionHandlerTest {
@@ -148,5 +150,13 @@ public class PeriodExtensionHandlerTest {
                 handler.handle(
                     ".fugazi",
                     extensionWithPeriod(Period.builder().end("2021-05-20T10:00:01.000Z").build())));
+  }
+
+  @ParameterizedTest
+  @CsvSource(value = {"2015-02-08,Feb 8 2015", "Feb 8 2015,2015-02-08"})
+  void misformattedDatesThrow(String start, String end) {
+    var sample = extensionWithPeriod(Period.builder().start(start).end(end).build());
+    assertThatExceptionOfType(UnexpectedValueForExtensionField.class)
+        .isThrownBy(() -> _handler(1).handle(".period", sample));
   }
 }

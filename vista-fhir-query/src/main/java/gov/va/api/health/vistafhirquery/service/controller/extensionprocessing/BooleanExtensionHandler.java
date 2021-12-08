@@ -3,7 +3,8 @@ package gov.va.api.health.vistafhirquery.service.controller.extensionprocessing;
 import static gov.va.api.health.vistafhirquery.service.controller.R4Transformers.isBlank;
 
 import gov.va.api.health.r4.api.elements.Extension;
-import gov.va.api.health.vistafhirquery.service.controller.RequestPayloadExceptions;
+import gov.va.api.health.vistafhirquery.service.controller.RequestPayloadExceptions.ExtensionMissingRequiredField;
+import gov.va.api.health.vistafhirquery.service.controller.RequestPayloadExceptions.UnexpectedValueForExtensionField;
 import gov.va.api.health.vistafhirquery.service.controller.WriteableFilemanValueFactory;
 import gov.va.api.lighthouse.charon.models.lhslighthouserpcgateway.LhsLighthouseRpcGatewayCoverageWrite.WriteableFilemanValue;
 import java.util.List;
@@ -37,15 +38,21 @@ public class BooleanExtensionHandler extends AbstractSingleFieldExtensionHandler
   public List<WriteableFilemanValue> handle(String jsonPath, Extension extension) {
     var value = extension.valueBoolean();
     if (isBlank(value)) {
-      throw RequestPayloadExceptions.ExtensionMissingRequiredField.builder()
+      throw ExtensionMissingRequiredField.builder()
           .jsonPath(jsonPath)
           .definingUrl(definingUrl())
           .requiredFieldJsonPath(".valueBoolean")
           .build();
     }
-    var filemanValue =
-        filemanFactory()
-            .forOptionalString(fieldNumber(), index(), booleanStringMapping().get(value));
-    return filemanValue.isEmpty() ? List.of() : List.of(filemanValue.get());
+    var vistaValue = booleanStringMapping().get(value);
+    if (isBlank(vistaValue)) {
+      throw UnexpectedValueForExtensionField.builder()
+          .jsonPath(jsonPath)
+          .definingUrl(definingUrl())
+          .supportedValues(booleanStringMapping().keySet())
+          .valueReceived(value)
+          .build();
+    }
+    return List.of(filemanFactory().forRequiredString(fieldNumber(), index(), vistaValue));
   }
 }

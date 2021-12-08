@@ -2,7 +2,9 @@ package gov.va.api.health.vistafhirquery.service.controller;
 
 import static gov.va.api.health.vistafhirquery.service.controller.R4Transformers.isBlank;
 import static java.lang.String.format;
+import static java.util.stream.Collectors.joining;
 
+import java.util.Collection;
 import java.util.List;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
@@ -67,7 +69,7 @@ public class RequestPayloadExceptions {
   public static class InvalidExtension extends InvalidField {
     @NonNull @Getter private final String definingUrl;
 
-    public InvalidExtension(String jsonPath, String definingUrl, String problem) {
+    InvalidExtension(String jsonPath, String definingUrl, String problem) {
       super(jsonPath, problem);
       this.definingUrl = definingUrl;
     }
@@ -158,6 +160,62 @@ public class RequestPayloadExceptions {
     }
   }
 
+  @AllArgsConstructor(access = AccessLevel.PRIVATE)
+  private static class UnexpectedValueMessage {
+    private final String message;
+
+    public static UnexpectedValueMessage forDataType(String dataType) {
+      return new UnexpectedValueMessage(
+          "Expected value to be of data type (" + dataType + "), but got (%s).");
+    }
+
+    public static UnexpectedValueMessage forSupportedValues(Collection<?> supportedValues) {
+      return new UnexpectedValueMessage(
+          "Expected one of (["
+              + supportedValues.stream().map(Object::toString).collect(joining(","))
+              + "]), "
+              + "but got (%s).");
+    }
+
+    public static UnexpectedValueMessage forValueSet(String valueSet) {
+      return new UnexpectedValueMessage(
+          "Expected value from value-set (" + valueSet + "), but got (%s).");
+    }
+
+    public String buildMessage(Object valueReceived) {
+      return format(message, valueReceived);
+    }
+  }
+
+  public static class UnexpectedValueForExtensionField extends InvalidExtension {
+    UnexpectedValueForExtensionField(String jsonPath, String definingUrl, String problem) {
+      super(jsonPath, definingUrl, problem);
+    }
+
+    @Builder
+    private static UnexpectedValueForExtensionField create(
+        String jsonPath,
+        String definingUrl,
+        String dataType,
+        Collection<?> supportedValues,
+        Object valueReceived) {
+      if (!isBlank(dataType)) {
+        return new UnexpectedValueForExtensionField(
+            jsonPath,
+            definingUrl,
+            UnexpectedValueMessage.forDataType(dataType).buildMessage(valueReceived));
+      }
+      if (!isBlank(supportedValues)) {
+        return new UnexpectedValueForExtensionField(
+            jsonPath,
+            definingUrl,
+            UnexpectedValueMessage.forSupportedValues(supportedValues).buildMessage(valueReceived));
+      }
+      throw new IllegalStateException(
+          "One of dataType, supportedValues, or valueSet should be populated.");
+    }
+  }
+
   public static class UnexpectedValueForField extends InvalidField {
     UnexpectedValueForField(String jsonPath, String problem) {
       super(jsonPath, problem);
@@ -167,24 +225,21 @@ public class RequestPayloadExceptions {
     private static UnexpectedValueForField create(
         String jsonPath,
         String dataType,
-        List<?> supportedValues,
+        Collection<?> supportedValues,
         String valueSet,
         Object valueReceived) {
       if (!isBlank(dataType)) {
         return new UnexpectedValueForField(
-            jsonPath,
-            format(
-                "Expected value to be of data type (%s), but got (%s).", dataType, valueReceived));
+            jsonPath, UnexpectedValueMessage.forDataType(dataType).buildMessage(valueReceived));
       }
       if (!isBlank(supportedValues)) {
         return new UnexpectedValueForField(
             jsonPath,
-            format("Expected one of (%s), but got (%s).", supportedValues, valueReceived));
+            UnexpectedValueMessage.forSupportedValues(supportedValues).buildMessage(valueReceived));
       }
       if (!isBlank(valueSet)) {
         return new UnexpectedValueForField(
-            jsonPath,
-            format("Expected value from value-set (%s), but got (%s).", valueSet, valueReceived));
+            jsonPath, UnexpectedValueMessage.forValueSet(valueSet).buildMessage(valueReceived));
       }
       throw new IllegalStateException(
           "One of dataType, supportedValues, or valueSet should be populated.");

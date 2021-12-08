@@ -5,7 +5,7 @@ import static gov.va.api.health.vistafhirquery.service.controller.R4Transformers
 
 import gov.va.api.health.r4.api.elements.Extension;
 import gov.va.api.health.vistafhirquery.service.controller.IsSiteCoordinates;
-import gov.va.api.health.vistafhirquery.service.controller.RequestPayloadExceptions;
+import gov.va.api.health.vistafhirquery.service.controller.RequestPayloadExceptions.ExtensionMissingRequiredField;
 import gov.va.api.health.vistafhirquery.service.controller.ResourceExceptions.BadRequestPayload.BadExtension;
 import gov.va.api.health.vistafhirquery.service.controller.WriteableFilemanValueFactory;
 import gov.va.api.lighthouse.charon.models.lhslighthouserpcgateway.LhsLighthouseRpcGatewayCoverageWrite.WriteableFilemanValue;
@@ -41,7 +41,7 @@ public class ReferenceExtensionHandler extends AbstractSingleFieldExtensionHandl
   @Override
   public List<WriteableFilemanValue> handle(String jsonPath, Extension extension) {
     if (isBlank(extension.valueReference())) {
-      throw RequestPayloadExceptions.ExtensionMissingRequiredField.builder()
+      throw ExtensionMissingRequiredField.builder()
           .jsonPath(jsonPath)
           .definingUrl(definingUrl())
           .requiredFieldJsonPath(".valueReference")

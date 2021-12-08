@@ -5,6 +5,7 @@ import static org.assertj.core.api.AssertionsForClassTypes.assertThatExceptionOf
 
 import gov.va.api.health.r4.api.elements.Extension;
 import gov.va.api.health.vistafhirquery.service.controller.RequestPayloadExceptions.ExtensionMissingRequiredField;
+import gov.va.api.health.vistafhirquery.service.controller.RequestPayloadExceptions.UnexpectedValueForExtensionField;
 import gov.va.api.health.vistafhirquery.service.controller.WriteableFilemanValueFactory;
 import gov.va.api.lighthouse.charon.models.lhslighthouserpcgateway.LhsLighthouseRpcGatewayCoverageWrite;
 import java.util.Map;
@@ -41,16 +42,18 @@ public class BooleanExtensionHandlerTest {
 
   @Test
   void handleNullFromMappingIsNull() {
-    assertThat(
-            BooleanExtensionHandler.forDefiningUrl("defining url")
-                .filemanFactory(filemanFactory)
-                .fieldNumber("field number")
-                .booleanStringMapping(Map.of(false, "NO"))
-                .required(ExtensionHandler.Required.REQUIRED)
-                .build()
-                .handle(
-                    ".fugazi", Extension.builder().url("defining url").valueBoolean(true).build()))
-        .isEmpty();
+    assertThatExceptionOfType(UnexpectedValueForExtensionField.class)
+        .isThrownBy(
+            () ->
+                BooleanExtensionHandler.forDefiningUrl("defining url")
+                    .filemanFactory(filemanFactory)
+                    .fieldNumber("field number")
+                    .booleanStringMapping(Map.of(false, "NO"))
+                    .required(ExtensionHandler.Required.REQUIRED)
+                    .build()
+                    .handle(
+                        ".fugazi",
+                        Extension.builder().url("defining url").valueBoolean(true).build()));
   }
 
   @Test
