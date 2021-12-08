@@ -15,7 +15,6 @@ import gov.va.api.health.r4.api.datatypes.Coding;
 import gov.va.api.health.r4.api.elements.Narrative;
 import gov.va.api.health.r4.api.resources.OperationOutcome;
 import gov.va.api.health.vistafhirquery.service.controller.ResourceExceptions.CannotUpdateResourceWithMismatchedIds;
-import gov.va.api.health.vistafhirquery.service.controller.ResourceExceptions.CannotUpdateUnknownResource;
 import gov.va.api.health.vistafhirquery.service.mpifhirqueryclient.MpiFhirQueryClientExceptions;
 import java.util.List;
 import java.util.Map;
@@ -133,22 +132,6 @@ public class WebExceptionHandlerTest {
         .isEqualTo(
             _addDetails(
                 _operationOutcome("processing"), "MSG_RESOURCE_ID_MISSING", "Resource Id Missing"));
-  }
-
-  @Test
-  void cannotUpdateUnknownResource() {
-    // expect 405
-    // code: not-found
-    // coding: MSG_NO_EXIST
-    var oo =
-        _handler()
-            .handleCannotUpdateUnknownResource(
-                CannotUpdateUnknownResource.because("123"), _request());
-    var expected =
-        _addDetails(
-            _operationOutcome("not-found"), "MSG_NO_EXIST", "Resource Id \"123\" does not exist");
-    assertHasMessageExtension(oo, false);
-    assertThat(_removeIdAndExtension(oo)).isEqualTo(expected);
   }
 
   @Test

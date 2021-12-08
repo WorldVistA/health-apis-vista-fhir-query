@@ -20,7 +20,6 @@ import gov.va.api.health.r4.api.elements.Extension;
 import gov.va.api.health.r4.api.elements.Narrative;
 import gov.va.api.health.r4.api.resources.OperationOutcome;
 import gov.va.api.health.vistafhirquery.service.controller.ResourceExceptions.CannotUpdateResourceWithMismatchedIds;
-import gov.va.api.health.vistafhirquery.service.controller.ResourceExceptions.CannotUpdateUnknownResource;
 import gov.va.api.health.vistafhirquery.service.controller.ResourceExceptions.MismatchedFileCoordinates;
 import gov.va.api.health.vistafhirquery.service.mpifhirqueryclient.MpiFhirQueryClientExceptions.MpiFhirQueryRequestFailed;
 import java.lang.reflect.UndeclaredThrowableException;
@@ -239,19 +238,6 @@ public final class WebExceptionHandler {
             ? detail("MSG_RESOURCE_ID_MISSING", "Resource Id Missing")
             : detail("MSG_RESOURCE_ID_MISMATCH", "Resource Id Mismatch");
     return responseFor("processing", e, request, emptyList(), true, detail);
-  }
-
-  @ExceptionHandler({ResourceExceptions.CannotUpdateUnknownResource.class})
-  @ResponseStatus(HttpStatus.METHOD_NOT_ALLOWED)
-  OperationOutcome handleCannotUpdateUnknownResource(
-      CannotUpdateUnknownResource e, HttpServletRequest request) {
-    return responseFor(
-        "not-found",
-        e,
-        request,
-        emptyList(),
-        true,
-        detail("MSG_NO_EXIST", format("Resource Id \"%s\" does not exist", e.resourceId())));
   }
 
   /**

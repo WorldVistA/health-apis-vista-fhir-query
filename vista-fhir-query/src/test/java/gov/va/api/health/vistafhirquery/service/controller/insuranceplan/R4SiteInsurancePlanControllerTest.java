@@ -12,6 +12,7 @@ import static org.mockito.Mockito.when;
 import gov.va.api.health.r4.api.bundle.BundleLink;
 import gov.va.api.health.vistafhirquery.service.charonclient.CharonClient;
 import gov.va.api.health.vistafhirquery.service.config.LinkProperties;
+import gov.va.api.health.vistafhirquery.service.controller.LhsGatewayExceptions.AttemptToUpdateUnknownRecord;
 import gov.va.api.health.vistafhirquery.service.controller.MockWitnessProtection;
 import gov.va.api.health.vistafhirquery.service.controller.R4BundlerFactory;
 import gov.va.api.health.vistafhirquery.service.controller.ResourceExceptions;
@@ -235,7 +236,7 @@ class R4SiteInsurancePlanControllerTest {
         answerFor(captor).value(results).invocationResult(_invocationResult(results)).build();
     when(charon.request(captor.capture())).thenAnswer(answer);
     witnessProtection.add("pub1", "123;355.3;ien1");
-    assertThatExceptionOfType(ResourceExceptions.CannotUpdateUnknownResource.class)
+    assertThatExceptionOfType(AttemptToUpdateUnknownRecord.class)
         .isThrownBy(
             () ->
                 _controller()

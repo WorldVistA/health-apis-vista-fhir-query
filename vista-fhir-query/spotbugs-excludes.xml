@@ -33,8 +33,7 @@
   <Match>
     <Or>
       <Class name="gov.va.api.health.vistafhirquery.service.controller.coverage.R4SiteCoverageController"/>
-      <Class
-              name="gov.va.api.health.vistafhirquery.service.controller.coverageeligibilityresponse.R4SiteCoverageEligibilityResponseController"/>
+      <Class name="gov.va.api.health.vistafhirquery.service.controller.coverageeligibilityresponse.R4SiteCoverageEligibilityResponseController"/>
       <Class name="gov.va.api.health.vistafhirquery.service.controller.insuranceplan.R4SiteInsurancePlanController"/>
       <Class name="gov.va.api.health.vistafhirquery.service.controller.organization.R4SiteOrganizationController"/>
       <Class name="gov.va.api.health.vistafhirquery.service.controller.R4Controllers"/>
@@ -57,5 +56,12 @@
     <Class name="gov.va.api.health.vistafhirquery.service.controller.coverageeligibilityresponse.R4CoverageEligibilityResponseTransformer"/>
     <Method name="isCoverageInForce"/>
     <Bug pattern="NP_BOOLEAN_RETURN_NULL"/>
+  </Match>
+  <!--
+  Lombox generated builders with @NonNull is confusing spotbugs. The warnings are for generated code.
+  -->
+  <Match>
+    <Class name="~gov.va.api.health.vistafhirquery.service.controller.LhsGatewayExceptions.*"/>
+    <Bug pattern="RCN_REDUNDANT_NULLCHECK_WOULD_HAVE_BEEN_A_NPE"/>
   </Match>
 </FindBugsFilter>

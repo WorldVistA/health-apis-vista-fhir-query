@@ -3,12 +3,13 @@ package gov.va.api.health.vistafhirquery.service.charonclient;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.junit.jupiter.params.provider.Arguments.arguments;
 
-import gov.va.api.health.vistafhirquery.service.charonclient.LhsGatewayErrorHandler.LhsGatewayError;
-import gov.va.api.health.vistafhirquery.service.controller.ResourceExceptions.BadRequestPayload;
-import gov.va.api.health.vistafhirquery.service.controller.ResourceExceptions.CannotUpdateUnknownResource;
-import gov.va.api.health.vistafhirquery.service.controller.ResourceExceptions.ExpectationFailed;
-import gov.va.api.health.vistafhirquery.service.controller.ResourceExceptions.MultipleErrorReasons;
-import gov.va.api.health.vistafhirquery.service.controller.ResourceExceptions.UnknownErrorReason;
+import gov.va.api.health.vistafhirquery.service.controller.LhsGatewayExceptions.AttemptToCreateDuplicateRecord;
+import gov.va.api.health.vistafhirquery.service.controller.LhsGatewayExceptions.AttemptToSetInvalidFieldValue;
+import gov.va.api.health.vistafhirquery.service.controller.LhsGatewayExceptions.AttemptToSetUnknownField;
+import gov.va.api.health.vistafhirquery.service.controller.LhsGatewayExceptions.AttemptToUpdateUnknownRecord;
+import gov.va.api.health.vistafhirquery.service.controller.LhsGatewayExceptions.DoNotUnderstandRpcResponse;
+import gov.va.api.health.vistafhirquery.service.controller.LhsGatewayExceptions.RejectedForMultipleReasons;
+import gov.va.api.health.vistafhirquery.service.controller.LhsGatewayExceptions.UnknownReason;
 import gov.va.api.lighthouse.charon.models.lhslighthouserpcgateway.LhsLighthouseRpcGatewayResponse;
 import gov.va.api.lighthouse.charon.models.lhslighthouserpcgateway.LhsLighthouseRpcGatewayResponse.FilemanEntry;
 import java.util.List;
@@ -20,20 +21,33 @@ import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 
 public class LhsGatewayErrorHandlerTest {
-  private static Stream<Arguments> lhsGatewayErrors() {
+
+  public static final String ANYTHING = "(?s).*";
+
+  private static Stream<Arguments> lhsGatewayErrorsByCode() {
     return Stream.of(
-        arguments(LhsGatewayError.INVALID_FIELD, BadRequestPayload.class),
-        arguments(LhsGatewayError.RECORD_DOESNT_EXIST, CannotUpdateUnknownResource.class),
-        arguments(LhsGatewayError.UNKNOWN, UnknownErrorReason.class));
+        arguments("501", "x", AttemptToSetUnknownField.class),
+        arguments("601", "x", AttemptToUpdateUnknownRecord.class),
+        arguments("701", "generic message", AttemptToSetInvalidFieldValue.class),
+        arguments(
+            "701",
+            "The value 'V' for field SOME FIELD in file SOME FILE is not valid whatever.",
+            AttemptToSetInvalidFieldValue.class),
+        arguments("999", "FOO already exists with IEN 123", AttemptToCreateDuplicateRecord.class),
+        arguments("000", "x", UnknownReason.class));
   }
 
-  private Map<String, String> errorDeets(String code) {
-    return Map.of("code", code, "location", "ignored", "text", "ignored");
+  private Map<String, String> errorDeets(String code, String text) {
+    return Map.of("code", code, "location", "ignored", "text", text);
+  }
+
+  private Map<String, String> errorDeetsForCode(String code) {
+    return errorDeets(code, "ignored");
   }
 
   @ParameterizedTest
-  @MethodSource("lhsGatewayErrors")
-  void handleErrors(LhsGatewayError error, Class<Throwable> expectedException) {
+  @MethodSource
+  void lhsGatewayErrorsByCode(String errorCode, String text, Class<Throwable> expectedException) {
     assertThatExceptionOfType(expectedException)
         .isThrownBy(
             () ->
@@ -42,16 +56,17 @@ public class LhsGatewayErrorHandlerTest {
                             .errors(
                                 List.of(
                                     LhsLighthouseRpcGatewayResponse.ResultsError.builder()
-                                        .data(errorDeets(error.code()))
+                                        .data(errorDeets(errorCode, text))
                                         .build()))
                             .results(List.of(resultsEntryFailure()))
                             .build())
-                    .validateResults());
+                    .validateResults())
+        .withMessageMatching(ANYTHING);
   }
 
   @Test
   void multipleErrorReasons() {
-    assertThatExceptionOfType(MultipleErrorReasons.class)
+    assertThatExceptionOfType(RejectedForMultipleReasons.class)
         .isThrownBy(
             () ->
                 LhsGatewayErrorHandler.of(
@@ -59,20 +74,20 @@ public class LhsGatewayErrorHandlerTest {
                             .errors(
                                 List.of(
                                     LhsLighthouseRpcGatewayResponse.ResultsError.builder()
-                                        .data(errorDeets(LhsGatewayError.INVALID_FIELD.code()))
+                                        .data(errorDeetsForCode("601"))
                                         .build(),
                                     LhsLighthouseRpcGatewayResponse.ResultsError.builder()
-                                        .data(
-                                            errorDeets(LhsGatewayError.RECORD_DOESNT_EXIST.code()))
+                                        .data(errorDeetsForCode("601"))
                                         .build()))
                             .results(List.of(resultsEntryFailure(), resultsEntryFailure()))
                             .build())
-                    .validateResults());
+                    .validateResults())
+        .withMessageMatching(ANYTHING);
   }
 
   @Test
   void noCodeFromVistaThrows() {
-    assertThatExceptionOfType(UnknownErrorReason.class)
+    assertThatExceptionOfType(UnknownReason.class)
         .isThrownBy(
             () ->
                 LhsGatewayErrorHandler.of(
@@ -83,12 +98,13 @@ public class LhsGatewayErrorHandlerTest {
                                         .data(Map.of())
                                         .build()))
                             .build())
-                    .validateResults());
+                    .validateResults())
+        .withMessageMatching(ANYTHING);
   }
 
   @Test
   void recordDoesExistThrowsExceptionWhenMoreThanOneFailureIsFound() {
-    assertThatExceptionOfType(ExpectationFailed.class)
+    assertThatExceptionOfType(DoNotUnderstandRpcResponse.class)
         .isThrownBy(
             () ->
                 LhsGatewayErrorHandler.of(
@@ -96,12 +112,12 @@ public class LhsGatewayErrorHandlerTest {
                             .errors(
                                 List.of(
                                     LhsLighthouseRpcGatewayResponse.ResultsError.builder()
-                                        .data(
-                                            errorDeets(LhsGatewayError.RECORD_DOESNT_EXIST.code()))
+                                        .data(errorDeetsForCode("601"))
                                         .build()))
                             .results(List.of(resultsEntryFailure(), resultsEntryFailure()))
                             .build())
-                    .validateResults());
+                    .validateResults())
+        .withMessageMatching(ANYTHING);
   }
 
   private FilemanEntry resultsEntryFailure() {
@@ -110,7 +126,7 @@ public class LhsGatewayErrorHandlerTest {
 
   @Test
   void tooManyResultErrorsThrows() {
-    assertThatExceptionOfType(ExpectationFailed.class)
+    assertThatExceptionOfType(DoNotUnderstandRpcResponse.class)
         .isThrownBy(
             () ->
                 LhsGatewayErrorHandler.of(
@@ -118,23 +134,24 @@ public class LhsGatewayErrorHandlerTest {
                             .errors(
                                 List.of(
                                     LhsLighthouseRpcGatewayResponse.ResultsError.builder()
-                                        .data(
-                                            errorDeets(LhsGatewayError.RECORD_DOESNT_EXIST.code()))
+                                        .data(errorDeetsForCode("601"))
                                         .build()))
                             .results(List.of(resultsEntryFailure(), resultsEntryFailure()))
                             .build())
-                    .validateResults());
+                    .validateResults())
+        .withMessageMatching(ANYTHING);
   }
 
   @Test
   void unknownReasonIsThrownIfEntriesHaveErrorsButNoErrorsAreAttached() {
-    assertThatExceptionOfType(UnknownErrorReason.class)
+    assertThatExceptionOfType(DoNotUnderstandRpcResponse.class)
         .isThrownBy(
             () ->
                 LhsGatewayErrorHandler.of(
                         LhsLighthouseRpcGatewayResponse.Results.builder()
                             .results(List.of(resultsEntryFailure()))
                             .build())
-                    .validateResults());
+                    .validateResults())
+        .withMessageMatching(ANYTHING);
   }
 }

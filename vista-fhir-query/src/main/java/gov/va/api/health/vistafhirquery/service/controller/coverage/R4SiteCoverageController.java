@@ -2,7 +2,7 @@ package gov.va.api.health.vistafhirquery.service.controller.coverage;
 
 import static gov.va.api.health.vistafhirquery.service.charonclient.CharonRequests.lighthouseRpcGatewayRequest;
 import static gov.va.api.health.vistafhirquery.service.charonclient.CharonRequests.lighthouseRpcGatewayResponse;
-import static gov.va.api.health.vistafhirquery.service.controller.R4Controllers.dieOnError;
+import static gov.va.api.health.vistafhirquery.service.charonclient.LhsGatewayErrorHandler.dieOnReadError;
 import static gov.va.api.health.vistafhirquery.service.controller.R4Controllers.updateResponseForCreatedResource;
 import static gov.va.api.health.vistafhirquery.service.controller.R4Controllers.updateResponseForUpdatedResource;
 import static gov.va.api.health.vistafhirquery.service.controller.R4Controllers.verifyAndGetResult;
@@ -111,7 +111,7 @@ public class R4SiteCoverageController implements R4CoverageApi {
     var request = lighthouseRpcGatewayRequest(site, manifestRequest(coordinates));
     var response = charon.request(request);
     var lhsResponse = lighthouseRpcGatewayResponse(response);
-    dieOnError(lhsResponse);
+    dieOnReadError(lhsResponse);
     var resources =
         transformation(response.timezoneAsZoneId(), coordinates.icn())
             .toResource()

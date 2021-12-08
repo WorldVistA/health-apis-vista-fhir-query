@@ -14,6 +14,7 @@ import gov.va.api.health.r4.api.bundle.BundleLink;
 import gov.va.api.health.r4.api.resources.Coverage;
 import gov.va.api.health.vistafhirquery.service.charonclient.CharonClient;
 import gov.va.api.health.vistafhirquery.service.config.LinkProperties;
+import gov.va.api.health.vistafhirquery.service.controller.LhsGatewayExceptions.AttemptToUpdateUnknownRecord;
 import gov.va.api.health.vistafhirquery.service.controller.PatientTypeCoordinates;
 import gov.va.api.health.vistafhirquery.service.controller.R4BundlerFactory;
 import gov.va.api.health.vistafhirquery.service.controller.RequestPayloadExceptions.MissingRequiredField;
@@ -196,7 +197,7 @@ public class R4SiteCoverageControllerTest {
     when(charon.request(captor.capture())).thenAnswer(answer);
     when(witnessProtection.toPatientTypeCoordinatesOrDie("public-c1", Coverage.class))
         .thenReturn(PatientTypeCoordinates.builder().site("123").ien("ip1").icn("p1").build());
-    assertThatExceptionOfType(ResourceExceptions.CannotUpdateUnknownResource.class)
+    assertThatExceptionOfType(AttemptToUpdateUnknownRecord.class)
         .isThrownBy(
             () ->
                 _controller()

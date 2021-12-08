@@ -14,14 +14,6 @@ import org.springframework.http.HttpHeaders;
 
 @Slf4j
 public class R4Controllers {
-  /** If there are any errors that can be collected from the response, throw a fatal error. */
-  public static void dieOnError(LhsLighthouseRpcGatewayResponse response) {
-    var errors = response.collectErrors();
-    if (errors.isEmpty()) {
-      return;
-    }
-    throw new FatalServerError(response.toString());
-  }
 
   /** Clear the ID field used when creating new resources. */
   public static void unsetIdForCreate(IsResource resource) {
