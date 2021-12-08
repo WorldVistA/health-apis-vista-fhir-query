@@ -32,6 +32,14 @@ public class RequestPayloadExceptions {
     }
   }
 
+  public static class ExtensionMissingRequiredField extends InvalidExtension {
+    @Builder
+    ExtensionMissingRequiredField(
+        String jsonPath, String definingUrl, String requiredFieldJsonPath) {
+      super(jsonPath, definingUrl, "Missing required field: " + requiredFieldJsonPath);
+    }
+  }
+
   public static class EndDateOccursBeforeStartDate extends InvalidField {
     @Builder
     EndDateOccursBeforeStartDate(String jsonPath) {
@@ -59,7 +67,7 @@ public class RequestPayloadExceptions {
   public static class InvalidExtension extends InvalidField {
     @NonNull @Getter private final String definingUrl;
 
-    InvalidExtension(String jsonPath, String definingUrl, String problem) {
+    public InvalidExtension(String jsonPath, String definingUrl, String problem) {
       super(jsonPath, problem);
       this.definingUrl = definingUrl;
     }
@@ -80,6 +88,22 @@ public class RequestPayloadExceptions {
     @Override
     public String getMessage() {
       return format("Field: %s, Problem: %s", jsonPath(), problem());
+    }
+  }
+
+  @EqualsAndHashCode(callSuper = true)
+  public static class InvalidNestedExtension extends InvalidExtension {
+    @NonNull @Getter private final String nestedProblem;
+
+    @Builder
+    InvalidNestedExtension(String jsonPath, String definingUrl, String nestedProblem) {
+      super(jsonPath, definingUrl, "A nested extension was invalid.");
+      this.nestedProblem = nestedProblem;
+    }
+
+    @Override
+    public String getMessage() {
+      return format("%s, Nested: (%s)", super.getMessage(), nestedProblem());
     }
   }
 

@@ -3,7 +3,7 @@ package gov.va.api.health.vistafhirquery.service.controller.extensionprocessing;
 import static gov.va.api.health.vistafhirquery.service.controller.R4Transformers.isBlank;
 
 import gov.va.api.health.r4.api.elements.Extension;
-import gov.va.api.health.vistafhirquery.service.controller.ResourceExceptions;
+import gov.va.api.health.vistafhirquery.service.controller.RequestPayloadExceptions;
 import gov.va.api.health.vistafhirquery.service.controller.WriteableFilemanValueFactory;
 import gov.va.api.lighthouse.charon.models.lhslighthouserpcgateway.LhsLighthouseRpcGatewayCoverageWrite;
 import java.util.List;
@@ -28,11 +28,14 @@ public class IntegerExtensionHandler extends AbstractSingleFieldExtensionHandler
 
   @Override
   public List<LhsLighthouseRpcGatewayCoverageWrite.WriteableFilemanValue> handle(
-      @NonNull Extension extension) {
+      String jsonPath, @NonNull Extension extension) {
     var value = extension.valueInteger();
     if (isBlank(value)) {
-      throw ResourceExceptions.BadRequestPayload.BadExtension.because(
-          definingUrl(), "extension.valueInteger is null");
+      throw RequestPayloadExceptions.ExtensionMissingRequiredField.builder()
+          .jsonPath(jsonPath)
+          .definingUrl(definingUrl())
+          .requiredFieldJsonPath(".valueInteger")
+          .build();
     }
     var filemanValue = filemanFactory().forOptionalInteger(fieldNumber(), index(), value);
     return filemanValue.isEmpty() ? List.of() : List.of(filemanValue.get());

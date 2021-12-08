@@ -3,7 +3,7 @@ package gov.va.api.health.vistafhirquery.service.controller.extensionprocessing;
 import static gov.va.api.health.vistafhirquery.service.controller.R4Transformers.isBlank;
 
 import gov.va.api.health.r4.api.elements.Extension;
-import gov.va.api.health.vistafhirquery.service.controller.ResourceExceptions;
+import gov.va.api.health.vistafhirquery.service.controller.RequestPayloadExceptions;
 import gov.va.api.health.vistafhirquery.service.controller.WriteableFilemanValueFactory;
 import gov.va.api.health.vistafhirquery.service.controller.extensionprocessing.ExtensionHandler.Required;
 import gov.va.api.lighthouse.charon.models.lhslighthouserpcgateway.LhsLighthouseRpcGatewayCoverageWrite.WriteableFilemanValue;
@@ -29,11 +29,14 @@ public class DecimalExtensionHandler extends AbstractSingleFieldExtensionHandler
   }
 
   @Override
-  public List<WriteableFilemanValue> handle(@NonNull Extension extension) {
+  public List<WriteableFilemanValue> handle(String jsonPath, @NonNull Extension extension) {
     var value = extension.valueDecimal();
     if (isBlank(value)) {
-      throw ResourceExceptions.BadRequestPayload.BadExtension.because(
-          definingUrl(), "extension.valueDecimal is null");
+      throw RequestPayloadExceptions.ExtensionMissingRequiredField.builder()
+          .jsonPath(jsonPath)
+          .definingUrl(definingUrl())
+          .requiredFieldJsonPath(".valueDecimal")
+          .build();
     }
     var filemanValue =
         filemanFactory().forRequiredString(fieldNumber(), index(), value.toPlainString());

@@ -58,7 +58,7 @@ public class R4OrganizationToInsuranceCompanyFileTransformer {
   @NonNull Organization organization;
 
   ExtensionProcessor extensionProcessor =
-      R4ExtensionProcessor.of(".extension", extensionHandlers());
+      R4ExtensionProcessor.of(".extension[]", extensionHandlers());
 
   boolean include277EdiNumber;
 

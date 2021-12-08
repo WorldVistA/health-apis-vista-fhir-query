@@ -8,6 +8,7 @@ import static org.junit.jupiter.params.provider.Arguments.arguments;
 import gov.va.api.health.r4.api.elements.Extension;
 import gov.va.api.health.r4.api.elements.Reference;
 import gov.va.api.health.vistafhirquery.service.controller.IsSiteCoordinates;
+import gov.va.api.health.vistafhirquery.service.controller.RequestPayloadExceptions.ExtensionMissingRequiredField;
 import gov.va.api.health.vistafhirquery.service.controller.ResourceExceptions.BadRequestPayload.BadExtension;
 import gov.va.api.health.vistafhirquery.service.controller.WriteableFilemanValueFactory;
 import gov.va.api.lighthouse.charon.models.lhslighthouserpcgateway.LhsLighthouseRpcGatewayCoverageWrite.WriteableFilemanValue;
@@ -16,14 +17,14 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
-import org.junit.jupiter.params.provider.NullSource;
 import org.junit.jupiter.params.provider.ValueSource;
 
 public class ReferenceExtensionHandlerTest {
   static Stream<Arguments> badExtensionReference() {
     return Stream.of(
-        arguments(Reference.builder().build()),
-        arguments(Reference.builder().display("SHANKTOPUS").build()));
+        arguments(ExtensionMissingRequiredField.class, null),
+        arguments(BadExtension.class, Reference.builder().build()),
+        arguments(BadExtension.class, Reference.builder().display("SHANKTOPUS").build()));
   }
 
   private ReferenceExtensionHandler _handler(int index) {
@@ -38,11 +39,10 @@ public class ReferenceExtensionHandlerTest {
   }
 
   @ParameterizedTest
-  @NullSource
   @MethodSource
-  void badExtensionReference(Reference reference) {
+  void badExtensionReference(Class<Exception> expected, Reference reference) {
     var sample = extensionWithReference(reference);
-    assertThatExceptionOfType(BadExtension.class).isThrownBy(() -> _handler(1).handle(sample));
+    assertThatExceptionOfType(expected).isThrownBy(() -> _handler(1).handle(".fugazi", sample));
   }
 
   private Extension extensionWithReference(Reference reference) {
@@ -53,7 +53,7 @@ public class ReferenceExtensionHandlerTest {
   @ValueSource(ints = {1, 2})
   void handle(int index) {
     var sample = extensionWithReference(Reference.builder().reference("Fugazi/123").build());
-    assertThat(_handler(index).handle(sample))
+    assertThat(_handler(index).handle(".fugazi", sample))
         .containsOnly(
             WriteableFilemanValue.builder()
                 .file("888")
@@ -76,7 +76,7 @@ public class ReferenceExtensionHandlerTest {
                     .referenceFile("123")
                     .toCoordinates(s -> null)
                     .build()
-                    .handle(sample));
+                    .handle(".fugazi", sample));
   }
 
   public static class FugaziSiteCoordinates implements IsSiteCoordinates {

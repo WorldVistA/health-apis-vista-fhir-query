@@ -4,7 +4,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThatExceptionOfType;
 
 import gov.va.api.health.r4.api.elements.Extension;
-import gov.va.api.health.vistafhirquery.service.controller.ResourceExceptions.BadRequestPayload.BadExtension;
+import gov.va.api.health.vistafhirquery.service.controller.RequestPayloadExceptions.ExtensionMissingRequiredField;
 import gov.va.api.health.vistafhirquery.service.controller.WriteableFilemanValueFactory;
 import gov.va.api.lighthouse.charon.models.lhslighthouserpcgateway.LhsLighthouseRpcGatewayCoverageWrite;
 import java.util.Map;
@@ -28,7 +28,8 @@ public class BooleanExtensionHandlerTest {
                 .booleanStringMapping(Map.of(true, "YES", false, "NO"))
                 .required(ExtensionHandler.Required.REQUIRED)
                 .build()
-                .handle(Extension.builder().url("defining url").valueBoolean(true).build()))
+                .handle(
+                    ".fugazi", Extension.builder().url("defining url").valueBoolean(true).build()))
         .containsOnly(
             LhsLighthouseRpcGatewayCoverageWrite.WriteableFilemanValue.builder()
                 .file("file number")
@@ -47,13 +48,14 @@ public class BooleanExtensionHandlerTest {
                 .booleanStringMapping(Map.of(false, "NO"))
                 .required(ExtensionHandler.Required.REQUIRED)
                 .build()
-                .handle(Extension.builder().url("defining url").valueBoolean(true).build()))
+                .handle(
+                    ".fugazi", Extension.builder().url("defining url").valueBoolean(true).build()))
         .isEmpty();
   }
 
   @Test
   void handleNullValueBooleanThrowsBadException() {
-    assertThatExceptionOfType(BadExtension.class)
+    assertThatExceptionOfType(ExtensionMissingRequiredField.class)
         .isThrownBy(
             () ->
                 BooleanExtensionHandler.forDefiningUrl("defining url")
@@ -62,6 +64,8 @@ public class BooleanExtensionHandlerTest {
                     .booleanStringMapping(Map.of(true, "YES", false, ""))
                     .required(ExtensionHandler.Required.REQUIRED)
                     .build()
-                    .handle(Extension.builder().url("defining url").valueBoolean(null).build()));
+                    .handle(
+                        ".fugazi",
+                        Extension.builder().url("defining url").valueBoolean(null).build()));
   }
 }

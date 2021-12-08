@@ -7,7 +7,7 @@ import java.util.List;
 public interface ExtensionHandler {
   String definingUrl();
 
-  List<WriteableFilemanValue> handle(Extension extension);
+  List<WriteableFilemanValue> handle(String jsonPath, Extension extension);
 
   Required required();
 

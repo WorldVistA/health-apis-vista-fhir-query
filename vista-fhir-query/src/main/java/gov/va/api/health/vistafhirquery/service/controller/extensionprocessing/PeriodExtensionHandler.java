@@ -5,6 +5,7 @@ import static gov.va.api.health.vistafhirquery.service.controller.R4Transformers
 import static gov.va.api.health.vistafhirquery.service.controller.R4Transformers.isBlank;
 
 import gov.va.api.health.r4.api.elements.Extension;
+import gov.va.api.health.vistafhirquery.service.controller.RequestPayloadExceptions;
 import gov.va.api.health.vistafhirquery.service.controller.ResourceExceptions.BadRequestPayload.BadExtension;
 import gov.va.api.health.vistafhirquery.service.controller.WriteableFilemanValueFactory;
 import gov.va.api.lighthouse.charon.models.lhslighthouserpcgateway.LhsLighthouseRpcGatewayCoverageWrite.WriteableFilemanValue;
@@ -61,9 +62,13 @@ public class PeriodExtensionHandler extends AbstractExtensionHandler {
   }
 
   @Override
-  public List<WriteableFilemanValue> handle(Extension extension) {
+  public List<WriteableFilemanValue> handle(String jsonPath, Extension extension) {
     if (isBlank(extension.valuePeriod())) {
-      throw BadExtension.because(extension.url(), ".valuePeriod is null");
+      throw RequestPayloadExceptions.ExtensionMissingRequiredField.builder()
+          .jsonPath(jsonPath)
+          .definingUrl(definingUrl())
+          .requiredFieldJsonPath(".valuePeriod")
+          .build();
     }
     var period = extension.valuePeriod();
     if (allBlank(period.start(), period.end())) {

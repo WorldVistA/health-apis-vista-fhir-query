@@ -5,7 +5,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThatExceptionOfType;
 
 import gov.va.api.health.r4.api.elements.Extension;
-import gov.va.api.health.vistafhirquery.service.controller.ResourceExceptions;
+import gov.va.api.health.vistafhirquery.service.controller.RequestPayloadExceptions.ExtensionMissingRequiredField;
 import gov.va.api.health.vistafhirquery.service.controller.WriteableFilemanValueFactory;
 import gov.va.api.lighthouse.charon.models.lhslighthouserpcgateway.LhsLighthouseRpcGatewayCoverageWrite;
 import org.junit.jupiter.api.Test;
@@ -28,6 +28,7 @@ public class StringExtensionHandlerTest {
     assertThat(
             _handler(index)
                 .handle(
+                    ".fugazi",
                     Extension.builder()
                         .url("http://fugazi.com/string")
                         .valueString("test_string")
@@ -43,11 +44,12 @@ public class StringExtensionHandlerTest {
 
   @Test
   void handleNullValueStringThrowsBadException() {
-    assertThatExceptionOfType(ResourceExceptions.BadRequestPayload.BadExtension.class)
+    assertThatExceptionOfType(ExtensionMissingRequiredField.class)
         .isThrownBy(
             () ->
                 _handler(1)
                     .handle(
+                        ".fugazi",
                         Extension.builder()
                             .url("http://fugazi.com/string")
                             .valueString(null)

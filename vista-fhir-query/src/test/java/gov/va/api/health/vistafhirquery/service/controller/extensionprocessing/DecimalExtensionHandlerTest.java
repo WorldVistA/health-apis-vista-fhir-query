@@ -5,7 +5,7 @@ import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.junit.jupiter.api.Assertions.*;
 
 import gov.va.api.health.r4.api.elements.Extension;
-import gov.va.api.health.vistafhirquery.service.controller.ResourceExceptions;
+import gov.va.api.health.vistafhirquery.service.controller.RequestPayloadExceptions.ExtensionMissingRequiredField;
 import gov.va.api.health.vistafhirquery.service.controller.WriteableFilemanValueFactory;
 import gov.va.api.health.vistafhirquery.service.controller.extensionprocessing.ExtensionHandler.Required;
 import gov.va.api.lighthouse.charon.models.lhslighthouserpcgateway.LhsLighthouseRpcGatewayCoverageWrite.WriteableFilemanValue;
@@ -32,7 +32,7 @@ class DecimalExtensionHandlerTest {
   @ParameterizedTest
   @ValueSource(ints = {1, 2})
   void handle(int index) {
-    assertThat(_handler(index).handle(decimalExtension("8.88000")))
+    assertThat(_handler(index).handle(".fugazi", decimalExtension("8.88000")))
         .containsOnly(
             WriteableFilemanValue.builder()
                 .file("decimal")
@@ -44,7 +44,7 @@ class DecimalExtensionHandlerTest {
 
   @Test
   void handleNullThrows() {
-    assertThatExceptionOfType(ResourceExceptions.BadRequestPayload.BadExtension.class)
-        .isThrownBy(() -> _handler(1).handle(decimalExtension(null)));
+    assertThatExceptionOfType(ExtensionMissingRequiredField.class)
+        .isThrownBy(() -> _handler(1).handle(".fugazi", decimalExtension(null)));
   }
 }

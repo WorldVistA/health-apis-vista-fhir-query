@@ -6,6 +6,7 @@ import static org.junit.jupiter.params.provider.Arguments.arguments;
 
 import gov.va.api.health.r4.api.datatypes.Period;
 import gov.va.api.health.r4.api.elements.Extension;
+import gov.va.api.health.vistafhirquery.service.controller.RequestPayloadExceptions.ExtensionMissingRequiredField;
 import gov.va.api.health.vistafhirquery.service.controller.ResourceExceptions.BadRequestPayload.BadExtension;
 import gov.va.api.health.vistafhirquery.service.controller.WriteableFilemanValueFactory;
 import gov.va.api.health.vistafhirquery.service.controller.extensionprocessing.ExtensionHandler.Required;
@@ -18,11 +19,12 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
-import org.junit.jupiter.params.provider.NullSource;
 
 public class PeriodExtensionHandlerTest {
   static Stream<Arguments> badExtensionPeriod() {
-    return Stream.of(arguments(Period.builder().build()));
+    return Stream.of(
+        arguments(ExtensionMissingRequiredField.class, null),
+        arguments(BadExtension.class, Period.builder().build()));
   }
 
   static Stream<Arguments> handlePeriod() {
@@ -78,10 +80,9 @@ public class PeriodExtensionHandlerTest {
 
   @ParameterizedTest
   @MethodSource
-  @NullSource
-  void badExtensionPeriod(Period period) {
+  void badExtensionPeriod(Class<Exception> expected, Period period) {
     var sample = extensionWithPeriod(period);
-    assertThatExceptionOfType(BadExtension.class).isThrownBy(() -> _handler(1).handle(sample));
+    assertThatExceptionOfType(expected).isThrownBy(() -> _handler(1).handle(".fugazi", sample));
   }
 
   private Extension extensionWithPeriod(Period period) {
@@ -92,7 +93,7 @@ public class PeriodExtensionHandlerTest {
   @MethodSource
   void handlePeriod(Period period, int index, List<WriteableFilemanValue> expected) {
     var sample = extensionWithPeriod(period);
-    assertThat(_handler(index).handle(sample)).containsExactlyElementsOf(expected);
+    assertThat(_handler(index).handle(".fugazi", sample)).containsExactlyElementsOf(expected);
   }
 
   @Test
@@ -106,7 +107,9 @@ public class PeriodExtensionHandlerTest {
             .periodEndFieldNumber(".range")
             .index(1)
             .build();
-    assertThat(handler.handle(extensionWithPeriod(Period.builder().start("2020-01-20").build())))
+    assertThat(
+            handler.handle(
+                ".fugazi", extensionWithPeriod(Period.builder().start("2020-01-20").build())))
         .containsOnly(
             WriteableFilemanValue.builder()
                 .file("888")
@@ -116,6 +119,7 @@ public class PeriodExtensionHandlerTest {
                 .build());
     assertThat(
             handler.handle(
+                ".fugazi",
                 extensionWithPeriod(
                     Period.builder().start("2020-01-20").end("2021-05-20T10:00:01.000Z").build())))
         .containsOnly(
@@ -142,6 +146,7 @@ public class PeriodExtensionHandlerTest {
         .isThrownBy(
             () ->
                 handler.handle(
+                    ".fugazi",
                     extensionWithPeriod(Period.builder().end("2021-05-20T10:00:01.000Z").build())));
   }
 }

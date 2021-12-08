@@ -5,7 +5,7 @@ import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.junit.jupiter.params.provider.Arguments.arguments;
 
 import gov.va.api.health.r4.api.elements.Extension;
-import gov.va.api.health.vistafhirquery.service.controller.ResourceExceptions.BadRequestPayload.BadExtension;
+import gov.va.api.health.vistafhirquery.service.controller.RequestPayloadExceptions.ExtensionMissingRequiredField;
 import gov.va.api.health.vistafhirquery.service.controller.WriteableFilemanValueFactory;
 import gov.va.api.health.vistafhirquery.service.controller.extensionprocessing.ExtensionHandler.Required;
 import gov.va.api.lighthouse.charon.models.lhslighthouserpcgateway.LhsLighthouseRpcGatewayCoverageWrite.WriteableFilemanValue;
@@ -16,13 +16,9 @@ import java.util.stream.Stream;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
-import org.junit.jupiter.params.provider.NullSource;
+import org.junit.jupiter.params.provider.NullAndEmptySource;
 
 public class DateTimeExtensionHandlerTest {
-  static Stream<Arguments> badExtensionDateTime() {
-    return Stream.of(arguments(""));
-  }
-
   static Stream<Arguments> handleDateTime() {
     return Stream.of(
         arguments(
@@ -56,11 +52,11 @@ public class DateTimeExtensionHandlerTest {
   }
 
   @ParameterizedTest
-  @MethodSource
-  @NullSource
-  void badExtensionDateTime(String dateTime) {
+  @NullAndEmptySource
+  void blankExtensionDateTime(String dateTime) {
     var sample = extensionWithDateTime(dateTime);
-    assertThatExceptionOfType(BadExtension.class).isThrownBy(() -> _handler(1).handle(sample));
+    assertThatExceptionOfType(ExtensionMissingRequiredField.class)
+        .isThrownBy(() -> _handler(1).handle(".fugazi", sample));
   }
 
   private Extension extensionWithDateTime(String dateTime) {
@@ -71,6 +67,6 @@ public class DateTimeExtensionHandlerTest {
   @MethodSource
   void handleDateTime(String dateTime, List<WriteableFilemanValue> expected) {
     var sample = extensionWithDateTime(dateTime);
-    assertThat(_handler(1).handle(sample)).containsExactlyElementsOf(expected);
+    assertThat(_handler(1).handle(".fugazi", sample)).containsExactlyElementsOf(expected);
   }
 }

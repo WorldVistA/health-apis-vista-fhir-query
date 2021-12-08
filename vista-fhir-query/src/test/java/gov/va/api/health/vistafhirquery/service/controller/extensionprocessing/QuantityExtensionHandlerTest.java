@@ -7,6 +7,7 @@ import static org.junit.jupiter.params.provider.Arguments.arguments;
 
 import gov.va.api.health.r4.api.datatypes.Quantity;
 import gov.va.api.health.r4.api.elements.Extension;
+import gov.va.api.health.vistafhirquery.service.controller.RequestPayloadExceptions.ExtensionMissingRequiredField;
 import gov.va.api.health.vistafhirquery.service.controller.ResourceExceptions.BadRequestPayload.BadExtension;
 import gov.va.api.health.vistafhirquery.service.controller.WriteableFilemanValueFactory;
 import gov.va.api.lighthouse.charon.models.lhslighthouserpcgateway.LhsLighthouseRpcGatewayCoverageWrite.WriteableFilemanValue;
@@ -16,15 +17,15 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
-import org.junit.jupiter.params.provider.NullSource;
 import org.junit.jupiter.params.provider.ValueSource;
 
 public class QuantityExtensionHandlerTest {
   static Stream<Arguments> badExtensionQuantity() {
     return Stream.of(
-        arguments(Quantity.builder().build()),
-        arguments(Quantity.builder().value(new BigDecimal("8.88")).build()),
-        arguments(Quantity.builder().unit("SHANKS").build()));
+        arguments(ExtensionMissingRequiredField.class, null),
+        arguments(BadExtension.class, Quantity.builder().build()),
+        arguments(BadExtension.class, Quantity.builder().value(new BigDecimal("8.88")).build()),
+        arguments(BadExtension.class, Quantity.builder().unit("SHANKS").build()));
   }
 
   private QuantityExtensionHandler _handler(int index) {
@@ -38,11 +39,10 @@ public class QuantityExtensionHandlerTest {
   }
 
   @ParameterizedTest
-  @NullSource
   @MethodSource
-  void badExtensionQuantity(Quantity quantity) {
+  void badExtensionQuantity(Class<Exception> expected, Quantity quantity) {
     var sample = extensionWithQuantity(quantity);
-    assertThatExceptionOfType(BadExtension.class).isThrownBy(() -> _handler(1).handle(sample));
+    assertThatExceptionOfType(expected).isThrownBy(() -> _handler(1).handle(".fugazi", sample));
   }
 
   private Extension extensionWithQuantity(Quantity quantity) {
@@ -55,7 +55,7 @@ public class QuantityExtensionHandlerTest {
     var sample =
         extensionWithQuantity(
             Quantity.builder().value(new BigDecimal("7.88")).unit("SHANKS").build());
-    assertThat(_handler(index).handle(sample))
+    assertThat(_handler(index).handle(".fugazi", sample))
         .containsExactlyInAnyOrder(
             WriteableFilemanValue.builder()
                 .file("888")
@@ -81,7 +81,7 @@ public class QuantityExtensionHandlerTest {
             .index(1)
             .build();
     var sample = extensionWithQuantity(Quantity.builder().value(new BigDecimal("8.88")).build());
-    assertThat(handler.handle(sample))
+    assertThat(handler.handle(".fugazi", sample))
         .containsOnly(
             WriteableFilemanValue.builder()
                 .file("888")

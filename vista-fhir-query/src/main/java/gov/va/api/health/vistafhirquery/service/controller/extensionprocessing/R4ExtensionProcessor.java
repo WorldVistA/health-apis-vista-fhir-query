@@ -80,7 +80,7 @@ public class R4ExtensionProcessor implements ExtensionProcessor {
     for (Extension ex : Safe.list(extensions)) {
       var matchingHandler = findMatchingHandler(ex);
       uniqueExtensionOrDie(matchingHandler);
-      values.addAll(matchingHandler.handle(ex));
+      values.addAll(matchingHandler.handle(jsonPath, ex));
     }
     allRequiredExtensionsPresentOrDie();
     return values;
