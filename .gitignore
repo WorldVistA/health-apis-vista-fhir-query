@@ -30,7 +30,7 @@
 
 target/
 
-/vista-fhir-query-interactive-tests/test_properties/results
+/vista-fhir-query-interactive-tests/test-properties/results
 
 secrets.conf
 ids.conf

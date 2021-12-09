@@ -38,7 +38,7 @@ run() {
     --rm \
     -it \
     --network="host" \
-    -v "${SCRIPT_PATH}/test_properties:/sentinel/test_properties" \
+    -v "${SCRIPT_PATH}/test-properties:/sentinel/test-properties" \
     ${SECRETS_OPTION:-} \
      vasdvp/health-apis-vista-fhir-query-interactive-tests:latest $@
 }

@@ -12,7 +12,7 @@ main() {
   echo "$@"
   SYSTEM_PROPERTIES=
   addToSystemProperties "interactive-tests" "true"
-  addToSystemProperties "interactive-tests.test-properties" "/sentinel/test_properties"
+  addToSystemProperties "interactive-tests.test-properties" "/sentinel/test-properties"
 
   output="$(java-tests \
     --module-name "vista-fhir-query-interactive-tests" \
