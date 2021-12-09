@@ -6,9 +6,9 @@ import static org.junit.jupiter.params.provider.Arguments.arguments;
 
 import gov.va.api.health.r4.api.datatypes.Period;
 import gov.va.api.health.r4.api.elements.Extension;
+import gov.va.api.health.vistafhirquery.service.controller.RequestPayloadExceptions.ExpectedAtLeastOneOfExtensionFields;
 import gov.va.api.health.vistafhirquery.service.controller.RequestPayloadExceptions.ExtensionMissingRequiredField;
 import gov.va.api.health.vistafhirquery.service.controller.RequestPayloadExceptions.UnexpectedValueForExtensionField;
-import gov.va.api.health.vistafhirquery.service.controller.ResourceExceptions.BadRequestPayload.BadExtension;
 import gov.va.api.health.vistafhirquery.service.controller.WriteableFilemanValueFactory;
 import gov.va.api.health.vistafhirquery.service.controller.extensionprocessing.ExtensionHandler.Required;
 import gov.va.api.lighthouse.charon.models.lhslighthouserpcgateway.LhsLighthouseRpcGatewayCoverageWrite.WriteableFilemanValue;
@@ -26,7 +26,7 @@ public class PeriodExtensionHandlerTest {
   static Stream<Arguments> badExtensionPeriod() {
     return Stream.of(
         arguments(ExtensionMissingRequiredField.class, null),
-        arguments(BadExtension.class, Period.builder().build()));
+        arguments(ExpectedAtLeastOneOfExtensionFields.class, Period.builder().build()));
   }
 
   static Stream<Arguments> handlePeriod() {
@@ -144,7 +144,7 @@ public class PeriodExtensionHandlerTest {
             .periodEndFieldNumber(".range")
             .index(1)
             .build();
-    assertThatExceptionOfType(BadExtension.class)
+    assertThatExceptionOfType(ExtensionMissingRequiredField.class)
         .isThrownBy(
             () ->
                 handler.handle(

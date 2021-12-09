@@ -274,6 +274,19 @@ public class RequestPayloadExceptions {
     }
   }
 
+  public static class ExpectedAtLeastOneOfExtensionFields extends InvalidExtension {
+    @Builder
+    ExpectedAtLeastOneOfExtensionFields(
+        String jsonPath, String definingUrl, List<String> expectedAtLeastOneOfFields) {
+      super(
+          jsonPath,
+          definingUrl,
+          format(
+              "Expected at least one of fields (%s), but got neither.",
+              expectedAtLeastOneOfFields));
+    }
+  }
+
   public static class UnknownExtension extends InvalidExtension {
     @Builder
     UnknownExtension(String jsonPath, String definingUrl) {

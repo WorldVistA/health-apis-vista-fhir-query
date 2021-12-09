@@ -8,7 +8,6 @@ import static org.junit.jupiter.params.provider.Arguments.arguments;
 import gov.va.api.health.r4.api.datatypes.Quantity;
 import gov.va.api.health.r4.api.elements.Extension;
 import gov.va.api.health.vistafhirquery.service.controller.RequestPayloadExceptions.ExtensionMissingRequiredField;
-import gov.va.api.health.vistafhirquery.service.controller.ResourceExceptions.BadRequestPayload.BadExtension;
 import gov.va.api.health.vistafhirquery.service.controller.WriteableFilemanValueFactory;
 import gov.va.api.lighthouse.charon.models.lhslighthouserpcgateway.LhsLighthouseRpcGatewayCoverageWrite.WriteableFilemanValue;
 import java.math.BigDecimal;
@@ -23,9 +22,11 @@ public class QuantityExtensionHandlerTest {
   static Stream<Arguments> badExtensionQuantity() {
     return Stream.of(
         arguments(ExtensionMissingRequiredField.class, null),
-        arguments(BadExtension.class, Quantity.builder().build()),
-        arguments(BadExtension.class, Quantity.builder().value(new BigDecimal("8.88")).build()),
-        arguments(BadExtension.class, Quantity.builder().unit("SHANKS").build()));
+        arguments(ExtensionMissingRequiredField.class, Quantity.builder().build()),
+        arguments(
+            ExtensionMissingRequiredField.class,
+            Quantity.builder().value(new BigDecimal("8.88")).build()),
+        arguments(ExtensionMissingRequiredField.class, Quantity.builder().unit("SHANKS").build()));
   }
 
   private QuantityExtensionHandler _handler(int index) {

@@ -4,7 +4,6 @@ import static gov.va.api.health.vistafhirquery.service.controller.R4Transformers
 
 import gov.va.api.health.r4.api.elements.Extension;
 import gov.va.api.health.vistafhirquery.service.controller.RequestPayloadExceptions.ExtensionMissingRequiredField;
-import gov.va.api.health.vistafhirquery.service.controller.ResourceExceptions.BadRequestPayload.BadExtension;
 import gov.va.api.health.vistafhirquery.service.controller.WriteableFilemanValueFactory;
 import gov.va.api.lighthouse.charon.models.lhslighthouserpcgateway.LhsLighthouseRpcGatewayCoverageWrite.WriteableFilemanValue;
 import java.util.ArrayList;
@@ -46,7 +45,11 @@ public class QuantityExtensionHandler extends AbstractExtensionHandler {
     }
     var quantity = extension.valueQuantity();
     if (isBlank(quantity.value())) {
-      throw BadExtension.because(definingUrl(), ".valueQuantity.value is null");
+      throw ExtensionMissingRequiredField.builder()
+          .jsonPath(jsonPath)
+          .definingUrl(definingUrl())
+          .requiredFieldJsonPath(".valueQuantity.value")
+          .build();
     }
     List<WriteableFilemanValue> filemanValues = new ArrayList<>(2);
     filemanValues.add(
@@ -58,8 +61,11 @@ public class QuantityExtensionHandler extends AbstractExtensionHandler {
           .ifPresentOrElse(
               filemanValues::add,
               () -> {
-                throw BadExtension.because(
-                    definingUrl(), ".unit is required but was not specified.");
+                throw ExtensionMissingRequiredField.builder()
+                    .jsonPath(jsonPath)
+                    .definingUrl(definingUrl())
+                    .requiredFieldJsonPath(".valueQuantity.unit")
+                    .build();
               });
     }
     return filemanValues;
