@@ -8,8 +8,8 @@ import static org.junit.jupiter.params.provider.Arguments.arguments;
 import gov.va.api.health.r4.api.datatypes.CodeableConcept;
 import gov.va.api.health.r4.api.datatypes.Coding;
 import gov.va.api.health.r4.api.elements.Extension;
+import gov.va.api.health.vistafhirquery.service.controller.RequestPayloadExceptions.ExtensionFieldHasUnexpectedNumberOfValues;
 import gov.va.api.health.vistafhirquery.service.controller.RequestPayloadExceptions.ExtensionMissingRequiredField;
-import gov.va.api.health.vistafhirquery.service.controller.ResourceExceptions.BadRequestPayload.BadExtension;
 import gov.va.api.health.vistafhirquery.service.controller.WriteableFilemanValueFactory;
 import gov.va.api.lighthouse.charon.models.lhslighthouserpcgateway.LhsLighthouseRpcGatewayCoverageWrite;
 import java.util.List;
@@ -24,13 +24,16 @@ public class CodeableConceptExtensionHandlerTest {
     var goodCoding = Coding.builder().system("http://fugazi.com/coding").code("SHANKTOPUS").build();
     return Stream.of(
         arguments(ExtensionMissingRequiredField.class, null),
-        arguments(BadExtension.class, CodeableConcept.builder().build()),
-        arguments(BadExtension.class, CodeableConcept.builder().coding(List.of()).build()),
         arguments(
-            BadExtension.class,
+            ExtensionFieldHasUnexpectedNumberOfValues.class, CodeableConcept.builder().build()),
+        arguments(
+            ExtensionFieldHasUnexpectedNumberOfValues.class,
+            CodeableConcept.builder().coding(List.of()).build()),
+        arguments(
+            ExtensionMissingRequiredField.class,
             CodeableConcept.builder().coding(goodCoding.code(null).asList()).build()),
         arguments(
-            BadExtension.class,
+            ExtensionFieldHasUnexpectedNumberOfValues.class,
             CodeableConcept.builder().coding(List.of(goodCoding, goodCoding)).build()));
   }
 

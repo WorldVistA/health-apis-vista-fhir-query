@@ -7,6 +7,7 @@ import gov.va.api.health.r4.api.datatypes.CodeableConcept;
 import gov.va.api.health.r4.api.datatypes.Coding;
 import gov.va.api.health.r4.api.elements.Extension;
 import gov.va.api.health.r4.api.resources.InsurancePlan;
+import gov.va.api.health.vistafhirquery.service.controller.RequestPayloadExceptions.MissingRequiredExtension;
 import gov.va.api.health.vistafhirquery.service.controller.ResourceExceptions;
 import java.util.List;
 import java.util.Optional;
@@ -20,8 +21,9 @@ import org.junit.jupiter.params.provider.MethodSource;
 public class R4InsurancePlanToGroupInsurancePlanFileTransformerTest {
   static Stream<Arguments> missingExtensions() {
     return Stream.of(
-        Arguments.of(List.of()),
+        Arguments.of(MissingRequiredExtension.class, List.of()),
         Arguments.of(
+            ResourceExceptions.BadRequestPayload.class,
             List.of(
                 Extension.builder()
                     .url(
@@ -29,6 +31,7 @@ public class R4InsurancePlanToGroupInsurancePlanFileTransformerTest {
                     .valueBoolean(true)
                     .build())),
         Arguments.of(
+            ResourceExceptions.BadRequestPayload.class,
             List.of(
                 Extension.builder()
                     .url(
@@ -87,12 +90,13 @@ public class R4InsurancePlanToGroupInsurancePlanFileTransformerTest {
 
   @ParameterizedTest
   @MethodSource
-  void missingExtensions(List<Extension> extensions) {
+  void missingExtensions(Class<Exception> expected, List<Extension> extensions) {
     var blankExtensionTransformer =
         R4InsurancePlanToGroupInsurancePlanFileTransformer.builder()
             .insurancePlan(InsurancePlanSamples.R4.create().insurancePlan().extension(extensions))
             .build();
-    assertBadRequestBodyThrown(blankExtensionTransformer::toGroupInsurancePlanFile);
+    assertThatExceptionOfType(expected)
+        .isThrownBy(blankExtensionTransformer::toGroupInsurancePlanFile);
   }
 
   @Test

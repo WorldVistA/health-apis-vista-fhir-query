@@ -20,6 +20,7 @@ import gov.va.api.health.r4.api.datatypes.Coding;
 import gov.va.api.health.r4.api.datatypes.Identifier;
 import gov.va.api.health.r4.api.elements.Extension;
 import gov.va.api.health.r4.api.elements.Reference;
+import gov.va.api.health.vistafhirquery.service.controller.RequestPayloadExceptions.MissingRequiredExtension;
 import gov.va.api.lighthouse.charon.models.FilemanDate;
 import gov.va.api.lighthouse.charon.models.ValueOnlyXmlAttribute;
 import java.math.BigDecimal;
@@ -112,7 +113,7 @@ public class R4TransformersTest {
 
   @Test
   void extensionForSystemTest() {
-    assertThatExceptionOfType(ResourceExceptions.BadRequestPayload.class)
+    assertThatExceptionOfType(MissingRequiredExtension.class)
         .isThrownBy(() -> extensionForSystem(null, "url"));
     assertThat(
             extensionForSystem(List.of(Extension.builder().url("url").build()), "url").isPresent())

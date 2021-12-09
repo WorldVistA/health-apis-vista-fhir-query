@@ -28,21 +28,6 @@ public class ResourceExceptions {
       return because(
           format("Could not populate vista file %s field %s: %s", vistaFile, vistaField, reason));
     }
-
-    public static final class BadExtension extends BadRequestPayload {
-
-      public BadExtension(String message) {
-        super(message);
-      }
-
-      public static BadExtension because(String message) {
-        return new BadExtension(message);
-      }
-
-      public static BadExtension because(String definingUrl, String reason) {
-        return new BadExtension(format("Could not process extension %s: %s", definingUrl, reason));
-      }
-    }
   }
 
   /** BadSearchParameters . */

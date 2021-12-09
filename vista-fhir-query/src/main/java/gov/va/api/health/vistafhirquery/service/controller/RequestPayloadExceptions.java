@@ -183,6 +183,31 @@ public class RequestPayloadExceptions {
     }
   }
 
+  public static class ExtensionFieldHasUnexpectedNumberOfValues extends InvalidExtension {
+    ExtensionFieldHasUnexpectedNumberOfValues(String jsonPath, String definingUrl, String problem) {
+      super(jsonPath, definingUrl, problem);
+    }
+
+    @Builder
+    private static ExtensionFieldHasUnexpectedNumberOfValues unexpectedNumberOfValues(
+        @NonNull String jsonPath,
+        String definingUrl,
+        String identifyingFieldJsonPath,
+        Collection<String> identifyingFieldValue,
+        int expectedCount,
+        int receivedCount) {
+      var message =
+          format(
+              "Unexpected number of values; expected (%d), but got (%d)",
+              expectedCount, receivedCount);
+      if (!isBlank(identifyingFieldJsonPath)) {
+        message +=
+            format(" where %s matched one of %s.", identifyingFieldJsonPath, identifyingFieldValue);
+      }
+      return new ExtensionFieldHasUnexpectedNumberOfValues(jsonPath, definingUrl, message);
+    }
+  }
+
   @AllArgsConstructor(access = AccessLevel.PRIVATE)
   private static class UnexpectedValueMessage {
     private final String message;
@@ -298,8 +323,7 @@ public class RequestPayloadExceptions {
           jsonPath,
           definingUrl,
           format(
-              "Expected at least one of fields (%s), but got neither.",
-              expectedAtLeastOneOfFields));
+              "Expected at least one of fields (%s), but got none.", expectedAtLeastOneOfFields));
     }
   }
 

@@ -8,7 +8,7 @@ import gov.va.api.health.r4.api.datatypes.Coding;
 import gov.va.api.health.r4.api.datatypes.Identifier;
 import gov.va.api.health.r4.api.elements.Extension;
 import gov.va.api.health.r4.api.elements.Reference;
-import gov.va.api.health.vistafhirquery.service.controller.ResourceExceptions.BadRequestPayload.BadExtension;
+import gov.va.api.health.vistafhirquery.service.controller.RequestPayloadExceptions.MissingRequiredExtension;
 import gov.va.api.lighthouse.charon.models.FilemanDate;
 import gov.va.api.lighthouse.charon.models.ValueOnlyXmlAttribute;
 import gov.va.api.lighthouse.charon.models.vprgetpatientdata.VprGetPatientData;
@@ -87,7 +87,10 @@ public class R4Transformers {
   public static Optional<Extension> extensionForSystem(
       List<Extension> extensions, String definingUrl) {
     if (isBlank(extensions)) {
-      throw BadExtension.because(definingUrl + " : extension is null");
+      throw MissingRequiredExtension.builder()
+          .jsonPath(".extension[]")
+          .definingUrl(definingUrl)
+          .build();
     }
     return extensions.stream().filter(extension -> definingUrl.equals(extension.url())).findFirst();
   }
