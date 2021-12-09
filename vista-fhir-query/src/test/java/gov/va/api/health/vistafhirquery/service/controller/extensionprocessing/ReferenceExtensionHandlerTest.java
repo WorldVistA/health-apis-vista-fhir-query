@@ -8,8 +8,8 @@ import static org.junit.jupiter.params.provider.Arguments.arguments;
 import gov.va.api.health.r4.api.elements.Extension;
 import gov.va.api.health.r4.api.elements.Reference;
 import gov.va.api.health.vistafhirquery.service.controller.IsSiteCoordinates;
+import gov.va.api.health.vistafhirquery.service.controller.RequestPayloadExceptions.ExtensionHasInvalidReferenceId;
 import gov.va.api.health.vistafhirquery.service.controller.RequestPayloadExceptions.ExtensionMissingRequiredField;
-import gov.va.api.health.vistafhirquery.service.controller.ResourceExceptions.BadRequestPayload.BadExtension;
 import gov.va.api.health.vistafhirquery.service.controller.WriteableFilemanValueFactory;
 import gov.va.api.lighthouse.charon.models.lhslighthouserpcgateway.LhsLighthouseRpcGatewayCoverageWrite.WriteableFilemanValue;
 import java.util.stream.Stream;
@@ -23,8 +23,10 @@ public class ReferenceExtensionHandlerTest {
   static Stream<Arguments> badExtensionReference() {
     return Stream.of(
         arguments(ExtensionMissingRequiredField.class, null),
-        arguments(BadExtension.class, Reference.builder().build()),
-        arguments(BadExtension.class, Reference.builder().display("SHANKTOPUS").build()));
+        arguments(ExtensionHasInvalidReferenceId.class, Reference.builder().build()),
+        arguments(
+            ExtensionHasInvalidReferenceId.class,
+            Reference.builder().display("SHANKTOPUS").build()));
   }
 
   private ReferenceExtensionHandler _handler(int index) {
@@ -33,7 +35,7 @@ public class ReferenceExtensionHandlerTest {
         .filemanFactory(WriteableFilemanValueFactory.forFile("888"))
         .fieldNumber("#.88")
         .index(index)
-        .referenceFile("123")
+        .referenceType("Fugazi")
         .toCoordinates(s -> new FugaziSiteCoordinates())
         .build();
   }
@@ -66,14 +68,14 @@ public class ReferenceExtensionHandlerTest {
   @Test
   void handlerThrowsWhenCoordinatesAreNull() {
     var sample = extensionWithReference(Reference.builder().reference("Fugazi/123").build());
-    assertThatExceptionOfType(BadExtension.class)
+    assertThatExceptionOfType(ExtensionHasInvalidReferenceId.class)
         .isThrownBy(
             () ->
                 ReferenceExtensionHandler.forDefiningUrl("http://fugazi.com/reference")
                     .required(REQUIRED)
                     .filemanFactory(WriteableFilemanValueFactory.forFile("888"))
                     .fieldNumber("#.88")
-                    .referenceFile("123")
+                    .referenceType("Fugazi")
                     .toCoordinates(s -> null)
                     .build()
                     .handle(".fugazi", sample));

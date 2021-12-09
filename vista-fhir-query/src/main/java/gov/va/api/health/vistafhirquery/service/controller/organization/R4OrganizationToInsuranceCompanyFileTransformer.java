@@ -32,7 +32,6 @@ import gov.va.api.health.vistafhirquery.service.controller.extensionprocessing.S
 import gov.va.api.lighthouse.charon.models.lhslighthouserpcgateway.InsuranceCompany;
 import gov.va.api.lighthouse.charon.models.lhslighthouserpcgateway.LhsLighthouseRpcGatewayCoverageWrite.WriteableFilemanValue;
 import gov.va.api.lighthouse.charon.models.lhslighthouserpcgateway.N277EdiIdNumber;
-import gov.va.api.lighthouse.charon.models.lhslighthouserpcgateway.Payer;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
@@ -773,7 +772,7 @@ public class R4OrganizationToInsuranceCompanyFileTransformer {
             .required(REQUIRED)
             .fieldNumber(InsuranceCompany.PAYER)
             .index(1)
-            .referenceFile(Payer.FILE_NUMBER)
+            .referenceType("Organization")
             .toCoordinates(RecordCoordinates::fromString)
             .filemanFactory(filemanFactory)
             .build());

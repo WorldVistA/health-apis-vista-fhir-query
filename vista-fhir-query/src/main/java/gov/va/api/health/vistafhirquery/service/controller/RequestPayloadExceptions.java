@@ -109,6 +109,13 @@ public class RequestPayloadExceptions {
     }
   }
 
+  public static class ExtensionHasInvalidReferenceId extends InvalidExtension {
+    @Builder
+    ExtensionHasInvalidReferenceId(String jsonPath, String definingUrl, String referenceType) {
+      super(jsonPath, definingUrl, format("Invalid %s id.", referenceType));
+    }
+  }
+
   public static class InvalidReferenceId extends InvalidField {
     @Builder
     InvalidReferenceId(String jsonPath, String referenceType) {

@@ -5,8 +5,8 @@ import static gov.va.api.health.vistafhirquery.service.controller.R4Transformers
 
 import gov.va.api.health.r4.api.elements.Extension;
 import gov.va.api.health.vistafhirquery.service.controller.IsSiteCoordinates;
+import gov.va.api.health.vistafhirquery.service.controller.RequestPayloadExceptions.ExtensionHasInvalidReferenceId;
 import gov.va.api.health.vistafhirquery.service.controller.RequestPayloadExceptions.ExtensionMissingRequiredField;
-import gov.va.api.health.vistafhirquery.service.controller.ResourceExceptions.BadRequestPayload.BadExtension;
 import gov.va.api.health.vistafhirquery.service.controller.WriteableFilemanValueFactory;
 import gov.va.api.lighthouse.charon.models.lhslighthouserpcgateway.LhsLighthouseRpcGatewayCoverageWrite.WriteableFilemanValue;
 import java.util.List;
@@ -16,7 +16,7 @@ import lombok.Getter;
 import lombok.NonNull;
 
 public class ReferenceExtensionHandler extends AbstractSingleFieldExtensionHandler {
-  @Getter private final String referenceFile;
+  @Getter private final String referenceType;
 
   @Getter private final Function<String, IsSiteCoordinates> toCoordinates;
 
@@ -27,10 +27,10 @@ public class ReferenceExtensionHandler extends AbstractSingleFieldExtensionHandl
       @NonNull ExtensionHandler.Required required,
       @NonNull String fieldNumber,
       int index,
-      @NonNull String referenceFile,
+      @NonNull String referenceType,
       @NonNull Function<String, IsSiteCoordinates> toCoordinates) {
     super(definingUrl, required, filemanFactory, fieldNumber, index);
-    this.referenceFile = referenceFile;
+    this.referenceType = referenceType;
     this.toCoordinates = toCoordinates;
   }
 
@@ -47,20 +47,19 @@ public class ReferenceExtensionHandler extends AbstractSingleFieldExtensionHandl
           .requiredFieldJsonPath(".valueReference")
           .build();
     }
-    var referenceId =
+    var referenceIdCoordinates =
         referenceIdFromUri(extension.valueReference())
+            .map(toCoordinates())
             .orElseThrow(
                 () ->
-                    BadExtension.because(
-                        extension.url(),
-                        "Cannot determine reference id from .valueReference.reference"));
-    var siteCoordinates = toCoordinates().apply(referenceId);
-    if (siteCoordinates == null) {
-      throw BadExtension.because(
-          extension.url(), ".valueReference.reference could not be resolved to an id");
-    }
+                    ExtensionHasInvalidReferenceId.builder()
+                        .jsonPath(".valueReference.reference")
+                        .definingUrl(definingUrl())
+                        .referenceType(referenceType())
+                        .build());
     return List.of(
         filemanFactory()
-            .forRequiredPointerWithGraveMarker(fieldNumber(), index(), siteCoordinates.ien()));
+            .forRequiredPointerWithGraveMarker(
+                fieldNumber(), index(), referenceIdCoordinates.ien()));
   }
 }
