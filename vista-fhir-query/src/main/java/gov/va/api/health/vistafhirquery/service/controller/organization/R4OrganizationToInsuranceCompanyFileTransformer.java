@@ -19,7 +19,10 @@ import gov.va.api.health.r4.api.elements.Reference;
 import gov.va.api.health.r4.api.resources.Organization;
 import gov.va.api.health.r4.api.resources.Organization.Contact;
 import gov.va.api.health.vistafhirquery.service.controller.RecordCoordinates;
-import gov.va.api.health.vistafhirquery.service.controller.ResourceExceptions.BadRequestPayload;
+import gov.va.api.health.vistafhirquery.service.controller.RequestPayloadExceptions.MissingRequiredField;
+import gov.va.api.health.vistafhirquery.service.controller.RequestPayloadExceptions.MissingRequiredListItem;
+import gov.va.api.health.vistafhirquery.service.controller.RequestPayloadExceptions.UnexpectedNumberOfValues;
+import gov.va.api.health.vistafhirquery.service.controller.RequestPayloadExceptions.UnexpectedValueForField;
 import gov.va.api.health.vistafhirquery.service.controller.WriteableFilemanValueFactory;
 import gov.va.api.health.vistafhirquery.service.controller.extensionprocessing.BooleanExtensionHandler;
 import gov.va.api.health.vistafhirquery.service.controller.extensionprocessing.CodeableConceptExtensionHandler;
@@ -33,6 +36,7 @@ import gov.va.api.lighthouse.charon.models.lhslighthouserpcgateway.InsuranceComp
 import gov.va.api.lighthouse.charon.models.lhslighthouserpcgateway.LhsLighthouseRpcGatewayCoverageWrite.WriteableFilemanValue;
 import gov.va.api.lighthouse.charon.models.lhslighthouserpcgateway.N277EdiIdNumber;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
@@ -95,59 +99,56 @@ public class R4OrganizationToInsuranceCompanyFileTransformer {
     fields.addAll(extensionProcessor.process(organization().extension()));
     fields.add(
         identifier(
-                "edi id number inst",
                 InsuranceCompany.EDI_ID_NUMBER_INST,
                 OrganizationStructureDefinitions.EDI_ID_NUMBER_INST_CODE,
                 true)
             .orElseThrow(
                 () ->
-                    BadRequestPayload.because(
-                        InsuranceCompany.EDI_ID_NUMBER_INST,
-                        "edi id number inst is a required identifier.")));
+                    MissingRequiredListItem.builder()
+                        .jsonPath(".identifier[]")
+                        .qualifiers(
+                            List.of(
+                                ".identifier[].code is"
+                                    + OrganizationStructureDefinitions.EDI_ID_NUMBER_INST_CODE))
+                        .build()));
     fields.add(
         identifier(
-                "edi id number prof",
                 InsuranceCompany.EDI_ID_NUMBER_PROF,
                 OrganizationStructureDefinitions.EDI_ID_NUMBER_PROF_CODE,
                 true)
             .orElseThrow(
                 () ->
-                    BadRequestPayload.because(
-                        InsuranceCompany.EDI_ID_NUMBER_PROF,
-                        "edi id number prof is a required identifier.")));
-    identifier(
-            "bin number",
-            InsuranceCompany.BIN_NUMBER,
-            OrganizationStructureDefinitions.BIN_NUMBER_CODE,
-            false)
+                    MissingRequiredListItem.builder()
+                        .jsonPath(".identifier[]")
+                        .qualifiers(
+                            List.of(
+                                ".identifier[].code is"
+                                    + OrganizationStructureDefinitions.EDI_ID_NUMBER_PROF_CODE))
+                        .build()));
+    identifier(InsuranceCompany.BIN_NUMBER, OrganizationStructureDefinitions.BIN_NUMBER_CODE, false)
         .ifPresent(fields::add);
     identifier(
-            "edi id number - dental",
             InsuranceCompany.EDI_ID_NUMBER_DENTAL,
             OrganizationStructureDefinitions.EDI_ID_NUMBER_DENTAL_CODE,
             false)
         .ifPresent(fields::add);
     fields.addAll(
         optionalIdentifierFieldAndQualifier(
-            "edi inst secondary id (1)",
             InsuranceCompany.EDI_INST_SECONDARY_ID_1_,
             InsuranceCompany.EDI_INST_SECONDARY_ID_QUAL_1_,
             OrganizationStructureDefinitions.EDI_INST_SECONDARY_ID_QUAL_1));
     fields.addAll(
         optionalIdentifierFieldAndQualifier(
-            "edi id inst secondary id (2)",
             InsuranceCompany.EDI_INST_SECONDARY_ID_2_,
             InsuranceCompany.EDI_INST_SECONDARY_ID_QUAL_2_,
             OrganizationStructureDefinitions.EDI_INST_SECONDARY_ID_QUAL_2));
     fields.addAll(
         optionalIdentifierFieldAndQualifier(
-            "edi prof secondary id (1)",
             InsuranceCompany.EDI_PROF_SECONDARY_ID_1_,
             InsuranceCompany.EDI_PROF_SECONDARY_ID_QUAL_1_,
             OrganizationStructureDefinitions.EDI_PROF_SECONDARY_ID_QUAL_1));
     fields.addAll(
         optionalIdentifierFieldAndQualifier(
-            "edi prof inst secondary id (2)",
             InsuranceCompany.EDI_PROF_SECONDARY_ID_2_,
             InsuranceCompany.EDI_PROF_SECONDARY_ID_QUAL_2_,
             OrganizationStructureDefinitions.EDI_PROF_SECONDARY_ID_QUAL_2));
@@ -184,15 +185,18 @@ public class R4OrganizationToInsuranceCompanyFileTransformer {
     return addressValues;
   }
 
-  private Address addressOrDie(List<Address> address) {
+  Address addressOrDie(List<Address> address) {
     if (address.size() != 1) {
-      throw BadRequestPayload.because("Organization.address is required.");
+      throw UnexpectedNumberOfValues.builder()
+          .jsonPath(".address[]")
+          .expectedCount(1)
+          .receivedCount(address.size())
+          .build();
     }
     return address.get(0);
   }
 
-  private Set<WriteableFilemanValue> contact(
-      @NonNull ContactPurpose purpose, @NonNull Contact contact) {
+  Set<WriteableFilemanValue> contact(@NonNull ContactPurpose purpose, @NonNull Contact contact) {
     switch (purpose) {
       case APPEAL:
         return contactAppeals(contact);
@@ -213,7 +217,11 @@ public class R4OrganizationToInsuranceCompanyFileTransformer {
       case VERIFY:
         return contactVerify(contact);
       default:
-        throw BadRequestPayload.because("Unknown purpose for contact: " + contact);
+        throw UnexpectedValueForField.builder()
+            .jsonPath(".contact[]")
+            .valueReceived(purpose)
+            .supportedValues(Arrays.stream(ContactPurpose.values()).toList())
+            .build();
     }
   }
 
@@ -228,9 +236,7 @@ public class R4OrganizationToInsuranceCompanyFileTransformer {
         .ifPresentOrElse(
             contactDetails::add,
             () -> {
-              throw BadRequestPayload.because(
-                  InsuranceCompany.APPEALS_PHONE_NUMBER,
-                  "Unable to populate phone for APPEAL contact.");
+              throw MissingRequiredField.builder().jsonPath(".contact[]").build();
             });
     contactPointForSystem(contact.telecom(), ContactPointSystem.fax)
         .map(filemanFactory.toString(InsuranceCompany.APPEALS_FAX, index(1), ContactPoint::value))
@@ -253,9 +259,14 @@ public class R4OrganizationToInsuranceCompanyFileTransformer {
         .ifPresentOrElse(
             contactDetails::add,
             () -> {
-              throw BadRequestPayload.because(
-                  InsuranceCompany.BILLING_COMPANY_NAME,
-                  "Cannot populate name field for BILL contact.");
+              throw MissingRequiredListItem.builder()
+                  .jsonPath(".contact[].extension[]")
+                  .qualifiers(
+                      List.of(
+                          ".contact[].purpose = " + ContactPurpose.BILL,
+                          ".contact.extension[].url = "
+                              + OrganizationStructureDefinitions.VIA_INTERMEDIARY))
+                  .build();
             });
     contactPointForSystem(contact.telecom(), ContactPointSystem.phone)
         .map(
@@ -264,8 +275,13 @@ public class R4OrganizationToInsuranceCompanyFileTransformer {
         .ifPresentOrElse(
             contactDetails::add,
             () -> {
-              throw BadRequestPayload.because(
-                  InsuranceCompany.BILLING_PHONE_NUMBER, "Cannot populate phone for BILL contact.");
+              throw MissingRequiredListItem.builder()
+                  .jsonPath(".contact[].telecom[].value")
+                  .qualifiers(
+                      List.of(
+                          ".contact[].purpose = " + ContactPurpose.BILL,
+                          ".contact[].telecom[].system =" + ContactPointSystem.phone))
+                  .build();
             });
     return contactDetails;
   }
@@ -320,9 +336,13 @@ public class R4OrganizationToInsuranceCompanyFileTransformer {
         .ifPresentOrElse(
             contactDetails::add,
             () -> {
-              throw BadRequestPayload.because(
-                  InsuranceCompany.CLAIMS_INPT_PHONE_NUMBER,
-                  "Unable to populate phone for INPTCLAIMS contact.");
+              throw MissingRequiredListItem.builder()
+                  .jsonPath(".contact[].telecom[].value")
+                  .qualifiers(
+                      List.of(
+                          ".contact[].purpose = " + ContactPurpose.INPTCLAIMS,
+                          ".contact[].telecom[].system =" + ContactPointSystem.phone))
+                  .build();
             });
     contactPointForSystem(contact.telecom(), ContactPointSystem.fax)
         .map(
@@ -352,9 +372,13 @@ public class R4OrganizationToInsuranceCompanyFileTransformer {
         .ifPresentOrElse(
             contactDetails::add,
             () -> {
-              throw BadRequestPayload.because(
-                  InsuranceCompany.INQUIRY_PHONE_NUMBER,
-                  "Could not populate phone for INQUIRY contact.");
+              throw MissingRequiredListItem.builder()
+                  .jsonPath(".contact[].telecom[].value")
+                  .qualifiers(
+                      List.of(
+                          ".contact[].purpose = " + ContactPurpose.INQUIRY,
+                          ".contact[].telecom[].system =" + ContactPointSystem.phone))
+                  .build();
             });
     contactPointForSystem(contact.telecom(), ContactPointSystem.fax)
         .map(filemanFactory.toString(InsuranceCompany.INQUIRY_FAX, index(1), ContactPoint::value))
@@ -382,9 +406,13 @@ public class R4OrganizationToInsuranceCompanyFileTransformer {
         .ifPresentOrElse(
             contactDetails::add,
             () -> {
-              throw BadRequestPayload.because(
-                  InsuranceCompany.CLAIMS_OPT_PHONE_NUMBER,
-                  "Unable to populate phone for OUTPTCLAIMS contact.");
+              throw MissingRequiredListItem.builder()
+                  .jsonPath(".contact[].telecom[].value")
+                  .qualifiers(
+                      List.of(
+                          ".contact[].purpose = " + ContactPurpose.OUTPTCLAIMS,
+                          ".contact[].telecom[].system =" + ContactPointSystem.phone))
+                  .build();
             });
     contactPointForSystem(contact.telecom(), ContactPointSystem.fax)
         .map(
@@ -408,13 +436,16 @@ public class R4OrganizationToInsuranceCompanyFileTransformer {
       String contactType,
       ContactPointSystem system) {
     if (isBlank(telecom)) {
-      throw BadRequestPayload.because(fieldNumber, contactType + "telecom reference is null");
+      throw MissingRequiredField.builder().jsonPath(".telecom[]").build();
     }
     ContactPoint contactPoint =
         contactPointForSystem(telecom, system)
             .orElseThrow(
                 () ->
-                    BadRequestPayload.because(fieldNumber, contactType + " contact point is null"));
+                    MissingRequiredListItem.builder()
+                        .jsonPath(".telecom[].value")
+                        .qualifiers(List.of(".contact[].telecom[].system = " + system))
+                        .build());
     return insuranceCompanyCoordinatesOrDie(fieldNumber, 1, contactPoint.value());
   }
 
@@ -437,30 +468,36 @@ public class R4OrganizationToInsuranceCompanyFileTransformer {
         .ifPresentOrElse(
             contactDetails::add,
             () -> {
-              throw BadRequestPayload.because(
-                  InsuranceCompany.PRECERTIFICATION_PHONE_NUMBER,
-                  "Unable to populate phone for PRECERT contact.");
+              throw MissingRequiredListItem.builder()
+                  .jsonPath(".contact[].telecom[].value")
+                  .qualifiers(
+                      List.of(
+                          ".contact[].purpose = " + ContactPurpose.PRECERT,
+                          ".contact[].telecom[].system =" + ContactPointSystem.phone))
+                  .build();
             });
     return contactDetails;
   }
 
-  private ContactPurpose contactPurposeOrDie(CodeableConcept purpose) {
+  ContactPurpose contactPurposeOrDie(CodeableConcept purpose) {
     /* TODO https://vajira.max.gov/browse/API-10394 ignore unknown contacts. */
     if (isBlank(purpose)) {
-      throw BadRequestPayload.because(".purpose is blank");
+      throw MissingRequiredField.builder().jsonPath(".contact[].purpose").build();
     }
     if (isBlank(purpose.coding())) {
-      throw BadRequestPayload.because("Cannot determine purpose: .purpose.coding is blank");
+      throw MissingRequiredField.builder().jsonPath(".contact[].purpose.coding[]").build();
     }
     if (purpose.coding().size() != 1) {
-      throw BadRequestPayload.because(
-          "Cannot determine purpose: expected 1 number of codings but got "
-              + purpose.coding().size());
+      throw UnexpectedNumberOfValues.builder()
+          .receivedCount(purpose.coding().size())
+          .expectedCount(1)
+          .jsonPath(".contact[].purpose")
+          .build();
     }
     /* TODO https://vajira.max.gov/browse/API-11250 Fix system */
     var purposeCode = purpose.coding().get(0).code();
     if (isBlank(purposeCode)) {
-      throw BadRequestPayload.because("Purpose code is blank.");
+      throw MissingRequiredField.builder().jsonPath(".contact[].purpose.coding[].code").build();
     }
     return ContactPurpose.valueOf(purposeCode);
   }
@@ -497,9 +534,13 @@ public class R4OrganizationToInsuranceCompanyFileTransformer {
                     InsuranceCompany.VERIFICATION_PHONE_NUMBER, index(1), ContactPoint::value))
             .orElseThrow(
                 () ->
-                    BadRequestPayload.because(
-                        InsuranceCompany.VERIFICATION_PHONE_NUMBER,
-                        "Unable to populate phone for VERIFY contact."));
+                    MissingRequiredListItem.builder()
+                        .jsonPath(".contact[].telecom[].value")
+                        .qualifiers(
+                            List.of(
+                                ".contact[].purpose = " + ContactPurpose.VERIFY,
+                                ".contact[].telecom[].system =" + ContactPointSystem.phone))
+                        .build());
     return Set.of(phone);
   }
 
@@ -527,7 +568,10 @@ public class R4OrganizationToInsuranceCompanyFileTransformer {
     if (requiredContacts.isEmpty()) {
       return contacts;
     }
-    throw BadRequestPayload.because("Payload missing required contacts types: " + requiredContacts);
+    throw MissingRequiredListItem.builder()
+        .jsonPath(".contact[]")
+        .qualifiers(List.of(".contact[].purpose = " + requiredContacts))
+        .build();
   }
 
   Optional<Extension> extensionForSystem(List<Extension> extensions, String system) {
@@ -789,17 +833,23 @@ public class R4OrganizationToInsuranceCompanyFileTransformer {
   }
 
   Optional<WriteableFilemanValue> identifier(
-      String fieldName, String fieldNumber, String identifierCode, boolean required) {
+      String fieldNumber, String identifierCode, boolean required) {
     Optional<Identifier> identifier =
         identifierForPredicate(organization().identifier(), c -> identifierCode.equals(c.code()));
     if (identifier.isEmpty() && required) {
-      throw BadRequestPayload.because(fieldNumber, fieldName + " identifier is required");
+      throw MissingRequiredListItem.builder()
+          .jsonPath(".identifier[]")
+          .qualifiers(List.of(".identifier[].type.coding[].code is" + identifierCode))
+          .build();
     }
     if (identifier.isEmpty()) {
       return Optional.empty();
     }
     if (identifier.get().value().isBlank()) {
-      throw BadRequestPayload.because(fieldNumber, fieldName + "identifier.value is null");
+      throw MissingRequiredListItem.builder()
+          .jsonPath(".identifier[]")
+          .qualifiers(List.of(".identifier[].type.coding[].code is" + identifierCode))
+          .build();
     }
     return filemanFactory.forOptionalString(fieldNumber, 1, identifier.get().value());
   }
@@ -835,12 +885,22 @@ public class R4OrganizationToInsuranceCompanyFileTransformer {
             organization().identifier(),
             c -> OrganizationStructureDefinitions.N277_EDI_ID_NUMBER_CODE.equals(c.code()));
     if (identifier.isEmpty()) {
-      throw BadRequestPayload.because(
-          InsuranceCompany.N277EDI_ID_NUMBER, "277 edi id number" + " identifier is required");
+      throw MissingRequiredListItem.builder()
+          .jsonPath(".identifier[]")
+          .qualifiers(
+              List.of(
+                  ".identifier[].type.coding[].code = "
+                      + OrganizationStructureDefinitions.N277_EDI_ID_NUMBER_CODE))
+          .build();
     }
     if (identifier.get().value().isBlank()) {
-      throw BadRequestPayload.because(
-          InsuranceCompany.N277EDI_ID_NUMBER, "277 edi id number" + "identifier.value is null");
+      throw MissingRequiredListItem.builder()
+          .jsonPath(".identifier[].value")
+          .qualifiers(
+              List.of(
+                  ".identifier[].type.coding[].code = "
+                      + OrganizationStructureDefinitions.N277_EDI_ID_NUMBER_CODE))
+          .build();
     }
     ArrayList<WriteableFilemanValue> n277Values = new ArrayList<>(2);
     n277Values.add(
@@ -861,7 +921,7 @@ public class R4OrganizationToInsuranceCompanyFileTransformer {
   }
 
   List<WriteableFilemanValue> optionalIdentifierFieldAndQualifier(
-      String descriptiveName, String idField, String qualifierField, String identifierSystem) {
+      String idField, String qualifierField, String identifierSystem) {
     Optional<Identifier> identifier =
         identifierForPredicate(
             organization().identifier(), c -> identifierSystem.equals(c.system()));
@@ -869,17 +929,25 @@ public class R4OrganizationToInsuranceCompanyFileTransformer {
       return List.of();
     }
     if (identifier.get().value().isBlank()) {
-      throw BadRequestPayload.because(idField, descriptiveName + " identifier.value is null");
+      throw MissingRequiredListItem.builder()
+          .jsonPath(".identifier[].value")
+          .qualifiers(List.of(".identifier[].type.coding[].system = " + identifierSystem))
+          .build();
     }
     var matchingCodes =
         identifier.get().type().coding().stream().map(Coding::code).collect(Collectors.toList());
     if (matchingCodes.isEmpty()) {
-      throw BadRequestPayload.because(
-          idField, descriptiveName + " identifier.type.coding.code is null");
+      throw MissingRequiredListItem.builder()
+          .jsonPath(".identifier[].type.coding[].code")
+          .qualifiers(List.of(".identifier[].type.coding[].system = " + identifierSystem))
+          .build();
     }
     if (matchingCodes.size() > 1) {
-      throw BadRequestPayload.because(
-          idField, descriptiveName + " identifier.type.coding.code only one code is allowed.");
+      throw UnexpectedNumberOfValues.builder()
+          .jsonPath(".identifier[].type.coding[].code")
+          .receivedCount(matchingCodes.size())
+          .expectedCount(1)
+          .build();
     }
     return List.of(
         filemanFactory.forRequiredString(idField, 1, identifier.get().value()),

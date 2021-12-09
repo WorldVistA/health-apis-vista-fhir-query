@@ -16,7 +16,7 @@ import gov.va.api.health.vistafhirquery.service.controller.R4Bundler;
 import gov.va.api.health.vistafhirquery.service.controller.R4BundlerFactory;
 import gov.va.api.health.vistafhirquery.service.controller.R4Bundling;
 import gov.va.api.health.vistafhirquery.service.controller.R4Transformation;
-import gov.va.api.health.vistafhirquery.service.controller.ResourceExceptions;
+import gov.va.api.health.vistafhirquery.service.controller.RequestPayloadExceptions.InvalidReferenceId;
 import gov.va.api.health.vistafhirquery.service.controller.recordcontext.CreatePatientRecordWriteContext;
 import gov.va.api.health.vistafhirquery.service.controller.recordcontext.PatientRecordWriteContext;
 import gov.va.api.health.vistafhirquery.service.controller.witnessprotection.WitnessProtection;
@@ -68,7 +68,8 @@ public class R4SiteCoverageEligibilityResponseController
   private static String patientOrDie(CoverageEligibilityResponse body) {
     return referenceIdFromUri(body.patient())
         .orElseThrow(
-            () -> ResourceExceptions.BadRequestPayload.because("Patient reference not found."));
+            () ->
+                InvalidReferenceId.builder().jsonPath(".patient").referenceType("Patient").build());
   }
 
   private void addCoverageResultsToContext(R4CoverageEligibilityResponseSearchContext ctx) {

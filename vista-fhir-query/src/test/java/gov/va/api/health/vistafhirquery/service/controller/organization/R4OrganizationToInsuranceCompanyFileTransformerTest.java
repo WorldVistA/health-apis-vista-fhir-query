@@ -3,11 +3,20 @@ package gov.va.api.health.vistafhirquery.service.controller.organization;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 
+import gov.va.api.health.r4.api.datatypes.CodeableConcept;
+import gov.va.api.health.r4.api.datatypes.Coding;
 import gov.va.api.health.r4.api.datatypes.ContactPoint;
 import gov.va.api.health.r4.api.resources.Organization;
+import gov.va.api.health.vistafhirquery.service.controller.RequestPayloadExceptions.MissingRequiredField;
+import gov.va.api.health.vistafhirquery.service.controller.RequestPayloadExceptions.MissingRequiredListItem;
+import gov.va.api.health.vistafhirquery.service.controller.RequestPayloadExceptions.UnexpectedNumberOfValues;
 import gov.va.api.health.vistafhirquery.service.controller.ResourceExceptions.BadRequestPayload;
+import gov.va.api.health.vistafhirquery.service.controller.organization.R4OrganizationToInsuranceCompanyFileTransformer.ContactPurpose;
+import java.util.Collections;
 import java.util.List;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.EnumSource;
 
 public class R4OrganizationToInsuranceCompanyFileTransformerTest {
   private R4OrganizationToInsuranceCompanyFileTransformer _transformer() {
@@ -18,10 +27,41 @@ public class R4OrganizationToInsuranceCompanyFileTransformerTest {
   }
 
   @Test
-  void contactPointThrowsBadRequestPayload() {
-    assertThatExceptionOfType(BadRequestPayload.class)
+  void addressThrowsUnexpectedNumberOfValuesException() {
+    assertThatExceptionOfType(UnexpectedNumberOfValues.class)
+        .isThrownBy(() -> _transformer().addressOrDie(Collections.emptyList()));
+  }
+
+  @Test
+  void appealContactThrowMissingRequiredExceptions() {
+    assertThatExceptionOfType(MissingRequiredField.class)
+        .isThrownBy(
+            () ->
+                _transformer()
+                    .contact(ContactPurpose.APPEAL, Organization.Contact.builder().build()));
+  }
+
+  @Test
+  void contactPointForSystemThrowsRequestPayloadExceptions() {
+    assertThatExceptionOfType(MissingRequiredField.class)
+        .isThrownBy(() -> _transformer().contactPurposeOrDie(null));
+    assertThatExceptionOfType(MissingRequiredField.class)
+        .isThrownBy(() -> _transformer().contactPurposeOrDie(CodeableConcept.builder().build()));
+    assertThatExceptionOfType(UnexpectedNumberOfValues.class)
+        .isThrownBy(
+            () ->
+                _transformer()
+                    .contactPurposeOrDie(
+                        CodeableConcept.builder()
+                            .coding(List.of(Coding.builder().build(), Coding.builder().build()))
+                            .build()));
+  }
+
+  @Test
+  void contactPointThrowsMissingRequiredExceptions() {
+    assertThatExceptionOfType(MissingRequiredField.class)
         .isThrownBy(() -> _transformer().contactPoint(null, null, null, null));
-    assertThatExceptionOfType(BadRequestPayload.class)
+    assertThatExceptionOfType(MissingRequiredListItem.class)
         .isThrownBy(
             () ->
                 _transformer()
@@ -46,6 +86,35 @@ public class R4OrganizationToInsuranceCompanyFileTransformerTest {
   @Test
   void forSystemReturnEmptyOnNull() {
     _transformer().extensionForSystem(null, null).isEmpty();
+  }
+
+  @Test
+  void identifiersThrowMissingRequiredExceptions() {
+    assertThatExceptionOfType(MissingRequiredListItem.class)
+        .isThrownBy(() -> _transformer().identifier(null, "", true));
+  }
+
+  @Test
+  void missingIdentifiersThrowMissingRequiredExceptions() {
+    var missingIdentifiersTransformer =
+        R4OrganizationToInsuranceCompanyFileTransformer.builder()
+            .organization(Organization.builder().build())
+            .build();
+    assertThatExceptionOfType(MissingRequiredListItem.class)
+        .isThrownBy(() -> missingIdentifiersTransformer.identifier("", "", true));
+    assertThatExceptionOfType(MissingRequiredListItem.class)
+        .isThrownBy(() -> missingIdentifiersTransformer.n277EdiIdentifier());
+  }
+
+  @EnumSource(
+      value = ContactPurpose.class,
+      names = {"APPEAL", "DENTALCLAIMS", "RXCLAIMS"},
+      mode = EnumSource.Mode.EXCLUDE)
+  @ParameterizedTest
+  void requiredContactsThrowMissingRequiredExceptions(ContactPurpose contactPurpose) {
+    assertThatExceptionOfType(MissingRequiredListItem.class)
+        .isThrownBy(
+            () -> _transformer().contact(contactPurpose, Organization.Contact.builder().build()));
   }
 
   @Test

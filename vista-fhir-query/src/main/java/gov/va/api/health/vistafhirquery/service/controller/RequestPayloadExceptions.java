@@ -144,6 +144,22 @@ public class RequestPayloadExceptions {
     }
   }
 
+  @EqualsAndHashCode(callSuper = true)
+  public static class MissingRequiredListItem extends InvalidField {
+    @NonNull @Getter private final List<String> qualifiers;
+
+    @Builder
+    MissingRequiredListItem(String jsonPath, List<String> qualifiers) {
+      super(jsonPath, "Required item in list is missing.");
+      this.qualifiers = qualifiers;
+    }
+
+    @Override
+    public String getMessage() {
+      return format("%s, Qualifiers: (%s)", super.getMessage(), qualifiers);
+    }
+  }
+
   public static class UnexpectedNumberOfValues extends InvalidField {
     UnexpectedNumberOfValues(String jsonPath, String problem) {
       super(jsonPath, problem);
