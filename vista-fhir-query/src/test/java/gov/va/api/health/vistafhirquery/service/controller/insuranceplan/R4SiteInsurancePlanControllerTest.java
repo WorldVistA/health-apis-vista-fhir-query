@@ -15,6 +15,7 @@ import gov.va.api.health.vistafhirquery.service.config.LinkProperties;
 import gov.va.api.health.vistafhirquery.service.controller.LhsGatewayExceptions.AttemptToUpdateUnknownRecord;
 import gov.va.api.health.vistafhirquery.service.controller.MockWitnessProtection;
 import gov.va.api.health.vistafhirquery.service.controller.R4BundlerFactory;
+import gov.va.api.health.vistafhirquery.service.controller.RequestPayloadExceptions;
 import gov.va.api.health.vistafhirquery.service.controller.ResourceExceptions;
 import gov.va.api.health.vistafhirquery.service.controller.ResourceExceptions.MismatchedFileCoordinates;
 import gov.va.api.health.vistafhirquery.service.controller.ResourceExceptions.NotFound;
@@ -197,7 +198,7 @@ class R4SiteInsurancePlanControllerTest {
   void updateThrowsBadRequestPayloadForResourcesThatCannotBeProcessed() {
     var response = new MockHttpServletResponse();
     witnessProtection.add("pub1", "123;355.3;ien1");
-    assertThatExceptionOfType(ResourceExceptions.BadRequestPayload.class)
+    assertThatExceptionOfType(RequestPayloadExceptions.MissingRequiredField.class)
         .isThrownBy(
             () ->
                 _controller()

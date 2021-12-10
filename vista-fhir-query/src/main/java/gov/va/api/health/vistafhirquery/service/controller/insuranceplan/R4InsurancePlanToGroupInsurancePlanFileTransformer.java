@@ -1,42 +1,56 @@
 package gov.va.api.health.vistafhirquery.service.controller.insuranceplan;
 
 import static gov.va.api.health.vistafhirquery.service.controller.R4Transformers.codeableconceptHasCodingSystem;
-import static gov.va.api.health.vistafhirquery.service.controller.R4Transformers.extensionForSystem;
 import static gov.va.api.health.vistafhirquery.service.controller.R4Transformers.identifierHasCodingSystem;
 import static gov.va.api.health.vistafhirquery.service.controller.R4Transformers.isBlank;
 import static gov.va.api.health.vistafhirquery.service.controller.R4Transformers.recordCoordinatesForReference;
 import static gov.va.api.health.vistafhirquery.service.controller.WriteableFilemanValueFactory.index;
+import static gov.va.api.health.vistafhirquery.service.controller.extensionprocessing.ExtensionHandler.Required.REQUIRED;
 import static java.util.function.Function.identity;
 
 import gov.va.api.health.r4.api.datatypes.CodeableConcept;
 import gov.va.api.health.r4.api.datatypes.Coding;
 import gov.va.api.health.r4.api.datatypes.Identifier;
-import gov.va.api.health.r4.api.elements.Extension;
 import gov.va.api.health.r4.api.elements.Reference;
 import gov.va.api.health.r4.api.resources.InsurancePlan;
 import gov.va.api.health.vistafhirquery.service.controller.RecordCoordinates;
-import gov.va.api.health.vistafhirquery.service.controller.ResourceExceptions;
+import gov.va.api.health.vistafhirquery.service.controller.RequestPayloadExceptions.MissingRequiredField;
+import gov.va.api.health.vistafhirquery.service.controller.RequestPayloadExceptions.MissingRequiredListItem;
+import gov.va.api.health.vistafhirquery.service.controller.RequestPayloadExceptions.UnexpectedNumberOfValues;
 import gov.va.api.health.vistafhirquery.service.controller.WriteableFilemanValueFactory;
+import gov.va.api.health.vistafhirquery.service.controller.extensionprocessing.BooleanExtensionHandler;
+import gov.va.api.health.vistafhirquery.service.controller.extensionprocessing.ExtensionHandler;
+import gov.va.api.health.vistafhirquery.service.controller.extensionprocessing.ExtensionProcessor;
+import gov.va.api.health.vistafhirquery.service.controller.extensionprocessing.QuantityExtensionHandler;
+import gov.va.api.health.vistafhirquery.service.controller.extensionprocessing.R4ExtensionProcessor;
 import gov.va.api.lighthouse.charon.models.lhslighthouserpcgateway.GroupInsurancePlan;
 import gov.va.api.lighthouse.charon.models.lhslighthouserpcgateway.InsuranceCompany;
 import gov.va.api.lighthouse.charon.models.lhslighthouserpcgateway.LhsLighthouseRpcGatewayCoverageWrite.WriteableFilemanValue;
+import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.function.Function;
 import java.util.function.Predicate;
+import java.util.stream.Stream;
 import lombok.Builder;
 import lombok.NonNull;
 import lombok.Value;
 
 @Value
 public class R4InsurancePlanToGroupInsurancePlanFileTransformer {
+  static final Map<Boolean, String> YES_NO = Map.of(true, "YES", false, "NO");
+
   private static final WriteableFilemanValueFactory filemanFactory =
       WriteableFilemanValueFactory.forFile(GroupInsurancePlan.FILE_NUMBER);
 
   @NonNull InsurancePlan insurancePlan;
+
+  ExtensionProcessor extensionProcessor =
+      R4ExtensionProcessor.of(".extension[]", extensionHandlers());
 
   @Builder
   R4InsurancePlanToGroupInsurancePlanFileTransformer(@NonNull InsurancePlan insurancePlan) {
@@ -55,23 +69,76 @@ public class R4InsurancePlanToGroupInsurancePlanFileTransformer {
 
   WriteableFilemanValue electronicPlanType(List<CodeableConcept> codeableConcepts) {
     return extractFromListOrDie(
-        "plan",
+        ".type[]",
+        List.of(
+            ".type[].coding[].system = " + InsurancePlanStructureDefinitions.ELECTRONIC_PLAN_TYPE),
         codeableConcepts,
         c ->
             codeableconceptHasCodingSystem(
                 c, InsurancePlanStructureDefinitions.ELECTRONIC_PLAN_TYPE),
         this::extractCodeFromCoding,
-        GroupInsurancePlan.ELECTRONIC_PLAN_TYPE,
-        InsurancePlanStructureDefinitions.ELECTRONIC_PLAN_TYPE + " system type not found");
+        GroupInsurancePlan.ELECTRONIC_PLAN_TYPE);
   }
 
-  @SuppressWarnings("DoNotCallSuggester")
-  void extensionNotFound(String fieldName) {
-    throw ResourceExceptions.BadRequestPayload.because("extension not found: " + fieldName);
+  private List<ExtensionHandler> extensionHandlers() {
+    return Stream.of(extensionHandlersBoolean(), extensionHandlersQuantity())
+        .flatMap(Collection::stream)
+        .toList();
   }
 
-  WriteableFilemanValue extensionToBooleanWriteableFilemanValue(Extension extension, String field) {
-    return filemanFactory.forRequiredBoolean(field, 1, extension, value -> value ? "YES" : "NO");
+  private Set<ExtensionHandler> extensionHandlersBoolean() {
+    return Set.of(
+        BooleanExtensionHandler.forDefiningUrl(
+                InsurancePlanStructureDefinitions.IS_UTILIZATION_REVIEW_REQUIRED)
+            .filemanFactory(filemanFactory)
+            .fieldNumber(GroupInsurancePlan.IS_UTILIZATION_REVIEW_REQUIRED)
+            .index(1)
+            .required(REQUIRED)
+            .booleanStringMapping(YES_NO)
+            .build(),
+        BooleanExtensionHandler.forDefiningUrl(
+                InsurancePlanStructureDefinitions.IS_PRE_CERTIFICATION_REQUIRED)
+            .filemanFactory(filemanFactory)
+            .fieldNumber(GroupInsurancePlan.IS_PRE_CERTIFICATION_REQUIRED_)
+            .index(1)
+            .required(REQUIRED)
+            .booleanStringMapping(YES_NO)
+            .build(),
+        BooleanExtensionHandler.forDefiningUrl(
+                InsurancePlanStructureDefinitions.EXCLUDE_PRE_EXISTING_CONDITION)
+            .filemanFactory(filemanFactory)
+            .fieldNumber(GroupInsurancePlan.EXCLUDE_PRE_EXISTING_CONDITION)
+            .index(1)
+            .required(REQUIRED)
+            .booleanStringMapping(YES_NO)
+            .build(),
+        BooleanExtensionHandler.forDefiningUrl(
+                InsurancePlanStructureDefinitions.BENEFITS_ASSIGNABLE)
+            .filemanFactory(filemanFactory)
+            .fieldNumber(GroupInsurancePlan.BENEFITS_ASSIGNABLE_)
+            .index(1)
+            .required(REQUIRED)
+            .booleanStringMapping(YES_NO)
+            .build(),
+        BooleanExtensionHandler.forDefiningUrl(
+                InsurancePlanStructureDefinitions.AMBULATORY_CARE_CERTIFICATION)
+            .filemanFactory(filemanFactory)
+            .fieldNumber(GroupInsurancePlan.AMBULATORY_CARE_CERTIFICATION)
+            .index(1)
+            .required(REQUIRED)
+            .booleanStringMapping(YES_NO)
+            .build());
+  }
+
+  private Set<ExtensionHandler> extensionHandlersQuantity() {
+    return Set.of(
+        QuantityExtensionHandler.forDefiningUrl(InsurancePlanStructureDefinitions.PLAN_STANDARD_FTF)
+            .required(REQUIRED)
+            .valueFieldNumber(GroupInsurancePlan.PLAN_STANDARD_FTF_VALUE)
+            .unitFieldNumber(GroupInsurancePlan.PLAN_STANDARD_FTF)
+            .index(1)
+            .filemanFactory(filemanFactory)
+            .build());
   }
 
   String extractCodeFromCoding(CodeableConcept c) {
@@ -95,34 +162,36 @@ public class R4InsurancePlanToGroupInsurancePlanFileTransformer {
   }
 
   <T, R> WriteableFilemanValue extractFromListOrDie(
-      String parameterName,
+      String jsonPath,
+      List<String> qualifier,
       List<T> object,
       Predicate<? super T> predicate,
       Function<? super T, ? extends R> mapper,
-      String field,
-      String error) {
+      String field) {
     if (isBlank(object)) {
-      throw ResourceExceptions.BadRequestPayload.because(field, parameterName + " is null");
+      throw MissingRequiredField.builder().jsonPath(jsonPath).build();
     }
     return extractFromList(object, predicate, mapper, field)
-        .orElseThrow(() -> ResourceExceptions.BadRequestPayload.because(field, error));
+        .orElseThrow(
+            () ->
+                MissingRequiredListItem.builder().jsonPath(jsonPath).qualifiers(qualifier).build());
   }
 
   WriteableFilemanValue groupName(String name) {
     if (isBlank(name)) {
-      throw ResourceExceptions.BadRequestPayload.because("name is null");
+      throw MissingRequiredField.builder().jsonPath(".name").build();
     }
     return filemanFactory.forRequiredString(GroupInsurancePlan.GROUP_NAME, 1, name);
   }
 
   WriteableFilemanValue groupNumber(List<Identifier> identifiers) {
     return extractFromListOrDie(
-        "identifiers",
+        ".identifier[]",
+        List.of(".identifier[].system = " + InsurancePlanStructureDefinitions.GROUP_NUMBER),
         identifiers,
         i -> identifierHasCodingSystem(i, InsurancePlanStructureDefinitions.GROUP_NUMBER),
         Identifier::value,
-        GroupInsurancePlan.GROUP_NUMBER,
-        InsurancePlanStructureDefinitions.GROUP_NUMBER + " system type not found");
+        GroupInsurancePlan.GROUP_NUMBER);
   }
 
   Optional<WriteableFilemanValue> insuranceCompany(Reference reference) {
@@ -148,31 +217,12 @@ public class R4InsurancePlanToGroupInsurancePlanFileTransformer {
 
   WriteableFilemanValue planId(List<Identifier> identifiers) {
     return extractFromListOrDie(
-        "identifiers",
+        ".identifier[]",
+        List.of(".identifier[].system = " + InsurancePlanStructureDefinitions.PLAN_ID),
         identifiers,
         i -> identifierHasCodingSystem(i, InsurancePlanStructureDefinitions.PLAN_ID),
         Identifier::value,
-        GroupInsurancePlan.PLAN_ID,
-        InsurancePlanStructureDefinitions.PLAN_ID + " system type not found");
-  }
-
-  List<WriteableFilemanValue> planStandardFtf(Extension extension) {
-    if (isBlank(extension) || isBlank(extension.valueQuantity())) {
-      throw ResourceExceptions.BadRequestPayload.because(
-          GroupInsurancePlan.PLAN_STANDARD_FTF, "extension is null or has no valueQuantity");
-    }
-    if (isBlank(extension.valueQuantity().unit()) || isBlank(extension.valueQuantity().value())) {
-      throw ResourceExceptions.BadRequestPayload.because(
-          GroupInsurancePlan.PLAN_STANDARD_FTF, "extension unit/value is null");
-    }
-    /* TODO https://vajira.max.gov/browse/API-11253 verify system is urn:oid:2.16.840.1.113883.3.8901.3.1.3558013 */
-    return List.of(
-        filemanFactory.forRequiredString(
-            GroupInsurancePlan.PLAN_STANDARD_FTF, 1, extension.valueQuantity().unit()),
-        filemanFactory.forRequiredString(
-            GroupInsurancePlan.PLAN_STANDARD_FTF_VALUE,
-            1,
-            extension.valueQuantity().value().toString()));
+        GroupInsurancePlan.PLAN_ID);
   }
 
   Optional<WriteableFilemanValue> processorControlNumber(List<Identifier> identifiers) {
@@ -193,108 +243,51 @@ public class R4InsurancePlanToGroupInsurancePlanFileTransformer {
         .ifPresentOrElse(
             fields::add,
             () -> {
-              throw ResourceExceptions.BadRequestPayload.because("ownedBy field not found");
+              throw MissingRequiredField.builder().jsonPath(".ownedBy").build();
             });
-    extensionForSystem(
-            insurancePlan().extension(),
-            InsurancePlanStructureDefinitions.IS_UTILIZATION_REVIEW_REQUIRED)
-        .map(
-            e ->
-                extensionToBooleanWriteableFilemanValue(
-                    e, GroupInsurancePlan.IS_UTILIZATION_REVIEW_REQUIRED))
-        .ifPresentOrElse(
-            fields::add,
-            () ->
-                extensionNotFound(
-                    InsurancePlanStructureDefinitions.IS_UTILIZATION_REVIEW_REQUIRED));
-    extensionForSystem(
-            insurancePlan().extension(),
-            InsurancePlanStructureDefinitions.IS_PRE_CERTIFICATION_REQUIRED)
-        .map(
-            e ->
-                extensionToBooleanWriteableFilemanValue(
-                    e, GroupInsurancePlan.IS_PRE_CERTIFICATION_REQUIRED_))
-        .ifPresentOrElse(
-            fields::add,
-            () ->
-                extensionNotFound(InsurancePlanStructureDefinitions.IS_PRE_CERTIFICATION_REQUIRED));
-    extensionForSystem(
-            insurancePlan().extension(),
-            InsurancePlanStructureDefinitions.EXCLUDE_PRE_EXISTING_CONDITION)
-        .map(
-            e ->
-                extensionToBooleanWriteableFilemanValue(
-                    e, GroupInsurancePlan.EXCLUDE_PRE_EXISTING_CONDITION))
-        .ifPresentOrElse(
-            fields::add,
-            () ->
-                extensionNotFound(
-                    InsurancePlanStructureDefinitions.EXCLUDE_PRE_EXISTING_CONDITION));
-    extensionForSystem(
-            insurancePlan().extension(), InsurancePlanStructureDefinitions.BENEFITS_ASSIGNABLE)
-        .map(
-            e ->
-                extensionToBooleanWriteableFilemanValue(e, GroupInsurancePlan.BENEFITS_ASSIGNABLE_))
-        .ifPresentOrElse(
-            fields::add,
-            () -> extensionNotFound(InsurancePlanStructureDefinitions.BENEFITS_ASSIGNABLE));
     fields.add(typeOfPlan(insurancePlan().plan()));
-    extensionForSystem(
-            insurancePlan().extension(),
-            InsurancePlanStructureDefinitions.AMBULATORY_CARE_CERTIFICATION)
-        .map(
-            e ->
-                extensionToBooleanWriteableFilemanValue(
-                    e, GroupInsurancePlan.AMBULATORY_CARE_CERTIFICATION))
-        .ifPresentOrElse(
-            fields::add,
-            () ->
-                extensionNotFound(InsurancePlanStructureDefinitions.AMBULATORY_CARE_CERTIFICATION));
     fields.add(electronicPlanType(insurancePlan().type()));
-    extensionForSystem(
-            insurancePlan().extension(), InsurancePlanStructureDefinitions.PLAN_STANDARD_FTF)
-        .map(this::planStandardFtf)
-        .ifPresentOrElse(
-            fields::addAll,
-            () -> extensionNotFound(InsurancePlanStructureDefinitions.PLAN_STANDARD_FTF));
     fields.add(groupName(insurancePlan().name()));
     fields.add(groupNumber(insurancePlan().identifier()));
     fields.add(planId(insurancePlan().identifier()));
     planCategory(insurancePlan().type()).ifPresent(fields::add);
     bankingIdentificationNumber(insurancePlan().identifier()).ifPresent(fields::add);
     processorControlNumber(insurancePlan().identifier()).ifPresent(fields::add);
+    fields.addAll(extensionProcessor.process(insurancePlan().extension()));
     return fields;
   }
 
   WriteableFilemanValue typeOfPlan(List<InsurancePlan.Plan> plan) {
     if (isBlank(plan)) {
-      throw ResourceExceptions.BadRequestPayload.because(
-          GroupInsurancePlan.TYPE_OF_PLAN, "plan is null");
+      throw MissingRequiredField.builder().jsonPath(".plan[]").build();
     }
     if (plan.size() != 1) {
-      throw ResourceExceptions.BadRequestPayload.because(
-          GroupInsurancePlan.TYPE_OF_PLAN, "Expected 1 plan, but got " + plan.size());
+      throw UnexpectedNumberOfValues.builder()
+          .receivedCount(plan.size())
+          .expectedCount(1)
+          .jsonPath(".plan[]")
+          .build();
     }
     var type = plan.get(0).type();
     if (isBlank(type)) {
-      throw ResourceExceptions.BadRequestPayload.because(
-          GroupInsurancePlan.TYPE_OF_PLAN, "plan type is null");
+      throw MissingRequiredField.builder().jsonPath(".plan[].type").build();
     }
     if (isBlank(type.coding())) {
-      throw ResourceExceptions.BadRequestPayload.because(
-          GroupInsurancePlan.TYPE_OF_PLAN, "plan type coding is null");
+      throw MissingRequiredField.builder().jsonPath(".plan[].type.coding[]").build();
     }
     if (type.coding().size() != 1) {
-      throw ResourceExceptions.BadRequestPayload.because(
-          GroupInsurancePlan.TYPE_OF_PLAN,
-          "Expected 1 plan type coding, but got " + type.coding().size());
+      throw UnexpectedNumberOfValues.builder()
+          .receivedCount(type.coding().size())
+          .expectedCount(1)
+          .jsonPath(".plan[].type.coding[]")
+          .build();
     }
     return extractFromListOrDie(
-        "plan",
+        ".plan[].type.coding[]",
+        List.of(".plan[].type.coding[].system = " + InsurancePlanStructureDefinitions.TYPE_OF_PLAN),
         type.coding(),
         c -> InsurancePlanStructureDefinitions.TYPE_OF_PLAN.equals(c.system()),
         Coding::display,
-        GroupInsurancePlan.TYPE_OF_PLAN,
-        InsurancePlanStructureDefinitions.TYPE_OF_PLAN + " system type not found");
+        GroupInsurancePlan.TYPE_OF_PLAN);
   }
 }
