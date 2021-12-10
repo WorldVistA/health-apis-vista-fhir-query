@@ -305,7 +305,10 @@ public final class WebExceptionHandler {
     return responseFor("unauthorized", e, request, emptyList(), true, null);
   }
 
-  @ExceptionHandler({ResourceExceptions.BadRequestPayload.class})
+  @ExceptionHandler({
+    RequestPayloadExceptions.BadRequestPayload.class,
+    ResourceExceptions.BadRequestPayload.class
+  })
   @ResponseStatus(HttpStatus.UNPROCESSABLE_ENTITY)
   OperationOutcome handleUnprocessableEntity(Exception e, HttpServletRequest request) {
     return responseFor("structure", e, request, emptyList(), true, null);
