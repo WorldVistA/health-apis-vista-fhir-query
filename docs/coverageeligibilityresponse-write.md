@@ -586,6 +586,11 @@ X12 271 EB09 (Quantity Qualifier)
 - `MSH-10` This is the HL7 message control number that is generated at the time the HL7 message is generated and placed in the outgoing HL7 message queue.
 - `MSA-3` This field will contain the Trace Number assigned by EC that is used for tracking a message between EC and the vendor. |Path|Required|Notes| |---|---|---| |`.identifier[].type.text` | Required | Must be `MSH-10` or `MSA-3`. | |`.identifier[0].value`| Required | 1-20 characters when of type `MSH-10`. | |`.identifier[1].value`| Required | 3-15 characters when of type `MSA-3` . |
 
+## Steps for creating a new CoverageEligibilityResponse
+1. Create a new InsurancePlan entry by using a new/unique value in the Group Number field (first entry in the identifier list).
+2. Create a new Coverage entry by referencing the new InsurancePlan entry in the Coverage's `.class[0].value` field.
+3. Create a new CoverageEligibilityResponse. The new Coverage must be referenced in the CoverageEligibilityResponse's `.insurance[0].coverage.reference` field. The MSH-10 `.value` field must be unique.
+
 > Unsupported fields or extensions will be ignored.
 
 Example: [CoverageEligibilityResponse](../vista-fhir-query/samples/coverageEligibilityResponseCreate.json)

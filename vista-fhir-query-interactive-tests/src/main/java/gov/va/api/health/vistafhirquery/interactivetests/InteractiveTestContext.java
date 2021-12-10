@@ -72,8 +72,14 @@ public class InteractiveTestContext implements TestContext, TestProperties {
     var token = InteractiveTokenClient.builder().ctx(this).build().clientCredentialsToken();
     log.info("Authorization:\nexport T=\"{}\"", token);
     return RestAssured.given()
-        .headers("Content-Type", "application/json")
-        .headers(Map.of("Authorization", "Bearer " + token));
+        .headers(
+            Map.of(
+                "Content-Type",
+                "application/json",
+                "Authorization",
+                "Bearer " + token,
+                "Prefer",
+                "return=OperationOutcome"));
   }
 
   @SneakyThrows
