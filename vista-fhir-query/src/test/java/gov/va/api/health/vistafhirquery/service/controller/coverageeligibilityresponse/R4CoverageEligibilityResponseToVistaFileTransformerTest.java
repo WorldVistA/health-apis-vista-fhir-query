@@ -1,5 +1,6 @@
 package gov.va.api.health.vistafhirquery.service.controller.coverageeligibilityresponse;
 
+import static java.util.Collections.emptyList;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 
@@ -8,6 +9,9 @@ import gov.va.api.health.r4.api.datatypes.Coding;
 import gov.va.api.health.r4.api.datatypes.Identifier;
 import gov.va.api.health.r4.api.datatypes.Money;
 import gov.va.api.health.r4.api.datatypes.Period;
+import gov.va.api.health.r4.api.resources.CoverageEligibilityResponse.Outcome;
+import gov.va.api.health.r4.api.resources.CoverageEligibilityResponse.Purpose;
+import gov.va.api.health.r4.api.resources.CoverageEligibilityResponse.Status;
 import gov.va.api.health.vistafhirquery.service.controller.RequestPayloadExceptions.ExactlyOneOfFields;
 import gov.va.api.health.vistafhirquery.service.controller.RequestPayloadExceptions.MissingRequiredField;
 import gov.va.api.health.vistafhirquery.service.controller.RequestPayloadExceptions.UnexpectedNumberOfValues;
@@ -108,6 +112,51 @@ public class R4CoverageEligibilityResponseToVistaFileTransformerTest {
                     .procedureModifier(
                         List.of(
                             CodeableConcept.builder().build(), CodeableConcept.builder().build())));
+  }
+
+  @Test
+  void outcome() {
+    var cerWithBadOutcome = _transformer().coverageEligibilityResponse().outcome(Outcome.error);
+    assertThatExceptionOfType(UnexpectedValueForField.class)
+        .isThrownBy(
+            () ->
+                R4CoverageEligibilityResponseToVistaFileTransformer.builder()
+                    .coverageEligibilityResponse(cerWithBadOutcome)
+                    .build()
+                    .outcome());
+  }
+
+  @Test
+  void purpose() {
+    var cerWithEmptyPurpose = _transformer().coverageEligibilityResponse().purpose(emptyList());
+    assertThatExceptionOfType(UnexpectedValueForField.class)
+        .isThrownBy(
+            () ->
+                R4CoverageEligibilityResponseToVistaFileTransformer.builder()
+                    .coverageEligibilityResponse(cerWithEmptyPurpose)
+                    .build()
+                    .purpose());
+    var cerWithBadPurpose =
+        _transformer().coverageEligibilityResponse().purpose(List.of(Purpose.validation));
+    assertThatExceptionOfType(UnexpectedValueForField.class)
+        .isThrownBy(
+            () ->
+                R4CoverageEligibilityResponseToVistaFileTransformer.builder()
+                    .coverageEligibilityResponse(cerWithBadPurpose)
+                    .build()
+                    .purpose());
+  }
+
+  @Test
+  void status() {
+    var cerWithBadStatus = _transformer().coverageEligibilityResponse().status(Status.cancelled);
+    assertThatExceptionOfType(UnexpectedValueForField.class)
+        .isThrownBy(
+            () ->
+                R4CoverageEligibilityResponseToVistaFileTransformer.builder()
+                    .coverageEligibilityResponse(cerWithBadStatus)
+                    .build()
+                    .status());
   }
 
   @Test

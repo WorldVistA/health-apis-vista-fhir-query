@@ -17,6 +17,7 @@ import gov.va.api.health.r4.api.resources.CoverageEligibilityResponse;
 import gov.va.api.health.r4.api.resources.CoverageEligibilityResponse.Insurance;
 import gov.va.api.health.r4.api.resources.CoverageEligibilityResponse.Item;
 import gov.va.api.health.r4.api.resources.CoverageEligibilityResponse.Purpose;
+import gov.va.api.health.r4.api.resources.CoverageEligibilityResponse.Status;
 import gov.va.api.health.vistafhirquery.service.controller.PatientTypeCoordinates;
 import gov.va.api.health.vistafhirquery.service.controller.RecordCoordinates;
 import gov.va.api.lighthouse.charon.models.lhslighthouserpcgateway.EligibilityBenefit;
@@ -139,7 +140,7 @@ public class CoverageEligibilityResponseSamples {
                   .ien(coverage)
                   .build()
                   .toString())
-          .status(CoverageEligibilityResponse.Status.active)
+          .status(Status.active)
           .purpose(List.of(Purpose.benefits, Purpose.discovery))
           .patient(Reference.builder().reference("Patient/" + patient).build())
           .created("ignored")
@@ -175,6 +176,8 @@ public class CoverageEligibilityResponseSamples {
                   .ien(coverage)
                   .build()
                   .toString())
+          .status(Status.active)
+          .purpose(List.of(Purpose.benefits))
           .patient(Reference.builder().reference("Patient/" + patient).build())
           .identifier(
               List.of(
@@ -186,6 +189,7 @@ public class CoverageEligibilityResponseSamples {
                       .type(CodeableConcept.builder().text("MSA-3").build())
                       .value("TN-1234")
                       .build()))
+          .outcome(CoverageEligibilityResponse.Outcome.complete)
           .insurer(
               Reference.builder()
                   .reference(

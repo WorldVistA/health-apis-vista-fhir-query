@@ -11,6 +11,7 @@ import static gov.va.api.health.vistafhirquery.service.controller.extensionproce
 import static java.util.function.Function.identity;
 
 import gov.va.api.health.fhir.api.FhirDateTime;
+import gov.va.api.health.fhir.api.Safe;
 import gov.va.api.health.r4.api.datatypes.CodeableConcept;
 import gov.va.api.health.r4.api.datatypes.Coding;
 import gov.va.api.health.r4.api.datatypes.Identifier;
@@ -20,6 +21,9 @@ import gov.va.api.health.r4.api.resources.CoverageEligibilityResponse;
 import gov.va.api.health.r4.api.resources.CoverageEligibilityResponse.Benefit;
 import gov.va.api.health.r4.api.resources.CoverageEligibilityResponse.Insurance;
 import gov.va.api.health.r4.api.resources.CoverageEligibilityResponse.Item;
+import gov.va.api.health.r4.api.resources.CoverageEligibilityResponse.Outcome;
+import gov.va.api.health.r4.api.resources.CoverageEligibilityResponse.Purpose;
+import gov.va.api.health.r4.api.resources.CoverageEligibilityResponse.Status;
 import gov.va.api.health.vistafhirquery.service.controller.FilemanFactoryRegistry;
 import gov.va.api.health.vistafhirquery.service.controller.FilemanIndexRegistry;
 import gov.va.api.health.vistafhirquery.service.controller.RecordCoordinates;
@@ -720,6 +724,16 @@ public class R4CoverageEligibilityResponseToVistaFileTransformer {
             money.value().toPlainString());
   }
 
+  void outcome() {
+    if (!Outcome.complete.equals(coverageEligibilityResponse().outcome())) {
+      throw UnexpectedValueForField.builder()
+          .valueReceived(coverageEligibilityResponse().outcome())
+          .supportedValues(List.of(Outcome.complete))
+          .jsonPath(".outcome")
+          .build();
+    }
+  }
+
   List<WriteableFilemanValue> procedureCoding(CodeableConcept productOrService) {
     if (isBlank(productOrService) || isBlank(productOrService.coding())) {
       throw MissingRequiredField.builder()
@@ -770,8 +784,32 @@ public class R4CoverageEligibilityResponseToVistaFileTransformer {
             CoverageEligibilityResponseStructureDefinitions.ITEM_MODIFIER);
   }
 
+  void purpose() {
+    if (Safe.list(coverageEligibilityResponse().purpose()).size() != 1
+        || !Purpose.benefits.equals(coverageEligibilityResponse().purpose().get(0))) {
+      throw UnexpectedValueForField.builder()
+          .valueReceived(coverageEligibilityResponse().purpose())
+          .supportedValues(List.of(Purpose.benefits))
+          .jsonPath(".purpose")
+          .build();
+    }
+  }
+
+  void status() {
+    if (!Status.active.equals(coverageEligibilityResponse().status())) {
+      throw UnexpectedValueForField.builder()
+          .valueReceived(coverageEligibilityResponse().status())
+          .supportedValues(List.of(Status.active))
+          .jsonPath(".status")
+          .build();
+    }
+  }
+
   /** Transform Fhir fields into a list of fileman values. */
   public Set<WriteableFilemanValue> toVistaFiles() {
+    status();
+    purpose();
+    outcome();
     Set<WriteableFilemanValue> vistaFields = new HashSet<>();
     vistaFields.addAll(
         coverageEligibilityResponse().identifier().stream().map(this::identifier).toList());
