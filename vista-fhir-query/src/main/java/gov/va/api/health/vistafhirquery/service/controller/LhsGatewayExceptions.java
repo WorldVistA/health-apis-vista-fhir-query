@@ -21,8 +21,14 @@ public class LhsGatewayExceptions {
     }
   }
 
-  public static class AttemptToSetInvalidFieldValue extends LhsGatewayRejectedRequest {
+  public static class AttemptToReferenceInvalidRecord extends LhsGatewayRejectedRequest {
+    @Builder
+    AttemptToReferenceInvalidRecord(String fileName, Map<String, String> errorData) {
+      super("Received invalid id for file: " + fileName, errorData);
+    }
+  }
 
+  public static class AttemptToSetInvalidFieldValue extends LhsGatewayRejectedRequest {
     @Builder
     private AttemptToSetInvalidFieldValue(
         @NonNull String publicMessage, @NonNull Map<String, String> errorData) {
@@ -31,10 +37,16 @@ public class LhsGatewayExceptions {
   }
 
   public static class AttemptToSetUnknownField extends LhsGatewayRejectedRequest {
-
     @Builder
     private AttemptToSetUnknownField(@NonNull Map<String, String> errorData) {
       super("Attempt to update unknown field. Contact support.", errorData);
+    }
+  }
+
+  public static class AttemptToUpdateRecordWithMismatchedDfn extends LhsGatewayRejectedRequest {
+    @Builder
+    AttemptToUpdateRecordWithMismatchedDfn(@NonNull Map<String, String> errorData) {
+      super("Attempt to update mismatched record. Contact support.", errorData);
     }
   }
 
@@ -55,6 +67,19 @@ public class LhsGatewayExceptions {
     @Override
     public String getMessage() {
       return format("File %s, IEN %s: ", file, ien) + super.getMessage();
+    }
+  }
+
+  public static class AttemptToWriteRecordMissingRequiredField extends LhsGatewayRejectedRequest {
+    @Builder
+    AttemptToWriteRecordMissingRequiredField(
+        String fileName, String fieldName, @NonNull Map<String, String> errorData) {
+      super(
+          format(
+              "File: %s, Field: %s, "
+                  + "Problem: Attempted to write record missing required VistA field.",
+              fileName, fieldName),
+          errorData);
     }
   }
 
@@ -103,6 +128,13 @@ public class LhsGatewayExceptions {
     @Override
     public @NonNull String getPublicMessage() {
       return publicMessage;
+    }
+  }
+
+  public static class RecordNotFound extends LhsGatewayRejectedRequest {
+    @Builder
+    RecordNotFound(Map<String, String> errorData) {
+      super("The requested id was not found in VistA.", errorData);
     }
   }
 

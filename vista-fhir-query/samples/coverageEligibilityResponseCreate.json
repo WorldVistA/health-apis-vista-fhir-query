@@ -91,17 +91,7 @@
   "status": "active",
   "purpose": [ "benefits" ],
   "patient": {
-    "reference": "http://localhost:8090/data-query/r4/Patient/5000000347V502052",
-    "identifier": {
-      "type": {
-        "coding": [
-          {
-            "code": "MB"
-          }
-        ]
-      },
-      "value": "1234"
-    }
+    "reference": "http://localhost:8090/data-query/r4/Patient/5000000347V502052"
   },
   "servicedDate": "2010-01-20",
   "created": "2021-11-11T11:11:11Z",

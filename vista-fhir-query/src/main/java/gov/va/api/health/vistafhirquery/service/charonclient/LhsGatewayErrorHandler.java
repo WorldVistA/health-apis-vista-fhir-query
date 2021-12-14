@@ -5,11 +5,15 @@ import static java.util.stream.Collectors.joining;
 import static java.util.stream.Collectors.toList;
 
 import gov.va.api.health.vistafhirquery.service.controller.LhsGatewayExceptions.AttemptToCreateDuplicateRecord;
+import gov.va.api.health.vistafhirquery.service.controller.LhsGatewayExceptions.AttemptToReferenceInvalidRecord;
 import gov.va.api.health.vistafhirquery.service.controller.LhsGatewayExceptions.AttemptToSetInvalidFieldValue;
 import gov.va.api.health.vistafhirquery.service.controller.LhsGatewayExceptions.AttemptToSetUnknownField;
+import gov.va.api.health.vistafhirquery.service.controller.LhsGatewayExceptions.AttemptToUpdateRecordWithMismatchedDfn;
 import gov.va.api.health.vistafhirquery.service.controller.LhsGatewayExceptions.AttemptToUpdateUnknownRecord;
+import gov.va.api.health.vistafhirquery.service.controller.LhsGatewayExceptions.AttemptToWriteRecordMissingRequiredField;
 import gov.va.api.health.vistafhirquery.service.controller.LhsGatewayExceptions.DoNotUnderstandRpcResponse;
 import gov.va.api.health.vistafhirquery.service.controller.LhsGatewayExceptions.LhsGatewayException;
+import gov.va.api.health.vistafhirquery.service.controller.LhsGatewayExceptions.RecordNotFound;
 import gov.va.api.health.vistafhirquery.service.controller.LhsGatewayExceptions.RejectedForMultipleReasons;
 import gov.va.api.health.vistafhirquery.service.controller.LhsGatewayExceptions.UnknownReason;
 import gov.va.api.health.vistafhirquery.service.controller.R4Controllers.FatalServerError;
@@ -32,9 +36,13 @@ public class LhsGatewayErrorHandler {
   private static final List<ErrorDetector> ERROR_DETECTORS =
       List.of(
           ErrorDetection.detectInvalidField(),
+          ErrorDetection.detectInvalidIen(),
+          ErrorDetection.detectMissingRequiredField(),
           ErrorDetection.detectUnknownField(),
+          ErrorDetection.detectUpdateRecordWithMismatchedDfn(),
           ErrorDetection.detectRecordDoesNotExist(),
-          ErrorDetection.detectRecordAlreadyExists());
+          ErrorDetection.detectRecordAlreadyExists(),
+          ErrorDetection.detectRecordNotFound());
 
   private final LhsLighthouseRpcGatewayResponse.Results results;
 
@@ -89,7 +97,7 @@ public class LhsGatewayErrorHandler {
     static ErrorDetector detectInvalidField() {
       var pattern =
           Pattern.compile(
-              "The value '([^']+)' for field ([A-Z0-9 ]+) in file ([A-Z0-9 ]+) is not valid.*");
+              "The value '([^']+)'.* for field ([A-Z0-9 ]+).* in file ([A-Z0-9 ]+) is not valid.*");
       return ErrorDetector.builder()
           .ifCondition(isCode("701"))
           .thenThrow(
@@ -102,13 +110,72 @@ public class LhsGatewayErrorHandler {
                   publicMessage =
                       format(
                           "Invalid %s for %s.",
-                          field.toLowerCase(Locale.US), file.toLowerCase(Locale.US));
+                          field.toLowerCase(Locale.US).trim(), file.toLowerCase(Locale.US).trim());
                 } else {
                   publicMessage =
                       "Attempt to set field was rejected for an unknown reason. Contact support.";
                 }
                 return AttemptToSetInvalidFieldValue.builder()
                     .publicMessage(publicMessage)
+                    .errorData(e.data())
+                    .build();
+              })
+          .build();
+    }
+
+    /**
+     * Detect this error pattern.
+     *
+     * <pre>
+     *   code=1,
+     *   location=Create Patient Insurance Type,
+     *   text=Group Insurance Plan for IEN not valid for Index Record (1).
+     * </pre>
+     */
+    static ErrorDetector detectInvalidIen() {
+      var pattern =
+          Pattern.compile(
+              "([A-Za-z ]+) (for IEN not valid|ICN not in database) for Index Record .*");
+      return ErrorDetector.builder()
+          .ifCondition(isTextPattern(pattern))
+          .thenThrow(
+              (r, e) -> {
+                var matcher = pattern.matcher(textOf(e));
+                if (matcher.matches()) {
+                  return AttemptToReferenceInvalidRecord.builder()
+                      .fileName(matcher.group(1))
+                      .errorData(e.data())
+                      .build();
+                }
+                return AttemptToReferenceInvalidRecord.builder()
+                    .fileName("Unknown")
+                    .errorData(e.data())
+                    .build();
+              })
+          .build();
+    }
+
+    /**
+     * Detect this error pattern.
+     *
+     * <pre>
+     *   code=1
+     *   location=Create IIV Response
+     *   text=Message Control ID required for Index Record (1).
+     * </pre>
+     */
+    static ErrorDetector detectMissingRequiredField() {
+      var locationPattern = Pattern.compile("^(Create|Update) ([A-Za-z ]+)");
+      var textPattern = Pattern.compile("(.*) required for Index Record .*");
+      return ErrorDetector.builder()
+          .ifCondition(isTextPattern(textPattern))
+          .thenThrow(
+              (r, e) -> {
+                var fileNameMatcher = locationPattern.matcher(locationOf(e));
+                var fieldNameMatcher = textPattern.matcher(textOf(e));
+                return AttemptToWriteRecordMissingRequiredField.builder()
+                    .fileName(fileNameMatcher.matches() ? fileNameMatcher.group(2) : "Unknown")
+                    .fieldName(fieldNameMatcher.matches() ? fieldNameMatcher.group(1) : "Unknown")
                     .errorData(e.data())
                     .build();
               })
@@ -139,24 +206,23 @@ public class LhsGatewayErrorHandler {
           .build();
     }
 
+    /**
+     * Detect this error pattern (UPDATE).
+     *
+     * <pre>
+     *   code=601
+     *   location=FILE^LHSIBUTL
+     *   text=The entry does not exist.
+     * </pre>
+     */
     static ErrorDetector detectRecordDoesNotExist() {
       return ErrorDetector.builder()
-          .ifCondition(isCode("601"))
+          .ifCondition(isCode("601").and(isLocationPattern("FILE\\^LHSIBUTL")))
           .thenThrow(
               (r, e) -> {
                 var failedEntries = failedFilemanEntriesOf(r);
                 if (failedEntries.size() != 1) {
-                  return DoNotUnderstandRpcResponse.builder()
-                      .publicMessage("Multiple failed entries found.")
-                      .privateMessage(
-                          format(
-                              "1 result expected to indicate a record does not exist,"
-                                  + " but found %d: %s",
-                              failedEntries.size(),
-                              failedEntries.stream()
-                                  .map(ErrorDetection::summarize)
-                                  .collect(joining("\n"))))
-                      .build();
+                  return multipleFailures(failedEntries);
                 }
                 var entry = failedEntries.get(0);
                 return AttemptToUpdateUnknownRecord.builder()
@@ -168,6 +234,22 @@ public class LhsGatewayErrorHandler {
           .build();
     }
 
+    /**
+     * Detect this error pattern (READ).
+     *
+     * <pre>
+     *   code=601
+     *   location=$$GETS^LHSFM1
+     *   text=The entry does not exist.
+     * </pre>
+     */
+    static ErrorDetector detectRecordNotFound() {
+      return ErrorDetector.builder()
+          .ifCondition(isCode("601").and(isLocationPattern("\\$\\$GETS\\^LHSFM1")))
+          .thenThrow((r, e) -> RecordNotFound.builder().errorData(e.data()).build())
+          .build();
+    }
+
     static ErrorDetector detectUnknownField() {
       return ErrorDetector.builder()
           .ifCondition(isCode("501"))
@@ -175,17 +257,74 @@ public class LhsGatewayErrorHandler {
           .build();
     }
 
+    /**
+     * Detect this error pattern.
+     *
+     * <pre>
+     *   code=1
+     *   location=Update Patient Insurance Type
+     *   text=Patient Insurance with IEN (1,999,) for Index Record (1)
+     *     does not exist for patient DFN (706).
+     * </pre>
+     */
+    static ErrorDetector detectUpdateRecordWithMismatchedDfn() {
+      return ErrorDetector.builder()
+          .ifCondition(
+              isTextPattern(
+                  "([A-Za-z ]+) with IEN \\(([0-9,]+)\\) for Index Record "
+                      + "\\([0-9]+\\) does not exist for .*"))
+          .thenThrow(
+              (r, e) ->
+                  AttemptToUpdateRecordWithMismatchedDfn.builder().errorData(e.data()).build())
+          .build();
+    }
+
     static List<FilemanEntry> failedFilemanEntriesOf(Results r) {
       return r.results().stream().filter(FilemanEntries::isFailure).toList();
+    }
+
+    static String fromErrorDetails(String fieldName, ResultsError error) {
+      return error
+          .data()
+          .getOrDefault(
+              fieldName, "unknown reason ('" + fieldName + "' is missing from error details)");
     }
 
     static Predicate<ResultsError> isCode(String code) {
       return e -> code.equals(e.data().get("code"));
     }
 
+    static Predicate<ResultsError> isLocationPattern(String regex) {
+      var pattern = Pattern.compile(regex);
+      return isLocationPattern(pattern);
+    }
+
+    static Predicate<ResultsError> isLocationPattern(Pattern pattern) {
+      return e -> pattern.matcher(e.data().getOrDefault("location", "")).matches();
+    }
+
     static Predicate<ResultsError> isTextPattern(String regex) {
       var pattern = Pattern.compile(regex);
+      return isTextPattern(pattern);
+    }
+
+    static Predicate<ResultsError> isTextPattern(Pattern pattern) {
       return e -> pattern.matcher(e.data().getOrDefault("text", "")).matches();
+    }
+
+    static String locationOf(ResultsError error) {
+      return fromErrorDetails("location", error);
+    }
+
+    private static DoNotUnderstandRpcResponse multipleFailures(List<FilemanEntry> failedEntries) {
+      return DoNotUnderstandRpcResponse.builder()
+          .publicMessage("Multiple failed entries found.")
+          .privateMessage(
+              format(
+                  "1 result expected to indicate a record does not exist," + " but found %d: %s",
+                  failedEntries.size(),
+                  failedEntries.stream().map(ErrorDetection::summarize).collect(joining("\n"))))
+          .build();
     }
 
     private static String summarize(FilemanEntry entry) {
@@ -193,9 +332,7 @@ public class LhsGatewayErrorHandler {
     }
 
     static String textOf(ResultsError error) {
-      return error
-          .data()
-          .getOrDefault("text", "unknown reason ('text' is missing from error details)");
+      return fromErrorDetails("text", error);
     }
   }
 
