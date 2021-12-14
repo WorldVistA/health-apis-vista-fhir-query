@@ -53,6 +53,6 @@ public class BooleanExtensionHandler extends AbstractSingleFieldExtensionHandler
           .valueReceived(value)
           .build();
     }
-    return List.of(filemanFactory().forRequiredString(fieldNumber(), index(), vistaValue));
+    return List.of(filemanFactory().forString(fieldNumber(), index(), vistaValue).get());
   }
 }

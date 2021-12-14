@@ -73,9 +73,13 @@ public class R4OrganizationToInsuranceCompanyFileTransformer {
   }
 
   private void addRequiredFields(Set<WriteableFilemanValue> fields) {
-    fields.add(insuranceCompanyCoordinatesOrDie(InsuranceCompany.NAME, 1, organization().name()));
+    fields.add(
+        insuranceCompanyCoordinates(InsuranceCompany.NAME, 1, organization().name())
+            .orElseThrow(() -> MissingRequiredField.builder().jsonPath(".name").build()));
     fields.addAll(
         address(
+            ".address",
+            "organization",
             InsuranceCompany.STREET_ADDRESS_LINE_1_,
             InsuranceCompany.STREET_ADDRESS_LINE_2_,
             InsuranceCompany.STREET_ADDRESS_LINE_3_,
@@ -152,12 +156,14 @@ public class R4OrganizationToInsuranceCompanyFileTransformer {
             InsuranceCompany.EDI_PROF_SECONDARY_ID_2_,
             InsuranceCompany.EDI_PROF_SECONDARY_ID_QUAL_2_,
             OrganizationStructureDefinitions.EDI_PROF_SECONDARY_ID_QUAL_2));
-    if (include277EdiNumber) {
+    if (include277EdiNumber()) {
       fields.addAll(n277EdiIdentifier());
     }
   }
 
   private Set<WriteableFilemanValue> address(
+      String jsonPathBase,
+      String contactPurpose,
       String streetLine1,
       String streetLine2,
       String streetLine3,
@@ -176,12 +182,47 @@ public class R4OrganizationToInsuranceCompanyFileTransformer {
       lines = emptyList();
     }
     for (int i = 0; i < lines.size(); i++) {
-      addressValues.add(filemanFactory.forRequiredString(arrayLines[i], 1, lines.get(i)));
+      var index = i;
+      addressValues.add(
+          filemanFactory
+              .forString(arrayLines[i], 1, lines.get(i))
+              .orElseThrow(
+                  () ->
+                      MissingRequiredListItem.builder()
+                          .jsonPath(jsonPathBase + "line[]")
+                          .qualifiers(
+                              List.of(
+                                  "contact purpose is " + contactPurpose, "line index = " + index))
+                          .build()));
       /* TODO https://vajira.max.gov/browse/API-10394 require max line size, see vivian */
     }
-    addressValues.add(filemanFactory.forRequiredString(city, 1, address.city()));
-    addressValues.add(filemanFactory.forRequiredString(state, 1, address.state()));
-    addressValues.add(filemanFactory.forRequiredString(zipcode, 1, address.postalCode()));
+    addressValues.add(
+        filemanFactory
+            .forString(city, 1, address.city())
+            .orElseThrow(
+                () ->
+                    MissingRequiredListItem.builder()
+                        .jsonPath(jsonPathBase + ".city")
+                        .qualifiers(List.of("contact purpose is " + contactPurpose))
+                        .build()));
+    addressValues.add(
+        filemanFactory
+            .forString(state, 1, address.state())
+            .orElseThrow(
+                () ->
+                    MissingRequiredListItem.builder()
+                        .jsonPath(jsonPathBase + ".state")
+                        .qualifiers(List.of("contact purpose is " + contactPurpose))
+                        .build()));
+    addressValues.add(
+        filemanFactory
+            .forString(zipcode, 1, address.postalCode())
+            .orElseThrow(
+                () ->
+                    MissingRequiredListItem.builder()
+                        .jsonPath(jsonPathBase + ".postalCode")
+                        .qualifiers(List.of("contact purpose is " + contactPurpose))
+                        .build()));
     return addressValues;
   }
 
@@ -243,6 +284,8 @@ public class R4OrganizationToInsuranceCompanyFileTransformer {
         .ifPresent(contactDetails::add);
     contactDetails.addAll(
         address(
+            ".contact[].address",
+            ContactPurpose.APPEAL.name(),
             InsuranceCompany.APPEALS_ADDRESS_ST_LINE_1_,
             InsuranceCompany.APPEALS_ADDRESS_ST_LINE_2_,
             InsuranceCompany.APPEALS_ADDRESS_ST_LINE_3_,
@@ -296,7 +339,7 @@ public class R4OrganizationToInsuranceCompanyFileTransformer {
     if (isBlank(companyNameReference)) {
       return Optional.empty();
     }
-    return filemanFactory.forOptionalString(fieldNumber, 1, companyNameReference.display());
+    return filemanFactory.forString(fieldNumber, 1, companyNameReference.display());
   }
 
   private Set<WriteableFilemanValue> contactDentalClaims(Contact contact) {
@@ -315,6 +358,8 @@ public class R4OrganizationToInsuranceCompanyFileTransformer {
         .ifPresent(contactDetails::add);
     contactDetails.addAll(
         address(
+            ".contact[].address",
+            ContactPurpose.DENTALCLAIMS.name(),
             InsuranceCompany.CLAIMS_DENTAL_STREET_ADDR_1,
             InsuranceCompany.CLAIMS_DENTAL_STREET_ADDR_2,
             null,
@@ -351,6 +396,8 @@ public class R4OrganizationToInsuranceCompanyFileTransformer {
         .ifPresent(contactDetails::add);
     contactDetails.addAll(
         address(
+            ".contact[].address",
+            ContactPurpose.INPTCLAIMS.name(),
             InsuranceCompany.CLAIMS_INPT_STREET_ADDRESS_1,
             InsuranceCompany.CLAIMS_INPT_STREET_ADDRESS_2,
             InsuranceCompany.CLAIMS_INPT_STREET_ADDRESS_3,
@@ -385,6 +432,8 @@ public class R4OrganizationToInsuranceCompanyFileTransformer {
         .ifPresent(contactDetails::add);
     contactDetails.addAll(
         address(
+            ".contact[].address",
+            ContactPurpose.INQUIRY.name(),
             InsuranceCompany.INQUIRY_ADDRESS_ST_LINE_1_,
             InsuranceCompany.INQUIRY_ADDRESS_ST_LINE_2_,
             InsuranceCompany.INQUIRY_ADDRESS_ST_LINE_3_,
@@ -420,6 +469,8 @@ public class R4OrganizationToInsuranceCompanyFileTransformer {
         .ifPresent(contactDetails::add);
     contactDetails.addAll(
         address(
+            ".contact[].address",
+            ContactPurpose.OUTPTCLAIMS.name(),
             InsuranceCompany.CLAIMS_OPT_STREET_ADDRESS_1,
             InsuranceCompany.CLAIMS_OPT_STREET_ADDRESS_2,
             InsuranceCompany.CLAIMS_OPT_STREET_ADDRESS_3,
@@ -438,15 +489,14 @@ public class R4OrganizationToInsuranceCompanyFileTransformer {
     if (isBlank(telecom)) {
       throw MissingRequiredField.builder().jsonPath(".telecom[]").build();
     }
-    ContactPoint contactPoint =
-        contactPointForSystem(telecom, system)
-            .orElseThrow(
-                () ->
-                    MissingRequiredListItem.builder()
-                        .jsonPath(".telecom[].value")
-                        .qualifiers(List.of(".contact[].telecom[].system = " + system))
-                        .build());
-    return insuranceCompanyCoordinatesOrDie(fieldNumber, 1, contactPoint.value());
+    return contactPointForSystem(telecom, system)
+        .flatMap(cp -> insuranceCompanyCoordinates(fieldNumber, 1, cp.value()))
+        .orElseThrow(
+            () ->
+                MissingRequiredListItem.builder()
+                    .jsonPath(".telecom[].value")
+                    .qualifiers(List.of(".contact[].telecom[].system = " + system))
+                    .build());
   }
 
   Optional<ContactPoint> contactPointForSystem(
@@ -516,6 +566,8 @@ public class R4OrganizationToInsuranceCompanyFileTransformer {
         .ifPresent(contactDetails::add);
     contactDetails.addAll(
         address(
+            ".contact[].address",
+            ContactPurpose.RXCLAIMS.name(),
             InsuranceCompany.CLAIMS_RX_STREET_ADDRESS_1,
             InsuranceCompany.CLAIMS_RX_STREET_ADDRESS_2,
             InsuranceCompany.CLAIMS_RX_STREET_ADDRESS_3,
@@ -851,7 +903,7 @@ public class R4OrganizationToInsuranceCompanyFileTransformer {
           .qualifiers(List.of(".identifier[].type.coding[].code is" + identifierCode))
           .build();
     }
-    return filemanFactory.forOptionalString(fieldNumber, 1, identifier.get().value());
+    return filemanFactory.forString(fieldNumber, 1, identifier.get().value());
   }
 
   Optional<Identifier> identifierForPredicate(
@@ -874,9 +926,9 @@ public class R4OrganizationToInsuranceCompanyFileTransformer {
   }
 
   @SuppressWarnings("SameParameterValue")
-  private WriteableFilemanValue insuranceCompanyCoordinatesOrDie(
+  private Optional<WriteableFilemanValue> insuranceCompanyCoordinates(
       String field, int index, String value) {
-    return filemanFactory.forRequiredString(field, index, value);
+    return filemanFactory.forString(field, index, value);
   }
 
   List<WriteableFilemanValue> n277EdiIdentifier() {
@@ -925,10 +977,10 @@ public class R4OrganizationToInsuranceCompanyFileTransformer {
     Optional<Identifier> identifier =
         identifierForPredicate(
             organization().identifier(), c -> identifierSystem.equals(c.system()));
-    if (identifier.isEmpty()) {
+    if (isBlank(identifier)) {
       return List.of();
     }
-    if (identifier.get().value().isBlank()) {
+    if (isBlank(identifier.get().value())) {
       throw MissingRequiredListItem.builder()
           .jsonPath(".identifier[].value")
           .qualifiers(List.of(".identifier[].type.coding[].system = " + identifierSystem))
@@ -942,7 +994,7 @@ public class R4OrganizationToInsuranceCompanyFileTransformer {
           .qualifiers(List.of(".identifier[].type.coding[].system = " + identifierSystem))
           .build();
     }
-    if (matchingCodes.size() > 1) {
+    if (matchingCodes.size() != 1) {
       throw UnexpectedNumberOfValues.builder()
           .jsonPath(".identifier[].type.coding[].code")
           .receivedCount(matchingCodes.size())
@@ -950,8 +1002,8 @@ public class R4OrganizationToInsuranceCompanyFileTransformer {
           .build();
     }
     return List.of(
-        filemanFactory.forRequiredString(idField, 1, identifier.get().value()),
-        filemanFactory.forRequiredString(qualifierField, 1, matchingCodes.get(0)));
+        filemanFactory.forString(idField, 1, identifier.get().value()).get(),
+        filemanFactory.forString(qualifierField, 1, matchingCodes.get(0)).get());
   }
 
   /** Create a set of writeable fileman values. */

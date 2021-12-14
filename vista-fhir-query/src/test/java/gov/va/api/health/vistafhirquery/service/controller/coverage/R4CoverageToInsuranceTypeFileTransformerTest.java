@@ -1,5 +1,6 @@
 package gov.va.api.health.vistafhirquery.service.controller.coverage;
 
+import static gov.va.api.health.vistafhirquery.service.controller.coverage.CoverageStructureDefinitions.SUBSCRIBER_RELATIONSHIP_CODE_SYSTEM;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 
@@ -77,9 +78,29 @@ public class R4CoverageToInsuranceTypeFileTransformerTest {
         .isThrownBy(() -> _transformer().groupPlan(List.of(covClass)));
     // More than one
     covClass.type(
-        CodeableConcept.builder().coding(List.of(Coding.builder().code("group").build())).build());
+        CodeableConcept.builder().coding(Coding.builder().code("group").build().asList()).build());
     assertThatExceptionOfType(UnexpectedNumberOfValues.class)
         .isThrownBy(() -> _transformer().groupPlan(List.of(covClass, covClass)));
+    // Invalid ID
+    assertThatExceptionOfType(InvalidReferenceId.class)
+        .isThrownBy(
+            () ->
+                _transformer()
+                    .groupPlan(
+                        CoverageClass.builder()
+                            .type(
+                                CodeableConcept.builder()
+                                    .coding(
+                                        Coding.builder()
+                                            .system(
+                                                "http://terminology.hl7.org/CodeSystem/coverage-class")
+                                            .code("group")
+                                            .build()
+                                            .asList())
+                                    .build())
+                            .value("InsurancePlan/NOPE")
+                            .build()
+                            .asList()));
   }
 
   @Test
@@ -124,6 +145,21 @@ public class R4CoverageToInsuranceTypeFileTransformerTest {
                                             .build())
                                     .build())
                             .build()));
+    // Null Identifier Value
+    assertThatExceptionOfType(BadRequestPayload.class)
+        .isThrownBy(
+            () ->
+                _transformer()
+                    .patientId(
+                        Reference.builder()
+                            .identifier(
+                                Identifier.builder()
+                                    .type(
+                                        CodeableConcept.builder()
+                                            .coding(List.of(Coding.builder().code("MB").build()))
+                                            .build())
+                                    .build())
+                            .build()));
   }
 
   @Test
@@ -140,17 +176,28 @@ public class R4CoverageToInsuranceTypeFileTransformerTest {
                         CodeableConcept.builder()
                             .coding(
                                 List.of(
-                                    Coding.builder().code("spouse").build(),
-                                    Coding.builder().code("other").build()))
+                                    Coding.builder()
+                                        .system(SUBSCRIBER_RELATIONSHIP_CODE_SYSTEM)
+                                        .code("spouse")
+                                        .build(),
+                                    Coding.builder()
+                                        .system(SUBSCRIBER_RELATIONSHIP_CODE_SYSTEM)
+                                        .code("other")
+                                        .build()))
                             .build()));
     // Not a valid code
-    assertThatExceptionOfType(UnexpectedNumberOfValues.class)
+    assertThatExceptionOfType(UnexpectedValueForField.class)
         .isThrownBy(
             () ->
                 _transformer()
                     .patientRelationshipHipaa(
                         CodeableConcept.builder()
-                            .coding(List.of(Coding.builder().code("NOPE").build()))
+                            .coding(
+                                List.of(
+                                    Coding.builder()
+                                        .system(SUBSCRIBER_RELATIONSHIP_CODE_SYSTEM)
+                                        .code("NOPE")
+                                        .build()))
                             .build()));
   }
 

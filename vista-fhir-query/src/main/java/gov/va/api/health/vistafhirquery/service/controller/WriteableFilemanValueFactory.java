@@ -45,7 +45,7 @@ public class WriteableFilemanValueFactory {
     if (value == null) {
       return Optional.empty();
     }
-    return forOptionalString(field, index, "" + value);
+    return forString(field, index, "" + value);
   }
 
   /** Build a WriteableFilemanValue using the extension.valueInteger field. */
@@ -67,21 +67,6 @@ public class WriteableFilemanValueFactory {
         WriteableFilemanValue.builder().file(file).field("ien").index(index).value(ien).build());
   }
 
-  /** Build an optional WriteableFilemanValue for a string. */
-  public Optional<WriteableFilemanValue> forOptionalString(
-      @NonNull String field, int index, String value) {
-    if (isBlank(value)) {
-      return Optional.empty();
-    }
-    return Optional.of(
-        WriteableFilemanValue.builder()
-            .file(file())
-            .index(index)
-            .field(field)
-            .value(value)
-            .build());
-  }
-
   /** Build a WriteableFilemanValue from a Boolean extension. */
   public WriteableFilemanValue forRequiredBoolean(
       @NonNull String field,
@@ -101,7 +86,9 @@ public class WriteableFilemanValueFactory {
     if (value == null) {
       throw BadRequestPayload.because(file(), field, "Required boolean was found to be null.");
     }
-    return forRequiredString(field, index, mapper.apply(value));
+    return forString(field, index, mapper.apply(value))
+        .orElseThrow(
+            () -> BadRequestPayload.because(file(), field, "Required string value is blank."));
   }
 
   /**
@@ -132,7 +119,9 @@ public class WriteableFilemanValueFactory {
     if (isBlank(coding.code())) {
       throw BadRequestPayload.because(file(), field, ".coding.code is blank.");
     }
-    return forRequiredString(field, index, coding.code());
+    return forString(field, index, coding.code())
+        .orElseThrow(
+            () -> BadRequestPayload.because(file(), field, "Required string value is blank."));
   }
 
   /** Build a WriteableFilemanValue using the identifer.value field. */
@@ -141,7 +130,9 @@ public class WriteableFilemanValueFactory {
     if (identifier == null || isBlank(identifier.value())) {
       throw BadRequestPayload.because(file(), field, "identifier or identifier.value is null.");
     }
-    return forRequiredString(field, index, identifier.value());
+    return forString(field, index, identifier.value())
+        .orElseThrow(
+            () -> BadRequestPayload.because(file(), field, "Required string value is blank."));
   }
 
   /** Build a WriteableFilemanValue from an Integer value. */
@@ -157,8 +148,9 @@ public class WriteableFilemanValueFactory {
    */
   public WriteableFilemanValue forRequiredParentFileUsingIenMacro(
       int index, @NonNull String parentFileNumber, int parentFileIndex) {
-    return forRequiredString(
-        "IEN", index, "${" + parentFileNumber + "^" + parentFileIndex + "^IEN}");
+    return forString("IEN", index, "${" + parentFileNumber + "^" + parentFileIndex + "^IEN}")
+        .orElseThrow(
+            () -> BadRequestPayload.because(file(), "IEN", "Required string value is blank."));
   }
 
   /**
@@ -170,8 +162,11 @@ public class WriteableFilemanValueFactory {
       @NonNull String fieldNumber,
       @NonNull String pointerToFileNumber,
       int pointerToIndex) {
-    return forRequiredString(
-        fieldNumber, index, "${" + pointerToFileNumber + "^" + pointerToIndex + "^IEN}");
+    return forString(
+            fieldNumber, index, "${" + pointerToFileNumber + "^" + pointerToIndex + "^IEN}")
+        .orElseThrow(
+            () ->
+                BadRequestPayload.because(file(), fieldNumber, "Required string value is blank."));
   }
 
   /** Build a WriteableFilemanValue with a grav?? marker added to the value. */
@@ -180,28 +175,40 @@ public class WriteableFilemanValueFactory {
     if (isBlank(value)) {
       throw BadRequestPayload.because(file(), field, "Required pointer was found to be null.");
     }
-    return forRequiredString(field, index, "`" + value);
-  }
-
-  /** Build a WriteableFilemanValue for a string, throwing if blank. */
-  public WriteableFilemanValue forRequiredString(@NonNull String field, int index, String value) {
-    return forOptionalString(field, index, value)
+    return forString(field, index, "`" + value)
         .orElseThrow(
             () -> BadRequestPayload.because(file(), field, "Required string value is blank."));
   }
 
-  public Function<PatientTypeCoordinates, WriteableFilemanValue> patientTypeCoordinatesToPointer(
+  /** Build an optional WriteableFilemanValue for a string. */
+  public Optional<WriteableFilemanValue> forString(@NonNull String field, int index, String value) {
+    if (isBlank(value)) {
+      return Optional.empty();
+    }
+    return Optional.of(
+        WriteableFilemanValue.builder()
+            .file(file())
+            .index(index)
+            .field(field)
+            .value(value)
+            .build());
+  }
+
+  public ToFilemanValue<PatientTypeCoordinates> patientTypeCoordinatesToPointer(
       String file, Supplier<Integer> index) {
     return coordinates -> forOptionalPointer(file, index.get(), coordinates.ien()).orElse(null);
   }
 
-  public Function<RecordCoordinates, WriteableFilemanValue> recordCoordinatesToPointer(
+  public ToFilemanValue<RecordCoordinates> recordCoordinatesToPointer(
       String file, Supplier<Integer> index) {
     return coordinates -> forOptionalPointer(file, index.get(), coordinates.ien()).orElse(null);
   }
 
-  public <T> Function<T, WriteableFilemanValue> toString(
+  public <T> ToFilemanValue<T> toString(
       String field, Supplier<Integer> index, Function<T, String> valueOf) {
-    return (T item) -> forOptionalString(field, index.get(), valueOf.apply(item)).orElse(null);
+    return (T item) -> forString(field, index.get(), valueOf.apply(item)).orElse(null);
   }
+
+  @FunctionalInterface
+  interface ToFilemanValue<T> extends Function<T, WriteableFilemanValue> {}
 }

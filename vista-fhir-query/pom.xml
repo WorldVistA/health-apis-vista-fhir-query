@@ -14,7 +14,7 @@
     <charon.version>5.0.2</charon.version>
     <docker.organization>ghcr.io/department-of-veterans-affairs</docker.organization>
     <fhir-resources.version>9.0.1</fhir-resources.version>
-    <jacoco.coverage>0.94</jacoco.coverage>
+    <jacoco.coverage>0.93</jacoco.coverage>
     <mssql-jdbc.version>9.2.1.jre15</mssql-jdbc.version>
     <swagger-examples-maven-plugin.version>3.0.0</swagger-examples-maven-plugin.version>
     <swagger-maven-plugin.version>2.1.10</swagger-maven-plugin.version>

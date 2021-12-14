@@ -38,7 +38,6 @@ public class DecimalExtensionHandler extends AbstractSingleFieldExtensionHandler
           .requiredFieldJsonPath(".valueDecimal")
           .build();
     }
-    return List.of(
-        filemanFactory().forRequiredString(fieldNumber(), index(), value.toPlainString()));
+    return List.of(filemanFactory().forString(fieldNumber(), index(), value.toPlainString()).get());
   }
 }

@@ -17,7 +17,9 @@ import gov.va.api.health.r4.api.resources.Coverage.Status;
 import gov.va.api.health.vistafhirquery.service.controller.FilemanFactoryRegistry;
 import gov.va.api.health.vistafhirquery.service.controller.FilemanIndexRegistry;
 import gov.va.api.health.vistafhirquery.service.controller.PatientTypeCoordinates;
+import gov.va.api.health.vistafhirquery.service.controller.RequestPayloadExceptions;
 import gov.va.api.health.vistafhirquery.service.controller.RequestPayloadExceptions.EndDateOccursBeforeStartDate;
+import gov.va.api.health.vistafhirquery.service.controller.RequestPayloadExceptions.InvalidConditionalField;
 import gov.va.api.health.vistafhirquery.service.controller.RequestPayloadExceptions.InvalidReferenceId;
 import gov.va.api.health.vistafhirquery.service.controller.RequestPayloadExceptions.MissingRequiredField;
 import gov.va.api.health.vistafhirquery.service.controller.RequestPayloadExceptions.UnexpectedNumberOfValues;
@@ -81,10 +83,11 @@ public class R4CoverageToInsuranceTypeFileTransformer {
         };
     return factoryRegistry()
         .get(InsuranceType.FILE_NUMBER)
-        .forRequiredString(
+        .forString(
             InsuranceType.COORDINATION_OF_BENEFITS,
             indexRegistry().get(InsuranceType.FILE_NUMBER),
-            priority);
+            priority)
+        .get();
   }
 
   private R4ExtensionProcessor extensionProcessor() {
@@ -243,10 +246,16 @@ public class R4CoverageToInsuranceTypeFileTransformer {
     var effectiveDate =
         factoryRegistry()
             .get(InsuranceType.FILE_NUMBER)
-            .forRequiredString(
+            .forString(
                 InsuranceType.EFFECTIVE_DATE_OF_POLICY,
                 indexRegistry().get(InsuranceType.FILE_NUMBER),
-                vistaDateFormatter().format(start));
+                vistaDateFormatter().format(start))
+            .orElseThrow(
+                () ->
+                    RequestPayloadExceptions.InvalidConditionalField.builder()
+                        .jsonPath(".period.start")
+                        .condition("was present but not a parsable date.")
+                        .build());
     dates.add(effectiveDate);
     if (isBlank(period.end())) {
       return dates;
@@ -260,10 +269,16 @@ public class R4CoverageToInsuranceTypeFileTransformer {
     var expire =
         factoryRegistry()
             .get(InsuranceType.FILE_NUMBER)
-            .forRequiredString(
+            .forString(
                 InsuranceType.INSURANCE_EXPIRATION_DATE,
                 indexRegistry().get(InsuranceType.FILE_NUMBER),
-                vistaDateFormatter().format(end));
+                vistaDateFormatter().format(end))
+            .orElseThrow(
+                () ->
+                    InvalidConditionalField.builder()
+                        .jsonPath(".period.end")
+                        .condition("was present but not a parsable date.")
+                        .build());
     dates.add(expire);
     return dates;
   }
@@ -274,10 +289,11 @@ public class R4CoverageToInsuranceTypeFileTransformer {
     }
     return factoryRegistry()
         .get(InsuranceType.FILE_NUMBER)
-        .forRequiredString(
+        .forString(
             InsuranceType.SUBSCRIBER_ID,
             indexRegistry().get(InsuranceType.FILE_NUMBER),
-            subscriberId);
+            subscriberId)
+        .get();
   }
 
   /** Create a set of writeable fileman values. */

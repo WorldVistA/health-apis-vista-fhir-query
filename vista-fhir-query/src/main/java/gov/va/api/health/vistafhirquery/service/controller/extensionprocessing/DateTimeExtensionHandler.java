@@ -58,6 +58,6 @@ public class DateTimeExtensionHandler extends AbstractExtensionHandler {
           .valueReceived(extension.valueDateTime())
           .build();
     }
-    return List.of(filemanFactory().forRequiredString(dateTimeFieldNumber(), index(), vistaDate));
+    return List.of(filemanFactory().forString(dateTimeFieldNumber(), index(), vistaDate).get());
   }
 }

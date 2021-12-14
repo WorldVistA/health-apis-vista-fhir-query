@@ -37,6 +37,6 @@ public class StringExtensionHandler extends AbstractSingleFieldExtensionHandler 
           .requiredFieldJsonPath(".valueString")
           .build();
     }
-    return List.of(filemanFactory().forRequiredString(fieldNumber(), index(), value));
+    return List.of(filemanFactory().forString(fieldNumber(), index(), value).get());
   }
 }

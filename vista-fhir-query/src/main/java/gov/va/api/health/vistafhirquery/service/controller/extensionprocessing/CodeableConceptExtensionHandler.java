@@ -67,7 +67,7 @@ public class CodeableConceptExtensionHandler extends AbstractSingleFieldExtensio
           .requiredFieldJsonPath(".valueCodeableConcept.coding[].code")
           .build();
     }
-    return List.of(filemanFactory().forRequiredString(fieldNumber(), index(), code));
+    return List.of(filemanFactory().forString(fieldNumber(), index(), code).get());
   }
 
   public static class CodeableConceptExtensionHandlerBuilder {

@@ -54,10 +54,11 @@ public class QuantityExtensionHandler extends AbstractExtensionHandler {
     List<WriteableFilemanValue> filemanValues = new ArrayList<>(2);
     filemanValues.add(
         filemanFactory()
-            .forRequiredString(valueFieldNumber(), index(), quantity.value().toPlainString()));
+            .forString(valueFieldNumber(), index(), quantity.value().toPlainString())
+            .get());
     if (!isBlank(unitFieldNumber())) {
       filemanFactory()
-          .forOptionalString(unitFieldNumber(), index(), quantity.unit())
+          .forString(unitFieldNumber(), index(), quantity.unit())
           .ifPresentOrElse(
               filemanValues::add,
               () -> {

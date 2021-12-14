@@ -76,9 +76,9 @@ public class WriteableFilemanValueFactoryTest {
 
   @Test
   void forOptionalString() {
-    assertThat(factory.forOptionalString("x", 1, null)).isEmpty();
-    assertThat(factory.forOptionalString("x", 1, " ")).isEmpty();
-    assertThat(factory.forOptionalString("x", 1, "shanktopus"))
+    assertThat(factory.forString("x", 1, null)).isEmpty();
+    assertThat(factory.forString("x", 1, " ")).isEmpty();
+    assertThat(factory.forString("x", 1, "shanktopus"))
         .contains(writeableFilemanValue("x", 1, "shanktopus"));
   }
 
@@ -109,16 +109,6 @@ public class WriteableFilemanValueFactoryTest {
     assertThatExceptionOfType(BadRequestPayload.class)
         .isThrownBy(() -> factory.forRequiredInteger("x", 1, (Integer) null));
     assertThat(factory.forRequiredInteger("x", 1, 8)).isEqualTo(writeableFilemanValue("x", 1, "8"));
-  }
-
-  @Test
-  void forRequiredString() {
-    assertThatExceptionOfType(BadRequestPayload.class)
-        .isThrownBy(() -> factory.forRequiredString("x", 1, null));
-    assertThatExceptionOfType(BadRequestPayload.class)
-        .isThrownBy(() -> factory.forRequiredString("x", 1, " "));
-    assertThat(factory.forRequiredString("x", 1, "shanktopus"))
-        .isEqualTo(writeableFilemanValue("x", 1, "shanktopus"));
   }
 
   @Test

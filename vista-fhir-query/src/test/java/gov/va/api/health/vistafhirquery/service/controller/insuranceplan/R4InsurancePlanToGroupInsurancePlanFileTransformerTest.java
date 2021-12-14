@@ -6,11 +6,14 @@ import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import gov.va.api.health.r4.api.datatypes.CodeableConcept;
 import gov.va.api.health.r4.api.datatypes.Coding;
 import gov.va.api.health.r4.api.elements.Extension;
+import gov.va.api.health.r4.api.elements.Reference;
 import gov.va.api.health.r4.api.resources.InsurancePlan;
 import gov.va.api.health.vistafhirquery.service.controller.RequestPayloadExceptions.MissingRequiredExtension;
 import gov.va.api.health.vistafhirquery.service.controller.RequestPayloadExceptions.MissingRequiredField;
 import gov.va.api.health.vistafhirquery.service.controller.RequestPayloadExceptions.MissingRequiredListItem;
 import gov.va.api.health.vistafhirquery.service.controller.RequestPayloadExceptions.UnexpectedNumberOfValues;
+import gov.va.api.lighthouse.charon.models.lhslighthouserpcgateway.InsuranceCompany;
+import gov.va.api.lighthouse.charon.models.lhslighthouserpcgateway.LhsLighthouseRpcGatewayCoverageWrite;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Stream;
@@ -18,6 +21,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
+import org.junit.jupiter.params.provider.NullAndEmptySource;
 
 public class R4InsurancePlanToGroupInsurancePlanFileTransformerTest {
   static Stream<Arguments> missingExtensions() {
@@ -79,10 +83,11 @@ public class R4InsurancePlanToGroupInsurancePlanFileTransformerTest {
         .isThrownBy(() -> _transformer().electronicPlanType(List.of(codeableConcept)));
   }
 
-  @Test
-  void insuranceCompany() {
-    // Null
-    assertThat((_transformer().insuranceCompany(null))).isEqualTo(Optional.empty());
+  @ParameterizedTest
+  @NullAndEmptySource
+  void groupName(String name) {
+    assertThatExceptionOfType(MissingRequiredField.class)
+        .isThrownBy(() -> _transformer().groupName(name));
   }
 
   @ParameterizedTest
@@ -94,6 +99,29 @@ public class R4InsurancePlanToGroupInsurancePlanFileTransformerTest {
             .build();
     assertThatExceptionOfType(MissingRequiredExtension.class)
         .isThrownBy(blankExtensionTransformer::toGroupInsurancePlanFile);
+  }
+
+  @Test
+  void ownedBy() {
+    // Null
+    assertThatExceptionOfType(MissingRequiredField.class)
+        .isThrownBy(() -> _transformer().ownedBy(null));
+    // Invalid Reference
+    assertThatExceptionOfType(MissingRequiredField.class)
+        .isThrownBy(
+            () ->
+                _transformer().ownedBy(Reference.builder().reference("Organization/NOPE").build()));
+    // Valid
+    assertThat(_transformer().ownedBy(Reference.builder().reference("Organization/x;y;z").build()))
+        .usingRecursiveComparison()
+        .ignoringFields("index")
+        .isEqualTo(
+            LhsLighthouseRpcGatewayCoverageWrite.WriteableFilemanValue.builder()
+                .file(InsuranceCompany.FILE_NUMBER)
+                .field("ien")
+                .value("z")
+                .index(0)
+                .build());
   }
 
   @Test

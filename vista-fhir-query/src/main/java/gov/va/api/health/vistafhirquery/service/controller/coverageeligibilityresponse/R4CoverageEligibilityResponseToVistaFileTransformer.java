@@ -153,17 +153,18 @@ public class R4CoverageEligibilityResponseToVistaFileTransformer {
     }
     return factoryRegistry()
         .get(IivResponse.FILE_NUMBER)
-        .forRequiredString(
+        .forString(
             IivResponse.DATE_TIME_PERIOD,
             indexRegistry().get(IivResponse.FILE_NUMBER),
-            vistaDateTimePeriod);
+            vistaDateTimePeriod)
+        .get();
   }
 
   private List<WriteableFilemanValue> description(String description, Boolean excluded) {
     Optional<WriteableFilemanValue> limitationComment =
         factoryRegistry()
             .get(LimitationComment.FILE_NUMBER)
-            .forOptionalString(
+            .forString(
                 LimitationComment.LIMITATION_COMMENT,
                 indexRegistry().get(PlanCoverageLimitations.FILE_NUMBER),
                 description);
@@ -718,10 +719,11 @@ public class R4CoverageEligibilityResponseToVistaFileTransformer {
     var money = isBlank(allowed) ? used : allowed;
     return factoryRegistry()
         .get(EligibilityBenefit.FILE_NUMBER)
-        .forRequiredString(
+        .forString(
             EligibilityBenefit.MONETARY_AMOUNT,
             indexRegistry().get(EligibilityBenefit.FILE_NUMBER),
-            money.value().toPlainString());
+            money.value().toPlainString())
+        .get();
   }
 
   void outcome() {
@@ -751,16 +753,26 @@ public class R4CoverageEligibilityResponseToVistaFileTransformer {
     return Stream.of(
             factoryRegistry()
                 .get(EligibilityBenefit.FILE_NUMBER)
-                .forRequiredString(
+                .forString(
                     EligibilityBenefit.PROCEDURE_CODE,
                     indexRegistry().get(EligibilityBenefit.FILE_NUMBER),
-                    productOrServiceCoding.code()),
+                    productOrServiceCoding.code())
+                .orElseThrow(
+                    () ->
+                        MissingRequiredField.builder()
+                            .jsonPath("insurance[].item[].productOrService.coding[].code")
+                            .build()),
             factoryRegistry()
                 .get(EligibilityBenefit.FILE_NUMBER)
-                .forRequiredString(
+                .forString(
                     EligibilityBenefit.PROCEDURE_CODING_METHOD,
                     indexRegistry().get(EligibilityBenefit.FILE_NUMBER),
-                    productOrServiceCoding.system()))
+                    productOrServiceCoding.system())
+                .orElseThrow(
+                    () ->
+                        MissingRequiredField.builder()
+                            .jsonPath("insurance[].item[].productOrService.coding[].system")
+                            .build()))
         .toList();
   }
 

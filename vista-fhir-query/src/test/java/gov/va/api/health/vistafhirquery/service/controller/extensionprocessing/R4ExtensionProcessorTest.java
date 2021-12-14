@@ -139,7 +139,7 @@ public class R4ExtensionProcessorTest {
     @Override
     public List<WriteableFilemanValue> handle(String jsonPath, Extension extension) {
       return List.of(
-          filemanFactory().forRequiredString(fieldNumber(), index(), extension.valueCode()));
+          filemanFactory().forString(fieldNumber(), index(), extension.valueCode()).get());
     }
   }
 
@@ -158,7 +158,8 @@ public class R4ExtensionProcessorTest {
     public List<WriteableFilemanValue> handle(String jsonPath, Extension extension) {
       return List.of(
           filemanFactory()
-              .forRequiredString(fieldNumber(), index(), extension.valueBoolean().toString()));
+              .forString(fieldNumber(), index(), extension.valueBoolean().toString())
+              .get());
     }
   }
 }

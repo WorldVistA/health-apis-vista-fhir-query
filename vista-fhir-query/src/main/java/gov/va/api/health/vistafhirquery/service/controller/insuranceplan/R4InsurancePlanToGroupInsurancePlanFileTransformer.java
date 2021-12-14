@@ -181,7 +181,7 @@ public class R4InsurancePlanToGroupInsurancePlanFileTransformer {
     if (isBlank(name)) {
       throw MissingRequiredField.builder().jsonPath(".name").build();
     }
-    return filemanFactory.forRequiredString(GroupInsurancePlan.GROUP_NAME, 1, name);
+    return filemanFactory.forString(GroupInsurancePlan.GROUP_NAME, 1, name).get();
   }
 
   WriteableFilemanValue groupNumber(List<Identifier> identifiers) {
@@ -194,15 +194,16 @@ public class R4InsurancePlanToGroupInsurancePlanFileTransformer {
         GroupInsurancePlan.GROUP_NUMBER);
   }
 
-  Optional<WriteableFilemanValue> insuranceCompany(Reference reference) {
-    return recordCoordinatesForReference(reference)
-        .map(filemanFactory.recordCoordinatesToPointer(InsuranceCompany.FILE_NUMBER, index(1)));
-  }
-
   Optional<WriteableFilemanValue> insurancePlanIen(String id) {
     return Optional.ofNullable(id)
         .map(RecordCoordinates::fromString)
         .map(filemanFactory.recordCoordinatesToPointer(GroupInsurancePlan.FILE_NUMBER, index(1)));
+  }
+
+  WriteableFilemanValue ownedBy(Reference reference) {
+    return recordCoordinatesForReference(reference)
+        .map(filemanFactory.recordCoordinatesToPointer(InsuranceCompany.FILE_NUMBER, index(1)))
+        .orElseThrow(() -> MissingRequiredField.builder().jsonPath(".ownedBy").build());
   }
 
   Optional<WriteableFilemanValue> planCategory(List<CodeableConcept> codeableConcepts) {
@@ -239,12 +240,7 @@ public class R4InsurancePlanToGroupInsurancePlanFileTransformer {
   public Set<WriteableFilemanValue> toGroupInsurancePlanFile() {
     Set<WriteableFilemanValue> fields = new HashSet<>();
     insurancePlanIen(insurancePlan().id()).ifPresent(fields::add);
-    insuranceCompany(insurancePlan().ownedBy())
-        .ifPresentOrElse(
-            fields::add,
-            () -> {
-              throw MissingRequiredField.builder().jsonPath(".ownedBy").build();
-            });
+    fields.add(ownedBy(insurancePlan().ownedBy()));
     fields.add(typeOfPlan(insurancePlan().plan()));
     fields.add(electronicPlanType(insurancePlan().type()));
     fields.add(groupName(insurancePlan().name()));

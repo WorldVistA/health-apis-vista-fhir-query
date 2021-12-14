@@ -98,12 +98,11 @@ public class PeriodExtensionHandler extends AbstractExtensionHandler {
     }
     if (Objects.equals(periodStartFieldNumber(), periodEndFieldNumber())) {
       var range = dateRange(jsonPath, start, end);
-      return List.of(filemanFactory().forRequiredString(periodStartFieldNumber(), index(), range));
+      return List.of(filemanFactory().forString(periodStartFieldNumber(), index(), range).get());
     }
     return Stream.of(
-            filemanFactory()
-                .forOptionalString(periodStartFieldNumber(), index(), start.orElse(null)),
-            filemanFactory().forOptionalString(periodEndFieldNumber(), index(), end.orElse(null)))
+            filemanFactory().forString(periodStartFieldNumber(), index(), start.orElse(null)),
+            filemanFactory().forString(periodEndFieldNumber(), index(), end.orElse(null)))
         .filter(Optional::isPresent)
         .map(Optional::get)
         .toList();

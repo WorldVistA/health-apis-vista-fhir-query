@@ -10,7 +10,6 @@ import gov.va.api.health.r4.api.resources.Organization;
 import gov.va.api.health.vistafhirquery.service.controller.RequestPayloadExceptions.MissingRequiredField;
 import gov.va.api.health.vistafhirquery.service.controller.RequestPayloadExceptions.MissingRequiredListItem;
 import gov.va.api.health.vistafhirquery.service.controller.RequestPayloadExceptions.UnexpectedNumberOfValues;
-import gov.va.api.health.vistafhirquery.service.controller.ResourceExceptions.BadRequestPayload;
 import gov.va.api.health.vistafhirquery.service.controller.organization.R4OrganizationToInsuranceCompanyFileTransformer.ContactPurpose;
 import java.util.Collections;
 import java.util.List;
@@ -74,7 +73,7 @@ public class R4OrganizationToInsuranceCompanyFileTransformerTest {
 
   @Test
   void empty() {
-    assertThatExceptionOfType(BadRequestPayload.class)
+    assertThatExceptionOfType(MissingRequiredField.class)
         .isThrownBy(
             () ->
                 R4OrganizationToInsuranceCompanyFileTransformer.builder()
