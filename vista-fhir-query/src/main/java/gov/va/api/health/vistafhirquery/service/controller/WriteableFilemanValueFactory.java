@@ -34,13 +34,12 @@ public class WriteableFilemanValueFactory {
     return () -> value;
   }
 
-  public Function<Extension, WriteableFilemanValue> extensionToInteger(
-      String field, Supplier<Integer> index) {
-    return extension -> forOptionalInteger(field, index.get(), extension).orElse(null);
+  public ToFilemanValue<Extension> extensionToInteger(String field, Supplier<Integer> index) {
+    return extension -> forInteger(field, index.get(), extension).orElse(null);
   }
 
   /** Build a WriteableFilemanValue from an Integer value. */
-  public Optional<WriteableFilemanValue> forOptionalInteger(
+  public Optional<WriteableFilemanValue> forInteger(
       @NonNull String field, int index, Integer value) {
     if (value == null) {
       return Optional.empty();
@@ -49,17 +48,16 @@ public class WriteableFilemanValueFactory {
   }
 
   /** Build a WriteableFilemanValue using the extension.valueInteger field. */
-  public Optional<WriteableFilemanValue> forOptionalInteger(
+  public Optional<WriteableFilemanValue> forInteger(
       @NonNull String field, int index, Extension extension) {
     if (extension == null) {
       return Optional.empty();
     }
-    return forOptionalInteger(field, index, extension.valueInteger());
+    return forInteger(field, index, extension.valueInteger());
   }
 
   /** Build a WriteableFilemanValue pointer for the given file and index. */
-  public Optional<WriteableFilemanValue> forOptionalPointer(
-      @NonNull String file, int index, String ien) {
+  public Optional<WriteableFilemanValue> forPointer(@NonNull String file, int index, String ien) {
     if (isBlank(ien)) {
       return Optional.empty();
     }
@@ -135,13 +133,6 @@ public class WriteableFilemanValueFactory {
             () -> BadRequestPayload.because(file(), field, "Required string value is blank."));
   }
 
-  /** Build a WriteableFilemanValue from an Integer value. */
-  public WriteableFilemanValue forRequiredInteger(@NonNull String field, int index, Integer value) {
-    return forOptionalInteger(field, index, value)
-        .orElseThrow(
-            () -> BadRequestPayload.because(file(), field, "Required integer value is null."));
-  }
-
   /**
    * Creates a pointer using the Dynamic IEN Macro to a parent file (e.g.
    * 355.321^1^IEN^${355.32^1^IEN}).
@@ -151,22 +142,6 @@ public class WriteableFilemanValueFactory {
     return forString("IEN", index, "${" + parentFileNumber + "^" + parentFileIndex + "^IEN}")
         .orElseThrow(
             () -> BadRequestPayload.because(file(), "IEN", "Required string value is blank."));
-  }
-
-  /**
-   * Creates a pointer using the Dynamic IEN Macro for a pointer field (e.g.
-   * 355.32^2^#.01^${355.3^1^IEN}).
-   */
-  public WriteableFilemanValue forRequiredPointerUsingIenMacro(
-      int index,
-      @NonNull String fieldNumber,
-      @NonNull String pointerToFileNumber,
-      int pointerToIndex) {
-    return forString(
-            fieldNumber, index, "${" + pointerToFileNumber + "^" + pointerToIndex + "^IEN}")
-        .orElseThrow(
-            () ->
-                BadRequestPayload.because(file(), fieldNumber, "Required string value is blank."));
   }
 
   /** Build a WriteableFilemanValue with a grav?? marker added to the value. */
@@ -196,12 +171,12 @@ public class WriteableFilemanValueFactory {
 
   public ToFilemanValue<PatientTypeCoordinates> patientTypeCoordinatesToPointer(
       String file, Supplier<Integer> index) {
-    return coordinates -> forOptionalPointer(file, index.get(), coordinates.ien()).orElse(null);
+    return coordinates -> forPointer(file, index.get(), coordinates.ien()).orElse(null);
   }
 
   public ToFilemanValue<RecordCoordinates> recordCoordinatesToPointer(
       String file, Supplier<Integer> index) {
-    return coordinates -> forOptionalPointer(file, index.get(), coordinates.ien()).orElse(null);
+    return coordinates -> forPointer(file, index.get(), coordinates.ien()).orElse(null);
   }
 
   public <T> ToFilemanValue<T> toString(

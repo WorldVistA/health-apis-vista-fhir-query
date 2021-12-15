@@ -37,6 +37,6 @@ public class IntegerExtensionHandler extends AbstractSingleFieldExtensionHandler
           .requiredFieldJsonPath(".valueInteger")
           .build();
     }
-    return List.of(filemanFactory().forRequiredInteger(fieldNumber(), index(), value));
+    return List.of(filemanFactory().forInteger(fieldNumber(), index(), value).get());
   }
 }

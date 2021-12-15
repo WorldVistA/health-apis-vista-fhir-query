@@ -54,24 +54,23 @@ public class WriteableFilemanValueFactoryTest {
 
   @Test
   void forIntegerExtension() {
-    assertThat(factory.forOptionalInteger("x", 1, (Extension) null)).isEmpty();
-    assertThat(factory.forOptionalInteger("x", 1, Extension.builder().build())).isEmpty();
-    assertThat(factory.forOptionalInteger("x", 1, Extension.builder().valueInteger(8).build()))
+    assertThat(factory.forInteger("x", 1, (Extension) null)).isEmpty();
+    assertThat(factory.forInteger("x", 1, Extension.builder().build())).isEmpty();
+    assertThat(factory.forInteger("x", 1, Extension.builder().valueInteger(8).build()))
         .contains(writeableFilemanValue("x", 1, "8"));
   }
 
   @Test
   void forOptionalInteger() {
-    assertThat(factory.forOptionalInteger("x", 1, (Integer) null)).isEmpty();
-    assertThat(factory.forOptionalInteger("x", 1, 8)).contains(writeableFilemanValue("x", 1, "8"));
+    assertThat(factory.forInteger("x", 1, (Integer) null)).isEmpty();
+    assertThat(factory.forInteger("x", 1, 8)).contains(writeableFilemanValue("x", 1, "8"));
   }
 
   @Test
   void forOptionalPointer() {
-    assertThat(factory.forOptionalPointer("fugazi", 1, null)).isEmpty();
-    assertThat(factory.forOptionalPointer("fugazi", 1, " ")).isEmpty();
-    assertThat(factory.forOptionalPointer("fugazi", 1, "8"))
-        .contains(writeableFilemanValue("ien", 1, "8"));
+    assertThat(factory.forPointer("fugazi", 1, null)).isEmpty();
+    assertThat(factory.forPointer("fugazi", 1, " ")).isEmpty();
+    assertThat(factory.forPointer("fugazi", 1, "8")).contains(writeableFilemanValue("ien", 1, "8"));
   }
 
   @Test
@@ -102,13 +101,6 @@ public class WriteableFilemanValueFactoryTest {
     assertThat(
             factory.forRequiredIdentifier("x", 1, Identifier.builder().value("shanktopus").build()))
         .isEqualTo(writeableFilemanValue("x", 1, "shanktopus"));
-  }
-
-  @Test
-  void forRequiredInteger() {
-    assertThatExceptionOfType(BadRequestPayload.class)
-        .isThrownBy(() -> factory.forRequiredInteger("x", 1, (Integer) null));
-    assertThat(factory.forRequiredInteger("x", 1, 8)).isEqualTo(writeableFilemanValue("x", 1, "8"));
   }
 
   @Test

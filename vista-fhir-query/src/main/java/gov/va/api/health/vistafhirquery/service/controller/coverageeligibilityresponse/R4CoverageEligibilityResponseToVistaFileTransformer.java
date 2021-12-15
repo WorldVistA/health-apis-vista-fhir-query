@@ -370,10 +370,11 @@ public class R4CoverageEligibilityResponseToVistaFileTransformer {
     filemanValues.add(
         factoryRegistry()
             .get(HealthcareServicesDelivery.FILE_NUMBER)
-            .forRequiredInteger(
+            .forInteger(
                 HealthcareServicesDelivery.SEQUENCE,
                 indexRegistry().get(HealthcareServicesDelivery.FILE_NUMBER),
-                indexRegistry().get(HealthcareServicesDelivery.FILE_NUMBER)));
+                indexRegistry().get(HealthcareServicesDelivery.FILE_NUMBER))
+            .get());
     filemanValues.add(
         factoryRegistry()
             .get(HealthcareServicesDelivery.FILE_NUMBER)
@@ -384,10 +385,11 @@ public class R4CoverageEligibilityResponseToVistaFileTransformer {
     filemanValues.add(
         factoryRegistry()
             .get(SubscriberAdditionalInfo.FILE_NUMBER)
-            .forRequiredInteger(
+            .forInteger(
                 SubscriberAdditionalInfo.SEQUENCE,
                 indexRegistry().get(SubscriberAdditionalInfo.FILE_NUMBER),
-                indexRegistry().get(SubscriberAdditionalInfo.FILE_NUMBER)));
+                indexRegistry().get(SubscriberAdditionalInfo.FILE_NUMBER))
+            .get());
     filemanValues.add(
         factoryRegistry()
             .get(SubscriberAdditionalInfo.FILE_NUMBER)
@@ -398,17 +400,19 @@ public class R4CoverageEligibilityResponseToVistaFileTransformer {
     filemanValues.add(
         factoryRegistry()
             .get(SubscriberReferenceId.FILE_NUMBER)
-            .forRequiredInteger(
+            .forInteger(
                 SubscriberReferenceId.SEQUENCE,
                 indexRegistry().get(SubscriberReferenceId.FILE_NUMBER),
-                indexRegistry().get(SubscriberReferenceId.FILE_NUMBER)));
+                indexRegistry().get(SubscriberReferenceId.FILE_NUMBER))
+            .get());
     filemanValues.add(
         factoryRegistry()
             .get(SubscriberDates.FILE_NUMBER)
-            .forRequiredInteger(
+            .forInteger(
                 SubscriberDates.SEQUENCE,
                 indexRegistry().get(SubscriberDates.FILE_NUMBER),
-                indexRegistry().get(SubscriberDates.FILE_NUMBER)));
+                indexRegistry().get(SubscriberDates.FILE_NUMBER))
+            .get());
     filemanValues.add(
         factoryRegistry()
             .get(SubscriberReferenceId.FILE_NUMBER)
@@ -461,10 +465,11 @@ public class R4CoverageEligibilityResponseToVistaFileTransformer {
     filemanValues.add(
         factoryRegistry()
             .get(EligibilityBenefit.FILE_NUMBER)
-            .forRequiredInteger(
+            .forInteger(
                 EligibilityBenefit.EB_NUMBER,
                 indexRegistry().get(EligibilityBenefit.FILE_NUMBER),
-                indexRegistry().get(EligibilityBenefit.FILE_NUMBER)));
+                indexRegistry().get(EligibilityBenefit.FILE_NUMBER))
+            .get());
     filemanValues.add(
         factoryRegistry()
             .get(EligibilityBenefit.FILE_NUMBER)
@@ -873,10 +878,11 @@ public class R4CoverageEligibilityResponseToVistaFileTransformer {
     vistaFields.add(
         factoryRegistry()
             .get(HealthCareCodeInformation.FILE_NUMBER)
-            .forRequiredInteger(
+            .forInteger(
                 HealthCareCodeInformation.SEQUENCE,
                 indexRegistry().get(HealthCareCodeInformation.FILE_NUMBER),
-                indexRegistry().get(HealthCareCodeInformation.FILE_NUMBER)));
+                indexRegistry().get(HealthCareCodeInformation.FILE_NUMBER))
+            .get());
     vistaFields.add(
         factoryRegistry()
             .get(HealthCareCodeInformation.FILE_NUMBER)
