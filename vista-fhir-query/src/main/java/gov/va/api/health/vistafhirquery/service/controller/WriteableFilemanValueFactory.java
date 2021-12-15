@@ -6,7 +6,6 @@ import static org.apache.commons.lang3.StringUtils.isBlank;
 import gov.va.api.health.r4.api.datatypes.CodeableConcept;
 import gov.va.api.health.r4.api.datatypes.Coding;
 import gov.va.api.health.r4.api.datatypes.Identifier;
-import gov.va.api.health.r4.api.elements.Extension;
 import gov.va.api.health.vistafhirquery.service.controller.ResourceExceptions.BadRequestPayload;
 import gov.va.api.lighthouse.charon.models.lhslighthouserpcgateway.LhsLighthouseRpcGatewayCoverageWrite.WriteableFilemanValue;
 import java.util.Optional;
@@ -34,10 +33,6 @@ public class WriteableFilemanValueFactory {
     return () -> value;
   }
 
-  public ToFilemanValue<Extension> extensionToInteger(String field, Supplier<Integer> index) {
-    return extension -> forInteger(field, index.get(), extension).orElse(null);
-  }
-
   /** Build a WriteableFilemanValue from a Boolean value. */
   public Optional<WriteableFilemanValue> forBoolean(
       @NonNull String field, int index, Boolean value, @NonNull Function<Boolean, String> mapper) {
@@ -48,6 +43,15 @@ public class WriteableFilemanValueFactory {
     }
   }
 
+  /** Build a WriteableFilemanValue using the identifer.value field. */
+  public Optional<WriteableFilemanValue> forIdentifier(
+      String field, int index, Identifier identifier) {
+    if (identifier == null) {
+      return Optional.empty();
+    }
+    return forString(field, index, identifier.value());
+  }
+
   /** Build a WriteableFilemanValue from an Integer value. */
   public Optional<WriteableFilemanValue> forInteger(
       @NonNull String field, int index, Integer value) {
@@ -55,15 +59,6 @@ public class WriteableFilemanValueFactory {
       return Optional.empty();
     }
     return forString(field, index, "" + value);
-  }
-
-  /** Build a WriteableFilemanValue using the extension.valueInteger field. */
-  public Optional<WriteableFilemanValue> forInteger(
-      @NonNull String field, int index, Extension extension) {
-    if (extension == null) {
-      return Optional.empty();
-    }
-    return forInteger(field, index, extension.valueInteger());
   }
 
   /** Build a WriteableFilemanValue pointer for the given file and index. */
@@ -104,17 +99,6 @@ public class WriteableFilemanValueFactory {
       throw BadRequestPayload.because(file(), field, ".coding.code is blank.");
     }
     return forString(field, index, coding.code())
-        .orElseThrow(
-            () -> BadRequestPayload.because(file(), field, "Required string value is blank."));
-  }
-
-  /** Build a WriteableFilemanValue using the identifer.value field. */
-  public WriteableFilemanValue forRequiredIdentifier(
-      String field, int index, Identifier identifier) {
-    if (identifier == null || isBlank(identifier.value())) {
-      throw BadRequestPayload.because(file(), field, "identifier or identifier.value is null.");
-    }
-    return forString(field, index, identifier.value())
         .orElseThrow(
             () -> BadRequestPayload.because(file(), field, "Required string value is blank."));
   }

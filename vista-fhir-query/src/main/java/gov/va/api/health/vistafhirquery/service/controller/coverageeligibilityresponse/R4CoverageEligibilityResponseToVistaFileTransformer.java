@@ -280,15 +280,27 @@ public class R4CoverageEligibilityResponseToVistaFileTransformer {
       case "MSH-10":
         return factoryRegistry()
             .get(IivResponse.FILE_NUMBER)
-            .forRequiredIdentifier(
+            .forIdentifier(
                 IivResponse.MESSAGE_CONTROL_ID,
                 indexRegistry().get(IivResponse.FILE_NUMBER),
-                identifier);
+                identifier)
+            .orElseThrow(
+                () ->
+                    InvalidConditionalField.builder()
+                        .jsonPath(".identifier[].type.value")
+                        .condition(".identifier[].type.text is MSH-10")
+                        .build());
       case "MSA-3":
         return factoryRegistry()
             .get(IivResponse.FILE_NUMBER)
-            .forRequiredIdentifier(
-                IivResponse.TRACE_NUMBER, indexRegistry().get(IivResponse.FILE_NUMBER), identifier);
+            .forIdentifier(
+                IivResponse.TRACE_NUMBER, indexRegistry().get(IivResponse.FILE_NUMBER), identifier)
+            .orElseThrow(
+                () ->
+                    InvalidConditionalField.builder()
+                        .jsonPath(".identifier[].type.value")
+                        .condition(".identifier[].type.text is MSA-3")
+                        .build());
       default:
         throw UnexpectedValueForField.builder()
             .jsonPath(".identifier[].type.text")

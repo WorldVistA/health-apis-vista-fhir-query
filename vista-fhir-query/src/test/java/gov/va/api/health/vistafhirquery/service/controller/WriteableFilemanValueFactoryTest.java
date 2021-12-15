@@ -1,11 +1,8 @@
 package gov.va.api.health.vistafhirquery.service.controller;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 
 import gov.va.api.health.r4.api.datatypes.Identifier;
-import gov.va.api.health.r4.api.elements.Extension;
-import gov.va.api.health.vistafhirquery.service.controller.ResourceExceptions.BadRequestPayload;
 import gov.va.api.lighthouse.charon.models.lhslighthouserpcgateway.LhsLighthouseRpcGatewayCoverageWrite.WriteableFilemanValue;
 import java.util.function.Function;
 import org.junit.jupiter.api.Test;
@@ -26,18 +23,6 @@ public class WriteableFilemanValueFactoryTest {
   }
 
   @Test
-  void extensionToInteger() {
-    assertThat(factory.extensionToInteger("x", () -> 3).apply(null)).isNull();
-    assertThat(factory.extensionToInteger("x", () -> 3).apply(Extension.builder().build()))
-        .isNull();
-    assertThat(
-            factory
-                .extensionToInteger("x", () -> 3)
-                .apply(Extension.builder().valueInteger(8).build()))
-        .isEqualTo(writeableFilemanValue("x", 3, "8"));
-  }
-
-  @Test
   void forBoolean() {
     Function<Boolean, String> boolToString = value -> value ? "YES" : "NO";
     assertThat(factory.forBoolean("x", 1, (Boolean) null, boolToString)).isEmpty();
@@ -55,14 +40,6 @@ public class WriteableFilemanValueFactoryTest {
                   throw new IllegalArgumentException("");
                 }))
         .isEmpty();
-  }
-
-  @Test
-  void forIntegerExtension() {
-    assertThat(factory.forInteger("x", 1, (Extension) null)).isEmpty();
-    assertThat(factory.forInteger("x", 1, Extension.builder().build())).isEmpty();
-    assertThat(factory.forInteger("x", 1, Extension.builder().valueInteger(8).build()))
-        .contains(writeableFilemanValue("x", 1, "8"));
   }
 
   @Test
@@ -88,13 +65,10 @@ public class WriteableFilemanValueFactoryTest {
 
   @Test
   void forRequiredIdentifier() {
-    assertThatExceptionOfType(BadRequestPayload.class)
-        .isThrownBy(() -> factory.forRequiredIdentifier("x", 1, null));
-    assertThatExceptionOfType(BadRequestPayload.class)
-        .isThrownBy(() -> factory.forRequiredIdentifier("x", 1, Identifier.builder().build()));
-    assertThat(
-            factory.forRequiredIdentifier("x", 1, Identifier.builder().value("shanktopus").build()))
-        .isEqualTo(writeableFilemanValue("x", 1, "shanktopus"));
+    assertThat(factory.forIdentifier("x", 1, null)).isEmpty();
+    assertThat(factory.forIdentifier("x", 1, Identifier.builder().build())).isEmpty();
+    assertThat(factory.forIdentifier("x", 1, Identifier.builder().value("shanktopus").build()))
+        .contains(writeableFilemanValue("x", 1, "shanktopus"));
   }
 
   @Test

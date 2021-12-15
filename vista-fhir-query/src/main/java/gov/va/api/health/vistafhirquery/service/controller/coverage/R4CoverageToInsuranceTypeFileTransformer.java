@@ -194,10 +194,12 @@ public class R4CoverageToInsuranceTypeFileTransformer {
     }
     return factoryRegistry()
         .get(InsuranceType.FILE_NUMBER)
-        .forRequiredIdentifier(
+        .forIdentifier(
             InsuranceType.PATIENT_ID,
             indexRegistry().get(InsuranceType.FILE_NUMBER),
-            beneficiary.identifier());
+            beneficiary.identifier())
+        .orElseThrow(
+            () -> MissingRequiredField.builder().jsonPath(".beneficiary.identifier.value").build());
   }
 
   WriteableFilemanValue patientRelationshipHipaa(CodeableConcept relationship) {

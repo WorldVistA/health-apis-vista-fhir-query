@@ -146,7 +146,7 @@ public class R4CoverageToInsuranceTypeFileTransformerTest {
                                     .build())
                             .build()));
     // Null Identifier Value
-    assertThatExceptionOfType(BadRequestPayload.class)
+    assertThatExceptionOfType(MissingRequiredField.class)
         .isThrownBy(
             () ->
                 _transformer()
