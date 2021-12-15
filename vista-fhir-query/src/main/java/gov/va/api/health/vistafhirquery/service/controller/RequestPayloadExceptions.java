@@ -144,6 +144,12 @@ public class RequestPayloadExceptions {
     }
   }
 
+  public static class EmptyRequestPayload extends BadRequestPayload {
+    public EmptyRequestPayload() {
+      super("Request payload is empty.");
+    }
+  }
+
   @EqualsAndHashCode(callSuper = true)
   public static class MissingRequiredListItem extends InvalidField {
     @NonNull @Getter private final List<String> qualifiers;

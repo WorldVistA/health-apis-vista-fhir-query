@@ -182,7 +182,7 @@ public class R4OrganizationToInsuranceCompanyFileTransformer {
       lines = emptyList();
     }
     for (int i = 0; i < lines.size(); i++) {
-      var index = i;
+      int index = i;
       addressValues.add(
           filemanFactory
               .forString(arrayLines[i], 1, lines.get(i))
@@ -489,6 +489,7 @@ public class R4OrganizationToInsuranceCompanyFileTransformer {
     if (isBlank(telecom)) {
       throw MissingRequiredField.builder().jsonPath(".telecom[]").build();
     }
+
     return contactPointForSystem(telecom, system)
         .flatMap(cp -> insuranceCompanyCoordinates(fieldNumber, 1, cp.value()))
         .orElseThrow(

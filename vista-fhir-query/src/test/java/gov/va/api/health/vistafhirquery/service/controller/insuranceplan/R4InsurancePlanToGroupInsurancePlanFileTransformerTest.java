@@ -14,6 +14,7 @@ import gov.va.api.health.vistafhirquery.service.controller.RequestPayloadExcepti
 import gov.va.api.health.vistafhirquery.service.controller.RequestPayloadExceptions.UnexpectedNumberOfValues;
 import gov.va.api.lighthouse.charon.models.lhslighthouserpcgateway.InsuranceCompany;
 import gov.va.api.lighthouse.charon.models.lhslighthouserpcgateway.LhsLighthouseRpcGatewayCoverageWrite;
+import gov.va.api.lighthouse.charon.models.lhslighthouserpcgateway.LhsLighthouseRpcGatewayCoverageWrite.WriteableFilemanValue;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Stream;
@@ -88,6 +89,29 @@ public class R4InsurancePlanToGroupInsurancePlanFileTransformerTest {
   void groupName(String name) {
     assertThatExceptionOfType(MissingRequiredField.class)
         .isThrownBy(() -> _transformer().groupName(name));
+  }
+
+  @Test
+  void insuranceCompany() {
+    // Null
+    assertThatExceptionOfType(MissingRequiredField.class)
+        .isThrownBy(() -> _transformer().ownedBy(null));
+    // Invalid Reference
+    assertThatExceptionOfType(MissingRequiredField.class)
+        .isThrownBy(
+            () ->
+                _transformer().ownedBy(Reference.builder().reference("Organization/NOPE").build()));
+    // Valid
+    assertThat(_transformer().ownedBy(Reference.builder().reference("Organization/x;y;z").build()))
+        .usingRecursiveComparison()
+        .ignoringFields("index")
+        .isEqualTo(
+            WriteableFilemanValue.builder()
+                .file(InsuranceCompany.FILE_NUMBER)
+                .field("ien")
+                .value("z")
+                .index(0)
+                .build());
   }
 
   @ParameterizedTest

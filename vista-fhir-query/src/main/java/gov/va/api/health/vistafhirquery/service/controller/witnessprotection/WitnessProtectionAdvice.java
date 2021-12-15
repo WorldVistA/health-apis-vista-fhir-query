@@ -17,8 +17,8 @@ import gov.va.api.health.ids.client.IdEncoder;
 import gov.va.api.health.r4.api.bundle.AbstractBundle;
 import gov.va.api.health.r4.api.bundle.AbstractEntry;
 import gov.va.api.health.r4.api.resources.Resource;
+import gov.va.api.health.vistafhirquery.service.controller.RequestPayloadExceptions.EmptyRequestPayload;
 import gov.va.api.health.vistafhirquery.service.controller.ResourceExceptions;
-import gov.va.api.health.vistafhirquery.service.controller.ResourceExceptions.BadRequestPayload;
 import gov.va.api.health.vistafhirquery.service.controller.ResourceExceptions.NotFound;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
@@ -170,7 +170,7 @@ public class WitnessProtectionAdvice extends IdentitySubstitution<ProtectedRefer
       @org.springframework.lang.NonNull MethodParameter methodParameter,
       @org.springframework.lang.NonNull Type type,
       @org.springframework.lang.NonNull Class<? extends HttpMessageConverter<?>> converterType) {
-    throw BadRequestPayload.because("Request payload is empty.");
+    throw new EmptyRequestPayload();
   }
 
   @Override

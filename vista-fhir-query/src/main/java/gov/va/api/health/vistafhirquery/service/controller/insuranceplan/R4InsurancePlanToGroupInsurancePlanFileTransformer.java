@@ -203,7 +203,7 @@ public class R4InsurancePlanToGroupInsurancePlanFileTransformer {
   WriteableFilemanValue ownedBy(Reference reference) {
     return recordCoordinatesForReference(reference)
         .map(filemanFactory.recordCoordinatesToPointer(InsuranceCompany.FILE_NUMBER, index(1)))
-        .orElseThrow(() -> MissingRequiredField.builder().jsonPath(".ownedBy").build());
+        .orElseThrow(() -> MissingRequiredField.builder().jsonPath(".ownedBy.reference").build());
   }
 
   Optional<WriteableFilemanValue> planCategory(List<CodeableConcept> codeableConcepts) {

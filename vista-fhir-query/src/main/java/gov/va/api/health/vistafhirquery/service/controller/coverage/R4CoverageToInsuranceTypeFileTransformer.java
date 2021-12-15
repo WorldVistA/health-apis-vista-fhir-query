@@ -2,6 +2,8 @@ package gov.va.api.health.vistafhirquery.service.controller.coverage;
 
 import static gov.va.api.health.vistafhirquery.service.controller.R4Transformers.isBlank;
 import static gov.va.api.health.vistafhirquery.service.controller.R4Transformers.recordCoordinatesForReference;
+import static gov.va.api.health.vistafhirquery.service.controller.R4Transformers.tryFormatDateTime;
+import static gov.va.api.health.vistafhirquery.service.controller.R4Transformers.tryParseDateTime;
 import static gov.va.api.health.vistafhirquery.service.controller.WriteableFilemanValueFactory.index;
 import static gov.va.api.health.vistafhirquery.service.controller.coverage.CoverageStructureDefinitions.COVERAGE_CLASS_CODE_SYSTEM;
 import static gov.va.api.health.vistafhirquery.service.controller.coverage.CoverageStructureDefinitions.SUBSCRIBER_RELATIONSHIP_CODE_SYSTEM;
@@ -31,7 +33,6 @@ import gov.va.api.lighthouse.charon.models.lhslighthouserpcgateway.GroupInsuranc
 import gov.va.api.lighthouse.charon.models.lhslighthouserpcgateway.InsuranceCompany;
 import gov.va.api.lighthouse.charon.models.lhslighthouserpcgateway.InsuranceType;
 import gov.va.api.lighthouse.charon.models.lhslighthouserpcgateway.LhsLighthouseRpcGatewayCoverageWrite.WriteableFilemanValue;
-import java.time.Instant;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
@@ -121,7 +122,6 @@ public class R4CoverageToInsuranceTypeFileTransformer {
                                   && "group".equals(coding.code()));
                 })
             .collect(toList());
-
     if (filteredCoverageTypes.size() != 1) {
       throw UnexpectedNumberOfValues.builder()
           .jsonPath(".class")
@@ -131,7 +131,6 @@ public class R4CoverageToInsuranceTypeFileTransformer {
           .receivedCount(filteredCoverageTypes.size())
           .build();
     }
-
     // Group slice cardinality is 0..1
     return recordCoordinatesForReference(
             Reference.builder().reference(filteredCoverageTypes.get(0).value()).build())
@@ -210,7 +209,6 @@ public class R4CoverageToInsuranceTypeFileTransformer {
         relationship.coding().stream()
             .filter(c -> SUBSCRIBER_RELATIONSHIP_CODE_SYSTEM.equals(c.system()))
             .toList();
-
     if (relationships.size() != 1) {
       throw UnexpectedNumberOfValues.builder()
           .jsonPath(".relationship")
@@ -220,7 +218,6 @@ public class R4CoverageToInsuranceTypeFileTransformer {
           .receivedCount(relationships.size())
           .build();
     }
-
     var relationshipCode = relationships.get(0);
     return SubscriberToBeneficiaryRelationship.fromCoding(relationshipCode)
         .map(
@@ -244,37 +241,60 @@ public class R4CoverageToInsuranceTypeFileTransformer {
       throw MissingRequiredField.builder().jsonPath(".period.start").build();
     }
     List<WriteableFilemanValue> dates = new ArrayList<>(2);
-    var start = Instant.parse(period.start());
-    var effectiveDate =
-        factoryRegistry()
-            .get(InsuranceType.FILE_NUMBER)
-            .forString(
-                InsuranceType.EFFECTIVE_DATE_OF_POLICY,
-                indexRegistry().get(InsuranceType.FILE_NUMBER),
-                vistaDateFormatter().format(start))
+    var startInstant =
+        tryParseDateTime(period.start())
             .orElseThrow(
                 () ->
-                    RequestPayloadExceptions.InvalidConditionalField.builder()
+                    RequestPayloadExceptions.UnexpectedValueForField.builder()
                         .jsonPath(".period.start")
-                        .condition("was present but not a parsable date.")
+                        .dataType("http://hl7.org/fhir/R4/datatypes.html#dateTime")
+                        .valueReceived(period.start())
+                        .build());
+    var effectiveDate =
+        tryFormatDateTime(startInstant, vistaDateFormatter)
+            .flatMap(
+                start ->
+                    factoryRegistry()
+                        .get(InsuranceType.FILE_NUMBER)
+                        .forString(
+                            InsuranceType.EFFECTIVE_DATE_OF_POLICY,
+                            indexRegistry().get(InsuranceType.FILE_NUMBER),
+                            start))
+            .orElseThrow(
+                () ->
+                    RequestPayloadExceptions.UnexpectedValueForField.builder()
+                        .jsonPath(".period.start")
+                        .dataType("http://hl7.org/fhir/R4/datatypes.html#dateTime")
+                        .valueReceived(period.start())
                         .build());
     dates.add(effectiveDate);
     if (isBlank(period.end())) {
       return dates;
     }
-    var end = Instant.parse(period.end());
-    if (!end.isAfter(start)) {
+    var endInstant =
+        tryParseDateTime(period.end())
+            .orElseThrow(
+                () ->
+                    RequestPayloadExceptions.UnexpectedValueForField.builder()
+                        .jsonPath(".period.end")
+                        .dataType("http://hl7.org/fhir/R4/datatypes.html#dateTime")
+                        .valueReceived(period.end())
+                        .build());
+    if (!endInstant.isAfter(startInstant)) {
       throw EndDateOccursBeforeStartDate.builder().jsonPath(".period").build();
     }
     /* When expiration date (conditionally required) is present,
      * any failure to process it should result in failure. */
     var expire =
-        factoryRegistry()
-            .get(InsuranceType.FILE_NUMBER)
-            .forString(
-                InsuranceType.INSURANCE_EXPIRATION_DATE,
-                indexRegistry().get(InsuranceType.FILE_NUMBER),
-                vistaDateFormatter().format(end))
+        tryFormatDateTime(endInstant, vistaDateFormatter)
+            .flatMap(
+                end ->
+                    factoryRegistry()
+                        .get(InsuranceType.FILE_NUMBER)
+                        .forString(
+                            InsuranceType.INSURANCE_EXPIRATION_DATE,
+                            indexRegistry().get(InsuranceType.FILE_NUMBER),
+                            end))
             .orElseThrow(
                 () ->
                     InvalidConditionalField.builder()

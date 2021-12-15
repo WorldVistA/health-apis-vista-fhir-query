@@ -1,14 +1,14 @@
 package gov.va.api.health.vistafhirquery.service.controller.extensionprocessing;
 
-import static gov.va.api.health.fhir.api.FhirDateTime.parseDateTime;
 import static gov.va.api.health.vistafhirquery.service.controller.R4Transformers.isBlank;
+import static gov.va.api.health.vistafhirquery.service.controller.R4Transformers.tryFormatDateTime;
+import static gov.va.api.health.vistafhirquery.service.controller.R4Transformers.tryParseDateTime;
 
 import gov.va.api.health.r4.api.elements.Extension;
 import gov.va.api.health.vistafhirquery.service.controller.RequestPayloadExceptions;
 import gov.va.api.health.vistafhirquery.service.controller.RequestPayloadExceptions.UnexpectedValueForExtensionField;
 import gov.va.api.health.vistafhirquery.service.controller.WriteableFilemanValueFactory;
 import gov.va.api.lighthouse.charon.models.lhslighthouserpcgateway.LhsLighthouseRpcGatewayCoverageWrite.WriteableFilemanValue;
-import java.time.DateTimeException;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 import lombok.Builder;
@@ -46,18 +46,17 @@ public class DateTimeExtensionHandler extends AbstractExtensionHandler {
           .requiredFieldJsonPath(".valueDateTime")
           .build();
     }
-    String vistaDate;
-    try {
-      var dateTime = parseDateTime(extension.valueDateTime());
-      vistaDate = dateTimeFormatter().format(dateTime);
-    } catch (DateTimeException | IllegalArgumentException e) {
-      throw UnexpectedValueForExtensionField.builder()
-          .jsonPath(jsonPath)
-          .definingUrl(definingUrl())
-          .dataType("http://hl7.org/fhir/R4/datatypes.html#dateTime")
-          .valueReceived(extension.valueDateTime())
-          .build();
-    }
+    String vistaDate =
+        tryParseDateTime(extension.valueDateTime())
+            .flatMap(dateTime -> tryFormatDateTime(dateTime, dateTimeFormatter))
+            .orElseThrow(
+                () ->
+                    UnexpectedValueForExtensionField.builder()
+                        .jsonPath(jsonPath)
+                        .definingUrl(definingUrl())
+                        .dataType("http://hl7.org/fhir/R4/datatypes.html#dateTime")
+                        .valueReceived(extension.valueDateTime())
+                        .build());
     return List.of(filemanFactory().forString(dateTimeFieldNumber(), index(), vistaDate).get());
   }
 }

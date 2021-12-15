@@ -1,5 +1,6 @@
 package gov.va.api.health.vistafhirquery.service.controller;
 
+import static gov.va.api.health.fhir.api.FhirDateTime.parseDateTime;
 import static org.springframework.util.CollectionUtils.isEmpty;
 
 import gov.va.api.health.fhir.api.IsReference;
@@ -13,8 +14,10 @@ import gov.va.api.lighthouse.charon.models.FilemanDate;
 import gov.va.api.lighthouse.charon.models.ValueOnlyXmlAttribute;
 import gov.va.api.lighthouse.charon.models.vprgetpatientdata.VprGetPatientData;
 import java.math.BigDecimal;
+import java.time.DateTimeException;
 import java.time.Instant;
 import java.time.ZoneId;
+import java.time.format.DateTimeFormatter;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
@@ -262,6 +265,25 @@ public class R4Transformers {
         .recordId(recordId)
         .build()
         .pack();
+  }
+
+  /** Formats an instant or returns an Empty Optional. */
+  public static Optional<String> tryFormatDateTime(
+      Instant dateTime, DateTimeFormatter dateTimeFormatter) {
+    try {
+      return Optional.of(dateTimeFormatter.format(dateTime));
+    } catch (DateTimeException e) {
+      return Optional.empty();
+    }
+  }
+
+  /** Parses a date in instant format or returns an Empty Optional. */
+  public static Optional<Instant> tryParseDateTime(String dateTimeAsString) {
+    try {
+      return Optional.of(parseDateTime(dateTimeAsString));
+    } catch (IllegalArgumentException e) {
+      return Optional.empty();
+    }
   }
 
   /** Gets value of a ValueOnlyXmlAttribute if it exists. */

@@ -1,5 +1,6 @@
 package gov.va.api.health.vistafhirquery.service.controller.coverage;
 
+import static gov.va.api.health.fhir.api.FhirDateTime.parseDateTime;
 import static gov.va.api.health.vistafhirquery.service.controller.coverage.CoverageStructureDefinitions.SUBSCRIBER_RELATIONSHIP_CODE_SYSTEM;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
@@ -16,13 +17,11 @@ import gov.va.api.health.vistafhirquery.service.controller.RequestPayloadExcepti
 import gov.va.api.health.vistafhirquery.service.controller.RequestPayloadExceptions.MissingRequiredField;
 import gov.va.api.health.vistafhirquery.service.controller.RequestPayloadExceptions.UnexpectedNumberOfValues;
 import gov.va.api.health.vistafhirquery.service.controller.RequestPayloadExceptions.UnexpectedValueForField;
-import gov.va.api.health.vistafhirquery.service.controller.ResourceExceptions.BadRequestPayload;
 import gov.va.api.lighthouse.charon.models.lhslighthouserpcgateway.InsuranceType;
 import gov.va.api.lighthouse.charon.models.lhslighthouserpcgateway.LhsLighthouseRpcGatewayCoverageWrite.WriteableFilemanValue;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
-import org.assertj.core.api.ThrowableAssert.ThrowingCallable;
 import org.junit.jupiter.api.Test;
 
 public class R4CoverageToInsuranceTypeFileTransformerTest {
@@ -30,10 +29,6 @@ public class R4CoverageToInsuranceTypeFileTransformerTest {
     return R4CoverageToInsuranceTypeFileTransformer.builder()
         .coverage(CoverageSamples.R4.create().coverage())
         .build();
-  }
-
-  void assertBadRequestBodyThrown(ThrowingCallable r) {
-    assertThatExceptionOfType(BadRequestPayload.class).isThrownBy(r);
   }
 
   @Test
@@ -203,7 +198,7 @@ public class R4CoverageToInsuranceTypeFileTransformerTest {
 
   @Test
   void policyStartAndEndDates() {
-    var period = Period.builder().start(Instant.parse("1992-01-12T12:34:56Z").toString()).build();
+    var period = Period.builder().start(parseDateTime("1992-01-12T12:34:56Z").toString()).build();
     assertThat(_transformer().policyStartAndEndDates(period))
         .containsOnly(
             WriteableFilemanValue.builder()
@@ -212,7 +207,7 @@ public class R4CoverageToInsuranceTypeFileTransformerTest {
                 .index(1)
                 .value("01-12-1992")
                 .build());
-    period.end(Instant.parse("2025-01-01T10:20:30Z").toString());
+    period.end(parseDateTime("2025-01-01T10:20:30Z").toString());
     assertThat(_transformer().policyStartAndEndDates(period))
         .containsExactlyInAnyOrder(
             WriteableFilemanValue.builder()

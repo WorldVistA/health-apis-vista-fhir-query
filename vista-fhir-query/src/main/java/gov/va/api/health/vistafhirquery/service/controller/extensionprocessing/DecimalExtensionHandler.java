@@ -5,7 +5,6 @@ import static gov.va.api.health.vistafhirquery.service.controller.R4Transformers
 import gov.va.api.health.r4.api.elements.Extension;
 import gov.va.api.health.vistafhirquery.service.controller.RequestPayloadExceptions.ExtensionMissingRequiredField;
 import gov.va.api.health.vistafhirquery.service.controller.WriteableFilemanValueFactory;
-import gov.va.api.health.vistafhirquery.service.controller.extensionprocessing.ExtensionHandler.Required;
 import gov.va.api.lighthouse.charon.models.lhslighthouserpcgateway.LhsLighthouseRpcGatewayCoverageWrite.WriteableFilemanValue;
 import java.util.List;
 import lombok.Builder;

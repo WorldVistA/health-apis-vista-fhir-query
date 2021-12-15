@@ -1,11 +1,12 @@
 package gov.va.api.health.vistafhirquery.service.controller.coverageeligibilityresponse;
 
-import static gov.va.api.health.fhir.api.FhirDateTime.parseDateTime;
 import static gov.va.api.health.vistafhirquery.service.controller.R4Transformers.allBlank;
 import static gov.va.api.health.vistafhirquery.service.controller.R4Transformers.isBlank;
 import static gov.va.api.health.vistafhirquery.service.controller.R4Transformers.nullOrfalse;
 import static gov.va.api.health.vistafhirquery.service.controller.R4Transformers.patientCoordinatesForReference;
 import static gov.va.api.health.vistafhirquery.service.controller.R4Transformers.recordCoordinatesForReference;
+import static gov.va.api.health.vistafhirquery.service.controller.R4Transformers.tryFormatDateTime;
+import static gov.va.api.health.vistafhirquery.service.controller.R4Transformers.tryParseDateTime;
 import static gov.va.api.health.vistafhirquery.service.controller.WriteableFilemanValueFactory.index;
 import static gov.va.api.health.vistafhirquery.service.controller.extensionprocessing.ExtensionHandler.Required.REQUIRED;
 import static java.util.function.Function.identity;
@@ -88,13 +89,12 @@ public class R4CoverageEligibilityResponseToVistaFileTransformer {
   private Stream<WriteableFilemanValue> benefit(Benefit benefit) {
     Set<WriteableFilemanValue> filemanValues = new HashSet<>();
     filemanValues.add(
-        factoryRegistry()
-            .get(EligibilityBenefit.FILE_NUMBER)
-            .forRequiredCodeableConcept(
-                EligibilityBenefit.ELIGIBILITY_BENEFIT_INFO,
-                indexRegistry().get(EligibilityBenefit.FILE_NUMBER),
-                benefit.type(),
-                CoverageEligibilityResponseStructureDefinitions.ELIGIBILITY_BENEFIT_INFO));
+        extractFromCodeableConceptOrDie(
+            ".benefit.type",
+            EligibilityBenefit.FILE_NUMBER,
+            EligibilityBenefit.ELIGIBILITY_BENEFIT_INFO,
+            CoverageEligibilityResponseStructureDefinitions.ELIGIBILITY_BENEFIT_INFO,
+            benefit.type()));
     filemanValues.addAll(benefitExtensionProcessor().process(benefit.extension()));
     filemanValues.add(money(benefit.allowedMoney(), benefit.usedMoney()));
     return filemanValues.stream();
@@ -146,10 +146,30 @@ public class R4CoverageEligibilityResponseToVistaFileTransformer {
       throw MissingRequiredField.builder().jsonPath(".insurance[].benefitPeriod.start").build();
     }
     var formatter = DateTimeFormatter.ofPattern("MMddyyyy").withZone(zoneId());
-    var vistaDateTimePeriod = formatter.format(parseDateTime(period.start()));
+    var vistaDateTimePeriod =
+        tryParseDateTime(period.start())
+            .flatMap(startDate -> tryFormatDateTime(startDate, formatter))
+            .orElseThrow(
+                () ->
+                    UnexpectedValueForField.builder()
+                        .jsonPath(".insurance[].benefitPeriod.start")
+                        .dataType("http://hl7.org/fhir/R4/datatypes.html#dateTime")
+                        .valueReceived(period.start())
+                        .build());
     if (!isBlank(period.end())) {
-      var formattedEndDate = formatter.format(parseDateTime(period.end()));
-      vistaDateTimePeriod = vistaDateTimePeriod + "-" + formattedEndDate;
+      var endDate =
+          tryParseDateTime(period.end())
+              .flatMap(end -> tryFormatDateTime(end, formatter))
+              .orElseThrow(
+                  () ->
+                      UnexpectedValueForField.builder()
+                          .jsonPath(".insurance[].benefitPeriod.end")
+                          .dataType("http://hl7.org/fhir/R4/datatypes.html#dateTime")
+                          .valueReceived(period.end())
+                          .build());
+      ;
+
+      vistaDateTimePeriod = vistaDateTimePeriod + "-" + endDate;
     }
     return factoryRegistry()
         .get(IivResponse.FILE_NUMBER)
@@ -181,10 +201,11 @@ public class R4CoverageEligibilityResponseToVistaFileTransformer {
         limitationComment.get(),
         factoryRegistry
             .get(LimitationComment.FILE_NUMBER)
-            .forRequiredParentFileUsingIenMacro(
+            .forParentFileUsingIenMacro(
                 indexRegistry.getAndIncrement(LimitationComment.FILE_NUMBER),
                 PlanCoverageLimitations.FILE_NUMBER,
-                indexRegistry.get(PlanCoverageLimitations.FILE_NUMBER)));
+                indexRegistry.get(PlanCoverageLimitations.FILE_NUMBER))
+            .orElse(null));
   }
 
   private R4ExtensionProcessor extensionProcessor() {
@@ -270,6 +291,35 @@ public class R4CoverageEligibilityResponseToVistaFileTransformer {
                         .index(indexRegistry().get(HealthCareCodeInformation.FILE_NUMBER))
                         .build()))
             .build());
+  }
+
+  private WriteableFilemanValue extractFromCodeableConceptOrDie(
+      @NonNull String baseJsonPath,
+      @NonNull String fileNumber,
+      @NonNull String fieldNumber,
+      @NonNull String codingSystem,
+      CodeableConcept value) {
+    if (isBlank(value)) {
+      throw MissingRequiredField.builder().jsonPath(baseJsonPath).build();
+    }
+    if (isBlank(value.coding())) {
+      throw MissingRequiredField.builder().jsonPath(baseJsonPath + ".coding[]").build();
+    }
+    var codingsWithMatchingSystem =
+        value.coding().stream().filter(coding -> codingSystem.equals(coding.system())).toList();
+    if (codingsWithMatchingSystem.size() != 1) {
+      throw UnexpectedNumberOfValues.builder()
+          .jsonPath(baseJsonPath + ".coding[]")
+          .expectedCount(1)
+          .receivedCount(codingsWithMatchingSystem.size())
+          .identifyingFieldValue(codingSystem)
+          .build();
+    }
+    return factoryRegistry()
+        .get(fileNumber)
+        .forCoding(fieldNumber, indexRegistry().get(fileNumber), codingsWithMatchingSystem.get(0))
+        .orElseThrow(
+            () -> MissingRequiredField.builder().jsonPath(baseJsonPath + ".coding[].code").build());
   }
 
   WriteableFilemanValue identifier(@NonNull Identifier identifier) {
@@ -365,20 +415,20 @@ public class R4CoverageEligibilityResponseToVistaFileTransformer {
   private Stream<WriteableFilemanValue> item(Item item) {
     Set<WriteableFilemanValue> filemanValues = new HashSet<>();
     filemanValues.add(
-        factoryRegistry()
-            .get(ServiceTypes.FILE_NUMBER)
-            .forRequiredCodeableConcept(
-                ServiceTypes.SERVICE_TYPES,
-                indexRegistry().get(ServiceTypes.FILE_NUMBER),
-                item.category(),
-                CoverageEligibilityResponseStructureDefinitions.SERVICE_TYPES));
+        extractFromCodeableConceptOrDie(
+            ".insurance[].item[].category",
+            ServiceTypes.FILE_NUMBER,
+            ServiceTypes.SERVICE_TYPES,
+            CoverageEligibilityResponseStructureDefinitions.SERVICE_TYPES,
+            item.category()));
     filemanValues.add(
         factoryRegistry()
             .get(ServiceTypes.FILE_NUMBER)
-            .forRequiredParentFileUsingIenMacro(
+            .forParentFileUsingIenMacro(
                 indexRegistry().getAndIncrement(ServiceTypes.FILE_NUMBER),
                 EligibilityBenefit.FILE_NUMBER,
-                indexRegistry().get(EligibilityBenefit.FILE_NUMBER)));
+                indexRegistry().get(EligibilityBenefit.FILE_NUMBER))
+            .orElse(null));
     filemanValues.addAll(itemExtensionProcessor().process(item.extension()));
     filemanValues.add(
         factoryRegistry()
@@ -391,10 +441,11 @@ public class R4CoverageEligibilityResponseToVistaFileTransformer {
     filemanValues.add(
         factoryRegistry()
             .get(HealthcareServicesDelivery.FILE_NUMBER)
-            .forRequiredParentFileUsingIenMacro(
+            .forParentFileUsingIenMacro(
                 indexRegistry().getAndIncrement(HealthcareServicesDelivery.FILE_NUMBER),
                 EligibilityBenefit.FILE_NUMBER,
-                indexRegistry().get(EligibilityBenefit.FILE_NUMBER)));
+                indexRegistry().get(EligibilityBenefit.FILE_NUMBER))
+            .orElse(null));
     filemanValues.add(
         factoryRegistry()
             .get(SubscriberAdditionalInfo.FILE_NUMBER)
@@ -406,10 +457,11 @@ public class R4CoverageEligibilityResponseToVistaFileTransformer {
     filemanValues.add(
         factoryRegistry()
             .get(SubscriberAdditionalInfo.FILE_NUMBER)
-            .forRequiredParentFileUsingIenMacro(
+            .forParentFileUsingIenMacro(
                 indexRegistry().getAndIncrement(SubscriberAdditionalInfo.FILE_NUMBER),
                 EligibilityBenefit.FILE_NUMBER,
-                indexRegistry().get(EligibilityBenefit.FILE_NUMBER)));
+                indexRegistry().get(EligibilityBenefit.FILE_NUMBER))
+            .orElse(null));
     filemanValues.add(
         factoryRegistry()
             .get(SubscriberReferenceId.FILE_NUMBER)
@@ -429,33 +481,33 @@ public class R4CoverageEligibilityResponseToVistaFileTransformer {
     filemanValues.add(
         factoryRegistry()
             .get(SubscriberReferenceId.FILE_NUMBER)
-            .forRequiredParentFileUsingIenMacro(
+            .forParentFileUsingIenMacro(
                 indexRegistry().getAndIncrement(SubscriberReferenceId.FILE_NUMBER),
                 EligibilityBenefit.FILE_NUMBER,
-                indexRegistry().get(EligibilityBenefit.FILE_NUMBER)));
+                indexRegistry().get(EligibilityBenefit.FILE_NUMBER))
+            .orElse(null));
     filemanValues.add(
         factoryRegistry()
             .get(SubscriberDates.FILE_NUMBER)
-            .forRequiredParentFileUsingIenMacro(
+            .forParentFileUsingIenMacro(
                 indexRegistry().getAndIncrement(SubscriberDates.FILE_NUMBER),
                 EligibilityBenefit.FILE_NUMBER,
-                indexRegistry().get(EligibilityBenefit.FILE_NUMBER)));
+                indexRegistry().get(EligibilityBenefit.FILE_NUMBER))
+            .orElse(null));
     filemanValues.add(
-        factoryRegistry()
-            .get(EligibilityBenefit.FILE_NUMBER)
-            .forRequiredCodeableConcept(
-                EligibilityBenefit.COVERAGE_LEVEL,
-                indexRegistry().get(EligibilityBenefit.FILE_NUMBER),
-                item.unit(),
-                CoverageEligibilityResponseStructureDefinitions.ITEM_UNIT));
+        extractFromCodeableConceptOrDie(
+            ".insurance[].item[].unit",
+            EligibilityBenefit.FILE_NUMBER,
+            EligibilityBenefit.COVERAGE_LEVEL,
+            CoverageEligibilityResponseStructureDefinitions.ITEM_UNIT,
+            item.unit()));
     filemanValues.add(
-        factoryRegistry()
-            .get(EligibilityBenefit.FILE_NUMBER)
-            .forRequiredCodeableConcept(
-                EligibilityBenefit.TIME_PERIOD_QUALIFIER,
-                indexRegistry().get(EligibilityBenefit.FILE_NUMBER),
-                item.term(),
-                CoverageEligibilityResponseStructureDefinitions.ITEM_TERM));
+        extractFromCodeableConceptOrDie(
+            ".insurance[].item[].term",
+            EligibilityBenefit.FILE_NUMBER,
+            EligibilityBenefit.TIME_PERIOD_QUALIFIER,
+            CoverageEligibilityResponseStructureDefinitions.ITEM_TERM,
+            item.term()));
     item.benefit().stream().flatMap(this::benefit).forEach(filemanValues::add);
     filemanValues.addAll(procedureCoding(item.productOrService()));
     filemanValues.add(procedureModifier(item.modifier()));
@@ -468,15 +520,17 @@ public class R4CoverageEligibilityResponseToVistaFileTransformer {
                 item.authorizationRequired(),
                 this::x12YesNo)
             .orElseThrow(
-                () -> MissingRequiredField.builder().jsonPath(".authorizationRequired").build()));
+                () ->
+                    MissingRequiredField.builder()
+                        .jsonPath(".insurance[].item[].authorizationRequired")
+                        .build()));
     filemanValues.add(
-        factoryRegistry()
-            .get(EligibilityBenefit.FILE_NUMBER)
-            .forRequiredCodeableConcept(
-                EligibilityBenefit.IN_PLAN,
-                indexRegistry().get(EligibilityBenefit.FILE_NUMBER),
-                item.network(),
-                CoverageEligibilityResponseStructureDefinitions.X12_YES_NO_SYSTEM));
+        extractFromCodeableConceptOrDie(
+            ".insurance[].item[].network",
+            EligibilityBenefit.FILE_NUMBER,
+            EligibilityBenefit.IN_PLAN,
+            CoverageEligibilityResponseStructureDefinitions.X12_YES_NO_SYSTEM,
+            item.network()));
     filemanValues.add(
         factoryRegistry()
             .get(EligibilityBenefit.FILE_NUMBER)
@@ -488,10 +542,11 @@ public class R4CoverageEligibilityResponseToVistaFileTransformer {
     filemanValues.add(
         factoryRegistry()
             .get(EligibilityBenefit.FILE_NUMBER)
-            .forRequiredParentFileUsingIenMacro(
+            .forParentFileUsingIenMacro(
                 indexRegistry().getAndIncrement(EligibilityBenefit.FILE_NUMBER),
                 IivResponse.FILE_NUMBER,
-                indexRegistry().get(IivResponse.FILE_NUMBER)));
+                indexRegistry().get(IivResponse.FILE_NUMBER))
+            .orElse(null));
     filemanValues.addAll(description(item.description(), item.excluded()));
     return filemanValues.stream();
   }
@@ -759,7 +814,7 @@ public class R4CoverageEligibilityResponseToVistaFileTransformer {
   List<WriteableFilemanValue> procedureCoding(CodeableConcept productOrService) {
     if (isBlank(productOrService) || isBlank(productOrService.coding())) {
       throw MissingRequiredField.builder()
-          .jsonPath("insurance[].item[].productOrService.coding")
+          .jsonPath("insurance[].item[].productOrService.coding[]")
           .build();
     }
     if (productOrService.coding().size() != 1) {
@@ -807,13 +862,12 @@ public class R4CoverageEligibilityResponseToVistaFileTransformer {
           .jsonPath(".insurance[].item[].modifier[]")
           .build();
     }
-    return factoryRegistry()
-        .get(EligibilityBenefit.FILE_NUMBER)
-        .forRequiredCodeableConcept(
-            EligibilityBenefit.PROCEDURE_MODIFIER_1,
-            indexRegistry().get(EligibilityBenefit.FILE_NUMBER),
-            modifier.get(0),
-            CoverageEligibilityResponseStructureDefinitions.ITEM_MODIFIER);
+    return extractFromCodeableConceptOrDie(
+        ".insurance[].item[].modifier[0]",
+        EligibilityBenefit.FILE_NUMBER,
+        EligibilityBenefit.PROCEDURE_MODIFIER_1,
+        CoverageEligibilityResponseStructureDefinitions.ITEM_MODIFIER,
+        modifier.get(0));
   }
 
   void purpose() {
@@ -848,11 +902,11 @@ public class R4CoverageEligibilityResponseToVistaFileTransformer {
     vistaFields.add(
         recordCoordinatesForReference(coverageEligibilityResponse().insurer())
             .map(this::ienForPayerFileOrDie)
-            .map(
+            .flatMap(
                 p ->
                     factoryRegistry()
                         .get(IivResponse.FILE_NUMBER)
-                        .forRequiredPointerWithGraveMarker(
+                        .forPointerWithGraveMarker(
                             IivResponse.PAYER, indexRegistry().get(IivResponse.FILE_NUMBER), p))
             .orElseThrow(
                 () ->
@@ -901,10 +955,11 @@ public class R4CoverageEligibilityResponseToVistaFileTransformer {
     vistaFields.add(
         factoryRegistry()
             .get(HealthCareCodeInformation.FILE_NUMBER)
-            .forRequiredParentFileUsingIenMacro(
+            .forParentFileUsingIenMacro(
                 indexRegistry().getAndIncrement(HealthCareCodeInformation.FILE_NUMBER),
                 IivResponse.FILE_NUMBER,
-                indexRegistry().get(IivResponse.FILE_NUMBER)));
+                indexRegistry().get(IivResponse.FILE_NUMBER))
+            .orElse(null));
     return vistaFields;
   }
 

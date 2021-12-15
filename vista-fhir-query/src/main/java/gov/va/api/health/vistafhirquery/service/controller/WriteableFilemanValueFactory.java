@@ -1,12 +1,9 @@
 package gov.va.api.health.vistafhirquery.service.controller;
 
-import static java.lang.String.format;
 import static org.apache.commons.lang3.StringUtils.isBlank;
 
-import gov.va.api.health.r4.api.datatypes.CodeableConcept;
 import gov.va.api.health.r4.api.datatypes.Coding;
 import gov.va.api.health.r4.api.datatypes.Identifier;
-import gov.va.api.health.vistafhirquery.service.controller.ResourceExceptions.BadRequestPayload;
 import gov.va.api.lighthouse.charon.models.lhslighthouserpcgateway.LhsLighthouseRpcGatewayCoverageWrite.WriteableFilemanValue;
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -43,6 +40,14 @@ public class WriteableFilemanValueFactory {
     }
   }
 
+  /** Build a WriteableFilemanValue using the coding.code field. */
+  public Optional<WriteableFilemanValue> forCoding(String field, int index, Coding coding) {
+    if (isBlank(coding.code())) {
+      return Optional.empty();
+    }
+    return forString(field, index, coding.code());
+  }
+
   /** Build a WriteableFilemanValue using the identifer.value field. */
   public Optional<WriteableFilemanValue> forIdentifier(
       String field, int index, Identifier identifier) {
@@ -61,6 +66,15 @@ public class WriteableFilemanValueFactory {
     return forString(field, index, "" + value);
   }
 
+  /**
+   * Creates a pointer using the Dynamic IEN Macro to a parent file (e.g.
+   * 355.321^1^IEN^${355.32^1^IEN}).
+   */
+  public Optional<WriteableFilemanValue> forParentFileUsingIenMacro(
+      int index, @NonNull String parentFileNumber, int parentFileIndex) {
+    return forString("IEN", index, "${" + parentFileNumber + "^" + parentFileIndex + "^IEN}");
+  }
+
   /** Build a WriteableFilemanValue pointer for the given file and index. */
   public Optional<WriteableFilemanValue> forPointer(@NonNull String file, int index, String ien) {
     if (isBlank(ien)) {
@@ -70,59 +84,13 @@ public class WriteableFilemanValueFactory {
         WriteableFilemanValue.builder().file(file).field("ien").index(index).value(ien).build());
   }
 
-  /**
-   * Build a WriteableFilemanValue using the codeableConcept.coding.code field for a given system.
-   */
-  public WriteableFilemanValue forRequiredCodeableConcept(
-      String field, int index, CodeableConcept codeableConcept, String codingSystem) {
-    if (R4Transformers.isBlank(codeableConcept)
-        || R4Transformers.isBlank(codeableConcept.coding())) {
-      throw BadRequestPayload.because(
-          file(), field, "CodeableConcept or Coding is missing for system: " + codingSystem);
-    }
-    var codingsForSystem =
-        codeableConcept.coding().stream().filter(c -> codingSystem.equals(c.system())).toList();
-    if (codingsForSystem.size() == 1) {
-      return forRequiredCoding(field, index, codingsForSystem.get(0));
-    }
-    throw BadRequestPayload.because(
-        file(),
-        field,
-        format(
-            "Unexpected number of codings for system %s: %d",
-            codingSystem, codingsForSystem.size()));
-  }
-
-  /** Build a WriteableFilemanValue using the coding.code field. */
-  public WriteableFilemanValue forRequiredCoding(String field, int index, Coding coding) {
-    if (isBlank(coding.code())) {
-      throw BadRequestPayload.because(file(), field, ".coding.code is blank.");
-    }
-    return forString(field, index, coding.code())
-        .orElseThrow(
-            () -> BadRequestPayload.because(file(), field, "Required string value is blank."));
-  }
-
-  /**
-   * Creates a pointer using the Dynamic IEN Macro to a parent file (e.g.
-   * 355.321^1^IEN^${355.32^1^IEN}).
-   */
-  public WriteableFilemanValue forRequiredParentFileUsingIenMacro(
-      int index, @NonNull String parentFileNumber, int parentFileIndex) {
-    return forString("IEN", index, "${" + parentFileNumber + "^" + parentFileIndex + "^IEN}")
-        .orElseThrow(
-            () -> BadRequestPayload.because(file(), "IEN", "Required string value is blank."));
-  }
-
   /** Build a WriteableFilemanValue with a grav?? marker added to the value. */
-  public WriteableFilemanValue forRequiredPointerWithGraveMarker(
+  public Optional<WriteableFilemanValue> forPointerWithGraveMarker(
       @NonNull String field, int index, String value) {
     if (isBlank(value)) {
-      throw BadRequestPayload.because(file(), field, "Required pointer was found to be null.");
+      return Optional.empty();
     }
-    return forString(field, index, "`" + value)
-        .orElseThrow(
-            () -> BadRequestPayload.because(file(), field, "Required string value is blank."));
+    return forString(field, index, "`" + value);
   }
 
   /** Build an optional WriteableFilemanValue for a string. */

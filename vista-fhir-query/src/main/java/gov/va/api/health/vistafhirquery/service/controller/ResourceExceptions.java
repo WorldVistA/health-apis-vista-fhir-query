@@ -11,25 +11,6 @@ import lombok.NonNull;
 @SuppressWarnings("DoNotCallSuggester")
 public class ResourceExceptions {
 
-  public static class BadRequestPayload extends ResourceException {
-    public BadRequestPayload(String message) {
-      super(message);
-    }
-
-    public static BadRequestPayload because(String message) {
-      return new BadRequestPayload(message);
-    }
-
-    public static BadRequestPayload because(String vistaField, String reason) {
-      return because(format("Could not populate vista field %s: %s", vistaField, reason));
-    }
-
-    public static BadRequestPayload because(String vistaFile, String vistaField, String reason) {
-      return because(
-          format("Could not populate vista file %s field %s: %s", vistaFile, vistaField, reason));
-    }
-  }
-
   /** BadSearchParameters . */
   public static final class BadSearchParameters extends ResourceException
       implements HasPublicMessage {

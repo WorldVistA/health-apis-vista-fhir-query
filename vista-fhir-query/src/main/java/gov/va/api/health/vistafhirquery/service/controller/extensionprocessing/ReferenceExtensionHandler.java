@@ -59,7 +59,7 @@ public class ReferenceExtensionHandler extends AbstractSingleFieldExtensionHandl
                         .build());
     return List.of(
         filemanFactory()
-            .forRequiredPointerWithGraveMarker(
-                fieldNumber(), index(), referenceIdCoordinates.ien()));
+            .forPointerWithGraveMarker(fieldNumber(), index(), referenceIdCoordinates.ien())
+            .get());
   }
 }
