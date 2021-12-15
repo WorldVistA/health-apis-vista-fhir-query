@@ -44,15 +44,16 @@ public class BooleanExtensionHandler extends AbstractSingleFieldExtensionHandler
           .requiredFieldJsonPath(".valueBoolean")
           .build();
     }
-    var vistaValue = booleanStringMapping().get(value);
-    if (isBlank(vistaValue)) {
-      throw UnexpectedValueForExtensionField.builder()
-          .jsonPath(jsonPath)
-          .definingUrl(definingUrl())
-          .supportedValues(booleanStringMapping().keySet())
-          .valueReceived(value)
-          .build();
-    }
-    return List.of(filemanFactory().forString(fieldNumber(), index(), vistaValue).get());
+    return List.of(
+        filemanFactory()
+            .forBoolean(fieldNumber(), index(), value, booleanStringMapping()::get)
+            .orElseThrow(
+                () ->
+                    UnexpectedValueForExtensionField.builder()
+                        .jsonPath(jsonPath)
+                        .definingUrl(definingUrl())
+                        .supportedValues(booleanStringMapping().keySet())
+                        .valueReceived(value)
+                        .build()));
   }
 }

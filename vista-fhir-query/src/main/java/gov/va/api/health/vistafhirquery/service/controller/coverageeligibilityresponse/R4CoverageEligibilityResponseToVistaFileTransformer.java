@@ -314,11 +314,12 @@ public class R4CoverageEligibilityResponseToVistaFileTransformer {
     filemanValues.add(
         factoryRegistry()
             .get(PlanCoverageLimitations.FILE_NUMBER)
-            .forRequiredBoolean(
+            .forBoolean(
                 PlanCoverageLimitations.COVERAGE_STATUS,
                 indexRegistry().get(PlanCoverageLimitations.FILE_NUMBER),
                 insurance.inforce(),
-                status -> coverageStatus(status, anyExcluded)));
+                status -> coverageStatus(status, anyExcluded))
+            .orElseThrow(() -> MissingRequiredField.builder().jsonPath(".inforce").build()));
     patientCoordinatesForReference(insurance.coverage())
         .map(
             id ->
@@ -449,11 +450,13 @@ public class R4CoverageEligibilityResponseToVistaFileTransformer {
     filemanValues.add(
         factoryRegistry()
             .get(EligibilityBenefit.FILE_NUMBER)
-            .forRequiredBoolean(
+            .forBoolean(
                 EligibilityBenefit.AUTHORIZATION_CERTIFICATION,
                 indexRegistry().get(EligibilityBenefit.FILE_NUMBER),
                 item.authorizationRequired(),
-                this::x12YesNo));
+                this::x12YesNo)
+            .orElseThrow(
+                () -> MissingRequiredField.builder().jsonPath(".authorizationRequired").build()));
     filemanValues.add(
         factoryRegistry()
             .get(EligibilityBenefit.FILE_NUMBER)

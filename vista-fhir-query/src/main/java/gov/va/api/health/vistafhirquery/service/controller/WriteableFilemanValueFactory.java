@@ -38,6 +38,16 @@ public class WriteableFilemanValueFactory {
     return extension -> forInteger(field, index.get(), extension).orElse(null);
   }
 
+  /** Build a WriteableFilemanValue from a Boolean value. */
+  public Optional<WriteableFilemanValue> forBoolean(
+      @NonNull String field, int index, Boolean value, @NonNull Function<Boolean, String> mapper) {
+    try {
+      return forString(field, index, mapper.apply(value));
+    } catch (Exception e) {
+      return Optional.empty();
+    }
+  }
+
   /** Build a WriteableFilemanValue from an Integer value. */
   public Optional<WriteableFilemanValue> forInteger(
       @NonNull String field, int index, Integer value) {
@@ -63,30 +73,6 @@ public class WriteableFilemanValueFactory {
     }
     return Optional.of(
         WriteableFilemanValue.builder().file(file).field("ien").index(index).value(ien).build());
-  }
-
-  /** Build a WriteableFilemanValue from a Boolean extension. */
-  public WriteableFilemanValue forRequiredBoolean(
-      @NonNull String field,
-      int index,
-      Extension value,
-      @NonNull Function<Boolean, String> mapper) {
-    if (value == null || value.valueBoolean() == null) {
-      throw BadRequestPayload.because(
-          file(), field, "Required field .valueBoolean was found to be null.");
-    }
-    return forRequiredBoolean(field, index, value.valueBoolean(), mapper);
-  }
-
-  /** Build a WriteableFilemanValue from a Boolean value. */
-  public WriteableFilemanValue forRequiredBoolean(
-      @NonNull String field, int index, Boolean value, @NonNull Function<Boolean, String> mapper) {
-    if (value == null) {
-      throw BadRequestPayload.because(file(), field, "Required boolean was found to be null.");
-    }
-    return forString(field, index, mapper.apply(value))
-        .orElseThrow(
-            () -> BadRequestPayload.because(file(), field, "Required string value is blank."));
   }
 
   /**

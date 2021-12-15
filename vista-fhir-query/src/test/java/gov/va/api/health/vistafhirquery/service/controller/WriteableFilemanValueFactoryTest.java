@@ -38,18 +38,23 @@ public class WriteableFilemanValueFactoryTest {
   }
 
   @Test
-  void forBooleanExtension() {
+  void forBoolean() {
     Function<Boolean, String> boolToString = value -> value ? "YES" : "NO";
-    assertThatExceptionOfType(BadRequestPayload.class)
-        .isThrownBy(() -> factory.forRequiredBoolean("x", 1, (Extension) null, boolToString));
-    assertThatExceptionOfType(BadRequestPayload.class)
-        .isThrownBy(
-            () -> factory.forRequiredBoolean("x", 1, Extension.builder().build(), boolToString));
-    var extension = Extension.builder().build();
-    assertThat(factory.forRequiredBoolean("x", 1, extension.valueBoolean(true), boolToString))
-        .isEqualTo(writeableFilemanValue("x", 1, "YES"));
-    assertThat(factory.forRequiredBoolean("x", 1, extension.valueBoolean(false), boolToString))
-        .isEqualTo(writeableFilemanValue("x", 1, "NO"));
+    assertThat(factory.forBoolean("x", 1, (Boolean) null, boolToString)).isEmpty();
+    assertThat(factory.forBoolean("x", 1, true, boolToString))
+        .contains(writeableFilemanValue("x", 1, "YES"));
+    assertThat(factory.forBoolean("x", 1, false, boolToString))
+        .contains(writeableFilemanValue("x", 1, "NO"));
+    // Returns empty optional when throws
+    assertThat(
+            factory.forBoolean(
+                "x",
+                1,
+                (Boolean) null,
+                e -> {
+                  throw new IllegalArgumentException("");
+                }))
+        .isEmpty();
   }
 
   @Test
@@ -79,17 +84,6 @@ public class WriteableFilemanValueFactoryTest {
     assertThat(factory.forString("x", 1, " ")).isEmpty();
     assertThat(factory.forString("x", 1, "shanktopus"))
         .contains(writeableFilemanValue("x", 1, "shanktopus"));
-  }
-
-  @Test
-  void forRequiredBoolean() {
-    Function<Boolean, String> boolToString = value -> value ? "YES" : "NO";
-    assertThatExceptionOfType(BadRequestPayload.class)
-        .isThrownBy(() -> factory.forRequiredBoolean("x", 1, (Boolean) null, boolToString));
-    assertThat(factory.forRequiredBoolean("x", 1, true, boolToString))
-        .isEqualTo(writeableFilemanValue("x", 1, "YES"));
-    assertThat(factory.forRequiredBoolean("x", 1, false, boolToString))
-        .isEqualTo(writeableFilemanValue("x", 1, "NO"));
   }
 
   @Test
