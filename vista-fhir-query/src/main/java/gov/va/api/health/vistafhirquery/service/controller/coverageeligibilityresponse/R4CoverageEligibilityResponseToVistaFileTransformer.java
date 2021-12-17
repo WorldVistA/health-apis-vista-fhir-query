@@ -293,7 +293,7 @@ public class R4CoverageEligibilityResponseToVistaFileTransformer {
             .build());
   }
 
-  private WriteableFilemanValue extractFromCodeableConceptOrDie(
+  WriteableFilemanValue extractFromCodeableConceptOrDie(
       @NonNull String baseJsonPath,
       @NonNull String fileNumber,
       @NonNull String fieldNumber,
@@ -310,7 +310,7 @@ public class R4CoverageEligibilityResponseToVistaFileTransformer {
     if (codingsWithMatchingSystem.size() != 1) {
       throw UnexpectedNumberOfValues.builder()
           .jsonPath(baseJsonPath + ".coding[]")
-          .expectedCount(1)
+          .exactExpectedCount(1)
           .receivedCount(codingsWithMatchingSystem.size())
           .identifyingFieldValue(codingSystem)
           .build();
@@ -820,7 +820,7 @@ public class R4CoverageEligibilityResponseToVistaFileTransformer {
     if (productOrService.coding().size() != 1) {
       throw UnexpectedNumberOfValues.builder()
           .jsonPath("insurance[].item[].productOrService.coding[]")
-          .expectedCount(1)
+          .exactExpectedCount(1)
           .receivedCount(productOrService.coding().size())
           .build();
     }
@@ -858,7 +858,7 @@ public class R4CoverageEligibilityResponseToVistaFileTransformer {
     if (modifier.size() != 1) {
       throw UnexpectedNumberOfValues.builder()
           .receivedCount(modifier.size())
-          .expectedCount(1)
+          .exactExpectedCount(1)
           .jsonPath(".insurance[].item[].modifier[]")
           .build();
     }
@@ -936,7 +936,7 @@ public class R4CoverageEligibilityResponseToVistaFileTransformer {
         || coverageEligibilityResponse().insurance().size() != 1) {
       throw UnexpectedNumberOfValues.builder()
           .jsonPath(".insurance[]")
-          .expectedCount(1)
+          .exactExpectedCount(1)
           .receivedCount(coverageEligibilityResponse().insurance().size())
           .build();
     }

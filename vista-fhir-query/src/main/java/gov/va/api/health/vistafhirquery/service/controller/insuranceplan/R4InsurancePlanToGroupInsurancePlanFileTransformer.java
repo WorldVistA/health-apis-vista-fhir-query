@@ -260,7 +260,7 @@ public class R4InsurancePlanToGroupInsurancePlanFileTransformer {
     if (plan.size() != 1) {
       throw UnexpectedNumberOfValues.builder()
           .receivedCount(plan.size())
-          .expectedCount(1)
+          .exactExpectedCount(1)
           .jsonPath(".plan[]")
           .build();
     }
@@ -274,7 +274,7 @@ public class R4InsurancePlanToGroupInsurancePlanFileTransformer {
     if (type.coding().size() != 1) {
       throw UnexpectedNumberOfValues.builder()
           .receivedCount(type.coding().size())
-          .expectedCount(1)
+          .exactExpectedCount(1)
           .jsonPath(".plan[].type.coding[]")
           .build();
     }

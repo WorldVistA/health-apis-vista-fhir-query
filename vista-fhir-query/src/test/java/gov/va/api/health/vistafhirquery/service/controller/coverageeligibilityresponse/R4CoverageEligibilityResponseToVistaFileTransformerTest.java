@@ -12,6 +12,7 @@ import gov.va.api.health.r4.api.datatypes.Period;
 import gov.va.api.health.r4.api.resources.CoverageEligibilityResponse.Outcome;
 import gov.va.api.health.r4.api.resources.CoverageEligibilityResponse.Purpose;
 import gov.va.api.health.r4.api.resources.CoverageEligibilityResponse.Status;
+import gov.va.api.health.vistafhirquery.service.controller.RequestPayloadExceptions;
 import gov.va.api.health.vistafhirquery.service.controller.RequestPayloadExceptions.ExactlyOneOfFields;
 import gov.va.api.health.vistafhirquery.service.controller.RequestPayloadExceptions.MissingRequiredField;
 import gov.va.api.health.vistafhirquery.service.controller.RequestPayloadExceptions.UnexpectedNumberOfValues;
@@ -30,6 +31,32 @@ public class R4CoverageEligibilityResponseToVistaFileTransformerTest {
         .coverageEligibilityResponse(
             CoverageEligibilityResponseSamples.R4.create().coverageEligibilityResponseForWrite())
         .build();
+  }
+
+  @Test
+  void extractFromCodeableConceptOrDie() {
+    assertThatExceptionOfType(MissingRequiredField.class)
+        .isThrownBy(
+            () ->
+                _transformer().extractFromCodeableConceptOrDie(".json", "1", "1", "system", null));
+    assertThatExceptionOfType(MissingRequiredField.class)
+        .isThrownBy(
+            () ->
+                _transformer()
+                    .extractFromCodeableConceptOrDie(
+                        ".json", "1", "1", "system", CodeableConcept.builder().build()));
+    assertThatExceptionOfType(UnexpectedNumberOfValues.class)
+        .isThrownBy(
+            () ->
+                _transformer()
+                    .extractFromCodeableConceptOrDie(
+                        ".json",
+                        "1",
+                        "1",
+                        "system",
+                        CodeableConcept.builder()
+                            .coding(List.of(Coding.builder().build(), Coding.builder().build()))
+                            .build()));
   }
 
   @Test
@@ -63,6 +90,23 @@ public class R4CoverageEligibilityResponseToVistaFileTransformerTest {
                     .identifier(
                         Identifier.builder()
                             .type(CodeableConcept.builder().text("WHO-IS-SHE?").build())
+                            .build()));
+    // identifier exists but value is null
+    assertThatExceptionOfType(RequestPayloadExceptions.InvalidConditionalField.class)
+        .isThrownBy(
+            () ->
+                _transformer()
+                    .identifier(
+                        Identifier.builder()
+                            .type(CodeableConcept.builder().text("MSH-10").build())
+                            .build()));
+    assertThatExceptionOfType(RequestPayloadExceptions.InvalidConditionalField.class)
+        .isThrownBy(
+            () ->
+                _transformer()
+                    .identifier(
+                        Identifier.builder()
+                            .type(CodeableConcept.builder().text("MSA-3").build())
                             .build()));
   }
 

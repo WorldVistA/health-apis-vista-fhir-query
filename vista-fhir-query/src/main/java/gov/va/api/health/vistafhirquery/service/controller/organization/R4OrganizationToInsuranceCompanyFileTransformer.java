@@ -4,7 +4,6 @@ import static gov.va.api.health.vistafhirquery.service.controller.R4Transformers
 import static gov.va.api.health.vistafhirquery.service.controller.WriteableFilemanValueFactory.index;
 import static gov.va.api.health.vistafhirquery.service.controller.extensionprocessing.ExtensionHandler.Required.OPTIONAL;
 import static gov.va.api.health.vistafhirquery.service.controller.extensionprocessing.ExtensionHandler.Required.REQUIRED;
-import static java.util.Collections.emptyList;
 import static java.util.Collections.emptySet;
 
 import gov.va.api.health.fhir.api.Safe;
@@ -161,7 +160,7 @@ public class R4OrganizationToInsuranceCompanyFileTransformer {
     }
   }
 
-  private Set<WriteableFilemanValue> address(
+  Set<WriteableFilemanValue> address(
       String jsonPathBase,
       String contactPurpose,
       String streetLine1,
@@ -176,11 +175,17 @@ public class R4OrganizationToInsuranceCompanyFileTransformer {
     }
     Set<WriteableFilemanValue> addressValues = new HashSet<>();
     List<String> lines = address.line();
-    /* TODO https://vajira.max.gov/browse/API-10394 require at least 1 line */
-    String[] arrayLines = new String[] {streetLine1, streetLine2, streetLine3};
     if (isBlank(lines)) {
-      lines = emptyList();
+      throw MissingRequiredField.builder().jsonPath(jsonPathBase + ".line[]").build();
     }
+    if (lines.size() > 3) {
+      throw UnexpectedNumberOfValues.builder()
+          .jsonPath(jsonPathBase + ".line[]")
+          .maximumExpectedCount(3)
+          .receivedCount(lines.size())
+          .build();
+    }
+    String[] arrayLines = new String[] {streetLine1, streetLine2, streetLine3};
     for (int i = 0; i < lines.size(); i++) {
       int index = i;
       addressValues.add(
@@ -194,7 +199,6 @@ public class R4OrganizationToInsuranceCompanyFileTransformer {
                               List.of(
                                   "contact purpose is " + contactPurpose, "line index = " + index))
                           .build()));
-      /* TODO https://vajira.max.gov/browse/API-10394 require max line size, see vivian */
     }
     addressValues.add(
         filemanFactory
@@ -230,7 +234,7 @@ public class R4OrganizationToInsuranceCompanyFileTransformer {
     if (address.size() != 1) {
       throw UnexpectedNumberOfValues.builder()
           .jsonPath(".address[]")
-          .expectedCount(1)
+          .exactExpectedCount(1)
           .receivedCount(address.size())
           .build();
     }
@@ -541,7 +545,7 @@ public class R4OrganizationToInsuranceCompanyFileTransformer {
     if (purpose.coding().size() != 1) {
       throw UnexpectedNumberOfValues.builder()
           .receivedCount(purpose.coding().size())
-          .expectedCount(1)
+          .exactExpectedCount(1)
           .jsonPath(".contact[].purpose")
           .build();
     }
@@ -999,7 +1003,7 @@ public class R4OrganizationToInsuranceCompanyFileTransformer {
       throw UnexpectedNumberOfValues.builder()
           .jsonPath(".identifier[].type.coding[].code")
           .receivedCount(matchingCodes.size())
-          .expectedCount(1)
+          .exactExpectedCount(1)
           .build();
     }
     return List.of(

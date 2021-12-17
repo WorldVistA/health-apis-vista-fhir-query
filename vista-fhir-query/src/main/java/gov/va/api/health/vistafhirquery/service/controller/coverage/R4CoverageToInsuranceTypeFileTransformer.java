@@ -127,7 +127,7 @@ public class R4CoverageToInsuranceTypeFileTransformer {
           .jsonPath(".class")
           .identifyingFieldValue(".type[].coding[].code")
           .identifyingFieldValue("group")
-          .expectedCount(1)
+          .exactExpectedCount(1)
           .receivedCount(filteredCoverageTypes.size())
           .build();
     }
@@ -155,7 +155,7 @@ public class R4CoverageToInsuranceTypeFileTransformer {
     if (payors.size() != 1) {
       throw UnexpectedNumberOfValues.builder()
           .jsonPath(".payor")
-          .expectedCount(1)
+          .exactExpectedCount(1)
           .receivedCount(payors.size())
           .build();
     }
@@ -187,7 +187,7 @@ public class R4CoverageToInsuranceTypeFileTransformer {
           .jsonPath(".beneficiary.identifier")
           .identifyingFieldJsonPath(".type.coding[].code")
           .identifyingFieldValue("MB")
-          .expectedCount(1)
+          .exactExpectedCount(1)
           .receivedCount(0)
           .build();
     }
@@ -214,7 +214,7 @@ public class R4CoverageToInsuranceTypeFileTransformer {
           .jsonPath(".relationship")
           .identifyingFieldJsonPath(".coding[].system")
           .identifyingFieldValue(SUBSCRIBER_RELATIONSHIP_CODE_SYSTEM)
-          .expectedCount(1)
+          .exactExpectedCount(1)
           .receivedCount(relationships.size())
           .build();
     }

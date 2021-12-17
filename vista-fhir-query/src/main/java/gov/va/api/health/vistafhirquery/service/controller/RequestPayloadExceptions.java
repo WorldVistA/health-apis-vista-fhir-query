@@ -176,15 +176,24 @@ public class RequestPayloadExceptions {
         @NonNull String jsonPath,
         String identifyingFieldJsonPath,
         String identifyingFieldValue,
-        int expectedCount,
+        int exactExpectedCount,
+        int minimumExpectedCount,
+        int maximumExpectedCount,
         int receivedCount) {
-      var message =
-          format(
-              "Unexpected number of values; expected (%d), but got (%d)",
-              expectedCount, receivedCount);
+      var message = "Unexpected number of values; expected";
+      if (!isBlank(exactExpectedCount)) {
+        message += format(" (%d)", exactExpectedCount);
+      }
+      if (!isBlank(minimumExpectedCount)) {
+        message += format(" minimum of (%d)", minimumExpectedCount);
+      }
+      if (!isBlank(maximumExpectedCount)) {
+        message += format(" maximum of (%d)", maximumExpectedCount);
+      }
       if (!isBlank(identifyingFieldJsonPath)) {
         message += format(" where %s matched %s.", identifyingFieldJsonPath, identifyingFieldValue);
       }
+      message += format(" but got (%d)", receivedCount);
       return new UnexpectedNumberOfValues(jsonPath, message);
     }
   }

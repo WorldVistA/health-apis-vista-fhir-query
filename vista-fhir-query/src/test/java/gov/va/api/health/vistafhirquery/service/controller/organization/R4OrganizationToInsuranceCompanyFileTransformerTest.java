@@ -3,6 +3,7 @@ package gov.va.api.health.vistafhirquery.service.controller.organization;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 
+import gov.va.api.health.r4.api.datatypes.Address;
 import gov.va.api.health.r4.api.datatypes.CodeableConcept;
 import gov.va.api.health.r4.api.datatypes.Coding;
 import gov.va.api.health.r4.api.datatypes.ContactPoint;
@@ -23,6 +24,114 @@ public class R4OrganizationToInsuranceCompanyFileTransformerTest {
         .organization(OrganizationSamples.R4.create().organization())
         .include277EdiNumber(true)
         .build();
+  }
+
+  @Test
+  void address() {
+    assertThatExceptionOfType(MissingRequiredField.class)
+        .isThrownBy(
+            () ->
+                _transformer()
+                    .address(
+                        ".address",
+                        ContactPurpose.BILL.name(),
+                        "street1",
+                        "street2",
+                        "street3",
+                        "city",
+                        "state",
+                        "zipcode",
+                        Address.builder().build()));
+    assertThat(
+            _transformer()
+                .address(
+                    ".address",
+                    ContactPurpose.BILL.name(),
+                    "street1",
+                    "street2",
+                    "street3",
+                    "city",
+                    "state",
+                    "zipcode",
+                    null))
+        .isEmpty();
+    assertThatExceptionOfType(MissingRequiredListItem.class)
+        .isThrownBy(
+            () ->
+                _transformer()
+                    .address(
+                        ".address",
+                        ContactPurpose.BILL.name(),
+                        "street1",
+                        "street2",
+                        "street3",
+                        "city",
+                        "state",
+                        "zipcode",
+                        Address.builder().line(List.of("", "", "")).build()));
+    assertThatExceptionOfType(UnexpectedNumberOfValues.class)
+        .isThrownBy(
+            () ->
+                _transformer()
+                    .address(
+                        ".address",
+                        ContactPurpose.BILL.name(),
+                        "street1",
+                        "street2",
+                        "street3",
+                        "city",
+                        "state",
+                        "zipcode",
+                        Address.builder().line(List.of("", "", "", "")).build()));
+    assertThatExceptionOfType(MissingRequiredListItem.class)
+        .isThrownBy(
+            () ->
+                _transformer()
+                    .address(
+                        ".address",
+                        ContactPurpose.BILL.name(),
+                        "street1",
+                        "street2",
+                        "street3",
+                        "city",
+                        "state",
+                        "zipcode",
+                        Address.builder().line(List.of("1", "2", "3")).build()));
+    assertThatExceptionOfType(MissingRequiredListItem.class)
+        .isThrownBy(
+            () ->
+                _transformer()
+                    .address(
+                        ".address",
+                        ContactPurpose.BILL.name(),
+                        "street1",
+                        "street2",
+                        "street3",
+                        "city",
+                        "state",
+                        "zipcode",
+                        Address.builder()
+                            .line(List.of("street1", "street2", "street3"))
+                            .city("city")
+                            .build()));
+    assertThatExceptionOfType(MissingRequiredListItem.class)
+        .isThrownBy(
+            () ->
+                _transformer()
+                    .address(
+                        ".address",
+                        ContactPurpose.BILL.name(),
+                        "street1",
+                        "street2",
+                        "street3",
+                        "city",
+                        "state",
+                        "zipcode",
+                        Address.builder()
+                            .line(List.of("street1", "street2", "street3"))
+                            .city("city")
+                            .state("state")
+                            .build()));
   }
 
   @Test
