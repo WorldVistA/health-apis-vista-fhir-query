@@ -25,7 +25,16 @@ import lombok.Value;
 public class SegmentedVistaIdentifier {
 
   public static final BiMap<Character, Domains> DOMAIN_ABBREVIATIONS =
-      new BiMap<>(Map.of('A', Domains.appointments, 'L', Domains.labs, 'V', Domains.vitals));
+      new BiMap<>(
+          Map.of(
+              'A',
+              Domains.appointments,
+              'P',
+              Domains.problems,
+              'L',
+              Domains.labs,
+              'V',
+              Domains.vitals));
 
   @NonNull PatientIdentifierType patientIdentifierType;
 
