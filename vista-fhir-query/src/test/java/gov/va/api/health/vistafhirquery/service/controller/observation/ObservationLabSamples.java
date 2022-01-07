@@ -5,6 +5,7 @@ import gov.va.api.health.r4.api.datatypes.CodeableConcept;
 import gov.va.api.health.r4.api.datatypes.Coding;
 import gov.va.api.health.r4.api.datatypes.Quantity;
 import gov.va.api.health.r4.api.datatypes.SimpleQuantity;
+import gov.va.api.health.r4.api.elements.Meta;
 import gov.va.api.health.r4.api.elements.Reference;
 import gov.va.api.health.r4.api.resources.Observation;
 import gov.va.api.lighthouse.charon.models.CodeAndNameXmlAttribute;
@@ -62,12 +63,13 @@ public class ObservationLabSamples {
     }
 
     Observation observation() {
-      return observation("sNp1+673+LCH;6899283.889996;741");
+      return observation("673", "sNp1+673+LCH;6899283.889996;741");
     }
 
-    Observation observation(String id) {
+    Observation observation(String site, String id) {
       return Observation.builder()
           .id(id)
+          .meta(Meta.builder().source(site).build())
           .category(category())
           .subject(Reference.builder().reference("Patient/p1").build())
           .issued("2011-04-12T12:51:56Z")

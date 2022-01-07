@@ -89,7 +89,7 @@ public class R4ObservationControllerTest {
     when(wp.toPrivateId("public-sNp1+123+L456")).thenReturn("sNp1+123+L456");
     var actual = controller().read("public-sNp1+123+L456");
     assertThat(json(actual))
-        .isEqualTo(json(ObservationLabSamples.Fhir.create().observation("sNp1+123+L456")));
+        .isEqualTo(json(ObservationLabSamples.Fhir.create().observation("123", "sNp1+123+L456")));
   }
 
   @Test
@@ -102,7 +102,7 @@ public class R4ObservationControllerTest {
     when(wp.toPrivateId("public-sNp1+123+V456")).thenReturn("sNp1+123+V456");
     var actual = controller().read("public-sNp1+123+V456");
     assertThat(json(actual))
-        .isEqualTo(json(ObservationVitalSamples.Fhir.create().weight("sNp1+123+V456")));
+        .isEqualTo(json(ObservationVitalSamples.Fhir.create().weight("123", "sNp1+123+V456")));
   }
 
   @Test
@@ -136,7 +136,7 @@ public class R4ObservationControllerTest {
     var expected =
         ObservationVitalSamples.Fhir.asBundle(
             "http://fugazi.com/r4",
-            List.of(ObservationVitalSamples.Fhir.create().weight("sNp1+123+V456")),
+            List.of(ObservationVitalSamples.Fhir.create().weight("123", "sNp1+123+V456")),
             1,
             link(
                 BundleLink.LinkRelation.self,
@@ -157,7 +157,7 @@ public class R4ObservationControllerTest {
     var expected =
         ObservationVitalSamples.Fhir.asBundle(
             "http://fugazi.com/r4",
-            List.of(ObservationLabSamples.Fhir.create().observation("sNp1+123+L456")),
+            List.of(ObservationLabSamples.Fhir.create().observation("123", "sNp1+123+L456")),
             1,
             link(
                 BundleLink.LinkRelation.self,

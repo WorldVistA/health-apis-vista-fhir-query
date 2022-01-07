@@ -1,5 +1,6 @@
 package gov.va.api.health.vistafhirquery.service.controller.appointment;
 
+import static gov.va.api.health.vistafhirquery.service.charonclient.CharonRequests.vprGetPatientData;
 import static gov.va.api.health.vistafhirquery.service.controller.R4Controllers.verifyAndGetResult;
 import static gov.va.api.health.vistafhirquery.service.controller.R4Transformers.toLocalDateMacroString;
 import static java.util.stream.Collectors.toList;
@@ -8,8 +9,6 @@ import gov.va.api.health.ids.client.IdEncoder;
 import gov.va.api.health.r4.api.resources.Appointment;
 import gov.va.api.health.vistafhirquery.service.api.R4AppointmentApi;
 import gov.va.api.health.vistafhirquery.service.charonclient.CharonClient;
-import gov.va.api.health.vistafhirquery.service.charonclient.CharonRequest;
-import gov.va.api.health.vistafhirquery.service.charonclient.CharonResponse;
 import gov.va.api.health.vistafhirquery.service.config.VistaApiConfig;
 import gov.va.api.health.vistafhirquery.service.controller.DateSearchBoundaries;
 import gov.va.api.health.vistafhirquery.service.controller.R4BundlerFactory;
@@ -70,7 +69,7 @@ public class R4SiteAppointmentController implements R4AppointmentApi {
             .type(Set.of(VprGetPatientData.Domains.appointments))
             .id(Optional.of(ids.recordId()))
             .build();
-    var charonResponse = charonRequest(site, rpcRequest);
+    var charonResponse = charonClient.request(vprGetPatientData(site, rpcRequest));
     var resources =
         transformation(site, ids.patientIdentifier()).toResource().apply(charonResponse.value());
     return verifyAndGetResult(resources, id);
@@ -101,7 +100,7 @@ public class R4SiteAppointmentController implements R4AppointmentApi {
             .start(toLocalDateMacroString(boundaries.start()))
             .stop(toLocalDateMacroString(boundaries.stop()))
             .build();
-    var charonResponse = charonRequest(site, rpcRequest);
+    var charonResponse = charonClient.request(vprGetPatientData(site, rpcRequest));
     return bundlerFactory
         .forTransformation(transformation(site, patientIcn))
         .site(charonResponse.invocationResult().vista())
@@ -111,17 +110,6 @@ public class R4SiteAppointmentController implements R4AppointmentApi {
         .request(request)
         .build()
         .apply(charonResponse.value());
-  }
-
-  private CharonResponse<VprGetPatientData.Request, VprGetPatientData.Response.Results>
-      charonRequest(String site, VprGetPatientData.Request rpcRequest) {
-    var charonRequest =
-        CharonRequest.<VprGetPatientData.Request, VprGetPatientData.Response.Results>builder()
-            .vista(site)
-            .rpcRequest(rpcRequest)
-            .responseType(VprGetPatientData.Response.Results.class)
-            .build();
-    return charonClient.request(charonRequest);
   }
 
   private SegmentedVistaIdentifier parseOrDie(String publicId) {

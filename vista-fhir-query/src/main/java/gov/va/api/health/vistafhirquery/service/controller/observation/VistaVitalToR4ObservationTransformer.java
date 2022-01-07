@@ -13,6 +13,7 @@ import static org.springframework.util.CollectionUtils.isEmpty;
 
 import gov.va.api.health.r4.api.datatypes.CodeableConcept;
 import gov.va.api.health.r4.api.datatypes.Coding;
+import gov.va.api.health.r4.api.elements.Meta;
 import gov.va.api.health.r4.api.resources.Observation;
 import gov.va.api.lighthouse.charon.models.ValueOnlyXmlAttribute;
 import gov.va.api.lighthouse.charon.models.vprgetpatientdata.BloodPressure;
@@ -170,6 +171,7 @@ public class VistaVitalToR4ObservationTransformer {
       return Observation.builder()
           .resourceType("Observation")
           .id(idFrom(measurement.id()))
+          .meta(Meta.builder().source(vistaSiteId).build())
           .category(category())
           .subject(patientReference)
           .code(code)
@@ -183,6 +185,7 @@ public class VistaVitalToR4ObservationTransformer {
     return Observation.builder()
         .resourceType("Observation")
         .id(idFrom(measurement.id()))
+        .meta(Meta.builder().source(vistaSiteId).build())
         .category(category())
         .subject(patientReference)
         .code(code)

@@ -6,6 +6,7 @@ import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import gov.va.api.health.r4.api.datatypes.Annotation;
 import gov.va.api.health.r4.api.datatypes.CodeableConcept;
 import gov.va.api.health.r4.api.datatypes.Coding;
+import gov.va.api.health.r4.api.elements.Meta;
 import gov.va.api.health.r4.api.elements.Reference;
 import gov.va.api.health.r4.api.resources.Observation;
 import gov.va.api.lighthouse.charon.models.ValueOnlyXmlAttribute;
@@ -143,6 +144,7 @@ public class VistaLabToR4ObservationTransformerTest {
         .isEqualTo(
             Observation.builder()
                 .resourceType("Observation")
+                .meta(Meta.builder().source("123").build())
                 .category(
                     List.of(
                         CodeableConcept.builder()

@@ -6,6 +6,7 @@ import static org.mockito.Mockito.when;
 
 import gov.va.api.health.r4.api.datatypes.CodeableConcept;
 import gov.va.api.health.r4.api.datatypes.Coding;
+import gov.va.api.health.r4.api.elements.Meta;
 import gov.va.api.health.r4.api.elements.Reference;
 import gov.va.api.health.r4.api.resources.Observation;
 import gov.va.api.lighthouse.charon.models.ValueOnlyXmlAttribute;
@@ -124,6 +125,7 @@ public class VistaVitalToR4ObservationTransformerTest {
                 Observation.builder()
                     .status(Observation.ObservationStatus._final)
                     .resourceType("Observation")
+                    .meta(Meta.builder().source("123").build())
                     .subject(Reference.builder().reference("Patient/p1").build())
                     .category(
                         List.of(

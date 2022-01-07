@@ -3,7 +3,6 @@ package gov.va.api.health.vistafhirquery.service.charonclient;
 import gov.va.api.health.vistafhirquery.service.charonclient.CharonTestSupport.CharonResponseAnswer.CharonResponseAnswerBuilder;
 import gov.va.api.lighthouse.charon.api.v1.RpcInvocationResultV1;
 import gov.va.api.lighthouse.charon.models.TypeSafeRpcRequest;
-import gov.va.api.lighthouse.charon.models.lhslighthouserpcgateway.LhsLighthouseRpcGatewayResponse.Results;
 import lombok.Builder;
 import lombok.Value;
 import org.mockito.ArgumentCaptor;
@@ -18,8 +17,8 @@ public class CharonTestSupport {
   }
 
   @SuppressWarnings("unchecked")
-  public static <I extends TypeSafeRpcRequest>
-      ArgumentCaptor<CharonRequest<I, Results>> requestCaptor(Class<I> requestType) {
+  public static <I extends TypeSafeRpcRequest, R> ArgumentCaptor<CharonRequest<I, R>> requestCaptor(
+      Class<I> requestType) {
     return ArgumentCaptor.forClass(CharonRequest.class);
   }
 

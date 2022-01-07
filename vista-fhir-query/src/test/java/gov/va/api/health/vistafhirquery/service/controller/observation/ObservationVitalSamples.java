@@ -9,6 +9,7 @@ import gov.va.api.health.r4.api.datatypes.CodeableConcept;
 import gov.va.api.health.r4.api.datatypes.Coding;
 import gov.va.api.health.r4.api.datatypes.Quantity;
 import gov.va.api.health.r4.api.datatypes.SimpleQuantity;
+import gov.va.api.health.r4.api.elements.Meta;
 import gov.va.api.health.r4.api.elements.Reference;
 import gov.va.api.health.r4.api.resources.Observation;
 import gov.va.api.lighthouse.charon.models.CodeAndNameXmlAttribute;
@@ -109,15 +110,20 @@ public class ObservationVitalSamples {
     }
 
     public Observation bloodPressure() {
+      return bloodPressure("673", "sNp1+673+V32071");
+    }
+
+    public Observation bloodPressure(String site, String id) {
       return Observation.builder()
           .resourceType("Observation")
+          .meta(Meta.builder().source(site).build())
           .subject(subject("p1"))
           .category(category())
           .code(bloodPressureCode())
           .component(List.of(bloodPressureSystolic(), bloodPressureDiastolic()))
           .effectiveDateTime("2010-04-06T14:00:00Z")
           .issued("2011-02-25T11:04:28Z")
-          .id("sNp1+673+V32071")
+          .id(id)
           .status(Observation.ObservationStatus._final)
           .method(method())
           .build();
@@ -226,12 +232,13 @@ public class ObservationVitalSamples {
     }
 
     public Observation weight() {
-      return weight("sNp1+673+V32076");
+      return weight("673", "sNp1+673+V32076");
     }
 
-    public Observation weight(String idSegment) {
+    public Observation weight(String site, String idSegment) {
       return Observation.builder()
           .resourceType("Observation")
+          .meta(Meta.builder().source(site).build())
           .subject(subject("p1"))
           .category(category())
           .code(weightCode())

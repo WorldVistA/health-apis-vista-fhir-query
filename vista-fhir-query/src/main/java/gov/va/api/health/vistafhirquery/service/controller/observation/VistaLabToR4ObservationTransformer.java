@@ -12,6 +12,7 @@ import static gov.va.api.health.vistafhirquery.service.controller.observation.Ob
 import gov.va.api.health.r4.api.datatypes.Annotation;
 import gov.va.api.health.r4.api.datatypes.CodeableConcept;
 import gov.va.api.health.r4.api.datatypes.Coding;
+import gov.va.api.health.r4.api.elements.Meta;
 import gov.va.api.health.r4.api.resources.Observation;
 import gov.va.api.lighthouse.charon.models.ValueOnlyXmlAttribute;
 import gov.va.api.lighthouse.charon.models.vprgetpatientdata.Labs;
@@ -89,6 +90,7 @@ public class VistaLabToR4ObservationTransformer {
         Observation.builder()
             .resourceType("Observation")
             .id(idFrom(vistaLab.id()))
+            .meta(Meta.builder().source(vistaSiteId).build())
             .category(category())
             .subject(toReference("Patient", patientIcn, null))
             .issued(toHumanDateTime(vistaLab.resulted()))
