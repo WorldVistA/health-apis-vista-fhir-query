@@ -17,7 +17,6 @@ import gov.va.api.lighthouse.charon.models.vprgetpatientdata.VprGetPatientData;
 import gov.va.api.lighthouse.charon.models.vprgetpatientdata.VprGetPatientData.Domains;
 import java.util.List;
 import java.util.stream.Stream;
-import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
@@ -25,7 +24,6 @@ import org.junit.jupiter.params.provider.EnumSource;
 import org.junit.jupiter.params.provider.MethodSource;
 import org.junit.jupiter.params.provider.ValueSource;
 
-@Slf4j
 public class SegmentedVistaIdentifierTest {
   static Stream<Arguments> packWithCompactedObservationLabFormatIsOnlyForLabs() {
     return Stream.of(
@@ -172,6 +170,43 @@ public class SegmentedVistaIdentifierTest {
                     ResourceIdentity.builder()
                         .system("VISTA")
                         .resource("Appointment")
+                        .identifier(packed)
+                        .build()))
+            .get(0)
+            .uuid();
+    assertThat(i3.length()).as(packed).isLessThanOrEqualTo(64);
+  }
+
+  @Test
+  void packWithCompactedConditionVisitFormatIsSmallEnough() {
+    SegmentedVistaIdentifier id =
+        SegmentedVistaIdentifier.builder()
+            .patientIdentifierType(PatientIdentifierType.NATIONAL_ICN)
+            .patientIdentifier("1011537977V693883")
+            .siteId("673")
+            .vprRpcDomain(Domains.visits)
+            .recordId("T;2931013.07;23")
+            .build();
+    String packed = id.pack();
+    SegmentedVistaIdentifier unpacked = unpack(packed);
+    assertThat(unpacked).isEqualTo(id);
+    var ids =
+        new RestIdentityServiceClientConfig(
+                null,
+                IdsClientProperties.builder()
+                    .encodedIds(
+                        EncodedIdsFormatProperties.builder()
+                            .i3Enabled(true)
+                            .encodingKey("some-longish-key-here")
+                            .build())
+                    .build())
+            .encodingIdentityServiceClient(new VistaFhirQueryIdsCodebookSupplier().get());
+    String i3 =
+        ids.register(
+                List.of(
+                    ResourceIdentity.builder()
+                        .system("VISTA")
+                        .resource("Condition")
                         .identifier(packed)
                         .build()))
             .get(0)

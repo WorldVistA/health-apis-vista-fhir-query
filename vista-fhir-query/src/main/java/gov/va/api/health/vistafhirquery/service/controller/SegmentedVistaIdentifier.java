@@ -33,6 +33,8 @@ public class SegmentedVistaIdentifier {
               Domains.problems,
               'L',
               Domains.labs,
+              'T',
+              Domains.visits,
               'V',
               Domains.vitals));
 
@@ -154,6 +156,7 @@ public class SegmentedVistaIdentifier {
       formats = new LinkedHashMap<>();
       formats.put('A', new FormatCompressedAppointment());
       formats.put('L', new FormatCompressedObservationLab());
+      formats.put('T', new FormatCompressedConditionVisit());
       /* FormatString is the failsafe format, this should be last. */
       formats.put('s', new FormatString());
     }
@@ -241,6 +244,56 @@ public class SegmentedVistaIdentifier {
           .siteId(site)
           .vprRpcDomain(Domains.appointments)
           .recordId("A;" + date + (isNotEmpty(time) ? "." + time : "") + ";" + remainder)
+          .build();
+    }
+  }
+
+  private static class FormatCompressedConditionVisit implements Format {
+    private static final Pattern SITE = Pattern.compile("[0-9]{3}");
+
+    private static final Pattern RECORD_ID = Pattern.compile("T;[0-9]{7}\\.[0-9]{1,6};[0-9]+");
+
+    @Override
+    public String tryPack(SegmentedVistaIdentifier vis) {
+      if (!isIdentifierPackable(SITE, RECORD_ID, Domains.visits, vis)) {
+        return null;
+      }
+      var tenSix = TenvSix.parse(vis.patientIdentifier());
+      if (tenSix.isEmpty()) {
+        return null;
+      }
+      String ten = leftPad(Long.toString(tenSix.get().ten()), 10, 'x');
+      String six = leftPad(Integer.toString(tenSix.get().six()), 6, 'x');
+      String site = vis.siteId();
+      String date = vis.recordId().substring(2, 9);
+      int lastSemi = vis.recordId().lastIndexOf(';');
+      String time = rightPad(vis.recordId().substring(10, lastSemi), 6, 'x');
+      String remainder = vis.recordId().substring(lastSemi + 1);
+      // ....10....6....3.......7......6......2........
+      return ten + six + site + date + time + remainder;
+    }
+
+    @Override
+    public SegmentedVistaIdentifier unpack(String data) {
+      // 10
+      String ten = strip(data.substring(0, 10), "x");
+      // 6
+      String six = strip(data.substring(10, 16), "x");
+      // 3
+      String site = strip(data.substring(16, 19), "x");
+      // 7
+      String date = data.substring(19, 26);
+      // 6
+      String time = strip(data.substring(26, 32), "x");
+      // 2
+      String remainder = data.substring(32);
+      String icn = "0".equals(six) ? ten : ten + "V" + six;
+      return SegmentedVistaIdentifier.builder()
+          .patientIdentifierType(PatientIdentifierType.NATIONAL_ICN)
+          .patientIdentifier(icn)
+          .siteId(site)
+          .vprRpcDomain(Domains.visits)
+          .recordId("T;" + date + "." + time + ";" + remainder)
           .build();
     }
   }
