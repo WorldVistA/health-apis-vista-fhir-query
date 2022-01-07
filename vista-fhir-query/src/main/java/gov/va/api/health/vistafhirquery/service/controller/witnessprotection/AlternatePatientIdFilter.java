@@ -1,5 +1,7 @@
 package gov.va.api.health.vistafhirquery.service.controller.witnessprotection;
 
+import static gov.va.api.health.autoconfig.logging.LogSanitizer.sanitize;
+
 import java.io.IOException;
 import java.util.Collections;
 import java.util.Enumeration;
@@ -11,11 +13,13 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletRequestWrapper;
 import javax.servlet.http.HttpServletResponse;
 import lombok.AllArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.lang.NonNull;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 /** Filter for supporting alternate ids. */
 @AllArgsConstructor(staticName = "of")
+@Slf4j
 public class AlternatePatientIdFilter extends OncePerRequestFilter {
 
   private final AlternatePatientIds alternatePatientIds;
@@ -38,6 +42,12 @@ public class AlternatePatientIdFilter extends OncePerRequestFilter {
       if (publicId.equals(privateId)) {
         continue;
       }
+      log.info(
+          "Converting {}={} to {}={} for processing",
+          parameter,
+          sanitize(publicId),
+          parameter,
+          privateId);
       if (newParameters == null) {
         newParameters = new HashMap<>(request.getParameterMap());
       }

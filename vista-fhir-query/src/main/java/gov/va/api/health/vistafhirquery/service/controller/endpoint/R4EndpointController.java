@@ -16,12 +16,17 @@ import gov.va.api.health.vistafhirquery.service.controller.ResourceExceptions;
 import gov.va.api.health.vistafhirquery.service.mpifhirqueryclient.MpiFhirQueryClient;
 import gov.va.api.lighthouse.charon.api.RpcPrincipalLookup;
 import gov.va.api.lighthouse.charon.models.lhslighthouserpcgateway.LhsLighthouseRpcGatewayGetsManifest;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
 import java.util.Set;
 import javax.servlet.http.HttpServletRequest;
 import javax.validation.constraints.Min;
 import lombok.AllArgsConstructor;
 import lombok.NonNull;
 import lombok.SneakyThrows;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -34,6 +39,7 @@ import org.springframework.web.bind.annotation.RestController;
     value = {"/r4/Endpoint"},
     produces = {"application/json", "application/fhir+json"})
 @AllArgsConstructor(onConstructor_ = {@Autowired, @NonNull})
+@Slf4j
 public class R4EndpointController implements R4EndpointApi {
 
   public static final String SUPPORTED_RPC = LhsLighthouseRpcGatewayGetsManifest.RPC_NAME;
@@ -77,7 +83,9 @@ public class R4EndpointController implements R4EndpointApi {
     }
     Set<String> stations = stations(SUPPORTED_RPC);
     if (isNotBlank(patient)) {
-      stations.retainAll(patientStations(patient));
+      Set<String> stationsForPatient = patientStations(patient);
+      log.info("Patient stations:   {}", sorted(stationsForPatient));
+      stations.retainAll(stationsForPatient);
     }
     return toBundle(request).apply(stations);
   }
@@ -93,6 +101,12 @@ public class R4EndpointController implements R4EndpointApi {
   @SneakyThrows
   private Set<String> patientStations(String patient) {
     return mpiFhirQueryClient.stationIdsForPatient(patient);
+  }
+
+  private List<String> sorted(Collection<String> values) {
+    var sorted = new ArrayList<>(values);
+    Collections.sort(sorted);
+    return sorted;
   }
 
   private Set<String> stations(String rpcName) {

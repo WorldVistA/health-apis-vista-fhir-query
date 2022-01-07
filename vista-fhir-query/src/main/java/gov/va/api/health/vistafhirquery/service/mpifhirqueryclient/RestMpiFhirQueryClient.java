@@ -34,6 +34,7 @@ public class RestMpiFhirQueryClient implements MpiFhirQueryClient {
   private Bundle endpointsForPatient(String patient) {
     var url = mfqBaseUrl + "/r4/Endpoint?patient=" + patient;
     try {
+      log.info("Invoking {}", url);
       var response = restTemplate.exchange(url, HttpMethod.GET, null, Endpoint.Bundle.class);
       return response.getBody();
     } catch (HttpStatusCodeException e) {

@@ -87,15 +87,15 @@ public class R4Bundler<
   }
 
   private String parameter(String name, String value) {
-    log.info("{}={} : {}", name, value, alternatePatientIds.patientIdParameters());
     if (alternatePatientIds.isPatientIdParameter(name)) {
-      value = alternatePatientIds.toPublicId(value);
-      log.info("{} ==> {}", name, value);
+      var altValue = alternatePatientIds.toPublicId(value);
+      log.info("Converting {}={} to {}={} for response bundle", name, value, name, altValue);
+      value = altValue;
     }
     return join("=", name, value);
   }
 
-  private String request() {
+  private String queryParametersForRequest() {
     return request.getParameterMap().entrySet().stream()
         .flatMap(e -> Stream.of(e.getValue()).map(value -> parameter(e.getKey(), value)))
         .collect(joining("&"));
@@ -117,8 +117,9 @@ public class R4Bundler<
             ? linkProperties.r4().resourceUrlWithoutSite(resourceType)
             : linkProperties.r4().resourceUrl(site, resourceType);
     String query = "";
-    if (!isBlank(request())) {
-      query = "?" + request();
+    String parameters = queryParametersForRequest();
+    if (!isBlank(parameters)) {
+      query = "?" + parameters;
     }
     links.add(BundleLink.builder().relation(BundleLink.LinkRelation.self).url(url + query).build());
     return links;
