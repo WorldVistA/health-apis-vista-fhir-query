@@ -4,15 +4,15 @@
   <parent>
     <groupId>gov.va.api.health</groupId>
     <artifactId>test-starter</artifactId>
-    <version>9.0.5</version>
+    <version>9.0.6</version>
     <relativePath/>
   </parent>
   <artifactId>vista-fhir-query-tests</artifactId>
-  <version>2.0.43-SNAPSHOT</version>
+  <version>2.0.43</version>
   <packaging>jar</packaging>
   <properties>
     <docker.organization>ghcr.io/department-of-veterans-affairs</docker.organization>
-    <fhir-resources.version>9.0.1</fhir-resources.version>
+    <fhir-resources.version>9.0.3</fhir-resources.version>
     <oauth-java.version>0.0.15</oauth-java.version>
     <sentinel.skipLaunch>false</sentinel.skipLaunch>
   </properties>
