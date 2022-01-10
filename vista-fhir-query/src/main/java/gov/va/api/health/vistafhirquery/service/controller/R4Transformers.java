@@ -156,6 +156,14 @@ public class R4Transformers {
     return null == bool || !bool;
   }
 
+  /** Transform an Optional Instant to a String. */
+  public static String optionalInstantToString(Optional<Instant> maybeString) {
+    if (maybeString.isEmpty()) {
+      return null;
+    }
+    return maybeString.get().toString();
+  }
+
   /** Build an identifier from a patient icn, site, and vista record id. */
   public static String patientCoordinateStringFrom(String patientIcn, String site, String ien) {
     return PatientTypeCoordinates.builder().icn(patientIcn).site(site).ien(ien).build().toString();
@@ -198,12 +206,21 @@ public class R4Transformers {
   }
 
   /** Transform a FileMan date to a human date. */
-  public static String toHumanDateTime(ValueOnlyXmlAttribute filemanDateTime) {
+  public static Optional<Instant> toHumanDateTime(String filemanDateTime) {
     FilemanDate result = FilemanDate.from(filemanDateTime, ZoneId.of("UTC"));
     if (isBlank(result)) {
-      return null;
+      return Optional.empty();
     }
-    return result.instant().toString();
+    return Optional.of(result.instant());
+  }
+
+  /** Transform a FileMan date to a human date. */
+  public static Optional<Instant> toHumanDateTime(ValueOnlyXmlAttribute filemanDateTime) {
+    FilemanDate result = FilemanDate.from(filemanDateTime, ZoneId.of("UTC"));
+    if (isBlank(result)) {
+      return Optional.empty();
+    }
+    return Optional.of(result.instant());
   }
 
   /** Transform an Instant to an Optional String. */

@@ -1,11 +1,14 @@
 package gov.va.api.health.vistafhirquery.service.controller.condition;
 
+import static gov.va.api.health.vistafhirquery.service.controller.R4Transformers.emptyToNull;
 import static gov.va.api.health.vistafhirquery.service.controller.R4Transformers.isBlank;
+import static gov.va.api.health.vistafhirquery.service.controller.R4Transformers.optionalInstantToString;
 import static gov.va.api.health.vistafhirquery.service.controller.R4Transformers.toHumanDateTime;
 import static gov.va.api.health.vistafhirquery.service.controller.R4Transformers.toReference;
 import static gov.va.api.health.vistafhirquery.service.controller.R4Transformers.toResourceId;
 import static gov.va.api.health.vistafhirquery.service.controller.R4Transformers.valueOfValueOnlyXmlAttribute;
 
+import gov.va.api.health.r4.api.datatypes.Annotation;
 import gov.va.api.health.r4.api.datatypes.CodeableConcept;
 import gov.va.api.health.r4.api.datatypes.Coding;
 import gov.va.api.health.r4.api.elements.Meta;
@@ -13,9 +16,12 @@ import gov.va.api.health.r4.api.resources.Condition;
 import gov.va.api.lighthouse.charon.models.ValueOnlyXmlAttribute;
 import gov.va.api.lighthouse.charon.models.vprgetpatientdata.Problems;
 import gov.va.api.lighthouse.charon.models.vprgetpatientdata.VprGetPatientData;
+import java.time.DateTimeException;
+import java.time.Instant;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
-import java.util.Objects;
+import java.util.Optional;
 import java.util.stream.Stream;
 import lombok.Builder;
 import lombok.NonNull;
@@ -26,7 +32,7 @@ public class VistaProblemToR4ConditionTransformer {
 
   @NonNull String patientIcn;
 
-  @NonNull VprGetPatientData.Response.Results rpcResults;
+  @NonNull Problems.Problem vistaProblem;
 
   /** Fixed value of problem-list-item for data from Problem domain. */
   List<CodeableConcept> category() {
@@ -44,7 +50,7 @@ public class VistaProblemToR4ConditionTransformer {
   }
 
   CodeableConcept clinicalStatus(Problems.Problem rpcCondition) {
-    if (!isBlank(toHumanDateTime(rpcCondition.resolved()))) {
+    if (!isBlank(valueOnlyXmlAttributeDateTime(rpcCondition.resolved()))) {
       return CodeableConcept.builder()
           .text("Resolved")
           .coding(
@@ -105,7 +111,6 @@ public class VistaProblemToR4ConditionTransformer {
     if (!isBlank(icdSystem)) {
       codings.add(Coding.builder().system(icdSystem).code(icdValue).display(display).build());
     }
-
     String sctcValue = valueOfValueOnlyXmlAttribute(rpcCondition.sctc());
     String scttValue = valueOfValueOnlyXmlAttribute(rpcCondition.sctt());
     if (!isBlank(sctcValue)) {
@@ -117,39 +122,65 @@ public class VistaProblemToR4ConditionTransformer {
               .display(display)
               .build());
     }
+    if (isBlank(codings)) {
+      return null;
+    }
     return CodeableConcept.builder().coding(codings).text(display).build();
   }
 
-  String idFrom(String id) {
+  String idFrom(ValueOnlyXmlAttribute maybeId) {
+    String id = valueOfValueOnlyXmlAttribute(maybeId);
     if (isBlank(id)) {
       return null;
     }
     return toResourceId(patientIcn, site, VprGetPatientData.Domains.problems, id);
   }
 
-  private Condition toCondition(Problems.Problem rpcCondition) {
-    if (isBlank(rpcCondition)) {
-      return null;
+  private List<Annotation> note(Problems.Comment comment) {
+    if (isBlank(comment)) {
+      return Collections.emptyList();
     }
-    return Condition.builder()
-        .id(idFrom(rpcCondition.id().value()))
-        .meta(
-            Meta.builder()
-                .source(site)
-                .lastUpdated(toHumanDateTime(rpcCondition.updated()))
-                .build())
-        .clinicalStatus(clinicalStatus(rpcCondition))
-        .category(category())
-        .code(code(rpcCondition))
-        .subject(toReference("Patient", patientIcn, null))
-        .verificationStatus(verificationStatus(rpcCondition.unverified()))
-        .onsetDateTime(toHumanDateTime(rpcCondition.onset()))
-        .recordedDate(toHumanDateTime(rpcCondition.entered()))
-        .build();
+    return Annotation.builder()
+        .text(comment.commentText())
+        .time(optionalInstantToString(toHumanDateTime(comment.entered())))
+        .authorString(comment.enteredBy())
+        .build()
+        .asList();
   }
 
   Stream<Condition> toFhir() {
-    return rpcResults.problemStream().map(this::toCondition).filter(Objects::nonNull);
+    if (isBlank(vistaProblem)) {
+      return Stream.empty();
+    }
+    return Stream.of(
+        Condition.builder()
+            .id(idFrom(vistaProblem.id()))
+            .meta(
+                Meta.builder()
+                    .source(site)
+                    .lastUpdated(
+                        optionalInstantToString(
+                            valueOnlyXmlAttributeDateTime(vistaProblem.updated())))
+                    .build())
+            .clinicalStatus(clinicalStatus(vistaProblem))
+            .category(category())
+            .code(code(vistaProblem))
+            .note(emptyToNull(note(vistaProblem.comment())))
+            .subject(toReference("Patient", patientIcn, null))
+            .verificationStatus(verificationStatus(vistaProblem.unverified()))
+            .onsetDateTime(
+                optionalInstantToString(valueOnlyXmlAttributeDateTime(vistaProblem.onset())))
+            .recordedDate(
+                optionalInstantToString(valueOnlyXmlAttributeDateTime(vistaProblem.entered())))
+            .build());
+  }
+
+  private Optional<Instant> valueOnlyXmlAttributeDateTime(ValueOnlyXmlAttribute onset) {
+    try {
+      return toHumanDateTime(onset);
+    } catch (DateTimeException e) {
+      return Optional.empty();
+    }
   }
 
   CodeableConcept verificationStatus(ValueOnlyXmlAttribute unverified) {

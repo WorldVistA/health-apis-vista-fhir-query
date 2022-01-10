@@ -1,6 +1,7 @@
 package gov.va.api.health.vistafhirquery.service.controller.observation;
 
 import static gov.va.api.health.vistafhirquery.service.controller.R4Transformers.isBlank;
+import static gov.va.api.health.vistafhirquery.service.controller.R4Transformers.optionalInstantToString;
 import static gov.va.api.health.vistafhirquery.service.controller.R4Transformers.toHumanDateTime;
 import static gov.va.api.health.vistafhirquery.service.controller.R4Transformers.toReference;
 import static gov.va.api.health.vistafhirquery.service.controller.R4Transformers.toResourceId;
@@ -176,8 +177,8 @@ public class VistaVitalToR4ObservationTransformer {
           .subject(patientReference)
           .code(code)
           .component(component(measurement))
-          .effectiveDateTime(toHumanDateTime(vistaVital.taken()))
-          .issued(toHumanDateTime(vistaVital.entered()))
+          .effectiveDateTime(optionalInstantToString(toHumanDateTime(vistaVital.taken())))
+          .issued(optionalInstantToString(toHumanDateTime(vistaVital.entered())))
           .status(status(vistaVital.removed()))
           .method(method)
           .build();
@@ -189,8 +190,8 @@ public class VistaVitalToR4ObservationTransformer {
         .category(category())
         .subject(patientReference)
         .code(code)
-        .effectiveDateTime(toHumanDateTime(vistaVital.taken()))
-        .issued(toHumanDateTime(vistaVital.entered()))
+        .effectiveDateTime(optionalInstantToString(toHumanDateTime(vistaVital.taken())))
+        .issued(optionalInstantToString(toHumanDateTime(vistaVital.entered())))
         .referenceRange(referenceRange(measurement.high(), measurement.low()))
         .status(status(vistaVital.removed()))
         .valueQuantity(valueQuantity(extractLoinc(code), measurement.value(), measurement.units()))

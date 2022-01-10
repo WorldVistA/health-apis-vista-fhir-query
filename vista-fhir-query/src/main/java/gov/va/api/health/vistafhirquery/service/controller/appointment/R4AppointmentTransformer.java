@@ -1,6 +1,7 @@
 package gov.va.api.health.vistafhirquery.service.controller.appointment;
 
 import static gov.va.api.health.vistafhirquery.service.controller.R4Transformers.isBlank;
+import static gov.va.api.health.vistafhirquery.service.controller.R4Transformers.optionalInstantToString;
 import static gov.va.api.health.vistafhirquery.service.controller.R4Transformers.toHumanDateTime;
 import static gov.va.api.health.vistafhirquery.service.controller.R4Transformers.toReference;
 import static gov.va.api.health.vistafhirquery.service.controller.R4Transformers.toResourceId;
@@ -144,7 +145,7 @@ public class R4AppointmentTransformer {
     if (rpcAppointment == null) {
       return null;
     }
-    String dateTime = toHumanDateTime(rpcAppointment.dateTime());
+    String dateTime = optionalInstantToString(toHumanDateTime(rpcAppointment.dateTime()));
     return Appointment.builder()
         .id(idFrom(rpcAppointment.id().value()))
         .meta(Meta.builder().source(site).build())

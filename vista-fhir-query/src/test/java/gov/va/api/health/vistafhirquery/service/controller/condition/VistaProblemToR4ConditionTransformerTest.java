@@ -4,10 +4,12 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import gov.va.api.health.r4.api.datatypes.CodeableConcept;
 import gov.va.api.health.r4.api.datatypes.Coding;
+import gov.va.api.health.r4.api.elements.Meta;
+import gov.va.api.health.r4.api.elements.Reference;
+import gov.va.api.health.r4.api.resources.Condition;
 import gov.va.api.lighthouse.charon.models.CodeAndNameXmlAttribute;
 import gov.va.api.lighthouse.charon.models.ValueOnlyXmlAttribute;
 import gov.va.api.lighthouse.charon.models.vprgetpatientdata.Problems;
-import gov.va.api.lighthouse.charon.models.vprgetpatientdata.VprGetPatientData;
 import java.util.List;
 import org.junit.jupiter.api.Test;
 
@@ -144,43 +146,57 @@ public class VistaProblemToR4ConditionTransformerTest {
   }
 
   @Test
-  void empty() {
-    assertThat(
-            VistaProblemToR4ConditionTransformer.builder()
-                .patientIcn("p1")
-                .site("673")
-                .rpcResults(VprGetPatientData.Response.Results.builder().build())
-                .build()
-                .toFhir())
-        .isEmpty();
+  void idFrom() {
+    assertThat(tx().idFrom(null)).isNull();
+    assertThat(tx().idFrom(ValueOnlyXmlAttribute.of(""))).isNull();
+    assertThat(tx().idFrom(ValueOnlyXmlAttribute.of("p1"))).isEqualTo("sNp1+123+Pp1");
   }
 
   @Test
-  void idFrom() {
-    assertThat(tx().idFrom(null)).isNull();
-    assertThat(tx().idFrom("")).isNull();
-    assertThat(tx().idFrom("p1")).isEqualTo("sNp1+123+Pp1");
+  void nullSafe() {
+    assertThat(tx().toFhir().toList())
+        .isEqualTo(
+            Condition.builder()
+                .meta(Meta.builder().source("123").build())
+                .subject(Reference.builder().reference("Patient/p1").build())
+                .category(
+                    CodeableConcept.builder()
+                        .coding(
+                            Coding.builder()
+                                .code("problem-list-item")
+                                .display("Problem List Item")
+                                .system("http://terminology.hl7.org/CodeSystem/condition-category")
+                                .build()
+                                .asList())
+                        .text("Problem List Item")
+                        .build()
+                        .asList())
+                .build()
+                .asList());
   }
 
   @Test
   void toFhir() {
-    assertThat(
-            VistaProblemToR4ConditionTransformer.builder()
-                .patientIcn("p1")
-                .site("673")
-                .rpcResults(ConditionProblemListSamples.Vista.create().results())
-                .build()
-                .toFhir()
-                .findFirst()
-                .get())
-        .isEqualTo(ConditionProblemListSamples.R4.create().condition());
+    ConditionProblemListSamples.Vista.create()
+        .results()
+        .problemStream()
+        .map(
+            p ->
+                assertThat(
+                        VistaProblemToR4ConditionTransformer.builder()
+                            .patientIcn("p1")
+                            .site("673")
+                            .vistaProblem(p)
+                            .build()
+                            .toFhir())
+                    .isEqualTo(ConditionProblemListSamples.R4.create().condition()));
   }
 
   private VistaProblemToR4ConditionTransformer tx() {
     return VistaProblemToR4ConditionTransformer.builder()
         .patientIcn("p1")
         .site("123")
-        .rpcResults(VprGetPatientData.Response.Results.builder().build())
+        .vistaProblem(Problems.Problem.builder().build())
         .build();
   }
 

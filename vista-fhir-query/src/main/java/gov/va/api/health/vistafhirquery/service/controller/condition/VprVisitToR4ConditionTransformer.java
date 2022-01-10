@@ -1,6 +1,7 @@
 package gov.va.api.health.vistafhirquery.service.controller.condition;
 
 import static gov.va.api.health.vistafhirquery.service.controller.R4Transformers.isBlank;
+import static gov.va.api.health.vistafhirquery.service.controller.R4Transformers.optionalInstantToString;
 import static gov.va.api.health.vistafhirquery.service.controller.R4Transformers.toHumanDateTime;
 import static gov.va.api.health.vistafhirquery.service.controller.R4Transformers.toReference;
 import static gov.va.api.health.vistafhirquery.service.controller.R4Transformers.toResourceId;
@@ -91,7 +92,7 @@ public class VprVisitToR4ConditionTransformer {
         .category(category())
         .code(code(rpcCondition.icd()))
         .subject(toReference("Patient", patientIcn, null))
-        .recordedDate(toHumanDateTime(rpcCondition.dateTime()))
+        .recordedDate(optionalInstantToString(toHumanDateTime(rpcCondition.dateTime())))
         .build();
   }
 

@@ -2,6 +2,7 @@ package gov.va.api.health.vistafhirquery.service.controller.observation;
 
 import static gov.va.api.health.vistafhirquery.service.controller.R4Transformers.ifPresent;
 import static gov.va.api.health.vistafhirquery.service.controller.R4Transformers.isBlank;
+import static gov.va.api.health.vistafhirquery.service.controller.R4Transformers.optionalInstantToString;
 import static gov.va.api.health.vistafhirquery.service.controller.R4Transformers.toHumanDateTime;
 import static gov.va.api.health.vistafhirquery.service.controller.R4Transformers.toReference;
 import static gov.va.api.health.vistafhirquery.service.controller.R4Transformers.toResourceId;
@@ -93,13 +94,13 @@ public class VistaLabToR4ObservationTransformer {
             .meta(Meta.builder().source(vistaSiteId).build())
             .category(category())
             .subject(toReference("Patient", patientIcn, null))
-            .issued(toHumanDateTime(vistaLab.resulted()))
+            .issued(optionalInstantToString(toHumanDateTime(vistaLab.resulted())))
             .note(note(vistaLab.comment()))
             .referenceRange(referenceRange(vistaLab.high(), vistaLab.low()))
             .interpretation(interpretation(vistaLab.interpretation()))
             .code(code(vistaLab.loinc(), vistaLab.test()))
             .valueQuantity(valueQuantity(vistaLab.result(), vistaLab.units()))
-            .effectiveDateTime(toHumanDateTime(vistaLab.collected()))
+            .effectiveDateTime(optionalInstantToString(toHumanDateTime(vistaLab.collected())))
             .status(status(vistaLab.status()))
             .build();
     return Stream.of(observation);

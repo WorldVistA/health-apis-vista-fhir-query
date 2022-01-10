@@ -129,20 +129,19 @@ public class R4TransformersTest {
 
   @Test
   void humanDateTime() {
-    assertThat(toHumanDateTime(null)).isNull();
-    assertThat(toHumanDateTime(ValueOnlyXmlAttribute.builder().build())).isNull();
-    assertThat(toHumanDateTime(ValueOnlyXmlAttribute.of("2970919")))
+    assertThat(toHumanDateTime(ValueOnlyXmlAttribute.builder().build()).orElse(null)).isNull();
+    assertThat(toHumanDateTime(ValueOnlyXmlAttribute.of("2970919")).orElse(null))
         .isEqualTo("1997-09-19T00:00:00Z");
-    assertThat(toHumanDateTime(ValueOnlyXmlAttribute.of("2970919.08")))
+    assertThat(toHumanDateTime(ValueOnlyXmlAttribute.of("2970919.08")).orElse(null))
         .isEqualTo("1997-09-19T08:00:00Z");
-    assertThat(toHumanDateTime(ValueOnlyXmlAttribute.of("2970919.0827")))
+    assertThat(toHumanDateTime(ValueOnlyXmlAttribute.of("2970919.0827")).orElse(null))
         .isEqualTo("1997-09-19T08:27:00Z");
-    assertThat(toHumanDateTime(ValueOnlyXmlAttribute.of("2970919.082701")))
+    assertThat(toHumanDateTime(ValueOnlyXmlAttribute.of("2970919.082701")).orElse(null))
         .isEqualTo("1997-09-19T08:27:01Z");
     assertThatExceptionOfType(FilemanDate.BadFilemanDate.class)
-        .isThrownBy(() -> toHumanDateTime(ValueOnlyXmlAttribute.of("29")));
+        .isThrownBy(() -> toHumanDateTime(ValueOnlyXmlAttribute.of("29")).orElse(null));
     assertThatExceptionOfType(FilemanDate.BadFilemanDate.class)
-        .isThrownBy(() -> toHumanDateTime(ValueOnlyXmlAttribute.of("abc")));
+        .isThrownBy(() -> toHumanDateTime(ValueOnlyXmlAttribute.of("abc")).orElse(null));
   }
 
   @Test
