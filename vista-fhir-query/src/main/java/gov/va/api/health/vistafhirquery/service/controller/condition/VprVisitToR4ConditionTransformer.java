@@ -7,14 +7,13 @@ import static gov.va.api.health.vistafhirquery.service.controller.R4Transformers
 import static gov.va.api.health.vistafhirquery.service.controller.R4Transformers.toResourceId;
 import static java.util.stream.Collectors.toList;
 
-import gov.va.api.health.fhir.api.Safe;
 import gov.va.api.health.r4.api.datatypes.CodeableConcept;
 import gov.va.api.health.r4.api.datatypes.Coding;
 import gov.va.api.health.r4.api.elements.Meta;
 import gov.va.api.health.r4.api.resources.Condition;
 import gov.va.api.lighthouse.charon.models.vprgetpatientdata.Visits;
-import gov.va.api.lighthouse.charon.models.vprgetpatientdata.VprGetPatientData;
 import gov.va.api.lighthouse.charon.models.vprgetpatientdata.VprGetPatientData.Domains;
+import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Stream;
@@ -27,7 +26,7 @@ public class VprVisitToR4ConditionTransformer {
 
   @NonNull String patientIcn;
 
-  @NonNull VprGetPatientData.Response.Results rpcResults;
+  @NonNull Visits.Visit vistaVisit;
 
   /** Fixed value of encounter-diagnosis for data from Visit domain. */
   List<CodeableConcept> category() {
@@ -44,16 +43,18 @@ public class VprVisitToR4ConditionTransformer {
         .asList();
   }
 
-  CodeableConcept code(List<Visits.Icd> icds) {
-    List<Coding> codings =
-        Safe.stream(icds).map(this::icdToCoding).filter(Objects::nonNull).collect(toList());
-    return CodeableConcept.builder().coding(codings).build();
-  }
-
-  Coding icdToCoding(Visits.Icd icd) {
+  CodeableConcept code(Visits.Icd icd) {
     if (icd == null) {
       return null;
     }
+    var coding = icdToCoding(icd);
+    if (coding == null) {
+      return null;
+    }
+    return CodeableConcept.builder().coding(coding.asList()).build();
+  }
+
+  private Coding icdToCoding(Visits.Icd icd) {
     String icdSystem;
     String codingSystemValue = icd.system();
     if (codingSystemValue == null) {
@@ -75,6 +76,16 @@ public class VprVisitToR4ConditionTransformer {
     return Coding.builder().system(icdSystem).code(icd.code()).display(icd.narrative()).build();
   }
 
+  private List<Condition> icdToCondition(Visits.Visit rpcCondition) {
+    if (isBlank(rpcCondition.icd())) {
+      return null;
+    }
+    return rpcCondition.icd().stream()
+        .map(icd -> toCondition(rpcCondition, icd))
+        .filter(Objects::nonNull)
+        .collect(toList());
+  }
+
   String idFrom(String id) {
     if (isBlank(id)) {
       return null;
@@ -82,21 +93,21 @@ public class VprVisitToR4ConditionTransformer {
     return toResourceId(patientIcn, site, Domains.visits, id);
   }
 
-  private Condition toCondition(Visits.Visit rpcCondition) {
-    if (isBlank(rpcCondition)) {
-      return null;
-    }
+  private Condition toCondition(Visits.Visit rpcCondition, Visits.Icd icd) {
     return Condition.builder()
         .id(idFrom(rpcCondition.id().value()))
         .meta(Meta.builder().source(site).build())
         .category(category())
-        .code(code(rpcCondition.icd()))
+        .code(code(icd))
         .subject(toReference("Patient", patientIcn, null))
         .recordedDate(optionalInstantToString(toHumanDateTime(rpcCondition.dateTime())))
         .build();
   }
 
   Stream<Condition> toFhir() {
-    return rpcResults.visitsStream().map(this::toCondition).filter(Objects::nonNull);
+    return Stream.of(vistaVisit)
+        .map(this::icdToCondition)
+        .filter(Objects::nonNull)
+        .flatMap(Collection::stream);
   }
 }

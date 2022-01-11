@@ -6,24 +6,39 @@ import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import gov.va.api.health.r4.api.datatypes.CodeableConcept;
 import gov.va.api.health.r4.api.datatypes.Coding;
 import gov.va.api.lighthouse.charon.models.vprgetpatientdata.Visits;
-import gov.va.api.lighthouse.charon.models.vprgetpatientdata.VprGetPatientData;
 import java.util.List;
 import org.junit.jupiter.api.Test;
 
 public class VprVisitToR4ConditionTransformerTest {
 
   @Test
+  void categoryIsFixedEncounterDiagnosisList() {
+    assertThat(tx().category())
+        .isEqualTo(
+            CodeableConcept.builder()
+                .coding(
+                    Coding.builder()
+                        .code("encounter-diagnosis")
+                        .display("Encounter Diagnosis")
+                        .system("http://terminology.hl7.org/CodeSystem/condition-category")
+                        .build()
+                        .asList())
+                .text("Encounter Diagnosis")
+                .build()
+                .asList());
+  }
+
+  @Test
   void code() {
     assertThat(
             tx().code(
-                    List.of(
-                        Visits.Icd.builder()
-                            .code("c")
-                            .name("a")
-                            .system("ICD")
-                            .narrative("a")
-                            .ranking("P")
-                            .build())))
+                    Visits.Icd.builder()
+                        .code("c")
+                        .name("a")
+                        .system("ICD")
+                        .narrative("a")
+                        .ranking("P")
+                        .build()))
         .isEqualTo(
             CodeableConcept.builder()
                 .coding(
@@ -36,14 +51,13 @@ public class VprVisitToR4ConditionTransformerTest {
                 .build());
     assertThat(
             tx().code(
-                    List.of(
-                        Visits.Icd.builder()
-                            .code("c")
-                            .name("a")
-                            .system("10D")
-                            .narrative("a")
-                            .ranking("P")
-                            .build())))
+                    Visits.Icd.builder()
+                        .code("c")
+                        .name("a")
+                        .system("10D")
+                        .narrative("a")
+                        .ranking("P")
+                        .build()))
         .isEqualTo(
             CodeableConcept.builder()
                 .coding(
@@ -54,30 +68,34 @@ public class VprVisitToR4ConditionTransformerTest {
                             .system("http://hl7.org/fhir/sid/icd-10-cm")
                             .build()))
                 .build());
+    // null icd
+    assertThat(tx().code(null)).isNull();
+    // null system
+    assertThat(
+            tx().code(Visits.Icd.builder().code("c").name("a").narrative("a").ranking("P").build()))
+        .isNull();
+    // null code
+    assertThat(
+            tx().code(
+                    Visits.Icd.builder()
+                        .name("a")
+                        .system("10D")
+                        .narrative("a")
+                        .ranking("P")
+                        .build()))
+        .isNull();
+    // unknown system
     assertThatExceptionOfType(IllegalArgumentException.class)
         .isThrownBy(
             () ->
                 tx().code(
-                        List.of(
-                            Visits.Icd.builder()
-                                .code("c")
-                                .name("a")
-                                .system("NOPE")
-                                .narrative("a")
-                                .ranking("P")
-                                .build())));
-  }
-
-  @Test
-  void empty() {
-    assertThat(
-            VprVisitToR4ConditionTransformer.builder()
-                .patientIcn("p1")
-                .site("673")
-                .rpcResults(VprGetPatientData.Response.Results.builder().build())
-                .build()
-                .toFhir())
-        .isEmpty();
+                        Visits.Icd.builder()
+                            .code("c")
+                            .name("a")
+                            .system("NOPE")
+                            .narrative("a")
+                            .ranking("P")
+                            .build()));
   }
 
   @Test
@@ -88,24 +106,29 @@ public class VprVisitToR4ConditionTransformerTest {
   }
 
   @Test
+  void noIcds() {
+    assertThat(tx().toFhir().toList()).isEmpty();
+  }
+
+  @Test
   void toFhir() {
     assertThat(
             VprVisitToR4ConditionTransformer.builder()
                 .patientIcn("p1")
                 .site("673")
-                .rpcResults(ConditionEncounterDiagnosisSamples.Vista.create().results())
+                .vistaVisit(ConditionEncounterDiagnosisSamples.Vista.create().visit("v1"))
                 .build()
                 .toFhir()
                 .findFirst()
                 .get())
-        .isEqualTo(ConditionEncounterDiagnosisSamples.R4.create().condition());
+        .isEqualTo(ConditionEncounterDiagnosisSamples.R4.create().condition("sNp1+673+Tv1"));
   }
 
   private VprVisitToR4ConditionTransformer tx() {
     return VprVisitToR4ConditionTransformer.builder()
         .patientIcn("p1")
         .site("123")
-        .rpcResults(VprGetPatientData.Response.Results.builder().build())
+        .vistaVisit(Visits.Visit.builder().build())
         .build();
   }
 }

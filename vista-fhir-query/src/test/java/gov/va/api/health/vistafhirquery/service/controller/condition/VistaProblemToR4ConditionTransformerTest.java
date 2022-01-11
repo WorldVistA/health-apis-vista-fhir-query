@@ -177,19 +177,16 @@ public class VistaProblemToR4ConditionTransformerTest {
 
   @Test
   void toFhir() {
-    ConditionProblemListSamples.Vista.create()
-        .results()
-        .problemStream()
-        .map(
-            p ->
-                assertThat(
-                        VistaProblemToR4ConditionTransformer.builder()
-                            .patientIcn("p1")
-                            .site("673")
-                            .vistaProblem(p)
-                            .build()
-                            .toFhir())
-                    .isEqualTo(ConditionProblemListSamples.R4.create().condition()));
+    assertThat(
+            VistaProblemToR4ConditionTransformer.builder()
+                .patientIcn("p1")
+                .site("123")
+                .vistaProblem(ConditionProblemListSamples.Vista.create().problem("p1"))
+                .build()
+                .toFhir()
+                .findFirst()
+                .get())
+        .isEqualTo(ConditionProblemListSamples.R4.create().condition("sNp1+123+Pp1"));
   }
 
   private VistaProblemToR4ConditionTransformer tx() {
