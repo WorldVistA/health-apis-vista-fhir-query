@@ -11,7 +11,7 @@
   <version>2.0.51-SNAPSHOT</version>
   <packaging>jar</packaging>
   <properties>
-    <fhir-resources.version>9.0.3</fhir-resources.version>
+    <fhir-resources.version>9.0.5</fhir-resources.version>
     <oauth-java.version>0.0.15</oauth-java.version>
   </properties>
   <dependencies>

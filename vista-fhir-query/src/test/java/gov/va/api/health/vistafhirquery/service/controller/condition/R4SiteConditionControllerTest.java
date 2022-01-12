@@ -129,6 +129,7 @@ public class R4SiteConditionControllerTest {
                         "http://fugazi.com/hcs/123/r4/Condition?_count=15&patient=p1&category=not-real-category")
                     .build()
                     .asList())
+            .entry(List.of())
             .build();
     assertThat(json(actual)).isEqualTo(json(expected));
   }

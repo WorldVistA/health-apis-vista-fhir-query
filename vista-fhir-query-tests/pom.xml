@@ -12,7 +12,7 @@
   <packaging>jar</packaging>
   <properties>
     <docker.organization>ghcr.io/department-of-veterans-affairs</docker.organization>
-    <fhir-resources.version>9.0.3</fhir-resources.version>
+    <fhir-resources.version>9.0.5</fhir-resources.version>
     <oauth-java.version>0.0.15</oauth-java.version>
     <sentinel.skipLaunch>false</sentinel.skipLaunch>
   </properties>
