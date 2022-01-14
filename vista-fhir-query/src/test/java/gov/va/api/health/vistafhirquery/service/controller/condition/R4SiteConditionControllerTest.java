@@ -19,6 +19,7 @@ import gov.va.api.health.vistafhirquery.service.controller.R4BundlerFactory;
 import gov.va.api.health.vistafhirquery.service.controller.witnessprotection.AlternatePatientIds;
 import gov.va.api.lighthouse.charon.api.v1.RpcInvocationResultV1;
 import gov.va.api.lighthouse.charon.models.TypeSafeRpcRequest;
+import gov.va.api.lighthouse.charon.models.vprgetpatientdata.Visits;
 import gov.va.api.lighthouse.charon.models.vprgetpatientdata.VprGetPatientData;
 import java.util.List;
 import java.util.Optional;
@@ -87,18 +88,29 @@ public class R4SiteConditionControllerTest {
         VprGetPatientData.Request.builder()
             .context(Optional.ofNullable(vistaApiConfig.getVprGetPatientDataContext()))
             .dfn(VprGetPatientData.Request.PatientId.forIcn("p1"))
-            .type(Set.of(VprGetPatientData.Domains.problems))
+            .type(Set.of(VprGetPatientData.Domains.problems, VprGetPatientData.Domains.visits))
             .build();
     var charonRequest = charonRequestFor(rpcRequest);
-    var charonResponse = ConditionProblemListSamples.Vista.create().results();
+    var charonResponse =
+        ConditionProblemListSamples.Vista.create()
+            .results()
+            .visits(
+                Visits.builder()
+                    .visitResults(
+                        (List.of(ConditionEncounterDiagnosisSamples.Vista.create().visit())))
+                    .build());
     when(charonClient.request(any(CharonRequest.class)))
         .thenReturn(charonResponseFor(charonRequest, charonResponse));
-    var actual = _controller().conditionSearch(httpRequest, "problem-list-item", "123", "p1", 15);
+    var actual =
+        _controller()
+            .conditionSearch(httpRequest, "problem-list-item,encounter-diagnosis", "123", "p1", 15);
     var expected =
         ConditionProblemListSamples.R4.asBundle(
             "http://fugazi.com/hcs/123/r4",
-            List.of(ConditionProblemListSamples.R4.create().condition()),
-            1,
+            List.of(
+                ConditionProblemListSamples.R4.create().condition(),
+                ConditionEncounterDiagnosisSamples.R4.create().condition()),
+            2,
             link(
                 BundleLink.LinkRelation.self,
                 "http://fugazi.com/hcs/123/r4/Condition",
@@ -113,7 +125,7 @@ public class R4SiteConditionControllerTest {
         VprGetPatientData.Request.builder()
             .context(Optional.ofNullable(vistaApiConfig.getVprGetPatientDataContext()))
             .dfn(VprGetPatientData.Request.PatientId.forIcn("p1"))
-            .type(Set.of(VprGetPatientData.Domains.problems))
+            .type(Set.of(VprGetPatientData.Domains.problems, VprGetPatientData.Domains.visits))
             .build();
     var charonRequest = charonRequestFor(rpcRequest);
     var charonResponse = ConditionProblemListSamples.Vista.create().results();

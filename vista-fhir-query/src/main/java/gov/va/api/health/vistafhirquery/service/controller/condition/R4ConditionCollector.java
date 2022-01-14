@@ -2,6 +2,7 @@ package gov.va.api.health.vistafhirquery.service.controller.condition;
 
 import gov.va.api.health.r4.api.resources.Condition;
 import gov.va.api.lighthouse.charon.models.vprgetpatientdata.Problems;
+import gov.va.api.lighthouse.charon.models.vprgetpatientdata.Visits;
 import gov.va.api.lighthouse.charon.models.vprgetpatientdata.VprGetPatientData;
 import java.util.stream.Stream;
 import lombok.Builder;
@@ -31,6 +32,18 @@ public class R4ConditionCollector {
                         .vistaProblem(problem)
                         .build()
                         .toFhir());
-    return problems;
+    Stream<Condition> visits =
+        results
+            .visitsStream()
+            .filter(Visits.Visit::isNotEmpty)
+            .flatMap(
+                visit ->
+                    VprVisitToR4ConditionTransformer.builder()
+                        .patientIcn(patientIcn)
+                        .site(site)
+                        .vistaVisit(visit)
+                        .build()
+                        .toFhir());
+    return Stream.concat(problems, visits);
   }
 }

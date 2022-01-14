@@ -23,13 +23,13 @@ public class ConditionEncounterDiagnosisSamples {
     }
 
     public Condition condition() {
-      return condition("sNp1+673+TT;2931013.07;23");
+      return condition("sNp1+123+TT;2931013.07;23");
     }
 
     public Condition condition(String id) {
       return Condition.builder()
           .id(id)
-          .meta(Meta.builder().source("673").build())
+          .meta(Meta.builder().source("123").build())
           .category(
               CodeableConcept.builder()
                   .coding(

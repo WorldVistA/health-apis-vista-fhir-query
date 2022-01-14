@@ -115,13 +115,13 @@ public class VprVisitToR4ConditionTransformerTest {
     assertThat(
             VprVisitToR4ConditionTransformer.builder()
                 .patientIcn("p1")
-                .site("673")
+                .site("123")
                 .vistaVisit(ConditionEncounterDiagnosisSamples.Vista.create().visit("v1"))
                 .build()
                 .toFhir()
                 .findFirst()
                 .get())
-        .isEqualTo(ConditionEncounterDiagnosisSamples.R4.create().condition("sNp1+673+Tv1"));
+        .isEqualTo(ConditionEncounterDiagnosisSamples.R4.create().condition("sNp1+123+Tv1"));
   }
 
   private VprVisitToR4ConditionTransformer tx() {

@@ -45,7 +45,7 @@ public class R4SiteConditionController implements R4ConditionApi {
 
   private Set<VprGetPatientData.Domains> categoryIs(String categoryCsv) {
     if (categoryCsv == null) {
-      return Set.of(VprGetPatientData.Domains.problems);
+      return Set.of(VprGetPatientData.Domains.problems, VprGetPatientData.Domains.visits);
     }
     var requestedCategories = categoryCsv.split(",", -1);
     return Arrays.stream(requestedCategories)
@@ -114,6 +114,8 @@ public class R4SiteConditionController implements R4ConditionApi {
     switch (maybeCategory) {
       case "problem-list-item":
         return VprGetPatientData.Domains.problems;
+      case "encounter-diagnosis":
+        return VprGetPatientData.Domains.visits;
       default:
         return null;
     }
