@@ -271,6 +271,19 @@ public class ObservationVitalSamples {
 
   @AllArgsConstructor(staticName = "create")
   public static class Vista {
+    public Vitals.Measurement bloodPressure(String vistaId) {
+      return Vitals.Measurement.builder()
+          .id(vistaId)
+          .vuid("4500634")
+          .name("BLOOD PRESSURE")
+          .value("126/65")
+          .units("mm[Hg]")
+          .high("210/110")
+          .low("100/60")
+          .qualifiers(List.of(Vitals.Qualifier.builder().vuid("4711345").name("ACTUAL").build()))
+          .build();
+    }
+
     public List<Vitals.Measurement> measurements() {
       return measurements("32071");
     }
