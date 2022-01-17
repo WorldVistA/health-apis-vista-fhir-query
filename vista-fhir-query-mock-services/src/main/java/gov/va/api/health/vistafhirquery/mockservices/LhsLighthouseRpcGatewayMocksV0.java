@@ -2,8 +2,8 @@ package gov.va.api.health.vistafhirquery.mockservices;
 
 import static gov.va.api.health.vistafhirquery.mockservices.MockServiceRequests.contentTypeApplicationJson;
 import static gov.va.api.health.vistafhirquery.mockservices.MockServiceRequests.json;
-import static gov.va.api.health.vistafhirquery.mockservices.MockServiceRequests.rpcQuery_WithExpectedRpcDetails;
-import static gov.va.api.health.vistafhirquery.mockservices.MockServiceRequests.rpcResponse_OkWithContent;
+import static gov.va.api.health.vistafhirquery.mockservices.MockServiceRequests.rpcQueryV0_WithExpectedRpcDetails;
+import static gov.va.api.health.vistafhirquery.mockservices.MockServiceRequests.rpcResponseV0_OkWithContent;
 import static org.mockserver.model.HttpResponse.response;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -62,7 +62,7 @@ public class LhsLighthouseRpcGatewayMocksV0 implements MockService {
     return response()
         .withStatusCode(200)
         .withHeader(contentTypeApplicationJson())
-        .withBody(rpcResponse_OkWithContent(response));
+        .withBody(rpcResponseV0_OkWithContent(response));
   }
 
   void respondByFile(MockServerClient mock) {
@@ -73,7 +73,7 @@ public class LhsLighthouseRpcGatewayMocksV0 implements MockService {
             .build();
     supportedQueries.add(
         "[POST] http://localhost:" + port() + "/rpc with RPC Details like " + json(details));
-    mock.when(rpcQuery_WithExpectedRpcDetails(port(), details))
+    mock.when(rpcQueryV0_WithExpectedRpcDetails(port(), details))
         .respond(LhsLighthouseRpcGatewayMocksV0::chooseResponseBasedOnFile);
   }
 }

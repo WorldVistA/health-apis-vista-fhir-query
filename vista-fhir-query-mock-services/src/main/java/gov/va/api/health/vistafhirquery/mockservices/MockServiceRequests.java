@@ -53,6 +53,12 @@ public class MockServiceRequests {
     return response;
   }
 
+  /** Create an HTTP Request for mocking a Vistalink API /rpc endpoint. */
+  public static HttpRequest rpcQueryV0_WithExpectedRpcDetails(int port, RpcDetails rpcDetails) {
+    return rpcQueryWithPathAndRequest(
+        port, "/rpc", rpcDetails == null ? null : RpcRequest.builder().rpc(rpcDetails).build());
+  }
+
   /** Create an HTTP Request for mocking a Vistalink API /v1/rpc endpoint. */
   public static HttpRequest rpcQueryV1_WithExpectedRpcDetails(int port, RpcDetails rpcDetails) {
     return rpcQueryWithPathAndRequest(
@@ -80,14 +86,8 @@ public class MockServiceRequests {
     return request;
   }
 
-  /** Create an HTTP Request for mocking a Vistalink API /rpc endpoint. */
-  public static HttpRequest rpcQuery_WithExpectedRpcDetails(int port, RpcDetails rpcDetails) {
-    return rpcQueryWithPathAndRequest(
-        port, "/rpc", rpcDetails == null ? null : RpcRequest.builder().rpc(rpcDetails).build());
-  }
-
   /** Return a json string representation of an RPC Response with an OK status. */
-  public static String rpcResponse_OkWithContent(String rpcResponseFile) {
+  public static String rpcResponseV0_OkWithContent(String rpcResponseFile) {
     String response =
         json(
             RpcResponse.builder()
