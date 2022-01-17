@@ -42,6 +42,28 @@ public class R4ConditionCollectorTest {
   }
 
   @Test
+  void problemToFhirWithClinicalStatus() {
+    assertThat(
+            R4ConditionCollector.builder()
+                .patientIcn("p1")
+                .site("123")
+                .clinicalStatus("active")
+                .results(ConditionProblemListSamples.Vista.create().results())
+                .build()
+                .toFhir())
+        .containsExactly(ConditionProblemListSamples.R4.create().condition());
+    assertThat(
+            R4ConditionCollector.builder()
+                .patientIcn("p1")
+                .site("123")
+                .clinicalStatus("nope")
+                .results(ConditionProblemListSamples.Vista.create().results())
+                .build()
+                .toFhir())
+        .isEmpty();
+  }
+
+  @Test
   void visitToFhir() {
     assertThat(
             R4ConditionCollector.builder()
@@ -51,5 +73,14 @@ public class R4ConditionCollectorTest {
                 .build()
                 .toFhir())
         .containsExactly(ConditionEncounterDiagnosisSamples.R4.create().condition());
+    assertThat(
+            R4ConditionCollector.builder()
+                .patientIcn("p1")
+                .site("123")
+                .clinicalStatus("nope")
+                .results(ConditionEncounterDiagnosisSamples.Vista.create().results())
+                .build()
+                .toFhir())
+        .isEmpty();
   }
 }

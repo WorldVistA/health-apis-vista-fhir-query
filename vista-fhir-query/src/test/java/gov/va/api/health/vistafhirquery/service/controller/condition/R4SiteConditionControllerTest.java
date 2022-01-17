@@ -82,7 +82,7 @@ public class R4SiteConditionControllerTest {
   }
 
   @Test
-  void conditionSearch() {
+  void conditionSearchWithPatient() {
     var httpRequest = requestFromUri("?_count=15&patient=p1");
     var rpcRequest =
         VprGetPatientData.Request.builder()
@@ -101,9 +101,7 @@ public class R4SiteConditionControllerTest {
                     .build());
     when(charonClient.request(any(CharonRequest.class)))
         .thenReturn(charonResponseFor(charonRequest, charonResponse));
-    var actual =
-        _controller()
-            .conditionSearch(httpRequest, "problem-list-item,encounter-diagnosis", "123", "p1", 15);
+    var actual = _controller().conditionSearch(httpRequest, null, null, "123", "p1", 15);
     var expected =
         ConditionProblemListSamples.R4.asBundle(
             "http://fugazi.com/hcs/123/r4",
@@ -119,6 +117,96 @@ public class R4SiteConditionControllerTest {
   }
 
   @Test
+  void conditionSearchWithPatientAndCategory() {
+    var httpRequest = requestFromUri("?_count=15&patient=p1&category=problem-list-item");
+    var rpcRequest =
+        VprGetPatientData.Request.builder()
+            .context(Optional.ofNullable(vistaApiConfig.getVprGetPatientDataContext()))
+            .dfn(VprGetPatientData.Request.PatientId.forIcn("p1"))
+            .type(Set.of(VprGetPatientData.Domains.problems))
+            .build();
+    var charonRequest = charonRequestFor(rpcRequest);
+    var charonResponse = ConditionProblemListSamples.Vista.create().results();
+    when(charonClient.request(any(CharonRequest.class)))
+        .thenReturn(charonResponseFor(charonRequest, charonResponse));
+    var actual =
+        _controller().conditionSearch(httpRequest, "problem-list-item", null, "123", "p1", 15);
+    var expected =
+        ConditionProblemListSamples.R4.asBundle(
+            "http://fugazi.com/hcs/123/r4",
+            List.of(ConditionProblemListSamples.R4.create().condition()),
+            1,
+            link(
+                BundleLink.LinkRelation.self,
+                "http://fugazi.com/hcs/123/r4/Condition",
+                "_count=15&patient=p1&category=problem-list-item"));
+    assertThat(json(actual)).isEqualTo(json(expected));
+  }
+
+  @Test
+  void conditionSearchWithPatientAndClinicalStatus() {
+    var httpRequest = requestFromUri("?_count=15&patient=p1&clinical-status=active");
+    var rpcRequest =
+        VprGetPatientData.Request.builder()
+            .context(Optional.ofNullable(vistaApiConfig.getVprGetPatientDataContext()))
+            .dfn(VprGetPatientData.Request.PatientId.forIcn("p1"))
+            .type(Set.of(VprGetPatientData.Domains.problems, VprGetPatientData.Domains.visits))
+            .build();
+    var charonRequest = charonRequestFor(rpcRequest);
+    var charonResponse =
+        ConditionProblemListSamples.Vista.create()
+            .results()
+            .visits(
+                Visits.builder()
+                    .visitResults(
+                        (List.of(
+                            ConditionEncounterDiagnosisSamples.Vista.create()
+                                .visit("T;2931013.07;23"))))
+                    .build());
+    when(charonClient.request(any(CharonRequest.class)))
+        .thenReturn(charonResponseFor(charonRequest, charonResponse));
+    var actual = _controller().conditionSearch(httpRequest, null, "active", "123", "p1", 15);
+    var expected =
+        ConditionProblemListSamples.R4.asBundle(
+            "http://fugazi.com/hcs/123/r4",
+            List.of(ConditionProblemListSamples.R4.create().condition()),
+            1,
+            link(
+                BundleLink.LinkRelation.self,
+                "http://fugazi.com/hcs/123/r4/Condition",
+                "_count=15&patient=p1&clinical-status=active"));
+    assertThat(json(actual)).isEqualTo(json(expected));
+  }
+
+  @Test
+  void conditionSearchWithPatientCategoryAndClinicalStatus() {
+    var httpRequest =
+        requestFromUri("?_count=15&patient=p1&category=problem-list-item&clinical-status=active");
+    var rpcRequest =
+        VprGetPatientData.Request.builder()
+            .context(Optional.ofNullable(vistaApiConfig.getVprGetPatientDataContext()))
+            .dfn(VprGetPatientData.Request.PatientId.forIcn("p1"))
+            .type(Set.of(VprGetPatientData.Domains.problems))
+            .build();
+    var charonRequest = charonRequestFor(rpcRequest);
+    var charonResponse = ConditionProblemListSamples.Vista.create().results();
+    when(charonClient.request(any(CharonRequest.class)))
+        .thenReturn(charonResponseFor(charonRequest, charonResponse));
+    var actual =
+        _controller().conditionSearch(httpRequest, "problem-list-item", "active", "123", "p1", 15);
+    var expected =
+        ConditionProblemListSamples.R4.asBundle(
+            "http://fugazi.com/hcs/123/r4",
+            List.of(ConditionProblemListSamples.R4.create().condition()),
+            1,
+            link(
+                BundleLink.LinkRelation.self,
+                "http://fugazi.com/hcs/123/r4/Condition",
+                "_count=15&patient=p1&category=problem-list-item&clinical-status=active"));
+    assertThat(json(actual)).isEqualTo(json(expected));
+  }
+
+  @Test
   void emptyBundle() {
     var httpRequest = requestFromUri("?_count=15&patient=p1&category=not-real-category");
     var rpcRequest =
@@ -129,7 +217,8 @@ public class R4SiteConditionControllerTest {
             .build();
     var charonRequest = charonRequestFor(rpcRequest);
     var charonResponse = ConditionProblemListSamples.Vista.create().results();
-    var actual = _controller().conditionSearch(httpRequest, "not-real-category", "123", "p1", 15);
+    var actual =
+        _controller().conditionSearch(httpRequest, "not-real-category", null, "123", "p1", 15);
     var expected =
         Condition.Bundle.builder()
             .type(AbstractBundle.BundleType.searchset)

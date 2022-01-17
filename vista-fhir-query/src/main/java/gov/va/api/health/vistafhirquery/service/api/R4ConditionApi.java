@@ -97,6 +97,13 @@ public interface R4ConditionApi {
           String category,
       @Parameter(
               in = ParameterIn.QUERY,
+              name = "clinical-status",
+              description =
+                  "The subject's current status in relation to the condition. "
+                      + "[Condition Clinical Status Codes](http://hl7.org/fhir/R4/valueset-condition-clinical.html)")
+          String clinicalStatus,
+      @Parameter(
+              in = ParameterIn.QUERY,
               name = "_count",
               description =
                   "The number of resources that should be returned in a single page. "

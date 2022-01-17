@@ -17,6 +17,8 @@ public class R4ConditionCollector {
 
   @NonNull private final VprGetPatientData.Response.Results results;
 
+  private final String clinicalStatus;
+
   @NonNull String site;
 
   Stream<Condition> toFhir() {
@@ -44,6 +46,17 @@ public class R4ConditionCollector {
                         .vistaVisit(visit)
                         .build()
                         .toFhir());
-    return Stream.concat(problems, visits);
+    return Stream.concat(problems, visits)
+        .filter(
+            p -> {
+              if (clinicalStatus == null) {
+                return true;
+              }
+              if (p.clinicalStatus() == null) {
+                return false;
+              }
+              return p.clinicalStatus().coding().stream()
+                  .anyMatch(coding -> clinicalStatus.equals(coding.code()));
+            });
   }
 }

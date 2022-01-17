@@ -60,6 +60,7 @@ public class R4SiteConditionController implements R4ConditionApi {
   public Condition.Bundle conditionSearch(
       HttpServletRequest request,
       @RequestParam(name = "category", required = false) String categoryCsv,
+      @RequestParam(name = "clinical-status", required = false) String clinicalStatus,
       @PathVariable(value = "site") String site,
       @RequestParam(name = "patient") String patientIcn,
       @RequestParam(
@@ -79,7 +80,7 @@ public class R4SiteConditionController implements R4ConditionApi {
             .build();
     var charonResponse = charonClient.request(vprGetPatientData(site, rpcRequest));
     return bundlerFactory
-        .forTransformation(transformation(patientIcn, site))
+        .forTransformation(transformation(patientIcn, site, clinicalStatus))
         .site(charonResponse.invocationResult().vista())
         .bundling(
             R4Bundling.newBundle(Condition.Bundle::new).newEntry(Condition.Entry::new).build())
@@ -98,7 +99,8 @@ public class R4SiteConditionController implements R4ConditionApi {
           VprGetPatientData.Response.Results, Condition, Condition.Entry, Condition.Bundle>
       toBundle(String site, String patientIcn, HttpServletRequest request) {
     return bundlerFactory
-        .forTransformation(transformation(patientIcn, site))
+        .forTransformation(
+            transformation(patientIcn, site, request.getParameter("clinical-status")))
         .site(site)
         .bundling(
             R4Bundling.newBundle(Condition.Bundle::new).newEntry(Condition.Entry::new).build())
@@ -122,7 +124,7 @@ public class R4SiteConditionController implements R4ConditionApi {
   }
 
   private R4Transformation<VprGetPatientData.Response.Results, Condition> transformation(
-      String patientIdentifier, String site) {
+      String patientIdentifier, String site, String clinicalStatus) {
     return R4Transformation.<VprGetPatientData.Response.Results, Condition>builder()
         .toResource(
             rpcResults ->
@@ -130,6 +132,7 @@ public class R4SiteConditionController implements R4ConditionApi {
                     .patientIcn(patientIdentifier)
                     .results(rpcResults)
                     .site(site)
+                    .clinicalStatus(clinicalStatus)
                     .build()
                     .toFhir()
                     .collect(Collectors.toList()))
