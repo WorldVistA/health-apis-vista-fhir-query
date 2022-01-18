@@ -153,16 +153,7 @@ public class R4SiteConditionControllerTest {
             .type(Set.of(VprGetPatientData.Domains.problems, VprGetPatientData.Domains.visits))
             .build();
     var charonRequest = charonRequestFor(rpcRequest);
-    var charonResponse =
-        ConditionProblemListSamples.Vista.create()
-            .results()
-            .visits(
-                Visits.builder()
-                    .visitResults(
-                        (List.of(
-                            ConditionEncounterDiagnosisSamples.Vista.create()
-                                .visit("T;2931013.07;23"))))
-                    .build());
+    var charonResponse = ConditionProblemListSamples.Vista.create().results();
     when(charonClient.request(any(CharonRequest.class)))
         .thenReturn(charonResponseFor(charonRequest, charonResponse));
     var actual = _controller().conditionSearch(httpRequest, null, "active", "123", "p1", 15);

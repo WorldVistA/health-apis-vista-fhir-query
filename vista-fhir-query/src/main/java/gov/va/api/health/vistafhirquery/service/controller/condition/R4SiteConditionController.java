@@ -60,7 +60,7 @@ public class R4SiteConditionController implements R4ConditionApi {
   public Condition.Bundle conditionSearch(
       HttpServletRequest request,
       @RequestParam(name = "category", required = false) String categoryCsv,
-      @RequestParam(name = "clinical-status", required = false) String clinicalStatus,
+      @RequestParam(name = "clinical-status", required = false) String clinicalStatusCsv,
       @PathVariable(value = "site") String site,
       @RequestParam(name = "patient") String patientIcn,
       @RequestParam(
@@ -80,7 +80,7 @@ public class R4SiteConditionController implements R4ConditionApi {
             .build();
     var charonResponse = charonClient.request(vprGetPatientData(site, rpcRequest));
     return bundlerFactory
-        .forTransformation(transformation(patientIcn, site, clinicalStatus))
+        .forTransformation(transformation(patientIcn, site, clinicalStatusCsv, categoryCsv))
         .site(charonResponse.invocationResult().vista())
         .bundling(
             R4Bundling.newBundle(Condition.Bundle::new).newEntry(Condition.Entry::new).build())
@@ -100,7 +100,11 @@ public class R4SiteConditionController implements R4ConditionApi {
       toBundle(String site, String patientIcn, HttpServletRequest request) {
     return bundlerFactory
         .forTransformation(
-            transformation(patientIcn, site, request.getParameter("clinical-status")))
+            transformation(
+                patientIcn,
+                site,
+                request.getParameter("clinical-status"),
+                request.getParameter("category")))
         .site(site)
         .bundling(
             R4Bundling.newBundle(Condition.Bundle::new).newEntry(Condition.Entry::new).build())
@@ -124,7 +128,7 @@ public class R4SiteConditionController implements R4ConditionApi {
   }
 
   private R4Transformation<VprGetPatientData.Response.Results, Condition> transformation(
-      String patientIdentifier, String site, String clinicalStatus) {
+      String patientIdentifier, String site, String clinicalStatus, String category) {
     return R4Transformation.<VprGetPatientData.Response.Results, Condition>builder()
         .toResource(
             rpcResults ->
@@ -132,7 +136,8 @@ public class R4SiteConditionController implements R4ConditionApi {
                     .patientIcn(patientIdentifier)
                     .results(rpcResults)
                     .site(site)
-                    .clinicalStatus(clinicalStatus)
+                    .clinicalStatusCsv(clinicalStatus)
+                    .categoryCsv(category)
                     .build()
                     .toFhir()
                     .collect(Collectors.toList()))

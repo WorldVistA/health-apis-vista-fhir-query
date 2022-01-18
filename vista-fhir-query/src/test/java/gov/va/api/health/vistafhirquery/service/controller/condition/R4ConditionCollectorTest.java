@@ -8,6 +8,37 @@ import org.junit.jupiter.api.Test;
 
 public class R4ConditionCollectorTest {
   @Test
+  void clinicalStatusSearch() {
+    assertThat(
+            R4ConditionCollector.builder()
+                .patientIcn("p1")
+                .site("123")
+                .clinicalStatusCsv("active")
+                .results(ConditionProblemListSamples.Vista.create().results())
+                .build()
+                .toFhir())
+        .containsExactly(ConditionProblemListSamples.R4.create().condition());
+    assertThat(
+            R4ConditionCollector.builder()
+                .patientIcn("p1")
+                .site("123")
+                .clinicalStatusCsv("resolved,active")
+                .results(ConditionProblemListSamples.Vista.create().results())
+                .build()
+                .toFhir())
+        .containsExactly(ConditionProblemListSamples.R4.create().condition());
+    assertThat(
+            R4ConditionCollector.builder()
+                .patientIcn("p1")
+                .site("123")
+                .clinicalStatusCsv("active")
+                .results(ConditionEncounterDiagnosisSamples.Vista.create().results())
+                .build()
+                .toFhir())
+        .isEmpty();
+  }
+
+  @Test
   void problemAndVisitToFhir() {
     assertThat(
             R4ConditionCollector.builder()
@@ -27,10 +58,29 @@ public class R4ConditionCollectorTest {
         .contains(
             ConditionProblemListSamples.R4.create().condition(),
             ConditionEncounterDiagnosisSamples.R4.create().condition());
+    assertThat(
+            R4ConditionCollector.builder()
+                .patientIcn("p1")
+                .site("123")
+                .categoryCsv("problem-list-item,encounter-diagnosis")
+                .results(
+                    ConditionProblemListSamples.Vista.create()
+                        .results()
+                        .visits(
+                            Visits.builder()
+                                .visitResults(
+                                    (List.of(
+                                        ConditionEncounterDiagnosisSamples.Vista.create().visit())))
+                                .build()))
+                .build()
+                .toFhir())
+        .contains(
+            ConditionProblemListSamples.R4.create().condition(),
+            ConditionEncounterDiagnosisSamples.R4.create().condition());
   }
 
   @Test
-  void problemToFhir() {
+  void problemOnlyToFhir() {
     assertThat(
             R4ConditionCollector.builder()
                 .patientIcn("p1")
@@ -39,32 +89,27 @@ public class R4ConditionCollectorTest {
                 .build()
                 .toFhir())
         .containsExactly(ConditionProblemListSamples.R4.create().condition());
-  }
-
-  @Test
-  void problemToFhirWithClinicalStatus() {
     assertThat(
             R4ConditionCollector.builder()
                 .patientIcn("p1")
                 .site("123")
-                .clinicalStatus("active")
-                .results(ConditionProblemListSamples.Vista.create().results())
+                .categoryCsv("problem-list-item")
+                .results(
+                    ConditionProblemListSamples.Vista.create()
+                        .results()
+                        .visits(
+                            Visits.builder()
+                                .visitResults(
+                                    (List.of(
+                                        ConditionEncounterDiagnosisSamples.Vista.create().visit())))
+                                .build()))
                 .build()
                 .toFhir())
         .containsExactly(ConditionProblemListSamples.R4.create().condition());
-    assertThat(
-            R4ConditionCollector.builder()
-                .patientIcn("p1")
-                .site("123")
-                .clinicalStatus("nope")
-                .results(ConditionProblemListSamples.Vista.create().results())
-                .build()
-                .toFhir())
-        .isEmpty();
   }
 
   @Test
-  void visitToFhir() {
+  void visitOnlyToFhir() {
     assertThat(
             R4ConditionCollector.builder()
                 .patientIcn("p1")
@@ -77,10 +122,18 @@ public class R4ConditionCollectorTest {
             R4ConditionCollector.builder()
                 .patientIcn("p1")
                 .site("123")
-                .clinicalStatus("nope")
-                .results(ConditionEncounterDiagnosisSamples.Vista.create().results())
+                .categoryCsv("encounter-diagnosis")
+                .results(
+                    ConditionProblemListSamples.Vista.create()
+                        .results()
+                        .visits(
+                            Visits.builder()
+                                .visitResults(
+                                    (List.of(
+                                        ConditionEncounterDiagnosisSamples.Vista.create().visit())))
+                                .build()))
                 .build()
                 .toFhir())
-        .isEmpty();
+        .containsExactly(ConditionEncounterDiagnosisSamples.R4.create().condition());
   }
 }
