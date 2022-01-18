@@ -1,5 +1,7 @@
 package gov.va.api.health.vistafhirquery.service.controller.condition;
 
+import static gov.va.api.health.vistafhirquery.service.controller.R4Transformers.isBlank;
+import static java.util.Collections.emptySet;
 import static java.util.stream.Collectors.toSet;
 
 import gov.va.api.health.fhir.api.Safe;
@@ -27,33 +29,46 @@ public class R4ConditionCollector {
 
   Set<String> categories;
 
+  String code;
+
   @Builder
   R4ConditionCollector(
       String site,
       String patientIcn,
       String clinicalStatusCsv,
       String categoryCsv,
+      String code,
       VprGetPatientData.Response.Results results) {
     this.site = site;
     this.patientIcn = patientIcn;
     this.categories =
-        categoryCsv == null ? null : Arrays.stream(categoryCsv.split(",", -1)).collect(toSet());
+        isBlank(categoryCsv)
+            ? emptySet()
+            : Arrays.stream(categoryCsv.split(",", -1)).collect(toSet());
     this.clinicalStatuses =
-        clinicalStatusCsv == null
-            ? null
+        isBlank(clinicalStatusCsv)
+            ? emptySet()
             : Arrays.stream(clinicalStatusCsv.split(",", -1)).collect(toSet());
+    this.code = code;
     this.results = results;
   }
 
   private boolean conditionHasRequestedClinicalStatus(Condition condition) {
-    if (clinicalStatuses() == null) {
+    if (isBlank(clinicalStatuses())) {
       return true;
     }
-    if (condition.clinicalStatus() == null) {
+    if (isBlank(condition.clinicalStatus())) {
       return false;
     }
     return Safe.stream(condition.clinicalStatus().coding())
         .anyMatch(coding -> clinicalStatuses().contains(coding.code()));
+  }
+
+  private boolean conditionHasRequestedCode(Condition condition) {
+    if (isBlank(code())) {
+      return true;
+    }
+    return Safe.stream(condition.code().coding()).anyMatch(coding -> code().equals(coding.code()));
   }
 
   private Stream<Condition> conditionsForCategory(@NonNull String category) {
@@ -83,12 +98,14 @@ public class R4ConditionCollector {
 
   Stream<Condition> toFhir() {
     Stream<Condition> results;
-    if (categories() == null) {
+    if (isBlank(categories())) {
       results = Stream.concat(problems(), visits());
     } else {
       results = categories().stream().flatMap(this::conditionsForCategory);
     }
-    return results.filter(this::conditionHasRequestedClinicalStatus);
+    return results
+        .filter(this::conditionHasRequestedClinicalStatus)
+        .filter(this::conditionHasRequestedCode);
   }
 
   private Stream<Condition> visits() {

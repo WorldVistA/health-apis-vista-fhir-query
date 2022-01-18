@@ -104,6 +104,13 @@ public interface R4ConditionApi {
           String clinicalStatus,
       @Parameter(
               in = ParameterIn.QUERY,
+              name = "code",
+              description =
+                  "The SNOMED CT, ICD-9, or ICD-10 code of the condition. "
+                      + "[Condition Codes](http://www.hl7.org/fhir/us/core/ValueSet-us-core-condition-code.html)")
+          String code,
+      @Parameter(
+              in = ParameterIn.QUERY,
               name = "_count",
               description =
                   "The number of resources that should be returned in a single page. "

@@ -39,6 +39,28 @@ public class R4ConditionCollectorTest {
   }
 
   @Test
+  void codeSearch() {
+    assertThat(
+            R4ConditionCollector.builder()
+                .patientIcn("p1")
+                .site("123")
+                .code("401.9")
+                .results(ConditionProblemListSamples.Vista.create().results())
+                .build()
+                .toFhir())
+        .containsExactly(ConditionProblemListSamples.R4.create().condition());
+    assertThat(
+            R4ConditionCollector.builder()
+                .patientIcn("p1")
+                .site("123")
+                .code("nope")
+                .results(ConditionEncounterDiagnosisSamples.Vista.create().results())
+                .build()
+                .toFhir())
+        .isEmpty();
+  }
+
+  @Test
   void problemAndVisitToFhir() {
     assertThat(
             R4ConditionCollector.builder()
