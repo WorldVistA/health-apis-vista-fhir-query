@@ -42,7 +42,8 @@ run() {
     -e K8S_ENVIRONMENT=${ENV:-local} \
     -e SENTINEL_ENV=${ENV:-local} \
     -e CLIENT_KEY="${CLIENT_KEY:-hello}" \
-     vasdvp/health-apis-vista-fhir-query-tests:latest $@
+    ghcr.io/department-of-veterans-affairs/health-apis-vista-fhir-query-tests:latest \
+    $@
 }
 
 main() {

@@ -9,6 +9,7 @@ import gov.va.api.health.r4.api.resources.OperationOutcome;
 import gov.va.api.health.sentinel.Environment;
 import gov.va.api.health.vistafhirquery.tests.TestIds;
 import gov.va.api.health.vistafhirquery.tests.VistaFhirQueryResourceVerifier;
+import java.time.Year;
 import lombok.experimental.Delegate;
 import org.junit.jupiter.api.Test;
 
@@ -34,7 +35,9 @@ public class AppointmentIT {
         test(
             200,
             Appointment.Bundle.class,
-            "Appointment?date=ge2010&date=lt2012&patient={icn}",
+            "Appointment?date=ge{daysGoneBy}&date=le{daysOfFuturePast}&patient={icn}",
+            Year.now().minusYears(10).toString(),
+            Year.now().plusYears(1).toString(),
             testIds.patient()),
         test(
             400,
