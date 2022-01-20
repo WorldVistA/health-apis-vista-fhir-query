@@ -6,6 +6,7 @@ import static java.util.stream.Collectors.toSet;
 
 import gov.va.api.health.fhir.api.Safe;
 import gov.va.api.health.r4.api.resources.Condition;
+import gov.va.api.health.vistafhirquery.service.controller.DateSearchBoundaries;
 import gov.va.api.lighthouse.charon.models.vprgetpatientdata.Problems;
 import gov.va.api.lighthouse.charon.models.vprgetpatientdata.Visits;
 import gov.va.api.lighthouse.charon.models.vprgetpatientdata.VprGetPatientData;
@@ -31,6 +32,8 @@ public class R4ConditionCollector {
 
   String code;
 
+  DateSearchBoundaries onsetDate;
+
   @Builder
   R4ConditionCollector(
       String site,
@@ -38,6 +41,7 @@ public class R4ConditionCollector {
       String clinicalStatusCsv,
       String categoryCsv,
       String code,
+      String[] date,
       VprGetPatientData.Response.Results results) {
     this.site = site;
     this.patientIcn = patientIcn;
@@ -51,6 +55,7 @@ public class R4ConditionCollector {
             : Arrays.stream(clinicalStatusCsv.split(",", -1)).collect(toSet());
     this.code = code;
     this.results = results;
+    this.onsetDate = isBlank(date) ? null : DateSearchBoundaries.of(date);
   }
 
   private boolean conditionHasRequestedClinicalStatus(Condition condition) {
@@ -69,6 +74,13 @@ public class R4ConditionCollector {
       return true;
     }
     return Safe.stream(condition.code().coding()).anyMatch(coding -> code().equals(coding.code()));
+  }
+
+  private boolean conditionHasRequestedOnsetDate(Condition condition) {
+    if (isBlank(onsetDate())) {
+      return true;
+    }
+    return onsetDate().isDateWithinBounds(condition.onsetDateTime());
   }
 
   private Stream<Condition> conditionsForCategory(@NonNull String category) {
@@ -105,7 +117,8 @@ public class R4ConditionCollector {
     }
     return results
         .filter(this::conditionHasRequestedClinicalStatus)
-        .filter(this::conditionHasRequestedCode);
+        .filter(this::conditionHasRequestedCode)
+        .filter(this::conditionHasRequestedOnsetDate);
   }
 
   private Stream<Condition> visits() {

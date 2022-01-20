@@ -7,6 +7,7 @@ import static org.junit.jupiter.params.provider.Arguments.arguments;
 import gov.va.api.health.fhir.api.FhirDateTimeParameter;
 import java.time.Instant;
 import java.util.stream.Stream;
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
@@ -75,6 +76,21 @@ public class DateSearchBoundariesTest {
         arguments(lessThan2007, equalTo2007),
         arguments(lessThan2006, greaterThanOrEqualTo2006),
         arguments(lessThan2006, greaterThan2006));
+  }
+
+  private static Stream<Arguments> isDateWithinBoundsArguments() {
+    return Stream.of(
+        arguments(
+            greaterThanOrEqualTo2005,
+            null,
+            "2005-11-03T13:18:05-03:00",
+            "2004-11-03T13:18:05-03:00"),
+        arguments(lessThan2007, null, "2000-11-03T13:18:05-03:00", "2008-11-03T13:18:05-03:00"),
+        arguments(
+            lessThanOrEqualTo2007,
+            greaterThan2005,
+            "2006-11-03T13:18:05-03:00",
+            "2005-11-03T13:18:05-03:00"));
   }
 
   private static Stream<Arguments> validDateArguments() {
@@ -177,5 +193,24 @@ public class DateSearchBoundariesTest {
       FhirDateTimeParameter date1, FhirDateTimeParameter date2) {
     assertThatExceptionOfType(ResourceExceptions.BadSearchParameters.class)
         .isThrownBy(() -> new DateSearchBoundaries(date1, date2));
+  }
+
+  @ParameterizedTest
+  @MethodSource("isDateWithinBoundsArguments")
+  void isDateWithinBounds(
+      FhirDateTimeParameter date1, FhirDateTimeParameter date2, String goodDate, String badDate) {
+    var dateSearchBoundaries = new DateSearchBoundaries(date1, date2);
+    assertThat(dateSearchBoundaries.isDateWithinBounds(goodDate)).isTrue();
+    assertThat(dateSearchBoundaries.isDateWithinBounds(badDate)).isFalse();
+  }
+
+  @Test
+  void isDateWithinBoundsNull() {
+    assertThat(
+            new DateSearchBoundaries(greaterThan2005, lessThan2006)
+                .isDateWithinBounds((Instant) null))
+        .isFalse();
+    assertThat(new DateSearchBoundaries(null, null).isDateWithinBounds("2005-11-03T13:18:05-03:00"))
+        .isFalse();
   }
 }

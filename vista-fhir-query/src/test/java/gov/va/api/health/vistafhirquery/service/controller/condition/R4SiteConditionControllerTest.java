@@ -4,6 +4,7 @@ import static gov.va.api.health.vistafhirquery.service.controller.MockRequests.j
 import static gov.va.api.health.vistafhirquery.service.controller.MockRequests.requestFromUri;
 import static gov.va.api.health.vistafhirquery.service.controller.condition.ConditionProblemListSamples.R4.link;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.util.Arrays.array;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 
@@ -101,7 +102,8 @@ public class R4SiteConditionControllerTest {
                     .build());
     when(charonClient.request(any(CharonRequest.class)))
         .thenReturn(charonResponseFor(charonRequest, charonResponse));
-    var actual = _controller().conditionSearch(httpRequest, null, null, null, "123", "p1", 15);
+    var actual =
+        _controller().conditionSearch(httpRequest, "123", "p1", null, null, null, null, 15);
     var expected =
         ConditionProblemListSamples.R4.asBundle(
             "http://fugazi.com/hcs/123/r4",
@@ -131,7 +133,7 @@ public class R4SiteConditionControllerTest {
         .thenReturn(charonResponseFor(charonRequest, charonResponse));
     var actual =
         _controller()
-            .conditionSearch(httpRequest, "problem-list-item", null, null, "123", "p1", 15);
+            .conditionSearch(httpRequest, "123", "p1", "problem-list-item", null, null, null, 15);
     var expected =
         ConditionProblemListSamples.R4.asBundle(
             "http://fugazi.com/hcs/123/r4",
@@ -164,7 +166,8 @@ public class R4SiteConditionControllerTest {
                     .build());
     when(charonClient.request(any(CharonRequest.class)))
         .thenReturn(charonResponseFor(charonRequest, charonResponse));
-    var actual = _controller().conditionSearch(httpRequest, null, "active", null, "123", "p1", 15);
+    var actual =
+        _controller().conditionSearch(httpRequest, "123", "p1", null, "active", null, null, 15);
     var expected =
         ConditionProblemListSamples.R4.asBundle(
             "http://fugazi.com/hcs/123/r4",
@@ -197,7 +200,8 @@ public class R4SiteConditionControllerTest {
                     .build());
     when(charonClient.request(any(CharonRequest.class)))
         .thenReturn(charonResponseFor(charonRequest, charonResponse));
-    var actual = _controller().conditionSearch(httpRequest, null, null, "391.2", "123", "p1", 15);
+    var actual =
+        _controller().conditionSearch(httpRequest, "123", "p1", null, null, "391.2", null, 15);
     var expected =
         ConditionProblemListSamples.R4.asBundle(
             "http://fugazi.com/hcs/123/r4",
@@ -207,6 +211,42 @@ public class R4SiteConditionControllerTest {
                 BundleLink.LinkRelation.self,
                 "http://fugazi.com/hcs/123/r4/Condition",
                 "_count=15&patient=p1&code=391.2"));
+    assertThat(json(actual)).isEqualTo(json(expected));
+  }
+
+  @Test
+  void conditionSearchWithPatientAndOnsetDate() {
+    var httpRequest = requestFromUri("?_count=15&patient=p1&onset-date=ge2009&onset-date=le2011");
+    var rpcRequest =
+        VprGetPatientData.Request.builder()
+            .context(Optional.ofNullable(vistaApiConfig.getVprGetPatientDataContext()))
+            .dfn(VprGetPatientData.Request.PatientId.forIcn("p1"))
+            .type(Set.of(VprGetPatientData.Domains.problems, VprGetPatientData.Domains.visits))
+            .build();
+    var charonRequest = charonRequestFor(rpcRequest);
+    var charonResponse =
+        ConditionProblemListSamples.Vista.create()
+            .results()
+            .visits(
+                Visits.builder()
+                    .visitResults(
+                        (List.of(ConditionEncounterDiagnosisSamples.Vista.create().visit())))
+                    .build());
+    when(charonClient.request(any(CharonRequest.class)))
+        .thenReturn(charonResponseFor(charonRequest, charonResponse));
+    var actual =
+        _controller()
+            .conditionSearch(
+                httpRequest, "123", "p1", null, null, null, array("ge2009", "lt2011"), 15);
+    var expected =
+        ConditionProblemListSamples.R4.asBundle(
+            "http://fugazi.com/hcs/123/r4",
+            List.of(ConditionProblemListSamples.R4.create().condition()),
+            1,
+            link(
+                BundleLink.LinkRelation.self,
+                "http://fugazi.com/hcs/123/r4/Condition",
+                "_count=15&patient=p1&onset-date=ge2009&onset-date=le2011"));
     assertThat(json(actual)).isEqualTo(json(expected));
   }
 
@@ -226,7 +266,8 @@ public class R4SiteConditionControllerTest {
         .thenReturn(charonResponseFor(charonRequest, charonResponse));
     var actual =
         _controller()
-            .conditionSearch(httpRequest, "problem-list-item", "active", null, "123", "p1", 15);
+            .conditionSearch(
+                httpRequest, "123", "p1", "problem-list-item", "active", null, null, 15);
     var expected =
         ConditionProblemListSamples.R4.asBundle(
             "http://fugazi.com/hcs/123/r4",
@@ -252,7 +293,7 @@ public class R4SiteConditionControllerTest {
     var charonResponse = ConditionProblemListSamples.Vista.create().results();
     var actual =
         _controller()
-            .conditionSearch(httpRequest, "not-real-category", null, null, "123", "p1", 15);
+            .conditionSearch(httpRequest, "123", "p1", "not-real-category", null, null, null, 15);
     var expected =
         Condition.Bundle.builder()
             .type(AbstractBundle.BundleType.searchset)

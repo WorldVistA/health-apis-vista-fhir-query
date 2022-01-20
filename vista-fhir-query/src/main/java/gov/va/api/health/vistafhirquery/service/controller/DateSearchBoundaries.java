@@ -1,5 +1,6 @@
 package gov.va.api.health.vistafhirquery.service.controller;
 
+import gov.va.api.health.fhir.api.FhirDateTime;
 import gov.va.api.health.fhir.api.FhirDateTimeParameter;
 import java.time.Instant;
 import lombok.Getter;
@@ -200,6 +201,28 @@ public class DateSearchBoundaries {
   private void invalidDateCombination() {
     throw ResourceExceptions.BadSearchParameters.because(
         "Bad date search combination : date=" + date1.toString() + "&" + date2.toString());
+  }
+
+  /** Check if a given instant is within the bounds of the start and stop. */
+  public boolean isDateWithinBounds(Instant date) {
+    if (date == null) {
+      return false;
+    }
+    if (start() == null && stop() == null) {
+      return false;
+    }
+    if (start() == null) {
+      return stop().isAfter(date);
+    }
+    if (stop() == null) {
+      return start().isBefore(date);
+    }
+    return start().isBefore(date) && stop().isAfter(date);
+  }
+
+  /** Check if a given instant is within the bounds of the start and stop. */
+  public boolean isDateWithinBounds(String date) {
+    return isDateWithinBounds(FhirDateTime.parseDateTime(date));
   }
 
   private void lessThanDate1() {

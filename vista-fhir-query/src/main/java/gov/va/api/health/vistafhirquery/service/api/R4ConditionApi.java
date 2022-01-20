@@ -10,6 +10,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import javax.servlet.http.HttpServletRequest;
+import javax.validation.constraints.Size;
 import javax.ws.rs.DefaultValue;
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
@@ -109,6 +110,14 @@ public interface R4ConditionApi {
                   "The SNOMED CT, ICD-9, or ICD-10 code of the condition. "
                       + "[Condition Codes](http://www.hl7.org/fhir/us/core/ValueSet-us-core-condition-code.html)")
           String code,
+      @Parameter(
+              in = ParameterIn.QUERY,
+              name = "onset-date",
+              description =
+                  "A date or range of dates (maximum of 2) that describes the date that "
+                      + "the patient claims to have the condition.")
+          @Size(max = 2)
+          String[] date,
       @Parameter(
               in = ParameterIn.QUERY,
               name = "_count",

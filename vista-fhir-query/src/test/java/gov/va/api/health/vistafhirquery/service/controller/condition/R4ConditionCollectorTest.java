@@ -1,6 +1,7 @@
 package gov.va.api.health.vistafhirquery.service.controller.condition;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.util.Arrays.array;
 
 import gov.va.api.lighthouse.charon.models.vprgetpatientdata.Visits;
 import java.util.List;
@@ -54,6 +55,37 @@ public class R4ConditionCollectorTest {
                 .patientIcn("p1")
                 .site("123")
                 .code("nope")
+                .results(ConditionEncounterDiagnosisSamples.Vista.create().results())
+                .build()
+                .toFhir())
+        .isEmpty();
+  }
+
+  @Test
+  void onsetDateSearch() {
+    assertThat(
+            R4ConditionCollector.builder()
+                .patientIcn("p1")
+                .site("123")
+                .date(array("ge2009", "lt2011"))
+                .results(ConditionProblemListSamples.Vista.create().results())
+                .build()
+                .toFhir())
+        .containsExactly(ConditionProblemListSamples.R4.create().condition());
+    assertThat(
+            R4ConditionCollector.builder()
+                .patientIcn("p1")
+                .site("123")
+                .date(array("lt2011"))
+                .results(ConditionProblemListSamples.Vista.create().results())
+                .build()
+                .toFhir())
+        .containsExactly(ConditionProblemListSamples.R4.create().condition());
+    assertThat(
+            R4ConditionCollector.builder()
+                .patientIcn("p1")
+                .site("123")
+                .date(array("ge2020"))
                 .results(ConditionEncounterDiagnosisSamples.Vista.create().results())
                 .build()
                 .toFhir())

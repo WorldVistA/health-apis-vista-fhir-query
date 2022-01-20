@@ -19,6 +19,7 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 import javax.servlet.http.HttpServletRequest;
+import javax.validation.constraints.Size;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.NonNull;
@@ -59,11 +60,12 @@ public class R4SiteConditionController implements R4ConditionApi {
   @GetMapping(value = "/hcs/{site}/r4/Condition")
   public Condition.Bundle conditionSearch(
       HttpServletRequest request,
+      @PathVariable(value = "site") String site,
+      @RequestParam(name = "patient") String patientIcn,
       @RequestParam(name = "category", required = false) String categoryCsv,
       @RequestParam(name = "clinical-status", required = false) String clinicalStatusCsv,
       @RequestParam(name = "code", required = false) String code,
-      @PathVariable(value = "site") String site,
-      @RequestParam(name = "patient") String patientIcn,
+      @RequestParam(name = "onset-date", required = false) @Size(max = 2) String[] date,
       @RequestParam(
               value = "_count",
               required = false,
@@ -81,7 +83,8 @@ public class R4SiteConditionController implements R4ConditionApi {
             .build();
     var charonResponse = charonClient.request(vprGetPatientData(site, rpcRequest));
     return bundlerFactory
-        .forTransformation(transformation(patientIcn, site, clinicalStatusCsv, categoryCsv, code))
+        .forTransformation(
+            transformation(patientIcn, site, clinicalStatusCsv, categoryCsv, code, date))
         .site(charonResponse.invocationResult().vista())
         .bundling(
             R4Bundling.newBundle(Condition.Bundle::new).newEntry(Condition.Entry::new).build())
@@ -106,7 +109,8 @@ public class R4SiteConditionController implements R4ConditionApi {
                 site,
                 request.getParameter("clinical-status"),
                 request.getParameter("category"),
-                request.getParameter("code")))
+                request.getParameter("code"),
+                request.getParameterValues("onset-date")))
         .site(site)
         .bundling(
             R4Bundling.newBundle(Condition.Bundle::new).newEntry(Condition.Entry::new).build())
@@ -130,7 +134,12 @@ public class R4SiteConditionController implements R4ConditionApi {
   }
 
   private R4Transformation<VprGetPatientData.Response.Results, Condition> transformation(
-      String patientIdentifier, String site, String clinicalStatus, String category, String code) {
+      String patientIdentifier,
+      String site,
+      String clinicalStatus,
+      String category,
+      String code,
+      String[] date) {
     return R4Transformation.<VprGetPatientData.Response.Results, Condition>builder()
         .toResource(
             rpcResults ->
@@ -141,6 +150,7 @@ public class R4SiteConditionController implements R4ConditionApi {
                     .clinicalStatusCsv(clinicalStatus)
                     .categoryCsv(category)
                     .code(code)
+                    .date(date)
                     .build()
                     .toFhir()
                     .collect(Collectors.toList()))
