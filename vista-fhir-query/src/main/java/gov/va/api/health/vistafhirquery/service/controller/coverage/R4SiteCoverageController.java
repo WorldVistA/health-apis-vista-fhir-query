@@ -14,7 +14,6 @@ import gov.va.api.health.autoconfig.logging.Redact;
 import gov.va.api.health.r4.api.resources.Coverage;
 import gov.va.api.health.r4.api.resources.Coverage.Bundle;
 import gov.va.api.health.r4.api.resources.Coverage.Entry;
-import gov.va.api.health.vistafhirquery.service.api.R4CoverageApi;
 import gov.va.api.health.vistafhirquery.service.charonclient.CharonClient;
 import gov.va.api.health.vistafhirquery.service.charonclient.CharonResponse;
 import gov.va.api.health.vistafhirquery.service.controller.PatientTypeCoordinates;
@@ -50,6 +49,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
@@ -59,7 +59,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @RequestMapping(produces = {"application/json", "application/fhir+json"})
 @AllArgsConstructor(onConstructor_ = {@Autowired, @NonNull})
-public class R4SiteCoverageController implements R4CoverageApi {
+public class R4SiteCoverageController {
   private final R4BundlerFactory bundlerFactory;
 
   private final CharonClient charon;
@@ -76,14 +76,26 @@ public class R4SiteCoverageController implements R4CoverageApi {
     return Request.builder().id(PatientId.forIcn(patientIcn)).build();
   }
 
-  @Override
+  /** Create support. */
   @PostMapping(
       value = "/hcs/{site}/r4/Coverage",
       consumes = {"application/json", "application/fhir+json"})
   public void coverageCreate(
       @Redact HttpServletResponse response,
       @PathVariable(value = "site") String site,
+      @RequestHeader(
+              value = "insurance-buffer",
+              required = false,
+              defaultValue = "${vista-fhir-query.coverage.use-insurance-buffer}")
+          boolean useInsuranceBuffer,
       @Redact @RequestBody Coverage body) {
+    if (useInsuranceBuffer) {
+      R4SiteInsuranceBufferCoverageController.builder()
+          .bundlerFactory(bundlerFactory)
+          .build()
+          .coverageCreate(response, site, body);
+      return;
+    }
     var ctx =
         updateOrCreate(
             CreatePatientRecordWriteContext.<Coverage>builder()
@@ -103,7 +115,7 @@ public class R4SiteCoverageController implements R4CoverageApi {
     updateResponseForCreatedResource(response, newResourceUrl);
   }
 
-  @Override
+  /** Read support. */
   @GetMapping(value = "/hcs/{site}/r4/Coverage/{publicId}")
   public Coverage coverageRead(
       @PathVariable(value = "site") String site, @PathVariable(value = "publicId") String id) {
@@ -120,7 +132,6 @@ public class R4SiteCoverageController implements R4CoverageApi {
   }
 
   /** Search support. */
-  @Override
   @GetMapping(value = "/hcs/{site}/r4/Coverage")
   public Coverage.Bundle coverageSearch(
       HttpServletRequest httpRequest,
@@ -137,7 +148,7 @@ public class R4SiteCoverageController implements R4CoverageApi {
     return toBundle(httpRequest, response).apply(lighthouseRpcGatewayResponse(response));
   }
 
-  @Override
+  /** Update support. */
   @PutMapping(
       value = "/hcs/{site}/r4/Coverage/{id}",
       consumes = {"application/json", "application/fhir+json"})

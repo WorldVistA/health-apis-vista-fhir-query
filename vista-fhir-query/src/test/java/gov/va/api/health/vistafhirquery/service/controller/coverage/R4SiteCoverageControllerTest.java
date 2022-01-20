@@ -83,7 +83,7 @@ public class R4SiteCoverageControllerTest {
     when(witnessProtection.toPublicId(Coverage.class, "p1+123+ip1")).thenReturn("public-ip1");
     _controller()
         .coverageCreate(
-            response, "123", CoverageSamples.R4.create().coverage("123", "not-used", "p1"));
+            response, "123", false, CoverageSamples.R4.create().coverage("123", "not-used", "p1"));
     assertThat(captor.getValue().rpcRequest().api()).isEqualTo(CoverageWriteApi.CREATE);
     assertThat(response.getStatus()).isEqualTo(201);
     assertThat(response.getHeader("Location"))
