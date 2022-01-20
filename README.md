@@ -2,6 +2,7 @@
 
 Application for pulling real-time health records from VistA and returning them in a FHIR compliant format.
 
+
 # Alternate Patient IDs
 
 The _Alternate Patient IDs_ feature supports testing in lower environments. In lower environments it is difficult (impossible) to have a set of patient IDs that work across the different systems, i.e. authentication, VistA, MPI, or Data Query. To enable testing, VFQ's _Alternate Patient IDs_ feature allows a _public_ ID to mapped to a _private_ ID for interacting with VistA.
