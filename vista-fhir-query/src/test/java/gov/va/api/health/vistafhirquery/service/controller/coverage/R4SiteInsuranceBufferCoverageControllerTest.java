@@ -1,12 +1,18 @@
 package gov.va.api.health.vistafhirquery.service.controller.coverage;
 
+import static gov.va.api.health.vistafhirquery.service.charonclient.CharonTestSupport.answerFor;
+import static gov.va.api.health.vistafhirquery.service.charonclient.CharonTestSupport.invocationResultV1;
+import static gov.va.api.health.vistafhirquery.service.charonclient.CharonTestSupport.requestCaptor;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.when;
 
 import gov.va.api.health.vistafhirquery.service.charonclient.CharonClient;
 import gov.va.api.health.vistafhirquery.service.config.LinkProperties;
 import gov.va.api.health.vistafhirquery.service.controller.MockWitnessProtection;
 import gov.va.api.health.vistafhirquery.service.controller.R4BundlerFactory;
 import gov.va.api.health.vistafhirquery.service.controller.witnessprotection.AlternatePatientIds;
+import gov.va.api.lighthouse.charon.models.lhslighthouserpcgateway.LhsLighthouseRpcGatewayCoverageWrite;
+import gov.va.api.lighthouse.charon.models.lhslighthouserpcgateway.LhsLighthouseRpcGatewayCoverageWrite.Request.CoverageWriteApi;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
@@ -18,7 +24,7 @@ import org.springframework.mock.web.MockHttpServletResponse;
 class R4SiteInsuranceBufferCoverageControllerTest {
   @Mock CharonClient mockCharon;
 
-  MockWitnessProtection mockWitnessProtection;
+  MockWitnessProtection mockWitnessProtection = new MockWitnessProtection();
 
   private R4BundlerFactory _bundlerFactory() {
     return R4BundlerFactory.builder()
@@ -36,6 +42,8 @@ class R4SiteInsuranceBufferCoverageControllerTest {
   private R4SiteInsuranceBufferCoverageController _insuranceBufferCoverageController() {
     return R4SiteInsuranceBufferCoverageController.builder()
         .bundlerFactory(_bundlerFactory())
+        .charon(mockCharon)
+        .witnessProtection(mockWitnessProtection)
         .build();
   }
 
@@ -48,20 +56,38 @@ class R4SiteInsuranceBufferCoverageControllerTest {
   }
 
   @Test
-  void coverageCreateNoHack() {
+  void coverageCreate() {
+    var results =
+        CoverageSamples.VistaLhsLighthouseRpcGateway.create().createInsuranceBufferResults("cov1");
+    var captor = requestCaptor(LhsLighthouseRpcGatewayCoverageWrite.Request.class);
+    var answer =
+        answerFor(captor).value(results).invocationResult(invocationResultV1(results)).build();
+    when(mockCharon.request(captor.capture())).thenAnswer(answer);
+    var coverageSample = CoverageSamples.R4.create().coverage("123", "cov1", "p1");
+    mockWitnessProtection.add("public-cov1", "p1+123+cov1");
     var response = new MockHttpServletResponse();
-    var coverageSample = CoverageSamples.R4.create().coverage();
     _insuranceBufferCoverageController().coverageCreate(response, "123", coverageSample);
+    assertThat(captor.getValue().rpcRequest().api()).isEqualTo(CoverageWriteApi.CREATE);
+    assertThat(response.getStatus()).isEqualTo(201);
     assertThat(response.getHeader(HttpHeaders.LOCATION))
-        .isEqualTo("http://fugazi.com/hcs/123/r4/Coverage/not-available");
+        .isEqualTo("http://fugazi.com/hcs/123/r4/Coverage/public-cov1");
   }
 
   @Test
   void coverageCreateUsingInsuranceTypeControllerHack() {
+    var results =
+        CoverageSamples.VistaLhsLighthouseRpcGateway.create().createInsuranceBufferResults("cov1");
+    var captor = requestCaptor(LhsLighthouseRpcGatewayCoverageWrite.Request.class);
+    var answer =
+        answerFor(captor).value(results).invocationResult(invocationResultV1(results)).build();
+    when(mockCharon.request(captor.capture())).thenAnswer(answer);
+    var coverageSample = CoverageSamples.R4.create().coverage("123", "cov1", "p1");
+    mockWitnessProtection.add("public-cov1", "p1+123+cov1");
     var response = new MockHttpServletResponse();
-    var coverageSample = CoverageSamples.R4.create().coverage();
     _insuranceTypeCoverageController().coverageCreate(response, "123", true, coverageSample);
+    assertThat(captor.getValue().rpcRequest().api()).isEqualTo(CoverageWriteApi.CREATE);
+    assertThat(response.getStatus()).isEqualTo(201);
     assertThat(response.getHeader(HttpHeaders.LOCATION))
-        .isEqualTo("http://fugazi.com/hcs/123/r4/Coverage/not-available");
+        .isEqualTo("http://fugazi.com/hcs/123/r4/Coverage/public-cov1");
   }
 }

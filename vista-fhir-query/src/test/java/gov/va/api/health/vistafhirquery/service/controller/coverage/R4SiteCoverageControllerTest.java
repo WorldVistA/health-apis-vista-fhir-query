@@ -75,7 +75,7 @@ public class R4SiteCoverageControllerTest {
   void create() {
     var response = new MockHttpServletResponse();
     var samples = CoverageSamples.VistaLhsLighthouseRpcGateway.create();
-    var results = samples.createCoverageResults("ip1");
+    var results = samples.createInsuranceTypeResults("ip1");
     var captor = requestCaptor(LhsLighthouseRpcGatewayCoverageWrite.Request.class);
     var answer =
         answerFor(captor).value(results).invocationResult(_invocationResult(results)).build();
@@ -153,7 +153,7 @@ public class R4SiteCoverageControllerTest {
   void update() {
     var response = new MockHttpServletResponse();
     var samples = CoverageSamples.VistaLhsLighthouseRpcGateway.create();
-    var results = samples.createCoverageResults("ip1");
+    var results = samples.createInsuranceTypeResults("ip1");
     var captor = requestCaptor(LhsLighthouseRpcGatewayCoverageWrite.Request.class);
     var answer =
         answerFor(captor).value(results).invocationResult(_invocationResult(results)).build();

@@ -92,6 +92,8 @@ public class R4SiteCoverageController {
     if (useInsuranceBuffer) {
       R4SiteInsuranceBufferCoverageController.builder()
           .bundlerFactory(bundlerFactory)
+          .charon(charon)
+          .witnessProtection(witnessProtection)
           .build()
           .coverageCreate(response, site, body);
       return;

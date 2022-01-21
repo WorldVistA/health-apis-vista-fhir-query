@@ -1,5 +1,7 @@
 package gov.va.api.health.vistafhirquery.service.charonclient;
 
+import static gov.va.api.health.vistafhirquery.service.controller.MockRequests.json;
+
 import gov.va.api.health.vistafhirquery.service.charonclient.CharonTestSupport.CharonResponseAnswer.CharonResponseAnswerBuilder;
 import gov.va.api.lighthouse.charon.api.v1.RpcInvocationResultV1;
 import gov.va.api.lighthouse.charon.models.TypeSafeRpcRequest;
@@ -14,6 +16,14 @@ public class CharonTestSupport {
   public static <I extends TypeSafeRpcRequest, O> CharonResponseAnswerBuilder<I, O> answerFor(
       ArgumentCaptor<CharonRequest<I, O>> captor) {
     return CharonResponseAnswer.<I, O>builder();
+  }
+
+  public static RpcInvocationResultV1 invocationResultV1(Object value) {
+    return RpcInvocationResultV1.builder()
+        .vista("123")
+        .timezone("UTC")
+        .response(json(value))
+        .build();
   }
 
   @SuppressWarnings("unchecked")

@@ -17,6 +17,7 @@ import gov.va.api.health.vistafhirquery.service.controller.RecordCoordinates;
 import gov.va.api.lighthouse.charon.models.lhslighthouserpcgateway.GroupInsurancePlan;
 import gov.va.api.lighthouse.charon.models.lhslighthouserpcgateway.InsuranceCompany;
 import gov.va.api.lighthouse.charon.models.lhslighthouserpcgateway.InsuranceType;
+import gov.va.api.lighthouse.charon.models.lhslighthouserpcgateway.InsuranceVerificationProcessor;
 import gov.va.api.lighthouse.charon.models.lhslighthouserpcgateway.LhsLighthouseRpcGatewayCoverageWrite.WriteableFilemanValue;
 import gov.va.api.lighthouse.charon.models.lhslighthouserpcgateway.LhsLighthouseRpcGatewayResponse;
 import java.util.Arrays;
@@ -184,12 +185,25 @@ public class CoverageSamples {
           insuranceValue(InsuranceType.STOP_POLICY_FROM_BILLING, "YES"));
     }
 
-    public LhsLighthouseRpcGatewayResponse.Results createCoverageResults(String id) {
+    public LhsLighthouseRpcGatewayResponse.Results createInsuranceBufferResults(String id) {
       return LhsLighthouseRpcGatewayResponse.Results.builder()
           .results(
               List.of(
                   LhsLighthouseRpcGatewayResponse.FilemanEntry.builder()
-                      .file("2.312")
+                      .file(InsuranceVerificationProcessor.FILE_NUMBER)
+                      .ien(id)
+                      .index("1")
+                      .status("1")
+                      .build()))
+          .build();
+    }
+
+    public LhsLighthouseRpcGatewayResponse.Results createInsuranceTypeResults(String id) {
+      return LhsLighthouseRpcGatewayResponse.Results.builder()
+          .results(
+              List.of(
+                  LhsLighthouseRpcGatewayResponse.FilemanEntry.builder()
+                      .file(InsuranceType.FILE_NUMBER)
                       .ien(id)
                       .index("1")
                       .status("1")
