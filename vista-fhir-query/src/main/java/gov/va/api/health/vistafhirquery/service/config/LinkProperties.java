@@ -73,6 +73,10 @@ public class LinkProperties {
       return baseUrl.replace(SITE_PLACEHOLDER, site);
     }
 
+    public String baseUrl(@NonNull String resource, @NonNull String site) {
+      return urlForResource.getOrDefault(resource, baseUrl(site)).replace(SITE_PLACEHOLDER, site);
+    }
+
     public String readUrl(@NonNull String site, @NonNull String resource, @NonNull String id) {
       return resourceUrl(site, resource) + "/" + id;
     }
@@ -96,9 +100,7 @@ public class LinkProperties {
      * site placeholder are allowed, in which case substitution is ignored.
      */
     public String resourceUrl(@NonNull String site, @NonNull String resource) {
-      return urlForResource.getOrDefault(resource, baseUrl(site)).replace(SITE_PLACEHOLDER, site)
-          + "/"
-          + resource;
+      return baseUrl(resource, site) + "/" + resource;
     }
 
     /**
