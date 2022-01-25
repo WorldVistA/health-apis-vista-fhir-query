@@ -4,6 +4,8 @@ import static gov.va.api.health.vistafhirquery.service.controller.R4Transformers
 import static gov.va.api.health.vistafhirquery.service.controller.R4Transformers.toHumanDateTime;
 import static gov.va.api.health.vistafhirquery.service.controller.R4Transformers.toResourceId;
 
+import gov.va.api.health.r4.api.datatypes.CodeableConcept;
+import gov.va.api.health.r4.api.datatypes.Coding;
 import gov.va.api.health.r4.api.datatypes.Identifier;
 import gov.va.api.health.r4.api.datatypes.SimpleQuantity;
 import gov.va.api.health.r4.api.elements.Meta;
@@ -12,7 +14,9 @@ import gov.va.api.health.r4.api.resources.MedicationDispense.Status;
 import gov.va.api.health.vistafhirquery.service.controller.R4Transformers;
 import gov.va.api.lighthouse.charon.models.ValueOnlyXmlAttribute;
 import gov.va.api.lighthouse.charon.models.vprgetpatientdata.Meds;
+import gov.va.api.lighthouse.charon.models.vprgetpatientdata.Meds.Med.Product;
 import gov.va.api.lighthouse.charon.models.vprgetpatientdata.VprGetPatientData;
+import gov.va.api.lighthouse.charon.models.vprgetpatientdata.VprGetPatientData.Domains;
 import java.math.BigDecimal;
 import java.util.List;
 import java.util.Objects;
@@ -27,13 +31,29 @@ public class R4MedicationDispenseTransformer {
 
   @NonNull String patientIcn;
 
-  @NonNull private VprGetPatientData.Response.Results rpcResults;
+  @NonNull
+  private VprGetPatientData.Response.Results rpcResults;
+
+  /**
+   * Vista Rx status -> FHIR status.
+   */
+  @SuppressWarnings("UnnecessaryParentheses")
+  public static Status r4PrescriptionStatus(String status) {
+    return switch (status) {
+      case "HOLD", "PROVIDER HOLD", "ACTIVE", "SUSPENDED" -> Status.in_progress;
+      case "DRUG INTERACTIONS", "NON VERIFIED" -> Status.preparation;
+      case "DISCONTINUED", "DISCONTINUED (EDIT)", "DISCONTINUED BY PROVIDER" -> Status.stopped;
+      case "DELETED" -> Status.entered_in_error;
+      case "EXPIRED" -> Status.completed;
+      default -> throw new IllegalStateException("Unexpected prescription status: " + status);
+    };
+  }
 
   String idFrom(String id) {
     if (isBlank(id)) {
       return null;
     }
-    return toResourceId(patientIcn, site, VprGetPatientData.Domains.meds, id);
+    return toResourceId(patientIcn, site, Domains.meds, id);
   }
 
   List<Identifier> identifiers(ValueOnlyXmlAttribute prescription) {
@@ -47,12 +67,29 @@ public class R4MedicationDispenseTransformer {
         .build();
   }
 
-  public Stream<MedicationDispense> toFhir() {
-    return rpcResults.medStream().map(this::toMedicationDispense).filter(Objects::nonNull);
-  }
-
   public String toDate(String date) {
     return R4Transformers.optionalInstantToString(toHumanDateTime(date));
+  }
+
+  private CodeableConcept medicationCodeableConcept(Product product) {
+    return CodeableConcept.builder()
+        .text(product.name())
+        .coding(List.of(Coding.builder()
+            .code(product.clazz().code())
+            .display(product.clazz().name())
+            .system("https://www.pbm.va.gov/nationalformulary.asp")
+            .build()))
+        .build();
+  }
+
+  private SimpleQuantity daysSupply(String daysSupply) {
+    return SimpleQuantity.builder()
+        .value(BigDecimal.valueOf(Long.parseLong(daysSupply)))
+        .build();
+  }
+
+  public Stream<MedicationDispense> toFhir() {
+    return rpcResults.medStream().map(this::toMedicationDispense).filter(Objects::nonNull);
   }
 
   private MedicationDispense toMedicationDispense(Meds.Med rpcMed) {
@@ -60,23 +97,15 @@ public class R4MedicationDispenseTransformer {
       return null;
     }
     return MedicationDispense.builder()
+        .id(idFrom(rpcMed.id().value()))
         .meta(Meta.builder().source(site).build())
         .identifier(identifiers(rpcMed.prescription()))
         .quantity(quantity(rpcMed.quantity(), rpcMed.form()))
         .whenPrepared(toDate(rpcMed.fill().get(0).fillDate()))
         .whenHandedOver(toDate(rpcMed.fill().get(0).releaseDate()))
         .status(r4PrescriptionStatus(rpcMed.status().value()))
+        .medicationCodeableConcept(medicationCodeableConcept(rpcMed.product().get(0)))
+        .daysSupply(daysSupply(rpcMed.daysSupply().value()))
         .build();
-  }
-
-  public static Status r4PrescriptionStatus(String status) {
-    return switch (status) {
-      case "HOLD", "PROVIDER HOLD", "ACTIVE", "SUSPENDED" -> Status.in_progress;
-      case "DRUG INTERACTIONS", "NON VERIFIED" -> Status.preparation;
-      case "DISCONTINUED", "DISCONTINUED (EDIT)", "DISCONTINUED BY PROVIDER" -> Status.stopped;
-      case "DELETED" -> Status.entered_in_error;
-      case "EXPIRED" -> Status.completed;
-      default -> throw new IllegalStateException("Unexpected prescription status: " + status);
-    };
   }
 }

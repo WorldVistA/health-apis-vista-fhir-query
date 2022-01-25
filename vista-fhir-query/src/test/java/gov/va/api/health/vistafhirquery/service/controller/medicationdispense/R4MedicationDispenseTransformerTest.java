@@ -37,18 +37,6 @@ class R4MedicationDispenseTransformerTest {
   }
 
   @Test
-  void medicationDispenseIsNotEmpty() {
-    assertThat(
-            R4MedicationDispenseTransformer.builder()
-                .site("673")
-                .patientIcn("p1")
-                .rpcResults(MedicationDispenseSamples.Vista.create().results())
-                .build()
-                .toFhir())
-        .isNotEmpty();
-  }
-
-  @Test
   void r4PrescriptionStatusTest() {
     assertThat(r4PrescriptionStatus("HOLD")).isEqualTo(Status.in_progress);
     assertThat(r4PrescriptionStatus("PROVIDER HOLD")).isEqualTo(Status.in_progress);
