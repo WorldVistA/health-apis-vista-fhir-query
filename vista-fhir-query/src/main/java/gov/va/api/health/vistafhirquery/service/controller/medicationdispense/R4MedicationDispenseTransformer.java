@@ -8,6 +8,7 @@ import gov.va.api.health.r4.api.datatypes.Identifier;
 import gov.va.api.health.r4.api.datatypes.SimpleQuantity;
 import gov.va.api.health.r4.api.elements.Meta;
 import gov.va.api.health.r4.api.resources.MedicationDispense;
+import gov.va.api.health.r4.api.resources.MedicationDispense.Status;
 import gov.va.api.health.vistafhirquery.service.controller.R4Transformers;
 import gov.va.api.lighthouse.charon.models.ValueOnlyXmlAttribute;
 import gov.va.api.lighthouse.charon.models.vprgetpatientdata.Meds;
@@ -64,6 +65,18 @@ public class R4MedicationDispenseTransformer {
         .quantity(quantity(rpcMed.quantity(), rpcMed.form()))
         .whenPrepared(toDate(rpcMed.fill().get(0).fillDate()))
         .whenHandedOver(toDate(rpcMed.fill().get(0).releaseDate()))
+        .status(r4PrescriptionStatus(rpcMed.status().value()))
         .build();
+  }
+
+  public static Status r4PrescriptionStatus(String status) {
+    return switch (status) {
+      case "HOLD", "PROVIDER HOLD", "ACTIVE", "SUSPENDED" -> Status.in_progress;
+      case "DRUG INTERACTIONS", "NON VERIFIED" -> Status.preparation;
+      case "DISCONTINUED", "DISCONTINUED (EDIT)", "DISCONTINUED BY PROVIDER" -> Status.stopped;
+      case "DELETED" -> Status.entered_in_error;
+      case "EXPIRED" -> Status.completed;
+      default -> throw new IllegalStateException("Unexpected prescription status: " + status);
+    };
   }
 }

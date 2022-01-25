@@ -4,6 +4,7 @@ import gov.va.api.health.r4.api.datatypes.Identifier;
 import gov.va.api.health.r4.api.datatypes.SimpleQuantity;
 import gov.va.api.health.r4.api.elements.Meta;
 import gov.va.api.health.r4.api.resources.MedicationDispense;
+import gov.va.api.health.r4.api.resources.MedicationDispense.Status;
 import gov.va.api.lighthouse.charon.models.CodeAndNameXmlAttribute;
 import gov.va.api.lighthouse.charon.models.ValueOnlyXmlAttribute;
 import gov.va.api.lighthouse.charon.models.vprgetpatientdata.Meds;
@@ -30,6 +31,7 @@ public class MedicationDispenseSamples {
           .quantity(SimpleQuantity.builder().value(BigDecimal.valueOf(30)).unit("TAB").build())
           .whenPrepared("2004-08-01T00:00:00Z")
           .whenHandedOver("2004-08-02T00:00:00Z")
+          .status(Status.in_progress)
           .build();
     }
   }
@@ -48,6 +50,7 @@ public class MedicationDispenseSamples {
           .quantity(ValueOnlyXmlAttribute.of("30"))
           .form(ValueOnlyXmlAttribute.of("TAB"))
           .fill(List.of(Meds.Med.Fill.builder().fillDate("3040801").releaseDate("3040802").build()))
+          .status(ValueOnlyXmlAttribute.of("HOLD"))
           .build();
     }
 
