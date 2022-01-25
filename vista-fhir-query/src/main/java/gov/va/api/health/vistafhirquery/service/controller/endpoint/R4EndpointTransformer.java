@@ -40,7 +40,7 @@ public class R4EndpointTransformer {
                     .text("Any")
                     .build()))
         .payloadMimeType(List.of("application/json", "application/fhir+json"))
-        .address(linkProperties.r4().baseUrl(Endpoint.class.getSimpleName(), site))
+        .address(linkProperties.r4().baseUrl(Endpoint.class.getSimpleName() + ".address", site))
         .build();
   }
 }
