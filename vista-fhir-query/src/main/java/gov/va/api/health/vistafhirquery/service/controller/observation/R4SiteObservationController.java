@@ -1,7 +1,9 @@
 package gov.va.api.health.vistafhirquery.service.controller.observation;
 
 import static gov.va.api.health.vistafhirquery.service.charonclient.CharonRequests.vprGetPatientData;
+import static gov.va.api.health.vistafhirquery.service.controller.R4Transformers.allBlank;
 import static gov.va.api.health.vistafhirquery.service.controller.R4Transformers.toLocalDateMacroString;
+import static gov.va.api.health.vistafhirquery.service.controller.ResourceExceptions.BadSearchParameters;
 import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toSet;
 import static org.apache.commons.lang3.StringUtils.isBlank;
@@ -100,6 +102,10 @@ public class R4SiteObservationController implements R4SiteObservationApi {
               required = false,
               defaultValue = "${vista-fhir-query.default-page-size}")
           int count) {
+    if (allBlank(patient, id, identifier, category, code, date)) {
+      throw BadSearchParameters.because(
+          "Observation search requires a patient, _id, or identifier query parameter.");
+    }
     if (id != null || identifier != null) {
       return id == null
           ? searchByIdentifier(request, site, identifier)

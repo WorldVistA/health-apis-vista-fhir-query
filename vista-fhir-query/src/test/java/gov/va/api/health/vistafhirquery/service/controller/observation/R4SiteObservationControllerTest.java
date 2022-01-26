@@ -16,6 +16,7 @@ import gov.va.api.health.vistafhirquery.service.config.LinkProperties;
 import gov.va.api.health.vistafhirquery.service.config.VistaApiConfig;
 import gov.va.api.health.vistafhirquery.service.controller.MockWitnessProtection;
 import gov.va.api.health.vistafhirquery.service.controller.R4BundlerFactory;
+import gov.va.api.health.vistafhirquery.service.controller.ResourceExceptions;
 import gov.va.api.health.vistafhirquery.service.controller.ResourceExceptions.NotFound;
 import gov.va.api.health.vistafhirquery.service.controller.witnessprotection.AlternatePatientIds;
 import gov.va.api.lighthouse.charon.api.v1.RpcInvocationResultV1;
@@ -328,5 +329,15 @@ public class R4SiteObservationControllerTest {
                 .url("http://fugazi.com/hcs/123/r4/Observation?patient=p1&category=whodis")
                 .build());
     assertThat(json(actual)).isEqualTo(json(expected));
+  }
+
+  @Test
+  void searchWithNoParametersSpecifiedIsBadRequest() {
+    HttpServletRequest request = requestFromUri("");
+    assertThatExceptionOfType(ResourceExceptions.BadSearchParameters.class)
+        .isThrownBy(
+            () ->
+                _controller()
+                    .observationSearch(request, null, null, null, null, null, null, null, 15));
   }
 }
