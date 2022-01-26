@@ -1,5 +1,7 @@
 package gov.va.api.health.vistafhirquery.service.controller.medicationdispense;
 
+import static gov.va.api.health.vistafhirquery.service.controller.R4Transformers.toReference;
+
 import gov.va.api.health.r4.api.datatypes.CodeableConcept;
 import gov.va.api.health.r4.api.datatypes.Coding;
 import gov.va.api.health.r4.api.datatypes.Identifier;
@@ -39,16 +41,34 @@ public class MedicationDispenseSamples {
           .whenPrepared("2004-08-01T00:00:00Z")
           .whenHandedOver("2004-08-02T00:00:00Z")
           .status(Status.in_progress)
-          .medicationCodeableConcept(CodeableConcept.builder()
-              .text("IBUPROFEN")
-              .coding(Coding.builder()
-                  .system("https://www.pbm.va.gov/nationalformulary.asp")
-                  .code("MS102")
-                  .display("NONSALICYLATE NSAIs,ANTIRHEUMATIC")
-                  .build()
-                  .asList())
-              .build())
+          .medicationCodeableConcept(
+              CodeableConcept.builder()
+                  .text("IBUPROFEN")
+                  .coding(
+                      Coding.builder()
+                          .system("https://www.pbm.va.gov/nationalformulary.asp")
+                          .code("MS102")
+                          .display("NONSALICYLATE NSAIs,ANTIRHEUMATIC")
+                          .build()
+                          .asList())
+                  .build())
           .daysSupply(SimpleQuantity.builder().value(BigDecimal.valueOf(30)).build())
+          .subject(toReference("Patient", "p1", null))
+          .performer(
+              MedicationDispense.Performer.builder()
+                  .actor(toReference("Practitioner", "20144", "PHARMACIST, THIRTY"))
+                  .build())
+          .category(
+              CodeableConcept.builder()
+                  .coding(
+                      List.of(
+                          Coding.builder()
+                              .code("inpatient")
+                              .display("Inpatient")
+                              .system(
+                                  "http://terminology.hl7.org/fhir/CodeSystem/medicationdispense-category")
+                              .build()))
+                  .build())
           .build();
     }
   }
@@ -69,14 +89,20 @@ public class MedicationDispenseSamples {
           .form(ValueOnlyXmlAttribute.of("TAB"))
           .fill(List.of(Fill.builder().fillDate("3040801").releaseDate("3040802").build()))
           .status(ValueOnlyXmlAttribute.of("HOLD"))
-          .product(List.of(Product.builder()
-              .name("IBUPROFEN")
-              .clazz(ProductDetail.builder()
-                  .code("MS102")
-                  .name("NONSALICYLATE NSAIs,ANTIRHEUMATIC")
-                  .build())
-              .build()))
+          .product(
+              List.of(
+                  Product.builder()
+                      .name("IBUPROFEN")
+                      .clazz(
+                          ProductDetail.builder()
+                              .code("MS102")
+                              .name("NONSALICYLATE NSAIs,ANTIRHEUMATIC")
+                              .build())
+                      .build()))
           .daysSupply(ValueOnlyXmlAttribute.of("30"))
+          .pharmacist(
+              CodeAndNameXmlAttribute.builder().code("20144").name("PHARMACIST, THIRTY").build())
+          .vaType(ValueOnlyXmlAttribute.of("I"))
           .build();
     }
 

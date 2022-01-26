@@ -2,6 +2,7 @@ package gov.va.api.health.vistafhirquery.service.controller.medicationdispense;
 
 import static gov.va.api.health.vistafhirquery.service.controller.R4Transformers.isBlank;
 import static gov.va.api.health.vistafhirquery.service.controller.R4Transformers.toHumanDateTime;
+import static gov.va.api.health.vistafhirquery.service.controller.R4Transformers.toReference;
 import static gov.va.api.health.vistafhirquery.service.controller.R4Transformers.toResourceId;
 
 import gov.va.api.health.r4.api.datatypes.CodeableConcept;
@@ -26,17 +27,34 @@ import lombok.NonNull;
 
 @Builder
 public class R4MedicationDispenseTransformer {
-
   @NonNull String site;
 
   @NonNull String patientIcn;
 
-  @NonNull
-  private VprGetPatientData.Response.Results rpcResults;
+  @NonNull private VprGetPatientData.Response.Results rpcResults;
 
-  /**
-   * Vista Rx status -> FHIR status.
-   */
+  /** Vista vaType -> FHIR category. */
+  @SuppressWarnings("UnnecessaryParentheses")
+  public static CodeableConcept category(String vaType) {
+    String display =
+        switch (vaType) {
+          case "I", "V" -> "Inpatient";
+          case "O", "N" -> "Outpatient";
+          default -> throw new IllegalStateException("Unexpected va type: " + vaType);
+        };
+    return CodeableConcept.builder()
+        .coding(
+            List.of(
+                Coding.builder()
+                    .code(display.toLowerCase())
+                    .display(display)
+                    .system(
+                        "http://terminology.hl7.org/fhir/CodeSystem/medicationdispense-category")
+                    .build()))
+        .build();
+  }
+
+  /** Vista Rx status -> FHIR status. */
   @SuppressWarnings("UnnecessaryParentheses")
   public static Status r4PrescriptionStatus(String status) {
     return switch (status) {
@@ -47,6 +65,10 @@ public class R4MedicationDispenseTransformer {
       case "EXPIRED" -> Status.completed;
       default -> throw new IllegalStateException("Unexpected prescription status: " + status);
     };
+  }
+
+  private SimpleQuantity daysSupply(String daysSupply) {
+    return SimpleQuantity.builder().value(BigDecimal.valueOf(Long.parseLong(daysSupply))).build();
   }
 
   String idFrom(String id) {
@@ -60,6 +82,19 @@ public class R4MedicationDispenseTransformer {
     return Identifier.builder().value(prescription.value()).build().asList();
   }
 
+  private CodeableConcept medicationCodeableConcept(Product product) {
+    return CodeableConcept.builder()
+        .text(product.name())
+        .coding(
+            List.of(
+                Coding.builder()
+                    .code(product.clazz().code())
+                    .display(product.clazz().name())
+                    .system("https://www.pbm.va.gov/nationalformulary.asp")
+                    .build()))
+        .build();
+  }
+
   SimpleQuantity quantity(ValueOnlyXmlAttribute quantity, ValueOnlyXmlAttribute unit) {
     return SimpleQuantity.builder()
         .value(new BigDecimal(quantity.value()))
@@ -69,23 +104,6 @@ public class R4MedicationDispenseTransformer {
 
   public String toDate(String date) {
     return R4Transformers.optionalInstantToString(toHumanDateTime(date));
-  }
-
-  private CodeableConcept medicationCodeableConcept(Product product) {
-    return CodeableConcept.builder()
-        .text(product.name())
-        .coding(List.of(Coding.builder()
-            .code(product.clazz().code())
-            .display(product.clazz().name())
-            .system("https://www.pbm.va.gov/nationalformulary.asp")
-            .build()))
-        .build();
-  }
-
-  private SimpleQuantity daysSupply(String daysSupply) {
-    return SimpleQuantity.builder()
-        .value(BigDecimal.valueOf(Long.parseLong(daysSupply)))
-        .build();
   }
 
   public Stream<MedicationDispense> toFhir() {
@@ -106,6 +124,14 @@ public class R4MedicationDispenseTransformer {
         .status(r4PrescriptionStatus(rpcMed.status().value()))
         .medicationCodeableConcept(medicationCodeableConcept(rpcMed.product().get(0)))
         .daysSupply(daysSupply(rpcMed.daysSupply().value()))
+        .subject(toReference("Patient", patientIcn, null))
+        .performer(
+            MedicationDispense.Performer.builder()
+                .actor(
+                    toReference(
+                        "Practitioner", rpcMed.pharmacist().code(), rpcMed.pharmacist().name()))
+                .build())
+        .category(category(rpcMed.vaType().value()))
         .build();
   }
 }
