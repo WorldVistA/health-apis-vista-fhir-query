@@ -195,7 +195,7 @@ public class R4CoverageTransformer {
       return null;
     }
     return Coverage.builder()
-        .id(patientCoordinateStringFrom(patientIcn, site(), entry.ien()))
+        .id(patientCoordinateStringFrom(patientIcn, site(), InsuranceType.FILE_NUMBER, entry.ien()))
         .meta(Meta.builder().source(site()).build())
         .extension(extensions(entry))
         .status(Status.active)

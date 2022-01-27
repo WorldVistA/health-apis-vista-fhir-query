@@ -32,7 +32,7 @@ public final class SystemDefinitions {
   private static TestIds idsForLocalEnvironment() {
     return TestIds.builder()
         .appointment("I3-KHQ4cxv5wNA3A6sawDxVtim61Nu7oEarzxdGh0rK0aqHGhoA2iaX0o")
-        .coverage("I3-KIP2d05814vy8hy5ghAbLQwDUt9O6qLsSCqMjdnOSKF")
+        .coverage("I3-KIP2d05814vy8hy5ghAbLSc8yILbHdp9TOEEBgWJThb")
         .insurancePlan("I3-1JeCN3qnboBvfJAeuA5VVg")
         .organizations(
             OrganizationIds.builder()

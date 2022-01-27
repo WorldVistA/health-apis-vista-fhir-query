@@ -22,6 +22,7 @@ import gov.va.api.health.vistafhirquery.service.controller.R4BundlerFactory;
 import gov.va.api.health.vistafhirquery.service.controller.R4Bundling;
 import gov.va.api.health.vistafhirquery.service.controller.R4Transformation;
 import gov.va.api.health.vistafhirquery.service.controller.RequestPayloadExceptions.MissingRequiredField;
+import gov.va.api.health.vistafhirquery.service.controller.ResourceExceptions.NotFound;
 import gov.va.api.health.vistafhirquery.service.controller.recordcontext.CreatePatientRecordWriteContext;
 import gov.va.api.health.vistafhirquery.service.controller.recordcontext.PatientRecordWriteContext;
 import gov.va.api.health.vistafhirquery.service.controller.recordcontext.UpdatePatientRecordWriteContext;
@@ -121,7 +122,13 @@ public class R4SiteCoverageController {
   @GetMapping(value = "/hcs/{site}/r4/Coverage/{publicId}")
   public Coverage coverageRead(
       @PathVariable(value = "site") String site, @PathVariable(value = "publicId") String id) {
-    var coordinates = witnessProtection.toPatientTypeCoordinatesOrDie(id, Coverage.class);
+    var coordinates =
+        witnessProtection.toPatientTypeCoordinatesOrDie(
+            id, Coverage.class, InsuranceType.FILE_NUMBER);
+    if (!InsuranceType.FILE_NUMBER.equals(coordinates.file())) {
+      throw new NotFound(
+          "Expected the ids file number to match the InsuranceType file, but it did not: " + id);
+    }
     var request = lighthouseRpcGatewayRequest(site, manifestRequest(coordinates));
     var response = charon.request(request);
     var lhsResponse = lighthouseRpcGatewayResponse(response);
@@ -166,7 +173,9 @@ public class R4SiteCoverageController {
             .body(body)
             .patientIcn(beneficiaryOrDie(body))
             .existingRecordPublicId(id)
-            .existingRecord(witnessProtection.toPatientTypeCoordinatesOrDie(id, Coverage.class))
+            .existingRecord(
+                witnessProtection.toPatientTypeCoordinatesOrDie(
+                    id, Coverage.class, InsuranceType.FILE_NUMBER))
             .build();
     patientRecordUpdateValidationRules().test(ctx);
     updateOrCreate(ctx);

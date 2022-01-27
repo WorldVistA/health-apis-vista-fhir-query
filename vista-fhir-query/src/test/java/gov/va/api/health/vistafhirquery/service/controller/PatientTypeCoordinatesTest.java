@@ -8,24 +8,30 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 
 public class PatientTypeCoordinatesTest {
-  @Test
-  void identifierFromStringSuccess() {
-    var sample = "p1+123+456";
-    var expected = PatientTypeCoordinates.builder().icn("p1").site("123").ien("456").build();
-    assertThat(PatientTypeCoordinates.fromString(sample)).isEqualTo(expected);
-  }
-
   @ParameterizedTest
-  @ValueSource(strings = {"p1", "123+456", "p1+123+456+789"})
+  @ValueSource(strings = {"p1", "123+456", "p1+123+456+789+shank"})
   void identifierFromStringThrowsIllegalArgumentForBadValues(String badId) {
     assertThatExceptionOfType(IllegalArgumentException.class)
-        .isThrownBy(() -> PatientTypeCoordinates.fromString(badId));
+        .isThrownBy(() -> PatientTypeCoordinates.fromString(badId, "ignored"));
   }
 
   @Test
-  void identifierToString() {
-    var sample = PatientTypeCoordinates.builder().icn("p1").site("123").ien("456").build();
-    var expected = "p1+123+456";
-    assertThat(sample.toString()).isEqualTo(expected);
+  void roundTrip() {
+    var sample = "p1+123+456+789";
+    var expected =
+        PatientTypeCoordinates.builder().icn("p1").site("123").file("456").ien("789").build();
+    var pc = PatientTypeCoordinates.fromString(sample, "ignored");
+    assertThat(pc).isEqualTo(expected);
+    assertThat(pc.toString()).isEqualTo(sample);
+  }
+
+  @Test
+  void roundTripUsingDefaultFile() {
+    var sample = "p1+123+789";
+    var pc = PatientTypeCoordinates.fromString(sample, "456");
+    assertThat(pc)
+        .isEqualTo(
+            PatientTypeCoordinates.builder().icn("p1").site("123").file("456").ien("789").build());
+    assertThat(pc.toString()).isEqualTo("p1+123+456+789");
   }
 }

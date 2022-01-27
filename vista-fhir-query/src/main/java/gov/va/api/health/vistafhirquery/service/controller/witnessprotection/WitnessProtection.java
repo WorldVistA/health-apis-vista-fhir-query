@@ -25,9 +25,10 @@ public interface WitnessProtection {
 
   /** Try to parse patient type coordinates given a public id. */
   default <R extends Resource> PatientTypeCoordinates toPatientTypeCoordinatesOrDie(
-      String publicId, Class<R> resourceType) {
+      String publicId, Class<R> resourceType, String defaultFile) {
     try {
-      return PatientTypeCoordinates.fromString(privateIdForResourceOrDie(publicId, resourceType));
+      return PatientTypeCoordinates.fromString(
+          privateIdForResourceOrDie(publicId, resourceType), defaultFile);
     } catch (IdEncoder.BadId | IllegalArgumentException e) {
       throw ResourceExceptions.NotFound.because("Unsupported id %s", publicId);
     }

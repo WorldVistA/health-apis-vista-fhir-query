@@ -33,6 +33,7 @@ public class CreatePatientRecordWriteContext<BodyT extends IsResource>
     return PatientTypeCoordinates.builder()
         .site(site())
         .icn(patientIcn())
+        .file(fileNumber())
         .ien(result().ien())
         .build()
         .toString();

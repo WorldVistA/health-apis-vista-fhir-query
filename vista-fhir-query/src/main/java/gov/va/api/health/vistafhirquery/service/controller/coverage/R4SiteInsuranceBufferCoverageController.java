@@ -58,7 +58,11 @@ public class R4SiteInsuranceBufferCoverageController {
                 .patientIcn(beneficiaryOrDie(body))
                 .build());
     var resourceId = witnessProtection.toPublicId(Coverage.class, ctx.newResourceId());
-    var newResourceUrl = bundlerFactory.linkProperties().r4().readUrl(site, "Coverage", resourceId);
+    var newResourceUrl =
+        bundlerFactory
+            .linkProperties()
+            .r4()
+            .readUrl(site, Coverage.class.getSimpleName(), resourceId);
     updateResponseForCreatedResource(response, newResourceUrl);
   }
 

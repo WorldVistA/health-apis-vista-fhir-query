@@ -23,6 +23,7 @@ import gov.va.api.health.vistafhirquery.service.controller.ResourceExceptions.Ca
 import gov.va.api.health.vistafhirquery.service.controller.witnessprotection.AlternatePatientIds;
 import gov.va.api.health.vistafhirquery.service.controller.witnessprotection.WitnessProtection;
 import gov.va.api.lighthouse.charon.api.v1.RpcInvocationResultV1;
+import gov.va.api.lighthouse.charon.models.lhslighthouserpcgateway.InsuranceType;
 import gov.va.api.lighthouse.charon.models.lhslighthouserpcgateway.LhsLighthouseRpcGatewayCoverageSearch;
 import gov.va.api.lighthouse.charon.models.lhslighthouserpcgateway.LhsLighthouseRpcGatewayCoverageWrite;
 import gov.va.api.lighthouse.charon.models.lhslighthouserpcgateway.LhsLighthouseRpcGatewayCoverageWrite.Request.CoverageWriteApi;
@@ -80,7 +81,7 @@ public class R4SiteCoverageControllerTest {
     var answer =
         answerFor(captor).value(results).invocationResult(_invocationResult(results)).build();
     when(charon.request(captor.capture())).thenAnswer(answer);
-    when(witnessProtection.toPublicId(Coverage.class, "p1+123+ip1")).thenReturn("public-ip1");
+    when(witnessProtection.toPublicId(Coverage.class, "p1+123+2.312+ip1")).thenReturn("public-ip1");
     _controller()
         .coverageCreate(
             response, "123", false, CoverageSamples.R4.create().coverage("123", "not-used", "p1"));
@@ -98,8 +99,15 @@ public class R4SiteCoverageControllerTest {
     var answer =
         answerFor(captor).value(results).invocationResult(_invocationResult(results)).build();
     when(charon.request(captor.capture())).thenAnswer(answer);
-    when(witnessProtection.toPatientTypeCoordinatesOrDie("pubCover1", Coverage.class))
-        .thenReturn(PatientTypeCoordinates.builder().icn("p1").site("123").ien("ip1").build());
+    when(witnessProtection.toPatientTypeCoordinatesOrDie(
+            "pubCover1", Coverage.class, InsuranceType.FILE_NUMBER))
+        .thenReturn(
+            PatientTypeCoordinates.builder()
+                .icn("p1")
+                .site("123")
+                .file(InsuranceType.FILE_NUMBER)
+                .ien("ip1")
+                .build());
     var actual = _controller().coverageRead("123", "pubCover1");
     var expected = CoverageSamples.R4.create().coverage("123", "ip1", "p1");
     assertThat(json(actual)).isEqualTo(json(expected));
@@ -158,8 +166,15 @@ public class R4SiteCoverageControllerTest {
     var answer =
         answerFor(captor).value(results).invocationResult(_invocationResult(results)).build();
     when(charon.request(captor.capture())).thenAnswer(answer);
-    when(witnessProtection.toPatientTypeCoordinatesOrDie("public-c1", Coverage.class))
-        .thenReturn(PatientTypeCoordinates.builder().site("123").ien("ip1").icn("p1").build());
+    when(witnessProtection.toPatientTypeCoordinatesOrDie(
+            "public-c1", Coverage.class, InsuranceType.FILE_NUMBER))
+        .thenReturn(
+            PatientTypeCoordinates.builder()
+                .site("123")
+                .file(InsuranceType.FILE_NUMBER)
+                .ien("ip1")
+                .icn("p1")
+                .build());
     _controller()
         .coverageUpdate(
             response, "123", "public-c1", CoverageSamples.R4.create().coverage("123", "ip1", "p1"));
@@ -173,8 +188,15 @@ public class R4SiteCoverageControllerTest {
   void updateThrowsCannotUpdateResourceWithMismatchedIdsWhenUrlAndPayloadIdsDoNotMatch(
       String resourceId) {
     var response = new MockHttpServletResponse();
-    when(witnessProtection.toPatientTypeCoordinatesOrDie("public-c1", Coverage.class))
-        .thenReturn(PatientTypeCoordinates.builder().site("123").ien("ip1").icn("p1").build());
+    when(witnessProtection.toPatientTypeCoordinatesOrDie(
+            "public-c1", Coverage.class, InsuranceType.FILE_NUMBER))
+        .thenReturn(
+            PatientTypeCoordinates.builder()
+                .site("123")
+                .file(InsuranceType.FILE_NUMBER)
+                .ien("ip1")
+                .icn("p1")
+                .build());
     assertThatExceptionOfType(CannotUpdateResourceWithMismatchedIds.class)
         .isThrownBy(
             () ->
@@ -195,8 +217,15 @@ public class R4SiteCoverageControllerTest {
     var answer =
         answerFor(captor).value(results).invocationResult(_invocationResult(results)).build();
     when(charon.request(captor.capture())).thenAnswer(answer);
-    when(witnessProtection.toPatientTypeCoordinatesOrDie("public-c1", Coverage.class))
-        .thenReturn(PatientTypeCoordinates.builder().site("123").ien("ip1").icn("p1").build());
+    when(witnessProtection.toPatientTypeCoordinatesOrDie(
+            "public-c1", Coverage.class, InsuranceType.FILE_NUMBER))
+        .thenReturn(
+            PatientTypeCoordinates.builder()
+                .site("123")
+                .file(InsuranceType.FILE_NUMBER)
+                .ien("ip1")
+                .icn("p1")
+                .build());
     assertThatExceptionOfType(AttemptToUpdateUnknownRecord.class)
         .isThrownBy(
             () ->
@@ -228,8 +257,15 @@ public class R4SiteCoverageControllerTest {
   @Test
   void updateThrowsWhenPatientMismatch() {
     var sample = CoverageSamples.R4.create().coverage("123", "456", "p1");
-    when(witnessProtection.toPatientTypeCoordinatesOrDie("public-c1", Coverage.class))
-        .thenReturn(PatientTypeCoordinates.builder().site("123").ien("456").icn("p1").build());
+    when(witnessProtection.toPatientTypeCoordinatesOrDie(
+            "public-c1", Coverage.class, InsuranceType.FILE_NUMBER))
+        .thenReturn(
+            PatientTypeCoordinates.builder()
+                .site("123")
+                .file(InsuranceType.FILE_NUMBER)
+                .ien("456")
+                .icn("p1")
+                .build());
     sample.beneficiary().reference("Patient/p2");
     assertThatExceptionOfType(ResourceExceptions.ExpectationFailed.class)
         .isThrownBy(
@@ -241,8 +277,15 @@ public class R4SiteCoverageControllerTest {
   @Test
   void updateThrowsWhenSiteMismatch() {
     var sample = CoverageSamples.R4.create().coverage("123", "456", "p1");
-    when(witnessProtection.toPatientTypeCoordinatesOrDie("public-c1", Coverage.class))
-        .thenReturn(PatientTypeCoordinates.builder().site("123").ien("456").icn("p1").build());
+    when(witnessProtection.toPatientTypeCoordinatesOrDie(
+            "public-c1", Coverage.class, InsuranceType.FILE_NUMBER))
+        .thenReturn(
+            PatientTypeCoordinates.builder()
+                .site("123")
+                .file(InsuranceType.FILE_NUMBER)
+                .ien("456")
+                .icn("p1")
+                .build());
     assertThatExceptionOfType(ResourceExceptions.ExpectationFailed.class)
         .isThrownBy(
             () ->

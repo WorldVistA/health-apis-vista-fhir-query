@@ -382,7 +382,7 @@ public class R4CoverageEligibilityResponseToVistaFileTransformer {
                 insurance.inforce(),
                 status -> coverageStatus(status, anyExcluded))
             .orElseThrow(() -> MissingRequiredField.builder().jsonPath(".inforce").build()));
-    patientCoordinatesForReference(insurance.coverage())
+    patientCoordinatesForReference(insurance.coverage(), InsuranceType.FILE_NUMBER)
         .map(
             id ->
                 WriteableFilemanValue.builder()

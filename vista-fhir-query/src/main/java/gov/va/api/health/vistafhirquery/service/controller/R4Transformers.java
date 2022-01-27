@@ -165,14 +165,22 @@ public class R4Transformers {
   }
 
   /** Build an identifier from a patient icn, site, and vista record id. */
-  public static String patientCoordinateStringFrom(String patientIcn, String site, String ien) {
-    return PatientTypeCoordinates.builder().icn(patientIcn).site(site).ien(ien).build().toString();
+  public static String patientCoordinateStringFrom(
+      String patientIcn, String site, String file, String ien) {
+    return PatientTypeCoordinates.builder()
+        .icn(patientIcn)
+        .site(site)
+        .file(file)
+        .ien(ien)
+        .build()
+        .toString();
   }
 
   /** Given a reference, get the id and try to parse it as patient coordinates. */
   public static Optional<PatientTypeCoordinates> patientCoordinatesForReference(
-      IsReference maybeReference) {
-    return coordinatesForReference(maybeReference, PatientTypeCoordinates::fromString);
+      IsReference maybeReference, String defaultFile) {
+    return coordinatesForReference(
+        maybeReference, ref -> PatientTypeCoordinates.fromString(ref, defaultFile));
   }
 
   /** Given a reference, get the id and try to parse it as record coordinates. */

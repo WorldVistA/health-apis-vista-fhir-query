@@ -15,13 +15,16 @@ class WitnessProtectionTest {
 
   @Test
   void toPatientTypeCoordinates() {
-    assertThat(new FugaziWP().toPatientTypeCoordinatesOrDie("fugazi:123+456+789", Patient.class))
-        .isEqualTo(PatientTypeCoordinates.fromString("123+456+789"));
+    assertThat(
+            new FugaziWP()
+                .toPatientTypeCoordinatesOrDie("fugazi:123+456+789", Patient.class, "888"))
+        .isEqualTo(PatientTypeCoordinates.fromString("123+456+789", "888"));
     assertThatExceptionOfType(NotFound.class)
         .isThrownBy(
-            () -> new FugaziWP().toPatientTypeCoordinatesOrDie("cannot-parse", Patient.class));
+            () ->
+                new FugaziWP().toPatientTypeCoordinatesOrDie("cannot-parse", Patient.class, "888"));
     assertThatExceptionOfType(NotFound.class)
-        .isThrownBy(() -> new BadIdWP().toPatientTypeCoordinatesOrDie("x", Patient.class));
+        .isThrownBy(() -> new BadIdWP().toPatientTypeCoordinatesOrDie("x", Patient.class, "888"));
   }
 
   @Test

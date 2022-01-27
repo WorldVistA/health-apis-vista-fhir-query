@@ -329,7 +329,7 @@ public class R4CoverageToInsuranceTypeFileTransformer {
     }
     Set<WriteableFilemanValue> fields = new HashSet<>();
     Optional.ofNullable(coverage().id())
-        .map(PatientTypeCoordinates::fromString)
+        .map(id -> PatientTypeCoordinates.fromString(id, InsuranceType.FILE_NUMBER))
         .map(
             factoryRegistry()
                 .get(InsuranceType.FILE_NUMBER)

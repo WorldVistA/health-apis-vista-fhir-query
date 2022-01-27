@@ -95,7 +95,7 @@ public class R4SiteCoverageEligibilityResponseControllerTest {
     var answer =
         answerFor(captor).value(results).invocationResult(_invocationResult(results)).build();
     when(charon.request(captor.capture())).thenAnswer(answer);
-    witnessProtection.add("public-ip1", "p1+123+ip1");
+    witnessProtection.add("public-ip1", "p1+123+2.312+ip1");
     _controller()
         .coverageEligibilityResponseCreate(
             response,

@@ -64,7 +64,7 @@ class R4SiteInsuranceBufferCoverageControllerTest {
         answerFor(captor).value(results).invocationResult(invocationResultV1(results)).build();
     when(mockCharon.request(captor.capture())).thenAnswer(answer);
     var coverageSample = CoverageSamples.R4.create().bufferCoverage("123", "cov1", "p1");
-    mockWitnessProtection.add("public-cov1", "p1+123+cov1");
+    mockWitnessProtection.add("public-cov1", "p1+123+355.33+cov1");
     var response = new MockHttpServletResponse();
     _insuranceBufferCoverageController().coverageCreate(response, "123", coverageSample);
     assertThat(captor.getValue().rpcRequest().api()).isEqualTo(CoverageWriteApi.CREATE);
@@ -82,7 +82,7 @@ class R4SiteInsuranceBufferCoverageControllerTest {
         answerFor(captor).value(results).invocationResult(invocationResultV1(results)).build();
     when(mockCharon.request(captor.capture())).thenAnswer(answer);
     var coverageSample = CoverageSamples.R4.create().bufferCoverage("123", "cov1", "p1");
-    mockWitnessProtection.add("public-cov1", "p1+123+cov1");
+    mockWitnessProtection.add("public-cov1", "p1+123+355.33+cov1");
     var response = new MockHttpServletResponse();
     _insuranceTypeCoverageController().coverageCreate(response, "123", true, coverageSample);
     assertThat(captor.getValue().rpcRequest().api()).isEqualTo(CoverageWriteApi.CREATE);

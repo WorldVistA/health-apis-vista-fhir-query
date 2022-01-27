@@ -3,7 +3,7 @@ package gov.va.api.health.vistafhirquery.service.controller.recordcontext;
 import static org.apache.commons.lang3.StringUtils.isBlank;
 
 import gov.va.api.health.fhir.api.IsResource;
-import gov.va.api.health.vistafhirquery.service.controller.RecordCoordinates;
+import gov.va.api.health.vistafhirquery.service.controller.IsSiteCoordinates;
 import gov.va.api.health.vistafhirquery.service.controller.ResourceExceptions.CannotUpdateResourceWithMismatchedIds;
 import gov.va.api.health.vistafhirquery.service.controller.ResourceExceptions.ExpectationFailed;
 import gov.va.api.health.vistafhirquery.service.controller.ResourceExceptions.MismatchedFileCoordinates;
@@ -12,14 +12,13 @@ import lombok.NoArgsConstructor;
 
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 public class Validations {
-  public static <BodyT extends IsResource> void filesMatch(
-      UpdateNonPatientRecordWriteContext<BodyT> ctx) {
+  public static <BodyT extends IsResource> void filesMatch(UpdateContext<BodyT> ctx) {
     filesMatch(ctx.existingRecordPublicId(), ctx.existingRecord(), ctx.fileNumber());
   }
 
   /** Throw NotFound if the coordinates do not match an expected file. */
   public static void filesMatch(
-      String publicId, RecordCoordinates requested, String... expectedFileNumbers) {
+      String publicId, IsSiteCoordinates requested, String... expectedFileNumbers) {
     for (var expectedFileNumber : expectedFileNumbers) {
       if (expectedFileNumber.equals(requested.file())) {
         return;
@@ -54,6 +53,7 @@ public class Validations {
       idsMatch(ctx);
       sitesMatch(ctx);
       patientsMatch(ctx);
+      filesMatch(ctx);
     };
   }
 

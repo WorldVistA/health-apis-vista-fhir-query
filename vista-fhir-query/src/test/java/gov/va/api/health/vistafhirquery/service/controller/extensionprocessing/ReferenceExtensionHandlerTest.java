@@ -83,13 +83,18 @@ public class ReferenceExtensionHandlerTest {
 
   public static class FugaziSiteCoordinates implements IsSiteCoordinates {
     @Override
+    public String file() {
+      return "f1";
+    }
+
+    @Override
     public String ien() {
       return "ien8";
     }
 
     @Override
     public String site() {
-      return "888";
+      return "s1";
     }
   }
 }

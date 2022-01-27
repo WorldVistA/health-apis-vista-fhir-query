@@ -73,6 +73,7 @@ public class R4CoverageEligibilityResponseTransformer {
                 PatientTypeCoordinates.builder()
                     .site(searchContext().site())
                     .icn(searchContext().patientIcn())
+                    .file(InsuranceType.FILE_NUMBER)
                     .ien(coverage.ien())
                     .build()))
         .inforce(

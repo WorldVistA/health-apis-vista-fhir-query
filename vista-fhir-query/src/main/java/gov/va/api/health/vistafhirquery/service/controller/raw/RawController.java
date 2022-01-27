@@ -11,6 +11,7 @@ import gov.va.api.health.vistafhirquery.service.controller.organization.R4SiteOr
 import gov.va.api.health.vistafhirquery.service.controller.witnessprotection.WitnessProtection;
 import gov.va.api.lighthouse.charon.api.v1.RpcInvocationResultV1;
 import gov.va.api.lighthouse.charon.models.TypeSafeRpcRequest;
+import gov.va.api.lighthouse.charon.models.lhslighthouserpcgateway.InsuranceType;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.NonNull;
@@ -53,7 +54,8 @@ public class RawController {
   public RpcInvocationResultV1 coverageEligibilityResponseById(
       @RequestParam(name = "id") String id) {
     var coordinates =
-        witnessProtection.toPatientTypeCoordinatesOrDie(id, CoverageEligibilityResponse.class);
+        witnessProtection.toPatientTypeCoordinatesOrDie(
+            id, CoverageEligibilityResponse.class, InsuranceType.FILE_NUMBER);
     return makeRequest(
         coordinates.site(),
         R4SiteCoverageEligibilityResponseController.manifestRequest(coordinates));
