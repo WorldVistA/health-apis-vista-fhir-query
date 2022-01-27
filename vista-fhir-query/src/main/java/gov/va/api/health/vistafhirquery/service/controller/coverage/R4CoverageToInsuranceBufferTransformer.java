@@ -107,7 +107,7 @@ public class R4CoverageToInsuranceBufferTransformer {
         .forString(
             InsuranceVerificationProcessor.OVERRIDE_FRESHNESS_FLAG,
             indexRegistry().get(InsuranceVerificationProcessor.FILE_NUMBER),
-            "1")
+            "0")
         .get();
   }
 
