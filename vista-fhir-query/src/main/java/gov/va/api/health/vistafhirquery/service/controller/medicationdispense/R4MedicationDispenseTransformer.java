@@ -117,6 +117,19 @@ public class R4MedicationDispenseTransformer {
     return rpcResults.medStream().map(this::toMedicationDispense).filter(Objects::nonNull);
   }
 
+  private List<Dosage> doseAndRate(Meds.Med rpcMed) {
+    return List.of(Dosage.builder()
+        .patientInstruction(rpcMed.ptInstructions().value())
+        .text(rpcMed.sig())
+        .doseAndRate(List.of(Dosage.DoseAndRate.builder()
+            .doseQuantity(SimpleQuantity.builder()
+                .value(BigDecimal.valueOf(Long.parseLong(rpcMed.dose().get(0).dose())))
+                .unit(rpcMed.dose().get(0).units())
+                .build())
+            .build()))
+        .build());
+  }
+
   private MedicationDispense toMedicationDispense(Meds.Med rpcMed) {
     if (rpcMed == null) {
       return null;
@@ -139,16 +152,7 @@ public class R4MedicationDispenseTransformer {
                         "Practitioner", rpcMed.pharmacist().code(), rpcMed.pharmacist().name()))
                 .build())
         .category(category(rpcMed.vaType().value()))
-        .dosageInstruction(List.of(Dosage.builder()
-            .patientInstruction(rpcMed.ptInstructions().value())
-            .text(rpcMed.sig())
-            .doseAndRate(List.of(Dosage.DoseAndRate.builder()
-                .doseQuantity(SimpleQuantity.builder()
-                    .value(BigDecimal.valueOf(Long.parseLong(rpcMed.dose().get(0).dose())))
-                    .unit(rpcMed.dose().get(0).units())
-                    .build())
-                .build()))
-            .build()))
+        .dosageInstruction(doseAndRate(rpcMed))
         .build();
   }
 }
