@@ -82,6 +82,48 @@ public class CoverageSamples {
           .build();
     }
 
+    public Coverage bufferCoverage() {
+      return bufferCoverage("666", "1,8,", "1010101010V666666");
+    }
+
+    public Coverage bufferCoverage(String station, String ien, String patient) {
+      return Coverage.builder()
+          .id(
+              PatientTypeCoordinates.builder()
+                  .icn(patient)
+                  .site(station)
+                  .ien(ien)
+                  .build()
+                  .toString())
+          .type(
+              CodeableConcept.builder().coding(Coding.builder().code("1").build().asList()).build())
+          .meta(Meta.builder().source(station).build())
+          .extension(extensions())
+          .status(Status.active)
+          .subscriber(Reference.builder().display("Insureds,Name").build())
+          .subscriberId("R50797108")
+          .beneficiary(beneficiary(patient))
+          .dependent("67890")
+          .relationship(relationship())
+          .period(period())
+          .payor(
+              List.of(
+                  Reference.builder()
+                      .reference(
+                          "Organization/"
+                              + RecordCoordinates.builder()
+                                  .site(station)
+                                  .file(InsuranceCompany.FILE_NUMBER)
+                                  .ien("4")
+                                  .build()
+                                  .toString())
+                      .display("BCBS OF FL")
+                      .build()))
+          .coverageClass(classes(station, patient))
+          .order(1)
+          .build();
+    }
+
     private List<Coverage.CoverageClass> classes(String station, String patient) {
       return List.of(
           Coverage.CoverageClass.builder()
@@ -185,6 +227,22 @@ public class CoverageSamples {
           insuranceValue(InsuranceType.STOP_POLICY_FROM_BILLING, "YES"));
     }
 
+    public Set<WriteableFilemanValue> createInsuranceBufferInput() {
+      return Set.of(
+          pointerTo("355.12", "22"),
+          insuranceBufferValue(
+              InsuranceVerificationProcessor.INSURANCE_COMPANY_NAME,
+              "Placeholder Insurance Company Name"),
+          insuranceBufferValue(InsuranceVerificationProcessor.WHOSE_INSURANCE, "s"),
+          insuranceBufferValue(InsuranceVerificationProcessor.NAME_OF_INSURED, "Insureds,Name"),
+          insuranceBufferValue(InsuranceVerificationProcessor.PT_RELATIONSHIP_HIPAA, "SPOUSE"),
+          insuranceBufferValue(InsuranceVerificationProcessor.PATIENT_ID, "13579"),
+          insuranceBufferValue(InsuranceVerificationProcessor.OVERRIDE_FRESHNESS_FLAG, "1"),
+          insuranceBufferValue(InsuranceVerificationProcessor.STATUS, "E"),
+          insuranceBufferValue(InsuranceVerificationProcessor.INQ_SERVICE_TYPE_CODE_1, "1"),
+          insuranceBufferValue(InsuranceVerificationProcessor.SUBSCRIBER_ID, "R50797108"));
+    }
+
     public LhsLighthouseRpcGatewayResponse.Results createInsuranceBufferResults(String id) {
       return LhsLighthouseRpcGatewayResponse.Results.builder()
           .results(
@@ -260,6 +318,15 @@ public class CoverageSamples {
                       .ien(id)
                       .fields(fields())
                       .build()))
+          .build();
+    }
+
+    private WriteableFilemanValue insuranceBufferValue(String field, String value) {
+      return WriteableFilemanValue.builder()
+          .file(InsuranceVerificationProcessor.FILE_NUMBER)
+          .index(1)
+          .field(field)
+          .value(value)
           .build();
     }
 

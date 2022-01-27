@@ -7,6 +7,13 @@
     }
   ],
   "status": "active",
+  "type": {
+    "coding": [
+      {
+        "code": "1"
+      }
+    ]
+  },
   "subscriberId": "R50797108",
   "beneficiary": {
     "reference": "http://localhost:8090/data-query/r4/Patient/195607",
@@ -20,6 +27,9 @@
       },
       "value": "1234"
     }
+  },
+  "subscriber": {
+    "display": "Insureds,Name"
   },
   "dependent": "2",
   "relationship": {
