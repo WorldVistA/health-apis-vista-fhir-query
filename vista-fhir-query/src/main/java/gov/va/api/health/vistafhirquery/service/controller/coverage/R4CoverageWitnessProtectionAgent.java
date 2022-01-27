@@ -1,5 +1,6 @@
 package gov.va.api.health.vistafhirquery.service.controller.coverage;
 
+import gov.va.api.health.fhir.api.Safe;
 import gov.va.api.health.r4.api.resources.Coverage;
 import gov.va.api.health.vistafhirquery.service.controller.witnessprotection.ProtectedReference;
 import gov.va.api.health.vistafhirquery.service.controller.witnessprotection.ProtectedReferenceFactory;
@@ -31,14 +32,13 @@ public class R4CoverageWitnessProtectionAgent implements WitnessProtectionAgent<
 
     Stream<ProtectedReference> referenceGroups =
         Stream.concat(
-            resource.payor().stream()
+            Safe.stream(resource.payor())
                 .map(
                     p ->
                         protectedReferenceFactory
                             .forReference(resource.meta().source(), p)
-                            .orElse(null))
-                .filter(Objects::nonNull),
-            resource.coverageClass().stream()
+                            .orElse(null)),
+            Safe.stream(resource.coverageClass())
                 .map(
                     c -> {
                       int indexOfId = c.value().lastIndexOf('/') + 1;
@@ -53,9 +53,12 @@ public class R4CoverageWitnessProtectionAgent implements WitnessProtectionAgent<
                           .build();
                     }));
     return Stream.concat(
-        Stream.of(
-            protectedReferenceFactory.forResource(resource, resource::id),
-            protectedReferenceFactory.forReferenceWithoutSite(resource.beneficiary()).orElse(null)),
-        referenceGroups);
+            Stream.of(
+                protectedReferenceFactory.forResource(resource, resource::id),
+                protectedReferenceFactory
+                    .forReferenceWithoutSite(resource.beneficiary())
+                    .orElse(null)),
+            referenceGroups)
+        .filter(Objects::nonNull);
   }
 }

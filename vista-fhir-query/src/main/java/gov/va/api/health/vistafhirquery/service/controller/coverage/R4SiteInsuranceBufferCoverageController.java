@@ -15,13 +15,16 @@ import gov.va.api.health.vistafhirquery.service.controller.recordcontext.Patient
 import gov.va.api.health.vistafhirquery.service.controller.witnessprotection.WitnessProtection;
 import gov.va.api.lighthouse.charon.models.lhslighthouserpcgateway.InsuranceVerificationProcessor;
 import gov.va.api.lighthouse.charon.models.lhslighthouserpcgateway.LhsLighthouseRpcGatewayCoverageWrite;
+import gov.va.api.lighthouse.charon.models.lhslighthouserpcgateway.LhsLighthouseRpcGatewayResponse;
 import gov.va.api.lighthouse.charon.models.lhslighthouserpcgateway.PatientId;
+import java.util.List;
 import javax.servlet.http.HttpServletResponse;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.NonNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.validation.annotation.Validated;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -64,6 +67,21 @@ public class R4SiteInsuranceBufferCoverageController {
             .r4()
             .readUrl(site, Coverage.class.getSimpleName(), resourceId);
     updateResponseForCreatedResource(response, newResourceUrl);
+  }
+
+  /** Read support. */
+  public Coverage coverageRead(
+      @PathVariable(value = "site") String site, @PathVariable(value = "publicId") String id) {
+    return InsuranceBufferToR4CoverageTransformer.builder()
+        .site(site)
+        .results(
+            LhsLighthouseRpcGatewayResponse.Results.builder()
+                .results(List.of(LhsLighthouseRpcGatewayResponse.FilemanEntry.builder().build()))
+                .build())
+        .build()
+        .toFhir()
+        .findFirst()
+        .orElseThrow(() -> new IllegalStateException("Literally how?: " + id));
   }
 
   private LhsLighthouseRpcGatewayCoverageWrite.Request coverageWriteDetails(

@@ -108,7 +108,7 @@ public class R4SiteCoverageControllerTest {
                 .file(InsuranceType.FILE_NUMBER)
                 .ien("ip1")
                 .build());
-    var actual = _controller().coverageRead("123", "pubCover1");
+    var actual = _controller().coverageRead("123", "pubCover1", false);
     var expected = CoverageSamples.R4.create().coverage("123", "ip1", "p1");
     assertThat(json(actual)).isEqualTo(json(expected));
     var request = captor.getValue();

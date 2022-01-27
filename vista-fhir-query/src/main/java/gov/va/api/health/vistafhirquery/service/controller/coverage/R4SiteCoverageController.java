@@ -121,7 +121,21 @@ public class R4SiteCoverageController {
   /** Read support. */
   @GetMapping(value = "/hcs/{site}/r4/Coverage/{publicId}")
   public Coverage coverageRead(
-      @PathVariable(value = "site") String site, @PathVariable(value = "publicId") String id) {
+      @PathVariable(value = "site") String site,
+      @PathVariable(value = "publicId") String id,
+      @RequestHeader(
+              value = "insurance-buffer",
+              required = false,
+              defaultValue = "${vista-fhir-query.coverage.use-insurance-buffer}")
+          boolean useInsuranceBuffer) {
+    if (useInsuranceBuffer) {
+      return R4SiteInsuranceBufferCoverageController.builder()
+          .bundlerFactory(bundlerFactory)
+          .charon(charon)
+          .witnessProtection(witnessProtection)
+          .build()
+          .coverageRead(site, id);
+    }
     var coordinates =
         witnessProtection.toPatientTypeCoordinatesOrDie(
             id, Coverage.class, InsuranceType.FILE_NUMBER);

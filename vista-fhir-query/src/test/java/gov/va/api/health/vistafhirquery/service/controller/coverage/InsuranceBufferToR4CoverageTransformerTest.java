@@ -20,6 +20,6 @@ class InsuranceBufferToR4CoverageTransformerTest {
   @Test
   void toFhir() {
     assertThat(_transformer().toFhir())
-        .containsOnly(Coverage.builder().status(Status.draft).build());
+        .containsOnly(Coverage.builder().id("shanktopus").status(Status.draft).build());
   }
 }
