@@ -4,9 +4,14 @@ import static gov.va.api.health.vistafhirquery.service.controller.R4Transformers
 
 import gov.va.api.health.r4.api.datatypes.CodeableConcept;
 import gov.va.api.health.r4.api.datatypes.Coding;
+import gov.va.api.health.r4.api.datatypes.Duration;
 import gov.va.api.health.r4.api.datatypes.Identifier;
+import gov.va.api.health.r4.api.datatypes.Range;
 import gov.va.api.health.r4.api.datatypes.SimpleQuantity;
+import gov.va.api.health.r4.api.datatypes.Timing;
+import gov.va.api.health.r4.api.elements.Dosage;
 import gov.va.api.health.r4.api.elements.Meta;
+import gov.va.api.health.r4.api.elements.Reference;
 import gov.va.api.health.r4.api.resources.MedicationDispense;
 import gov.va.api.health.r4.api.resources.MedicationDispense.Status;
 import gov.va.api.lighthouse.charon.models.CodeAndNameXmlAttribute;
@@ -69,6 +74,21 @@ public class MedicationDispenseSamples {
                                   "http://terminology.hl7.org/fhir/CodeSystem/medicationdispense-category")
                               .build()))
                   .build())
+          .dosageInstruction(
+              List.of(
+                  Dosage.builder()
+                      .text("TAKE 1 TAB BY MOUTH EVERY DAY")
+                      .patientInstruction("Take with food")
+                      .doseAndRate(
+                          List.of(
+                              Dosage.DoseAndRate.builder()
+                                  .doseQuantity(
+                                      SimpleQuantity.builder()
+                                          .value(BigDecimal.valueOf(10))
+                                          .unit("mg")
+                                          .build())
+                                  .build()))
+                      .build()))
           .build();
     }
   }
@@ -103,6 +123,11 @@ public class MedicationDispenseSamples {
           .pharmacist(
               CodeAndNameXmlAttribute.builder().code("20144").name("PHARMACIST, THIRTY").build())
           .vaType(ValueOnlyXmlAttribute.of("I"))
+          .dose(
+              List.of(
+                  Med.Dose.builder().noun("TAB").dose("10").units("mg").unitsPerDose("1").build()))
+          .sig("TAKE 1 TAB BY MOUTH EVERY DAY")
+          .ptInstructions(ValueOnlyXmlAttribute.of("Take with food"))
           .build();
     }
 

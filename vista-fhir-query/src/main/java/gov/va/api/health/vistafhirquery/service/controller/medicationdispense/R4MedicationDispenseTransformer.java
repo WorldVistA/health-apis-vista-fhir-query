@@ -9,6 +9,7 @@ import gov.va.api.health.r4.api.datatypes.CodeableConcept;
 import gov.va.api.health.r4.api.datatypes.Coding;
 import gov.va.api.health.r4.api.datatypes.Identifier;
 import gov.va.api.health.r4.api.datatypes.SimpleQuantity;
+import gov.va.api.health.r4.api.elements.Dosage;
 import gov.va.api.health.r4.api.elements.Meta;
 import gov.va.api.health.r4.api.resources.MedicationDispense;
 import gov.va.api.health.r4.api.resources.MedicationDispense.Status;
@@ -27,13 +28,17 @@ import lombok.NonNull;
 
 @Builder
 public class R4MedicationDispenseTransformer {
+
   @NonNull String site;
 
   @NonNull String patientIcn;
 
-  @NonNull private VprGetPatientData.Response.Results rpcResults;
+  @NonNull
+  private VprGetPatientData.Response.Results rpcResults;
 
-  /** Vista vaType -> FHIR category. */
+  /**
+   * Vista vaType -> FHIR category.
+   */
   @SuppressWarnings("UnnecessaryParentheses")
   public static CodeableConcept category(String vaType) {
     String display =
@@ -54,7 +59,9 @@ public class R4MedicationDispenseTransformer {
         .build();
   }
 
-  /** Vista Rx status -> FHIR status. */
+  /**
+   * Vista Rx status -> FHIR status.
+   */
   @SuppressWarnings("UnnecessaryParentheses")
   public static Status r4PrescriptionStatus(String status) {
     return switch (status) {
@@ -132,6 +139,16 @@ public class R4MedicationDispenseTransformer {
                         "Practitioner", rpcMed.pharmacist().code(), rpcMed.pharmacist().name()))
                 .build())
         .category(category(rpcMed.vaType().value()))
+        .dosageInstruction(List.of(Dosage.builder()
+            .patientInstruction(rpcMed.ptInstructions().value())
+            .text(rpcMed.sig())
+            .doseAndRate(List.of(Dosage.DoseAndRate.builder()
+                .doseQuantity(SimpleQuantity.builder()
+                    .value(BigDecimal.valueOf(Long.parseLong(rpcMed.dose().get(0).dose())))
+                    .unit(rpcMed.dose().get(0).units())
+                    .build())
+                .build()))
+            .build()))
         .build();
   }
 }
