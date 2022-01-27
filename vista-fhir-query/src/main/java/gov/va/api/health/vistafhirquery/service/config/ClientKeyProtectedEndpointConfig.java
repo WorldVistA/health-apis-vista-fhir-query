@@ -3,11 +3,10 @@ package gov.va.api.health.vistafhirquery.service.config;
 import static gov.va.api.lighthouse.talos.Responses.unauthorizedAsJson;
 import static org.apache.commons.lang3.StringUtils.isBlank;
 
+import gov.va.api.health.vistafhirquery.service.util.CsvParameters;
 import gov.va.api.lighthouse.talos.ClientKeyProtectedEndpointFilter;
-import java.util.Arrays;
 import java.util.List;
 import java.util.function.Consumer;
-import java.util.stream.Collectors;
 import javax.servlet.http.HttpServletResponse;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
@@ -39,7 +38,7 @@ public class ClientKeyProtectedEndpointConfig {
     } else {
       log.info(
           "ClientKeyProtectedEndpointFilter enabled with priority {}", registration.getOrder());
-      clientKeys = Arrays.stream(clientKeysCsv.split(",")).collect(Collectors.toList());
+      clientKeys = CsvParameters.toList(clientKeysCsv);
     }
 
     registration.setFilter(

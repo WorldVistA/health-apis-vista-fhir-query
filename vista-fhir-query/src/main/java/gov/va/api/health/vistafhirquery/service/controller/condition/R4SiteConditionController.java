@@ -2,6 +2,7 @@ package gov.va.api.health.vistafhirquery.service.controller.condition;
 
 import static gov.va.api.health.vistafhirquery.service.charonclient.CharonRequests.vprGetPatientData;
 import static java.util.stream.Collectors.toSet;
+import static org.apache.commons.lang3.StringUtils.isBlank;
 
 import gov.va.api.health.r4.api.resources.Condition;
 import gov.va.api.health.vistafhirquery.service.api.R4ConditionApi;
@@ -11,9 +12,9 @@ import gov.va.api.health.vistafhirquery.service.controller.R4Bundler;
 import gov.va.api.health.vistafhirquery.service.controller.R4BundlerFactory;
 import gov.va.api.health.vistafhirquery.service.controller.R4Bundling;
 import gov.va.api.health.vistafhirquery.service.controller.R4Transformation;
+import gov.va.api.health.vistafhirquery.service.util.CsvParameters;
 import gov.va.api.lighthouse.charon.models.vprgetpatientdata.VprGetPatientData;
 import gov.va.api.lighthouse.charon.models.vprgetpatientdata.VprGetPatientData.Request.PatientId;
-import java.util.Arrays;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
@@ -45,11 +46,10 @@ public class R4SiteConditionController implements R4ConditionApi {
   private final CharonClient charonClient;
 
   private Set<VprGetPatientData.Domains> categoryIs(String categoryCsv) {
-    if (categoryCsv == null) {
+    if (isBlank(categoryCsv)) {
       return Set.of(VprGetPatientData.Domains.problems, VprGetPatientData.Domains.visits);
     }
-    var requestedCategories = categoryCsv.split(",", -1);
-    return Arrays.stream(requestedCategories)
+    return CsvParameters.toSet(categoryCsv).stream()
         .map(this::toVistaDomain)
         .filter(Objects::nonNull)
         .collect(toSet());

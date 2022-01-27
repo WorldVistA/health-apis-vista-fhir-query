@@ -22,9 +22,9 @@ import gov.va.api.health.vistafhirquery.service.controller.R4Transformation;
 import gov.va.api.health.vistafhirquery.service.controller.ResourceExceptions.NotFound;
 import gov.va.api.health.vistafhirquery.service.controller.SegmentedVistaIdentifier;
 import gov.va.api.health.vistafhirquery.service.controller.witnessprotection.WitnessProtection;
+import gov.va.api.health.vistafhirquery.service.util.CsvParameters;
 import gov.va.api.lighthouse.charon.models.vprgetpatientdata.VprGetPatientData;
 import gov.va.api.lighthouse.charon.models.vprgetpatientdata.VprGetPatientData.Domains;
-import java.util.Arrays;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
@@ -188,7 +188,7 @@ public class R4SiteObservationController implements R4SiteObservationApi {
     if (isBlank(categoryCsv)) {
       return Set.of(Domains.labs, Domains.vitals);
     }
-    return Arrays.stream(categoryCsv.split(",", -1))
+    return CsvParameters.toStream(categoryCsv)
         .map(this::vprDomainForCategory)
         .filter(Objects::nonNull)
         .collect(toSet());

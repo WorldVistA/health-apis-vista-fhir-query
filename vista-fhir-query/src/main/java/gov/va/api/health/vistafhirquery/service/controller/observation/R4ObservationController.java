@@ -18,13 +18,13 @@ import gov.va.api.health.vistafhirquery.service.controller.ResourceExceptions;
 import gov.va.api.health.vistafhirquery.service.controller.SegmentedVistaIdentifier;
 import gov.va.api.health.vistafhirquery.service.controller.VistalinkApiClient;
 import gov.va.api.health.vistafhirquery.service.controller.witnessprotection.WitnessProtection;
+import gov.va.api.health.vistafhirquery.service.util.CsvParameters;
 import gov.va.api.lighthouse.charon.api.RpcResponse;
 import gov.va.api.lighthouse.charon.api.RpcVistaTargets;
 import gov.va.api.lighthouse.charon.api.RpcVistaTargets.RpcVistaTargetsBuilder;
 import gov.va.api.lighthouse.charon.models.vprgetpatientdata.Labs;
 import gov.va.api.lighthouse.charon.models.vprgetpatientdata.Vitals;
 import gov.va.api.lighthouse.charon.models.vprgetpatientdata.VprGetPatientData;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -79,8 +79,7 @@ public class R4ObservationController {
     if (categoryCsv == null) {
       return Set.of(VprGetPatientData.Domains.vitals, VprGetPatientData.Domains.labs);
     }
-    var requestedCategories = categoryCsv.split(",", -1);
-    return Arrays.stream(requestedCategories)
+    return CsvParameters.toStream(categoryCsv)
         .map(this::toVistaDomain)
         .filter(Objects::nonNull)
         .collect(toSet());
@@ -178,15 +177,14 @@ public class R4ObservationController {
     String forceInclude = request.getHeader(VISTA_INCLUDE_HEADER);
     if (isNotEmpty(forceInclude)) {
       log.info("Forcing inclusion of Vista {}", sanitize(forceInclude));
-      targetBuilder.include(List.of(forceInclude.split(",", -1)));
+      targetBuilder.include(CsvParameters.toList(forceInclude));
     }
     String forceExclude = request.getHeader(VISTA_EXCLUDE_HEADER);
     if (isNotEmpty(forceExclude)) {
       log.info("Forcing exclusion of Vista {}", sanitize(forceExclude));
-      targetBuilder.exclude(List.of(forceExclude.split(",", -1)));
+      targetBuilder.exclude(CsvParameters.toList(forceExclude));
     }
-    RpcVistaTargets target = targetBuilder.build();
-    return target;
+    return targetBuilder.build();
   }
 
   private R4Bundler<VprGetPatientData.Response, Observation, Observation.Entry, Observation.Bundle>

@@ -2,13 +2,12 @@ package gov.va.api.health.vistafhirquery.service.controller.observation;
 
 import static gov.va.api.health.vistafhirquery.service.controller.observation.VitalVuidMapper.forLoinc;
 import static java.util.stream.Collectors.toList;
-import static java.util.stream.Collectors.toSet;
 
 import gov.va.api.health.r4.api.resources.Observation;
+import gov.va.api.health.vistafhirquery.service.util.CsvParameters;
 import gov.va.api.lighthouse.charon.models.vprgetpatientdata.Labs;
 import gov.va.api.lighthouse.charon.models.vprgetpatientdata.Vitals;
 import gov.va.api.lighthouse.charon.models.vprgetpatientdata.VprGetPatientData;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -44,8 +43,7 @@ public class R4ObservationCollector {
     this.patientIcn = patientIcn;
     this.vitalVuidMapper = vitalVuidMapper;
     this.codes = codes;
-    this.categories =
-        categoryCsv == null ? null : Arrays.stream(categoryCsv.split(",", -1)).collect(toSet());
+    this.categories = CsvParameters.toSet(categoryCsv);
     // Backwards Compatibility
     // ToDo remove in task API-11858
     if (resultsEntry != null) {
@@ -61,7 +59,7 @@ public class R4ObservationCollector {
     if (codes() == null) {
       return AllowedObservationCodes.allowAll();
     }
-    List<String> loincCodes = Arrays.asList(codes().split(",", -1));
+    List<String> loincCodes = CsvParameters.toList(codes());
     List<String> vuidCodes =
         loincCodes.stream()
             .flatMap(code -> vitalVuidMapper().mappings().stream().filter(forLoinc(code)))
@@ -97,7 +95,7 @@ public class R4ObservationCollector {
   }
 
   Stream<Observation> toFhir() {
-    if (categories() == null) {
+    if (categories().isEmpty()) {
       return Stream.concat(vitals(), labs());
     }
     return categories().stream().flatMap(this::observationsForCategory);
