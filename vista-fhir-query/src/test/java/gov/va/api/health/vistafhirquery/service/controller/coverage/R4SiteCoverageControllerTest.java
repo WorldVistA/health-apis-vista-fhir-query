@@ -24,6 +24,7 @@ import gov.va.api.health.vistafhirquery.service.controller.witnessprotection.Alt
 import gov.va.api.health.vistafhirquery.service.controller.witnessprotection.WitnessProtection;
 import gov.va.api.lighthouse.charon.api.v1.RpcInvocationResultV1;
 import gov.va.api.lighthouse.charon.models.lhslighthouserpcgateway.InsuranceType;
+import gov.va.api.lighthouse.charon.models.lhslighthouserpcgateway.InsuranceVerificationProcessor;
 import gov.va.api.lighthouse.charon.models.lhslighthouserpcgateway.LhsLighthouseRpcGatewayCoverageSearch;
 import gov.va.api.lighthouse.charon.models.lhslighthouserpcgateway.LhsLighthouseRpcGatewayCoverageWrite;
 import gov.va.api.lighthouse.charon.models.lhslighthouserpcgateway.LhsLighthouseRpcGatewayCoverageWrite.Request.CoverageWriteApi;
@@ -110,6 +111,30 @@ public class R4SiteCoverageControllerTest {
                 .build());
     var actual = _controller().coverageRead("123", "pubCover1", false);
     var expected = CoverageSamples.R4.create().coverage("123", "ip1", "p1");
+    assertThat(json(actual)).isEqualTo(json(expected));
+    var request = captor.getValue();
+    assertThat(request.vista()).isEqualTo("123");
+  }
+
+  @Test
+  void readFromBuffer() {
+    var samples = CoverageSamples.VistaLhsLighthouseRpcGateway.create();
+    var results = samples.createInsuranceBufferResults("ip1");
+    var captor = requestCaptor(LhsLighthouseRpcGatewayGetsManifest.Request.class);
+    var answer =
+        answerFor(captor).value(results).invocationResult(_invocationResult(results)).build();
+    when(charon.request(captor.capture())).thenAnswer(answer);
+    when(witnessProtection.toPatientTypeCoordinatesOrDie(
+            "pubCover1", Coverage.class, InsuranceVerificationProcessor.FILE_NUMBER))
+        .thenReturn(
+            PatientTypeCoordinates.builder()
+                .icn("p1")
+                .site("123")
+                .file(InsuranceVerificationProcessor.FILE_NUMBER)
+                .ien("ip1")
+                .build());
+    var actual = _controller().coverageRead("123", "pubCover1", true);
+    var expected = CoverageSamples.R4.create().coverageInsuranceBufferRead("p1", "123", "ip1");
     assertThat(json(actual)).isEqualTo(json(expected));
     var request = captor.getValue();
     assertThat(request.vista()).isEqualTo("123");

@@ -2,25 +2,29 @@ package gov.va.api.health.vistafhirquery.service.controller.coverage;
 
 import static gov.va.api.health.vistafhirquery.service.charonclient.CharonRequests.lighthouseRpcGatewayRequest;
 import static gov.va.api.health.vistafhirquery.service.charonclient.CharonRequests.lighthouseRpcGatewayResponse;
+import static gov.va.api.health.vistafhirquery.service.charonclient.LhsGatewayErrorHandler.dieOnReadError;
 import static gov.va.api.health.vistafhirquery.service.controller.R4Controllers.updateResponseForCreatedResource;
+import static gov.va.api.health.vistafhirquery.service.controller.R4Controllers.verifyAndGetResult;
 import static gov.va.api.health.vistafhirquery.service.controller.R4Transformers.referenceIdFromUri;
+import static java.util.stream.Collectors.toList;
 
 import gov.va.api.health.autoconfig.logging.Redact;
 import gov.va.api.health.r4.api.resources.Coverage;
 import gov.va.api.health.vistafhirquery.service.charonclient.CharonClient;
+import gov.va.api.health.vistafhirquery.service.controller.PatientTypeCoordinates;
 import gov.va.api.health.vistafhirquery.service.controller.R4BundlerFactory;
+import gov.va.api.health.vistafhirquery.service.controller.R4Transformation;
 import gov.va.api.health.vistafhirquery.service.controller.RequestPayloadExceptions;
+import gov.va.api.health.vistafhirquery.service.controller.ResourceExceptions;
 import gov.va.api.health.vistafhirquery.service.controller.recordcontext.CreatePatientRecordWriteContext;
 import gov.va.api.health.vistafhirquery.service.controller.recordcontext.PatientRecordWriteContext;
 import gov.va.api.health.vistafhirquery.service.controller.witnessprotection.WitnessProtection;
 import gov.va.api.lighthouse.charon.models.lhslighthouserpcgateway.InsuranceVerificationProcessor;
 import gov.va.api.lighthouse.charon.models.lhslighthouserpcgateway.LhsLighthouseRpcGatewayCoverageWrite;
+import gov.va.api.lighthouse.charon.models.lhslighthouserpcgateway.LhsLighthouseRpcGatewayGetsManifest;
 import gov.va.api.lighthouse.charon.models.lhslighthouserpcgateway.LhsLighthouseRpcGatewayResponse;
-import gov.va.api.lighthouse.charon.models.lhslighthouserpcgateway.LhsLighthouseRpcGatewayResponse.FilemanEntry;
-import gov.va.api.lighthouse.charon.models.lhslighthouserpcgateway.LhsLighthouseRpcGatewayResponse.Values;
 import gov.va.api.lighthouse.charon.models.lhslighthouserpcgateway.PatientId;
 import java.util.List;
-import java.util.Map;
 import javax.servlet.http.HttpServletResponse;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -75,23 +79,21 @@ public class R4SiteInsuranceBufferCoverageController {
   /** Read support. */
   public Coverage coverageRead(
       @PathVariable(value = "site") String site, @PathVariable(value = "publicId") String id) {
-    return InsuranceBufferToR4CoverageTransformer.builder()
-        .patientIcn("shanktopus")
-        .site(site)
-        .results(
-            LhsLighthouseRpcGatewayResponse.Results.builder()
-                .results(
-                    List.of(
-                        FilemanEntry.builder()
-                            .file(InsuranceVerificationProcessor.FILE_NUMBER)
-                            .ien("8")
-                            .fields(Map.of("8", Values.of("8", "8")))
-                            .build()))
-                .build())
-        .build()
-        .toFhir()
-        .findFirst()
-        .orElseThrow(() -> new IllegalStateException("Literally how?: " + id));
+    var coordinates =
+        witnessProtection.toPatientTypeCoordinatesOrDie(
+            id, Coverage.class, InsuranceVerificationProcessor.FILE_NUMBER);
+    if (!InsuranceVerificationProcessor.FILE_NUMBER.equals(coordinates.file())) {
+      throw new ResourceExceptions.NotFound(
+          "Expected the ids file number to match the "
+              + "InsuranceVerificationProcessor file, but it did not: "
+              + id);
+    }
+    var request = lighthouseRpcGatewayRequest(site, manifestRequest(coordinates));
+    var response = charon.request(request);
+    var lhsResponse = lighthouseRpcGatewayResponse(response);
+    dieOnReadError(lhsResponse);
+    var resources = transformation(site, coordinates.icn()).toResource().apply(lhsResponse);
+    return verifyAndGetResult(resources, id);
   }
 
   private LhsLighthouseRpcGatewayCoverageWrite.Request coverageWriteDetails(
@@ -104,6 +106,40 @@ public class R4SiteInsuranceBufferCoverageController {
         .api(operation)
         .patient(PatientId.forIcn(patient))
         .fields(fieldsToWrite)
+        .build();
+  }
+
+  private LhsLighthouseRpcGatewayGetsManifest.Request manifestRequest(
+      PatientTypeCoordinates coordinates) {
+    return LhsLighthouseRpcGatewayGetsManifest.Request.builder()
+        .file(InsuranceVerificationProcessor.FILE_NUMBER)
+        .iens(coordinates.ien())
+        .fields(InsuranceBufferToR4CoverageTransformer.MAPPED_VISTA_FIELDS)
+        .flags(
+            List.of(
+                LhsLighthouseRpcGatewayGetsManifest.Request.GetsManifestFlags.OMIT_NULL_VALUES,
+                LhsLighthouseRpcGatewayGetsManifest.Request.GetsManifestFlags
+                    .RETURN_INTERNAL_VALUES,
+                LhsLighthouseRpcGatewayGetsManifest.Request.GetsManifestFlags
+                    .RETURN_EXTERNAL_VALUES))
+        .build();
+  }
+
+  private R4Transformation<LhsLighthouseRpcGatewayResponse, Coverage> transformation(
+      String site, String patientIcn) {
+    return R4Transformation.<LhsLighthouseRpcGatewayResponse, Coverage>builder()
+        .toResource(
+            rpcResponse ->
+                rpcResponse.resultsByStation().entrySet().parallelStream()
+                    .flatMap(
+                        rpcResults ->
+                            InsuranceBufferToR4CoverageTransformer.builder()
+                                .patientIcn(patientIcn)
+                                .site(site)
+                                .results(rpcResults.getValue())
+                                .build()
+                                .toFhir())
+                    .collect(toList()))
         .build();
   }
 
