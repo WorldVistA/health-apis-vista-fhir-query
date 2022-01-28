@@ -16,8 +16,11 @@ import gov.va.api.health.vistafhirquery.service.controller.witnessprotection.Wit
 import gov.va.api.lighthouse.charon.models.lhslighthouserpcgateway.InsuranceVerificationProcessor;
 import gov.va.api.lighthouse.charon.models.lhslighthouserpcgateway.LhsLighthouseRpcGatewayCoverageWrite;
 import gov.va.api.lighthouse.charon.models.lhslighthouserpcgateway.LhsLighthouseRpcGatewayResponse;
+import gov.va.api.lighthouse.charon.models.lhslighthouserpcgateway.LhsLighthouseRpcGatewayResponse.FilemanEntry;
+import gov.va.api.lighthouse.charon.models.lhslighthouserpcgateway.LhsLighthouseRpcGatewayResponse.Values;
 import gov.va.api.lighthouse.charon.models.lhslighthouserpcgateway.PatientId;
 import java.util.List;
+import java.util.Map;
 import javax.servlet.http.HttpServletResponse;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -73,10 +76,17 @@ public class R4SiteInsuranceBufferCoverageController {
   public Coverage coverageRead(
       @PathVariable(value = "site") String site, @PathVariable(value = "publicId") String id) {
     return InsuranceBufferToR4CoverageTransformer.builder()
+        .patientIcn("shanktopus")
         .site(site)
         .results(
             LhsLighthouseRpcGatewayResponse.Results.builder()
-                .results(List.of(LhsLighthouseRpcGatewayResponse.FilemanEntry.builder().build()))
+                .results(
+                    List.of(
+                        FilemanEntry.builder()
+                            .file(InsuranceVerificationProcessor.FILE_NUMBER)
+                            .ien("8")
+                            .fields(Map.of("8", Values.of("8", "8")))
+                            .build()))
                 .build())
         .build()
         .toFhir()

@@ -188,6 +188,34 @@ public class CoverageSamples {
           .build();
     }
 
+    /* ToDo Remove when insBuffer read and write catch up to eachother: API-13088 */
+    public Coverage coverageInsuranceBufferRead(String patient, String station, String ien) {
+      return Coverage.builder()
+          .id(
+              PatientTypeCoordinates.builder()
+                  .icn(patient)
+                  .site(station)
+                  .file(InsuranceVerificationProcessor.FILE_NUMBER)
+                  .ien(ien)
+                  .build()
+                  .toString())
+          .meta(Meta.builder().source(station).build())
+          .status(Status.draft)
+          .type(
+              CodeableConcept.builder()
+                  .coding(
+                      Coding.builder()
+                          .system(InsuranceBufferStructureDefinitions.INQ_SERVICE_TYPE_CODE)
+                          .code("1")
+                          .build()
+                          .asList())
+                  .build())
+          .subscriberId("R50797108")
+          .beneficiary(beneficiary(patient))
+          .relationship(relationship())
+          .build();
+    }
+
     private List<Extension> extensions() {
       return List.of(
           Extension.builder()
@@ -254,6 +282,7 @@ public class CoverageSamples {
                       .ien(id)
                       .index("1")
                       .status("1")
+                      .fields(insuranceBufferFields())
                       .build()))
           .build();
     }
@@ -321,6 +350,23 @@ public class CoverageSamples {
                       .fields(fields())
                       .build()))
           .build();
+    }
+
+    private Map<String, LhsLighthouseRpcGatewayResponse.Values> insuranceBufferFields() {
+      Map<String, LhsLighthouseRpcGatewayResponse.Values> fields = new HashMap<>();
+      fields.put(
+          InsuranceVerificationProcessor.INQ_SERVICE_TYPE_CODE_1,
+          LhsLighthouseRpcGatewayResponse.Values.of("1", "1"));
+      fields.put(
+          InsuranceVerificationProcessor.PATIENT_ID,
+          LhsLighthouseRpcGatewayResponse.Values.of("13579", "13579"));
+      fields.put(
+          InsuranceVerificationProcessor.PT_RELATIONSHIP_HIPAA,
+          LhsLighthouseRpcGatewayResponse.Values.of("SPOUSE", "01"));
+      fields.put(
+          InsuranceVerificationProcessor.SUBSCRIBER_ID,
+          LhsLighthouseRpcGatewayResponse.Values.of("R50797108", "R50797108"));
+      return Map.copyOf(fields);
     }
 
     private WriteableFilemanValue insuranceBufferValue(String field, String value) {
