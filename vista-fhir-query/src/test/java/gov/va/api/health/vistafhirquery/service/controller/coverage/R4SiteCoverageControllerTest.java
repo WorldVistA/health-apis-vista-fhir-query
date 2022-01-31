@@ -135,6 +135,7 @@ public class R4SiteCoverageControllerTest {
                 .build());
     var actual = _controller().coverageRead("123", "pubCover1", true);
     var expected = CoverageSamples.R4.create().coverageInsuranceBufferRead("p1", "123", "ip1");
+    CoverageSamples.R4.cleanUpContainedReferencesForComparison(actual);
     assertThat(json(actual)).isEqualTo(json(expected));
     var request = captor.getValue();
     assertThat(request.vista()).isEqualTo("123");

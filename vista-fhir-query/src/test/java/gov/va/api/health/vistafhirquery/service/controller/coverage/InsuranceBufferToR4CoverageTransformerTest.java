@@ -9,7 +9,6 @@ import java.util.Map;
 import org.junit.jupiter.api.Test;
 
 class InsuranceBufferToR4CoverageTransformerTest {
-
   private InsuranceBufferToR4CoverageTransformer _transformer(Results results) {
     return InsuranceBufferToR4CoverageTransformer.builder()
         .patientIcn("p1")
@@ -42,7 +41,12 @@ class InsuranceBufferToR4CoverageTransformerTest {
 
   @Test
   void toFhir() {
-    assertThat(_transformer().toFhir())
-        .containsOnly(CoverageSamples.R4.create().coverageInsuranceBufferRead("p1", "123", "ien1"));
+    assertThat(
+            _transformer()
+                .toFhir()
+                .peek(CoverageSamples.R4::cleanUpContainedReferencesForComparison))
+        .usingRecursiveComparison()
+        .isEqualTo(
+            CoverageSamples.R4.create().coverageInsuranceBufferRead("p1", "123", "ien1").asList());
   }
 }

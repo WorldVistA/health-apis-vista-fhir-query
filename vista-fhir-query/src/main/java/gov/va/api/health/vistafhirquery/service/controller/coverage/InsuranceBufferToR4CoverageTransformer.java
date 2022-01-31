@@ -11,8 +11,12 @@ import gov.va.api.health.r4.api.elements.Meta;
 import gov.va.api.health.r4.api.elements.Reference;
 import gov.va.api.health.r4.api.resources.Coverage;
 import gov.va.api.health.r4.api.resources.Coverage.Status;
+import gov.va.api.health.r4.api.resources.InsurancePlan;
 import gov.va.api.health.r4.api.resources.Patient;
+import gov.va.api.health.vistafhirquery.service.controller.ContainedResourceWriter;
+import gov.va.api.health.vistafhirquery.service.controller.ContainedResourceWriter.ContainableResource;
 import gov.va.api.health.vistafhirquery.service.controller.PatientTypeCoordinates;
+import gov.va.api.health.vistafhirquery.service.controller.insuranceplan.InsurancePlanStructureDefinitions;
 import gov.va.api.lighthouse.charon.models.lhslighthouserpcgateway.InsuranceVerificationProcessor;
 import gov.va.api.lighthouse.charon.models.lhslighthouserpcgateway.LhsLighthouseRpcGatewayResponse;
 import gov.va.api.lighthouse.charon.models.lhslighthouserpcgateway.LhsLighthouseRpcGatewayResponse.FilemanEntry;
@@ -80,16 +84,41 @@ public class InsuranceBufferToR4CoverageTransformer {
                     .type(
                         CodeableConcept.builder()
                             .coding(
-                                List.of(
-                                    Coding.builder()
-                                        .system("http://terminology.hl7.org/CodeSystem/v2-0203")
-                                        .code("MB")
-                                        .display("Member Number")
-                                        .build()))
+                                Coding.builder()
+                                    .system("http://terminology.hl7.org/CodeSystem/v2-0203")
+                                    .code("MB")
+                                    .display("Member Number")
+                                    .build()
+                                    .asList())
                             .build())
                     .value(patientId)
                     .build()));
     return ref;
+  }
+
+  private ContainedResourceWriter<Coverage> contained(FilemanEntry entry) {
+    return ContainedResourceWriter.of(
+        List.of(
+            ContainableResource.<Coverage, InsurancePlan>builder()
+                .containedResource(toInsurancePlan(entry))
+                .applyReferenceId((c, id) -> c.coverageClass(coverageClass(id)))
+                .build()));
+  }
+
+  private List<Coverage.CoverageClass> coverageClass(String referenceId) {
+    return Coverage.CoverageClass.builder()
+        .type(
+            CodeableConcept.builder()
+                .coding(
+                    List.of(
+                        Coding.builder()
+                            .system("http://terminology.hl7.org/CodeSystem/coverage-class")
+                            .code("group")
+                            .build()))
+                .build())
+        .value(referenceId)
+        .build()
+        .asList();
   }
 
   private CodeableConcept relationship(String ptRelationshipHipaa) {
@@ -107,35 +136,61 @@ public class InsuranceBufferToR4CoverageTransformer {
     if (entry == null || isBlank(entry.fields())) {
       return null;
     }
-    return Coverage.builder()
-        .id(
-            PatientTypeCoordinates.builder()
-                .icn(patientIcn())
-                .site(site())
-                .file(entry.file())
-                .ien(entry.ien())
-                .build()
-                .toString())
-        .meta(Meta.builder().source(site()).build())
-        .status(Status.draft)
-        .type(
-            entry
-                .internal(InsuranceVerificationProcessor.INQ_SERVICE_TYPE_CODE_1)
-                .map(this::type)
-                .orElse(null))
-        .subscriberId(entry.internal(InsuranceVerificationProcessor.SUBSCRIBER_ID).orElse(null))
-        .beneficiary(
-            beneficiary(patientIcn(), entry.internal(InsuranceVerificationProcessor.PATIENT_ID)))
-        .relationship(
-            entry
-                .internal(InsuranceVerificationProcessor.PT_RELATIONSHIP_HIPAA)
-                .map(this::relationship)
-                .orElse(null))
-        .build();
+    var coverage =
+        Coverage.builder()
+            .id(
+                PatientTypeCoordinates.builder()
+                    .icn(patientIcn())
+                    .site(site())
+                    .file(entry.file())
+                    .ien(entry.ien())
+                    .build()
+                    .toString())
+            .meta(Meta.builder().source(site()).build())
+            .status(Status.draft)
+            .type(
+                entry
+                    .internal(InsuranceVerificationProcessor.INQ_SERVICE_TYPE_CODE_1)
+                    .map(this::type)
+                    .orElse(null))
+            .subscriberId(entry.internal(InsuranceVerificationProcessor.SUBSCRIBER_ID).orElse(null))
+            .beneficiary(
+                beneficiary(
+                    patientIcn(), entry.internal(InsuranceVerificationProcessor.PATIENT_ID)))
+            .relationship(
+                entry
+                    .internal(InsuranceVerificationProcessor.PT_RELATIONSHIP_HIPAA)
+                    .map(this::relationship)
+                    .orElse(null))
+            .build();
+    contained(entry).addContainedResources(coverage);
+    return coverage;
   }
 
   public Stream<Coverage> toFhir() {
     return Safe.stream(results.results()).map(this::toCoverage).filter(Objects::nonNull);
+  }
+
+  private InsurancePlan toInsurancePlan(FilemanEntry entry) {
+    var ip =
+        InsurancePlan.builder()
+            .identifier(
+                entry
+                    .internal(InsuranceVerificationProcessor.GROUP_NUMBER)
+                    .map(
+                        num ->
+                            Identifier.builder()
+                                .system(InsurancePlanStructureDefinitions.GROUP_NUMBER)
+                                .value(num)
+                                .build()
+                                .asList())
+                    .orElse(null))
+            .name(entry.internal(InsuranceVerificationProcessor.GROUP_NAME).orElse(null))
+            .build();
+    if (InsurancePlan.builder().build().equals(ip)) {
+      return null;
+    }
+    return ip;
   }
 
   private CodeableConcept type(String inqServiceTypeCode) {

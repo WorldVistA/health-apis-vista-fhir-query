@@ -59,6 +59,7 @@ public class R4CoverageWitnessProtectionAgent implements WitnessProtectionAgent<
                     .forReferenceWithoutSite(resource.beneficiary())
                     .orElse(null)),
             referenceGroups)
-        .filter(Objects::nonNull);
+        .filter(Objects::nonNull)
+        .filter(reference -> !reference.id().startsWith("#"));
   }
 }

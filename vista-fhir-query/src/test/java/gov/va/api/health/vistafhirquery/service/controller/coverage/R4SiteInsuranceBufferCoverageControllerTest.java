@@ -113,6 +113,7 @@ class R4SiteInsuranceBufferCoverageControllerTest {
     mockWitnessProtection.add("pubCover1", "p1+123+355.33+cov1");
     var actual = _insuranceBufferCoverageController().coverageRead("123", "pubCover1");
     var expected = CoverageSamples.R4.create().coverageInsuranceBufferRead("p1", "123", "ip1");
+    CoverageSamples.R4.cleanUpContainedReferencesForComparison(actual);
     assertThat(json(actual)).isEqualTo(json(expected));
     var request = captor.getValue();
     assertThat(request.vista()).isEqualTo("123");
