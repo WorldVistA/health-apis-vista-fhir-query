@@ -4,18 +4,19 @@ import static gov.va.api.health.vistafhirquery.service.controller.R4Transformers
 import static gov.va.api.health.vistafhirquery.service.controller.R4Transformers.optionalInstantToString;
 import static gov.va.api.health.vistafhirquery.service.controller.R4Transformers.toHumanDateTime;
 import static gov.va.api.health.vistafhirquery.service.controller.R4Transformers.toReference;
-import static gov.va.api.health.vistafhirquery.service.controller.R4Transformers.toResourceId;
 import static java.util.stream.Collectors.toList;
 
 import gov.va.api.health.r4.api.datatypes.CodeableConcept;
 import gov.va.api.health.r4.api.datatypes.Coding;
 import gov.va.api.health.r4.api.elements.Meta;
 import gov.va.api.health.r4.api.resources.Condition;
+import gov.va.api.health.vistafhirquery.service.controller.SegmentedVistaIdentifier;
 import gov.va.api.lighthouse.charon.models.vprgetpatientdata.Visits;
 import gov.va.api.lighthouse.charon.models.vprgetpatientdata.VprGetPatientData.Domains;
 import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.stream.Stream;
 import lombok.Builder;
 import lombok.NonNull;
@@ -86,16 +87,24 @@ public class VprVisitToR4ConditionTransformer {
         .collect(toList());
   }
 
-  String idFrom(String id) {
-    if (isBlank(id)) {
+  String idFrom(String id, String icd) {
+    if (isBlank(id) || isBlank(icd)) {
       return null;
     }
-    return toResourceId(patientIcn, site, Domains.visits, id);
+    var svi =
+        SegmentedVistaIdentifier.builder()
+            .patientIdentifierType(SegmentedVistaIdentifier.PatientIdentifierType.NATIONAL_ICN)
+            .patientIdentifier(patientIcn)
+            .siteId(site)
+            .vprRpcDomain(Domains.visits)
+            .recordId(id)
+            .build();
+    return ConditionId.builder().vistaId(svi).icdCode(Optional.of(icd)).build().toString();
   }
 
   private Condition toCondition(Visits.Visit rpcCondition, Visits.Icd icd) {
     return Condition.builder()
-        .id(idFrom(rpcCondition.id().value()))
+        .id(idFrom(rpcCondition.id().value(), icd.code()))
         .meta(Meta.builder().source(site).build())
         .category(category())
         .code(code(icd))

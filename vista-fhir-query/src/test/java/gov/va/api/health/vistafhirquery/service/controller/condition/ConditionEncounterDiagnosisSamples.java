@@ -23,7 +23,7 @@ public class ConditionEncounterDiagnosisSamples {
     }
 
     public Condition condition() {
-      return condition("sNp1+123+TT;2931013.07;23");
+      return condition("sNp1+123+TT;2931013.07;23:391.2");
     }
 
     public Condition condition(String id) {

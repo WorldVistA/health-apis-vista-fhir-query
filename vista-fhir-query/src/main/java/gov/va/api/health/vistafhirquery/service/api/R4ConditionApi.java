@@ -18,6 +18,78 @@ import javax.ws.rs.Path;
 /** ConditionApi swagger documentation for VFQ. */
 public interface R4ConditionApi {
   @Operation(
+      summary = "Condition Read",
+      description = "http://hl7.org/fhir/us/core/StructureDefinition-us-core-condition.html",
+      tags = {"Condition"})
+  @GET
+  @Path("/hcs/{site}/Condition/{id}")
+  @ApiResponses({
+    @ApiResponse(
+        responseCode = "200",
+        description = "Record found",
+        content = {
+          @Content(
+              mediaType = "application/fhir+json",
+              schema = @Schema(implementation = Condition.class))
+        }),
+    @ApiResponse(
+        responseCode = "400",
+        description = "Bad request",
+        content = {
+          @Content(
+              mediaType = "application/fhir+json",
+              schema = @Schema(implementation = OperationOutcome.class))
+        }),
+    @ApiResponse(
+        responseCode = "401",
+        description = "Unauthorized",
+        content = {
+          @Content(
+              mediaType = "application/fhir+json",
+              schema = @Schema(implementation = OperationOutcome.class))
+        }),
+    @ApiResponse(
+        responseCode = "403",
+        description = "Forbidden",
+        content = {
+          @Content(
+              mediaType = "application/fhir+json",
+              schema = @Schema(implementation = OperationOutcome.class))
+        }),
+    @ApiResponse(
+        responseCode = "404",
+        description = "Not found",
+        content = {
+          @Content(
+              mediaType = "application/fhir+json",
+              schema = @Schema(implementation = OperationOutcome.class))
+        }),
+    @ApiResponse(
+        responseCode = "500",
+        description = "Server Error",
+        content = {
+          @Content(
+              mediaType = "application/fhir+json",
+              schema = @Schema(implementation = OperationOutcome.class))
+        })
+  })
+  Condition conditionRead(
+      @Parameter(
+              in = ParameterIn.PATH,
+              name = "site",
+              required = true,
+              description = "The id of the site where this resource can be found.")
+          String site,
+      @Parameter(
+              in = ParameterIn.PATH,
+              name = "id",
+              required = true,
+              description =
+                  "The logical id of the resource. Once assigned, this value never changes.",
+              example = "I3-Sy4Pfqamhh8y62pa15zJwDkHVa1Jr3nM")
+          String id);
+
+  @Operation(
       summary = "Condition Search",
       description = "http://www.hl7.org/fhir/us/core/StructureDefinition-us-core-condition.html",
       tags = {"Condition"})
@@ -89,6 +161,19 @@ public interface R4ConditionApi {
                       + " assigned by the Master Patient Index (MPI).",
               example = "1011537977V693883")
           String patient,
+      @Parameter(
+              in = ParameterIn.QUERY,
+              name = "_id",
+              description =
+                  "The logical id of the resource. Once assigned, this value never changes.")
+          String id,
+      @Parameter(
+              in = ParameterIn.QUERY,
+              name = "identifier",
+              description =
+                  "The logical identifier of the resource. "
+                      + "Once assigned, this value never changes.")
+          String identifier,
       @Parameter(
               in = ParameterIn.QUERY,
               name = "category",
