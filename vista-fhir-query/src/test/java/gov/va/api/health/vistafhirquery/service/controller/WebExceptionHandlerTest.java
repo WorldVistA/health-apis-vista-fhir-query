@@ -29,6 +29,7 @@ import lombok.Value;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.HttpStatus;
 import org.springframework.mock.web.MockHttpServletRequest;
+import org.springframework.web.HttpMediaTypeNotSupportedException;
 import org.springframework.web.HttpRequestMethodNotSupportedException;
 import org.springframework.web.bind.UnsatisfiedServletRequestParameterException;
 import org.springframework.web.client.HttpClientErrorException;
@@ -140,7 +141,7 @@ public class WebExceptionHandlerTest {
         HttpClientErrorException.Forbidden.create(HttpStatus.FORBIDDEN, null, null, null, null);
     var oo = _handler().handleInternalServerError(forbidden, _request());
     assertHasMessageExtension(oo, true);
-    assertThat(_removeIdAndExtension(oo)).isEqualTo(_operationOutcome("internal-server-error"));
+    assertThat(_removeIdAndExtension(oo)).isEqualTo(_operationOutcome("exception"));
   }
 
   @Test
@@ -150,7 +151,7 @@ public class WebExceptionHandlerTest {
             HttpStatus.INTERNAL_SERVER_ERROR, null, null, null, null);
     var oo = _handler().handleInternalServerError(internalServerError, _request());
     assertHasMessageExtension(oo, false);
-    assertThat(_removeIdAndExtension(oo)).isEqualTo(_operationOutcome("internal-server-error"));
+    assertThat(_removeIdAndExtension(oo)).isEqualTo(_operationOutcome("exception"));
   }
 
   @Test
@@ -159,7 +160,7 @@ public class WebExceptionHandlerTest {
         MpiFhirQueryClientExceptions.MpiFhirQueryRequestFailed.because("rip");
     var oo = _handler().mpiFhirQueryRequestFailed(mfqRequestFailed, _request());
     assertHasMessageExtension(oo, false);
-    assertThat(_removeIdAndExtension(oo)).isEqualTo(_operationOutcome("internal-server-error"));
+    assertThat(_removeIdAndExtension(oo)).isEqualTo(_operationOutcome("exception"));
   }
 
   @Test
@@ -235,6 +236,15 @@ public class WebExceptionHandlerTest {
     var oo = _handler().handleUnauthorized(unauthorized, _request());
     assertHasMessageExtension(oo, true);
     assertThat(_removeIdAndExtension(oo)).isEqualTo(_operationOutcome("unauthorized"));
+  }
+
+  @Test
+  void unsupportedMediaType() {
+    HttpMediaTypeNotSupportedException unsupportedType =
+        new HttpMediaTypeNotSupportedException("unsupported type");
+    var oo = _handler().handleUnsupportedMediaType(unsupportedType, _request());
+    assertHasMessageExtension(oo, false);
+    assertThat(_removeIdAndExtension(oo)).isEqualTo(_operationOutcome("not-supported"));
   }
 
   @Test

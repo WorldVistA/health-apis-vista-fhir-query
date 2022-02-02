@@ -34,6 +34,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.validation.BindException;
+import org.springframework.web.HttpMediaTypeNotSupportedException;
 import org.springframework.web.HttpRequestMethodNotSupportedException;
 import org.springframework.web.bind.MissingRequestValueException;
 import org.springframework.web.bind.MissingServletRequestParameterException;
@@ -60,9 +61,7 @@ public final class WebExceptionHandler {
           HttpClientErrorException.class,
           HttpRequestMethodNotSupportedException.class,
           MissingRequestValueException.class,
-          ServletRequestBindingException.class
-          //
-          );
+          ServletRequestBindingException.class);
 
   private final String encryptionKey;
 
@@ -253,7 +252,7 @@ public final class WebExceptionHandler {
     if (e instanceof HttpClientErrorException.Forbidden) {
       log.warn("The application proxy user authorization configuration may be incorrect.");
     }
-    return responseFor("internal-server-error", e, request, emptyList(), true, null);
+    return responseFor("exception", e, request, emptyList(), true, null);
   }
 
   @ExceptionHandler({HttpRequestMethodNotSupportedException.class})
@@ -311,6 +310,13 @@ public final class WebExceptionHandler {
     return responseFor("structure", e, request, emptyList(), true, null);
   }
 
+  @ExceptionHandler(HttpMediaTypeNotSupportedException.class)
+  @ResponseStatus(HttpStatus.UNSUPPORTED_MEDIA_TYPE)
+  OperationOutcome handleUnsupportedMediaType(
+      HttpMediaTypeNotSupportedException e, HttpServletRequest request) {
+    return responseFor("not-supported", e, request, emptyList(), true, null);
+  }
+
   /**
    * For constraint violation exceptions, we want to add a little more information in the exception
    * to present what exactly is wrong. We will distill which properties are wrong and why, but we
@@ -331,7 +337,7 @@ public final class WebExceptionHandler {
   @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
   OperationOutcome mpiFhirQueryRequestFailed(
       MpiFhirQueryRequestFailed e, HttpServletRequest request) {
-    return responseFor("internal-server-error", e, request, emptyList(), true, null);
+    return responseFor("exception", e, request, emptyList(), true, null);
   }
 
   @SneakyThrows
