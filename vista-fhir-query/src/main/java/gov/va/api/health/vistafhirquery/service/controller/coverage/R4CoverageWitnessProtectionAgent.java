@@ -1,5 +1,7 @@
 package gov.va.api.health.vistafhirquery.service.controller.coverage;
 
+import static gov.va.api.health.vistafhirquery.service.controller.R4Transformers.isBlank;
+
 import gov.va.api.health.fhir.api.Safe;
 import gov.va.api.health.r4.api.resources.Coverage;
 import gov.va.api.health.vistafhirquery.service.controller.witnessprotection.ProtectedReference;
@@ -60,6 +62,6 @@ public class R4CoverageWitnessProtectionAgent implements WitnessProtectionAgent<
                     .orElse(null)),
             referenceGroups)
         .filter(Objects::nonNull)
-        .filter(reference -> !reference.id().startsWith("#"));
+        .filter(reference -> isBlank(reference.id()) || !reference.id().startsWith("#"));
   }
 }

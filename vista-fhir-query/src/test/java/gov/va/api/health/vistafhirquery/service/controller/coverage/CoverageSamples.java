@@ -130,7 +130,33 @@ public class CoverageSamples {
                                   .toString())
                       .display("BCBS OF FL")
                       .build()))
-          .coverageClass(classes(station, patient))
+          .coverageClass(
+              List.of(
+                  Coverage.CoverageClass.builder()
+                      .value("#1")
+                      .type(
+                          CodeableConcept.builder()
+                              .coding(
+                                  List.of(
+                                      Coding.builder()
+                                          .system(
+                                              "http://terminology.hl7.org/CodeSystem/coverage-class")
+                                          .code("group")
+                                          .build()))
+                              .build())
+                      .build()))
+          .contained(
+              List.of(
+                  InsurancePlan.builder()
+                      .id("#1")
+                      .name("MyInsurancePlan")
+                      .identifier(
+                          Identifier.builder()
+                              .value("666")
+                              .system(InsurancePlanStructureDefinitions.GROUP_NUMBER)
+                              .build()
+                              .asList())
+                      .build()))
           .order(1)
           .build();
     }
@@ -294,6 +320,8 @@ public class CoverageSamples {
           insuranceBufferValue(InsuranceVerificationProcessor.OVERRIDE_FRESHNESS_FLAG, "0"),
           insuranceBufferValue(InsuranceVerificationProcessor.STATUS, "E"),
           insuranceBufferValue(InsuranceVerificationProcessor.INQ_SERVICE_TYPE_CODE_1, "1"),
+          insuranceBufferValue(InsuranceVerificationProcessor.GROUP_NAME, "MyInsurancePlan"),
+          insuranceBufferValue(InsuranceVerificationProcessor.GROUP_NUMBER, "666"),
           insuranceBufferValue(InsuranceVerificationProcessor.SUBSCRIBER_ID, "R50797108"));
     }
 

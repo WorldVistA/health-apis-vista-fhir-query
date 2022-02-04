@@ -2,16 +2,23 @@ package gov.va.api.health.vistafhirquery.service.controller.coverage;
 
 import static gov.va.api.health.vistafhirquery.service.controller.R4Transformers.isBlank;
 import static gov.va.api.health.vistafhirquery.service.controller.WriteableFilemanValueFactory.index;
+import static gov.va.api.health.vistafhirquery.service.controller.coverage.CoverageStructureDefinitions.COVERAGE_CLASS_CODE_SYSTEM;
 import static gov.va.api.health.vistafhirquery.service.controller.coverage.CoverageStructureDefinitions.SUBSCRIBER_RELATIONSHIP_CODE_SYSTEM;
+import static java.util.stream.Collectors.toList;
 
 import gov.va.api.health.r4.api.datatypes.CodeableConcept;
+import gov.va.api.health.r4.api.datatypes.Identifier;
 import gov.va.api.health.r4.api.elements.Reference;
 import gov.va.api.health.r4.api.resources.Coverage;
+import gov.va.api.health.r4.api.resources.InsurancePlan;
+import gov.va.api.health.vistafhirquery.service.controller.ContainedResourceReader;
 import gov.va.api.health.vistafhirquery.service.controller.FilemanFactoryRegistry;
 import gov.va.api.health.vistafhirquery.service.controller.FilemanIndexRegistry;
+import gov.va.api.health.vistafhirquery.service.controller.RequestPayloadExceptions;
 import gov.va.api.health.vistafhirquery.service.controller.RequestPayloadExceptions.MissingRequiredField;
 import gov.va.api.health.vistafhirquery.service.controller.RequestPayloadExceptions.UnexpectedNumberOfValues;
 import gov.va.api.health.vistafhirquery.service.controller.RequestPayloadExceptions.UnexpectedValueForField;
+import gov.va.api.health.vistafhirquery.service.controller.insuranceplan.InsurancePlanStructureDefinitions;
 import gov.va.api.lighthouse.charon.models.lhslighthouserpcgateway.InsuranceVerificationProcessor;
 import gov.va.api.lighthouse.charon.models.lhslighthouserpcgateway.LhsLighthouseRpcGatewayCoverageWrite.WriteableFilemanValue;
 import java.time.Instant;
@@ -19,8 +26,11 @@ import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.Collection;
 import java.util.HashSet;
+import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
+import java.util.stream.Stream;
 import lombok.Builder;
 import lombok.NonNull;
 import lombok.Value;
@@ -33,11 +43,14 @@ public class R4CoverageToInsuranceBufferTransformer {
 
   DateTimeFormatter vistaDateFormatter;
 
+  ContainedResourceReader containedResourceReader;
+
   @NonNull Coverage coverage;
 
   @Builder
   R4CoverageToInsuranceBufferTransformer(@NonNull Coverage coverage, ZoneId timezone) {
     this.coverage = coverage;
+    this.containedResourceReader = new ContainedResourceReader(coverage);
     this.factoryRegistry = FilemanFactoryRegistry.create();
     this.indexRegistry = FilemanIndexRegistry.create();
     this.vistaDateFormatter =
@@ -53,6 +66,41 @@ public class R4CoverageToInsuranceBufferTransformer {
             indexRegistry().get(InsuranceVerificationProcessor.FILE_NUMBER),
             today())
         .get();
+  }
+
+  WriteableFilemanValue groupName(String name) {
+    return factoryRegistry()
+        .get(InsuranceVerificationProcessor.FILE_NUMBER)
+        .forString(
+            InsuranceVerificationProcessor.GROUP_NAME,
+            indexRegistry().get(InsuranceVerificationProcessor.FILE_NUMBER),
+            name)
+        .orElse(null);
+  }
+
+  WriteableFilemanValue groupNumber(List<Identifier> identifiers) {
+    List<Identifier> groupNumbers =
+        identifiers.stream()
+            .filter(i -> InsurancePlanStructureDefinitions.GROUP_NUMBER.equals(i.system()))
+            .toList();
+    if (groupNumbers.size() != 1) {
+      throw UnexpectedNumberOfValues.builder()
+          .exactExpectedCount(1)
+          .receivedCount(groupNumbers.size())
+          .jsonPath(".contained[].identifiers[]")
+          .build();
+    }
+    return factoryRegistry()
+        .get(InsuranceVerificationProcessor.FILE_NUMBER)
+        .forString(
+            InsuranceVerificationProcessor.GROUP_NUMBER,
+            indexRegistry().get(InsuranceVerificationProcessor.FILE_NUMBER),
+            groupNumbers.get(0).value())
+        .orElseThrow(
+            () ->
+                MissingRequiredField.builder()
+                    .jsonPath(".contained[].identifiers[].value")
+                    .build());
   }
 
   // TODO: add system urn checking for protection https://vajira.max.gov/browse/API-12859
@@ -86,6 +134,51 @@ public class R4CoverageToInsuranceBufferTransformer {
             indexRegistry().get(InsuranceVerificationProcessor.FILE_NUMBER),
             "Placeholder Insurance Company Name")
         .get();
+  }
+
+  List<WriteableFilemanValue> insurancePlan() {
+    if (isBlank(coverage.coverageClass())) {
+      throw MissingRequiredField.builder().jsonPath(".coverageClass[]").build();
+    }
+    if (isBlank(coverage.contained())) {
+      throw MissingRequiredField.builder().jsonPath(".contained[]").build();
+    }
+    var filteredCoverageTypes =
+        coverage.coverageClass().stream().filter(this::isGroupPlan).collect(toList());
+    if (filteredCoverageTypes.size() != 1) {
+      throw UnexpectedNumberOfValues.builder()
+          .jsonPath(".class")
+          .identifyingFieldValue(".type[].coding[].code")
+          .identifyingFieldValue("group")
+          .exactExpectedCount(1)
+          .receivedCount(filteredCoverageTypes.size())
+          .build();
+    }
+    String referenceId = filteredCoverageTypes.get(0).value();
+    InsurancePlan containedInsurancePlan =
+        containedResourceReader
+            .find(InsurancePlan.class, referenceId)
+            .orElseThrow(
+                () ->
+                    RequestPayloadExceptions.InvalidReferenceId.builder()
+                        .jsonPath(".coverageClass[0].value")
+                        .build());
+    return Stream.of(
+            groupName(containedInsurancePlan.name()),
+            groupNumber(containedInsurancePlan.identifier()))
+        .filter(Objects::nonNull)
+        .toList();
+  }
+
+  private boolean isGroupPlan(Coverage.CoverageClass c) {
+    if (c.type() == null) {
+      return false;
+    }
+    return c.type().coding().stream()
+        .anyMatch(
+            coding ->
+                COVERAGE_CLASS_CODE_SYSTEM.equals(coding.system())
+                    && "group".equals(coding.code()));
   }
 
   WriteableFilemanValue nameOfInsured(Reference subscriber) {
@@ -230,6 +323,7 @@ public class R4CoverageToInsuranceBufferTransformer {
     fields.add(subscriberId(coverage.subscriberId()));
     fields.add(nameOfInsured(coverage.subscriber()));
     fields.add(inqServiceTypeCode1(coverage.type()));
+    fields.addAll(insurancePlan());
     return fields;
   }
 

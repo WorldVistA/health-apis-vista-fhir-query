@@ -6,7 +6,27 @@
       "valueBoolean": false
     }
   ],
+  "contained": [
+    {
+      "resourceType" : "InsurancePlan",
+      "id" : "#1",
+      "name" : "MyInsurancePlan",
+      "identifier" : [
+        {
+        "system" : "urn:oid:2.16.840.1.113883.3.8901.3.1.355803.28002",
+        "value" : "GRP123456"
+      }
+      ]
+    }
+  ],
   "status": "active",
+  "type": {
+    "coding": [
+      {
+        "code": "1"
+      }
+    ]
+  },
   "subscriberId": "R50797108",
   "beneficiary": {
     "reference": "http://localhost:8090/data-query/r4/Patient/195607",
@@ -20,6 +40,9 @@
       },
       "value": "1234"
     }
+  },
+  "subscriber": {
+    "display": "Insureds,Name"
   },
   "dependent": "2",
   "relationship": {
@@ -52,7 +75,7 @@
           }
         ]
       },
-      "value": "InsurancePlan/I3-1JeCN3qnboBvfJAeuA5VVg"
+      "value": "#1"
     }
   ]
 }
