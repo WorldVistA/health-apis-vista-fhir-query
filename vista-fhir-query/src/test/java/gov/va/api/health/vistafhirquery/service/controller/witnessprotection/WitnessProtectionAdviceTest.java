@@ -328,6 +328,8 @@ class WitnessProtectionAdviceTest {
     Reference patient;
 
     Meta meta;
+
+    @Builder.Default String resourceType = "FugaziOne";
   }
 
   @AllArgsConstructor(staticName = "of")
@@ -353,6 +355,8 @@ class WitnessProtectionAdviceTest {
     String language;
 
     Meta meta;
+
+    @Builder.Default String resourceType = "FugaziTwo";
   }
 
   @AllArgsConstructor(staticName = "of")

@@ -56,5 +56,7 @@ class ContainedResourceReaderTest {
     Meta meta;
 
     String id;
+
+    @Builder.Default String resourceType = "Fugazi";
   }
 }
