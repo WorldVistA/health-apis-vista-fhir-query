@@ -153,7 +153,7 @@ public class CoverageSamples {
                       .identifier(
                           Identifier.builder()
                               .value("666")
-                              .system(InsurancePlanStructureDefinitions.GROUP_NUMBER)
+                              .system(InsuranceBufferStructureDefinitions.GROUP_NUMBER)
                               .build()
                               .asList())
                       .build()))

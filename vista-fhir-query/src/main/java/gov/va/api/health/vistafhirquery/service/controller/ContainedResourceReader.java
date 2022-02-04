@@ -7,7 +7,6 @@ import gov.va.api.health.fhir.api.Safe;
 import gov.va.api.health.r4.api.resources.DomainResource;
 import gov.va.api.health.r4.api.resources.Resource;
 import java.util.Map;
-import java.util.Optional;
 import java.util.function.Function;
 import lombok.NonNull;
 
@@ -23,11 +22,14 @@ public class ContainedResourceReader {
   }
 
   /** Get resource if contained resources have the specified reference. */
-  public <T> Optional<T> find(@NonNull Class<T> type, @NonNull String id) {
+  public <T> T find(@NonNull Class<T> type, @NonNull String id) {
     Resource containedResource = containedResources.get(id);
     if (isBlank(containedResource) || !type.isInstance(containedResource)) {
-      return Optional.empty();
+      throw RequestPayloadExceptions.MissingContainedResource.builder()
+          .resource(type.getSimpleName())
+          .id(id)
+          .build();
     }
-    return Optional.of(type.cast(containedResource));
+    return type.cast(containedResource);
   }
 }

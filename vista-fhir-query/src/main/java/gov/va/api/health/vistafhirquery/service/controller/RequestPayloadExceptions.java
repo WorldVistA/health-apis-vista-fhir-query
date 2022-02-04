@@ -144,6 +144,15 @@ public class RequestPayloadExceptions {
     }
   }
 
+  public static class MissingContainedResource extends InvalidField {
+    @Builder
+    MissingContainedResource(String resource, String id) {
+      super(
+          ".contained[]",
+          "Required contained resource of type " + resource + "  with id of " + id + "is missing.");
+    }
+  }
+
   public static class EmptyRequestPayload extends BadRequestPayload {
     public EmptyRequestPayload() {
       super("Request payload is empty.");
@@ -176,10 +185,10 @@ public class RequestPayloadExceptions {
         @NonNull String jsonPath,
         String identifyingFieldJsonPath,
         String identifyingFieldValue,
-        int exactExpectedCount,
-        int minimumExpectedCount,
-        int maximumExpectedCount,
-        int receivedCount) {
+        Integer exactExpectedCount,
+        Integer minimumExpectedCount,
+        Integer maximumExpectedCount,
+        Integer receivedCount) {
       var message = "Unexpected number of values; expected";
       if (!isBlank(exactExpectedCount)) {
         message += format(" (%d)", exactExpectedCount);

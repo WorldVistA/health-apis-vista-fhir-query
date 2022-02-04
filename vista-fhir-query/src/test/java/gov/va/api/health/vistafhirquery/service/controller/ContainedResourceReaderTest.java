@@ -1,6 +1,7 @@
 package gov.va.api.health.vistafhirquery.service.controller;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 
 import gov.va.api.health.r4.api.elements.Extension;
 import gov.va.api.health.r4.api.elements.Meta;
@@ -21,6 +22,13 @@ class ContainedResourceReaderTest {
                     Fugazi.builder().contained(List.of(Fugazi.builder().id("#1").build())).build())
                 .containedResources)
         .isEqualTo(Map.of("#1", Fugazi.builder().id("#1").build()));
+  }
+
+  @Test
+  void missingResourceThrowsMissingRequiredField() {
+    assertThatExceptionOfType(RequestPayloadExceptions.MissingContainedResource.class)
+        .isThrownBy(
+            () -> new ContainedResourceReader(Fugazi.builder().build()).find(Fugazi.class, "#1"));
   }
 
   @Test

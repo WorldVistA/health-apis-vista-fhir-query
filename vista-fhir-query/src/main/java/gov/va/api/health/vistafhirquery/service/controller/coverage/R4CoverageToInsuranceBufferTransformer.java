@@ -14,11 +14,9 @@ import gov.va.api.health.r4.api.resources.InsurancePlan;
 import gov.va.api.health.vistafhirquery.service.controller.ContainedResourceReader;
 import gov.va.api.health.vistafhirquery.service.controller.FilemanFactoryRegistry;
 import gov.va.api.health.vistafhirquery.service.controller.FilemanIndexRegistry;
-import gov.va.api.health.vistafhirquery.service.controller.RequestPayloadExceptions;
 import gov.va.api.health.vistafhirquery.service.controller.RequestPayloadExceptions.MissingRequiredField;
 import gov.va.api.health.vistafhirquery.service.controller.RequestPayloadExceptions.UnexpectedNumberOfValues;
 import gov.va.api.health.vistafhirquery.service.controller.RequestPayloadExceptions.UnexpectedValueForField;
-import gov.va.api.health.vistafhirquery.service.controller.insuranceplan.InsurancePlanStructureDefinitions;
 import gov.va.api.lighthouse.charon.models.lhslighthouserpcgateway.InsuranceVerificationProcessor;
 import gov.va.api.lighthouse.charon.models.lhslighthouserpcgateway.LhsLighthouseRpcGatewayCoverageWrite.WriteableFilemanValue;
 import java.time.Instant;
@@ -81,7 +79,7 @@ public class R4CoverageToInsuranceBufferTransformer {
   WriteableFilemanValue groupNumber(List<Identifier> identifiers) {
     List<Identifier> groupNumbers =
         identifiers.stream()
-            .filter(i -> InsurancePlanStructureDefinitions.GROUP_NUMBER.equals(i.system()))
+            .filter(i -> InsuranceBufferStructureDefinitions.GROUP_NUMBER.equals(i.system()))
             .toList();
     if (groupNumbers.size() != 1) {
       throw UnexpectedNumberOfValues.builder()
@@ -156,13 +154,7 @@ public class R4CoverageToInsuranceBufferTransformer {
     }
     String referenceId = filteredCoverageTypes.get(0).value();
     InsurancePlan containedInsurancePlan =
-        containedResourceReader
-            .find(InsurancePlan.class, referenceId)
-            .orElseThrow(
-                () ->
-                    RequestPayloadExceptions.InvalidReferenceId.builder()
-                        .jsonPath(".coverageClass[0].value")
-                        .build());
+        containedResourceReader.find(InsurancePlan.class, referenceId);
     return Stream.of(
             groupName(containedInsurancePlan.name()),
             groupNumber(containedInsurancePlan.identifier()))
