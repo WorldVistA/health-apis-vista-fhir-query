@@ -33,6 +33,8 @@ public class SegmentedVistaIdentifier {
               Domains.problems,
               'L',
               Domains.labs,
+              'M',
+              Domains.meds,
               'T',
               Domains.visits,
               'V',

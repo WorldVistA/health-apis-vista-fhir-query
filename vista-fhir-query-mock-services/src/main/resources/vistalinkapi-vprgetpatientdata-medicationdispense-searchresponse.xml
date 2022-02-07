@@ -1,0 +1,515 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<results version="1.13" timeZone="-0500">
+  <meds total="12">
+    <med>
+      <currentProvider code="983" name="PROVIDER,ONE" taxonomyCode="203B00000N" providerType="Physicians (M.D. and D.O.)" classification="Physician/Osteopath" service="MEDICINE"/>
+      <daysSupply value="90"/>
+      <doses>
+        <dose dose="500" units="MG" unitsPerDose="1" noun="TABLET" route="PO" schedule="QD" doseStart="3080728" doseStop="3110507"/>
+      </doses>
+      <expires value="3110514"/>
+      <facility code="673" name="TAMPA (JAH VAH)"/>
+      <fills>
+        <fill fillDate="3080728" fillRouting="W" releaseDate="3080728" fillQuantity="90" fillDaysSupply="90"/>
+        <fill fillDate="3110507" fillRouting="M" fillQuantity="90" fillDaysSupply="90"/>
+      </fills>
+      <fillCost value=".558"/>
+      <fillsAllowed value="3"/>
+      <fillsRemaining value="2"/>
+      <form value="TAB"/>
+      <id value="33445"/>
+      <lastFilled value="3110507"/>
+      <location code="32" name="PRIMARY CARE"/>
+      <medID value="404201;O"/>
+      <name value="ACETAMINOPHEN TAB"/>
+      <orderID value="33445"/>
+      <ordered value="3110301.113436"/>
+      <orderingProvider code="983" name="PROVIDER,ONE" taxonomyCode="203B00000N" providerType="Physicians (M.D. and D.O.)" classification="Physician/Osteopath" service="MEDICINE"/>
+      <pharmacist code="10000000056" name="PHARMACIST,ONE"/>
+      <prescription value="500979"/>
+      <products>
+        <product code="213" name="ACETAMINOPHEN 500MG TAB" role="D" concentration="500 MG">
+          <class code="CN103" name="NON-OPIOID ANALGESICS" vuid="4021582"/>
+          <vaGeneric code="1338" name="ACETAMINOPHEN" vuid="4017513"/>
+          <vaProduct code="6638" name="ACETAMINOPHEN 500MG TAB" vuid="4007154"/>
+        </product>
+      </products>
+      <quantity value="90"/>
+      <routing value="W"/>
+      <sig xml:space="preserve">TAKE ONE TABLET BY MOUTH EVERY DAY</sig>
+      <start value="3080728"/>
+      <status value="not active"/>
+      <stop value="3110507"/>
+      <type value="Prescription"/>
+      <vaStatus value="DISCONTINUED"/>
+      <vaType value="O"/>
+    </med>
+    <med>
+      <currentProvider code="983" name="PROVIDER,ONE" taxonomyCode="203B00000N" providerType="Physicians (M.D. and D.O.)" classification="Physician/Osteopath" service="MEDICINE"/>
+      <daysSupply value="90"/>
+      <doses>
+        <dose dose="2 TABLETS" route="PO" schedule="Q6H" doseStart="3100129" doseStop="3110531"/>
+      </doses>
+      <expires value="3110531"/>
+      <facility code="673" name="TAMPA (JAH VAH)"/>
+      <fills>
+        <fill fillDate="3100129" fillRouting="W" releaseDate="3100129" fillQuantity="360" fillDaysSupply="90"/>
+      </fills>
+      <fillCost value="35.424"/>
+      <fillsAllowed value="3"/>
+      <fillsRemaining value="3"/>
+      <form value="TAB"/>
+      <id value="33444"/>
+      <lastFilled value="3100129"/>
+      <location code="32" name="PRIMARY CARE"/>
+      <medID value="404200;O"/>
+      <name value="CARBIDOPA/LEVODOPA TAB"/>
+      <orderID value="33444"/>
+      <ordered value="3110301.113217"/>
+      <orderingProvider code="983" name="PROVIDER,ONE" taxonomyCode="203B00000N" providerType="Physicians (M.D. and D.O.)" classification="Physician/Osteopath" service="MEDICINE"/>
+      <pharmacist code="10000000056" name="PHARMACIST,ONE"/>
+      <prescription value="500978"/>
+      <products>
+        <product code="1442" name="CARBIDOPA 25/LEVODOPA 100MG TAB" role="D">
+          <class code="CN500" name="ANTIPARKINSON AGENTS" vuid="4021593"/>
+          <vaGeneric code="287" name="CARBIDOPA/LEVODOPA" vuid="4022149"/>
+          <vaProduct code="2369" name="CARBIDOPA 25MG/LEVODOPA 100MG TAB" vuid="4002951"/>
+        </product>
+      </products>
+      <quantity value="360"/>
+      <routing value="W"/>
+      <sig xml:space="preserve">TAKE 2 TABLETS BY MOUTH EVERY 6 HOURS</sig>
+      <start value="3100129"/>
+      <status value="historical"/>
+      <stop value="3110531"/>
+      <type value="Prescription"/>
+      <vaStatus value="EXPIRED"/>
+      <vaType value="O"/>
+    </med>
+    <med>
+      <currentProvider code="983" name="PROVIDER,ONE" taxonomyCode="203B00000N" providerType="Physicians (M.D. and D.O.)" classification="Physician/Osteopath" service="MEDICINE"/>
+      <daysSupply value="90"/>
+      <doses>
+        <dose dose=".4" units="MG" unitsPerDose="1" noun="CAPSULE" route="PO" schedule="QD" doseStart="3080728" doseStop="3110301"/>
+      </doses>
+      <expires value="3110531"/>
+      <facility code="673" name="TAMPA (JAH VAH)"/>
+      <fills>
+        <fill fillDate="3080728" fillRouting="W" releaseDate="3080728" fillQuantity="90" fillDaysSupply="90"/>
+      </fills>
+      <fillCost value="77.292"/>
+      <fillsAllowed value="3"/>
+      <fillsRemaining value="3"/>
+      <form value="CAP,ORAL"/>
+      <id value="33446"/>
+      <lastFilled value="3080728"/>
+      <location code="32" name="PRIMARY CARE"/>
+      <medID value="404202;O"/>
+      <name value="TAMSULOSIN CAP,ORAL"/>
+      <orderID value="33446"/>
+      <ordered value="3110301.113726"/>
+      <orderingProvider code="983" name="PROVIDER,ONE" taxonomyCode="203B00000N" providerType="Physicians (M.D. and D.O.)" classification="Physician/Osteopath" service="MEDICINE"/>
+      <pharmacist code="10000000056" name="PHARMACIST,ONE"/>
+      <prescription value="500980"/>
+      <products>
+        <product code="1956" name="TAMSULOSIN HCL 0.4MG CAP" role="D" concentration="0.4 MG">
+          <class code="CV150" name="ALPHA BLOCKERS/RELATED" vuid="4021784"/>
+          <vaGeneric code="3440" name="TAMSULOSIN" vuid="4024076"/>
+          <vaProduct code="12741" name="TAMSULOSIN HCL 0.4MG CAP" vuid="4013106"/>
+        </product>
+      </products>
+      <quantity value="90"/>
+      <routing value="W"/>
+      <sig xml:space="preserve">TAKE ONE CAPSULE BY MOUTH EVERY DAY</sig>
+      <start value="3080728"/>
+      <status value="not active"/>
+      <stop value="3110301"/>
+      <type value="Prescription"/>
+      <vaStatus value="DISCONTINUED (EDIT)"/>
+      <vaType value="O"/>
+    </med>
+    <med>
+      <currentProvider code="983" name="PROVIDER,ONE" taxonomyCode="203B00000N" providerType="Physicians (M.D. and D.O.)" classification="Physician/Osteopath" service="MEDICINE"/>
+      <daysSupply value="90"/>
+      <doses>
+        <dose dose="1 CAPSULE" route="PO" schedule="BID" doseStart="3091208" doseStop="3110507"/>
+      </doses>
+      <expires value="3110531"/>
+      <facility code="673" name="TAMPA (JAH VAH)"/>
+      <fills>
+        <fill fillDate="3091208" fillRouting="W" releaseDate="3091208" fillQuantity="180" fillDaysSupply="90"/>
+      </fills>
+      <fillCost value="10.818"/>
+      <fillsAllowed value="0"/>
+      <fillsRemaining value="0"/>
+      <form value="CAP,ORAL"/>
+      <id value="33459"/>
+      <lastFilled value="3091208"/>
+      <location code="32" name="PRIMARY CARE"/>
+      <medID value="404215;O"/>
+      <name value="OXYCODONE 5MG/ACETAMINOPHEN 500MG CAP,ORAL"/>
+      <orderID value="33459"/>
+      <ordered value="3110302.03411"/>
+      <orderingProvider code="983" name="PROVIDER,ONE" taxonomyCode="203B00000N" providerType="Physicians (M.D. and D.O.)" classification="Physician/Osteopath" service="MEDICINE"/>
+      <pharmacist code="10000000056" name="PHARMACIST,ONE"/>
+      <prescription value="10054"/>
+      <products>
+        <product code="2466" name="OXYCODONE 5MG/ACETAMINOPHEN 500MG CAP" role="D">
+          <class code="CN101" name="OPIOID ANALGESICS" vuid="4021583"/>
+          <vaGeneric/>
+          <vaProduct/>
+        </product>
+      </products>
+      <quantity value="180"/>
+      <routing value="W"/>
+      <sig xml:space="preserve">TAKE 1 CAPSULE BY MOUTH TWICE A DAY</sig>
+      <start value="3091208"/>
+      <status value="not active"/>
+      <stop value="3110507"/>
+      <type value="Prescription"/>
+      <vaStatus value="DISCONTINUED"/>
+      <vaType value="O"/>
+    </med>
+    <med>
+      <currentProvider code="983" name="PROVIDER,ONE" taxonomyCode="203B00000N" providerType="Physicians (M.D. and D.O.)" classification="Physician/Osteopath" service="MEDICINE"/>
+      <daysSupply value="90"/>
+      <doses>
+        <dose dose="12.5" units="MG" unitsPerDose="1" noun="TABLET" route="PO" schedule="QD" doseStart="3080728" doseStop="3120501"/>
+      </doses>
+      <expires value="3120501"/>
+      <facility code="673" name="TAMPA (JAH VAH)"/>
+      <fills>
+        <fill fillDate="3080728" fillRouting="W" releaseDate="3080728" fillQuantity="90" fillDaysSupply="90"/>
+        <fill fillDate="3110507" fillRouting="M" releaseDate="3110507" fillQuantity="90" fillDaysSupply="90"/>
+      </fills>
+      <fillCost value="10.998"/>
+      <fillsAllowed value="3"/>
+      <fillsRemaining value="2"/>
+      <form value="TAB"/>
+      <id value="33443"/>
+      <lastFilled value="3110507"/>
+      <location code="32" name="PRIMARY CARE"/>
+      <medID value="404199;O"/>
+      <name value="HYDROCHLOROTHIAZIDE TAB"/>
+      <orderID value="33443"/>
+      <ordered value="3110301.113019"/>
+      <orderingProvider code="983" name="PROVIDER,ONE" taxonomyCode="203B00000N" providerType="Physicians (M.D. and D.O.)" classification="Physician/Osteopath" service="MEDICINE"/>
+      <pharmacist code="10000000056" name="PHARMACIST,ONE"/>
+      <prescription value="500977"/>
+      <products>
+        <product code="3173" name="HYDROCHLOROTHIAZIDE 12.5MG TAB" role="D" concentration="12.5 MG">
+          <class code="CV701" name="THIAZIDES/RELATED DIURETICS" vuid="4021573"/>
+          <vaGeneric code="236" name="HYDROCHLOROTHIAZIDE" vuid="4017615"/>
+          <vaProduct code="19630" name="HYDROCHLOROTHIAZIDE 12.5MG TAB" vuid="4027537"/>
+        </product>
+      </products>
+      <quantity value="90"/>
+      <routing value="W"/>
+      <sig xml:space="preserve">TAKE ONE TABLET BY MOUTH EVERY DAY</sig>
+      <start value="3080728"/>
+      <status value="historical"/>
+      <stop value="3120501"/>
+      <type value="Prescription"/>
+      <vaStatus value="EXPIRED"/>
+      <vaType value="O"/>
+    </med>
+    <med>
+      <currentProvider code="983" name="PROVIDER,ONE" taxonomyCode="203B00000N" providerType="Physicians (M.D. and D.O.)" classification="Physician/Osteopath" service="MEDICINE"/>
+      <daysSupply value="90"/>
+      <doses>
+        <dose dose="81" units="MG" unitsPerDose="1" noun="TABLET" route="PO" schedule="QD" doseStart="3080827" doseStop="3120501"/>
+      </doses>
+      <expires value="3120501"/>
+      <facility code="673" name="TAMPA (JAH VAH)"/>
+      <fills>
+        <fill fillDate="3080827" fillRouting="W" releaseDate="3080727" fillQuantity="90" fillDaysSupply="90"/>
+        <fill fillDate="3110507" fillRouting="M" releaseDate="3110507" fillQuantity="90" fillDaysSupply="90"/>
+      </fills>
+      <fillCost value=".351"/>
+      <fillsAllowed value="3"/>
+      <fillsRemaining value="2"/>
+      <form value="TAB,EC"/>
+      <id value="33447"/>
+      <lastFilled value="3110507"/>
+      <location code="32" name="PRIMARY CARE"/>
+      <medID value="404203;O"/>
+      <name value="ASPIRIN TAB,EC"/>
+      <orderID value="33447"/>
+      <ordered value="3110301.113846"/>
+      <orderingProvider code="983" name="PROVIDER,ONE" taxonomyCode="203B00000N" providerType="Physicians (M.D. and D.O.)" classification="Physician/Osteopath" service="MEDICINE"/>
+      <pharmacist code="10000000056" name="PHARMACIST,ONE"/>
+      <prescription value="500981"/>
+      <products>
+        <product code="872" name="ASPIRIN 81MG EC TAB" role="D" concentration="81 MG">
+          <class code="CN103" name="NON-OPIOID ANALGESICS" vuid="4021582"/>
+          <vaGeneric code="964" name="ASPIRIN" vuid="4017536"/>
+          <vaProduct code="5227" name="ASPIRIN 81MG TAB,EC" vuid="4005766"/>
+        </product>
+      </products>
+      <quantity value="90"/>
+      <routing value="W"/>
+      <sig xml:space="preserve">TAKE ONE TABLET BY MOUTH EVERY DAY</sig>
+      <start value="3080827"/>
+      <status value="historical"/>
+      <stop value="3120501"/>
+      <type value="Prescription"/>
+      <vaStatus value="EXPIRED"/>
+      <vaType value="O"/>
+    </med>
+    <med>
+      <currentProvider code="983" name="PROVIDER,ONE" taxonomyCode="203B00000N" providerType="Physicians (M.D. and D.O.)" classification="Physician/Osteopath" service="MEDICINE"/>
+      <daysSupply value="90"/>
+      <doses>
+        <dose dose="40" units="MG" unitsPerDose="1" noun="TABLET" route="PO" schedule="QD" doseStart="3080728" doseStop="3120501"/>
+      </doses>
+      <expires value="3120501"/>
+      <facility code="673" name="TAMPA (JAH VAH)"/>
+      <fills>
+        <fill fillDate="3080728" fillRouting="W" releaseDate="3080728" fillQuantity="90" fillDaysSupply="90"/>
+        <fill fillDate="3110507" fillRouting="M" releaseDate="3110507" fillQuantity="90" fillDaysSupply="90"/>
+      </fills>
+      <fillCost value="5.913"/>
+      <fillsAllowed value="3"/>
+      <fillsRemaining value="2"/>
+      <form value="TAB"/>
+      <id value="33448"/>
+      <lastFilled value="3110507"/>
+      <location code="32" name="PRIMARY CARE"/>
+      <medID value="404204;O"/>
+      <name value="CITALOPRAM TAB"/>
+      <orderID value="33448"/>
+      <ordered value="3110301.114015"/>
+      <orderingProvider code="983" name="PROVIDER,ONE" taxonomyCode="203B00000N" providerType="Physicians (M.D. and D.O.)" classification="Physician/Osteopath" service="MEDICINE"/>
+      <pharmacist code="10000000056" name="PHARMACIST,ONE"/>
+      <prescription value="500982"/>
+      <products>
+        <product code="1249" name="CITALOPRAM HYDROBROMIDE 40MG TAB" role="D" concentration="40 MG">
+          <class code="CN609" name="ANTIDEPRESSANTS,OTHER" vuid="4021872"/>
+          <vaGeneric code="3521" name="CITALOPRAM" vuid="4021129"/>
+          <vaProduct code="12928" name="CITALOPRAM HYDROBROMIDE 40MG TAB" vuid="4013293"/>
+        </product>
+      </products>
+      <quantity value="90"/>
+      <routing value="W"/>
+      <sig xml:space="preserve">TAKE ONE TABLET BY MOUTH EVERY DAY</sig>
+      <start value="3080728"/>
+      <status value="historical"/>
+      <stop value="3120501"/>
+      <type value="Prescription"/>
+      <vaStatus value="EXPIRED"/>
+      <vaType value="O"/>
+    </med>
+    <med>
+      <currentProvider code="983" name="PROVIDER,ONE" taxonomyCode="203B00000N" providerType="Physicians (M.D. and D.O.)" classification="Physician/Osteopath" service="MEDICINE"/>
+      <daysSupply value="90"/>
+      <doses>
+        <dose dose="80" units="MG" unitsPerDose="1" noun="TABLET" route="PO" schedule="QPM" doseStart="3080728" doseStop="3120501"/>
+      </doses>
+      <expires value="3120501"/>
+      <facility code="673" name="TAMPA (JAH VAH)"/>
+      <fills>
+        <fill fillDate="3080728" fillRouting="W" releaseDate="3080728" fillQuantity="90" fillDaysSupply="90"/>
+        <fill fillDate="3110507" fillRouting="M" releaseDate="3110507" fillQuantity="90" fillDaysSupply="90"/>
+      </fills>
+      <fillCost value="61.191"/>
+      <fillsAllowed value="3"/>
+      <fillsRemaining value="2"/>
+      <form value="TAB"/>
+      <id value="33449"/>
+      <lastFilled value="3110507"/>
+      <location code="32" name="PRIMARY CARE"/>
+      <medID value="404205;O"/>
+      <name value="SIMVASTATIN TAB"/>
+      <orderID value="33449"/>
+      <ordered value="3110301.114129"/>
+      <orderingProvider code="983" name="PROVIDER,ONE" taxonomyCode="203B00000N" providerType="Physicians (M.D. and D.O.)" classification="Physician/Osteopath" service="MEDICINE"/>
+      <pharmacist code="10000000056" name="PHARMACIST,ONE"/>
+      <prescription value="500983"/>
+      <products>
+        <product code="1728" name="SIMVASTATIN 80MG TAB" role="D" concentration="80 MG">
+          <class code="CV350" name="ANTILIPEMIC AGENTS" vuid="4021569"/>
+          <vaGeneric code="2708" name="SIMVASTATIN" vuid="4020400"/>
+          <vaProduct code="12914" name="SIMVASTATIN 80MG TAB" vuid="4013279"/>
+        </product>
+      </products>
+      <quantity value="90"/>
+      <routing value="W"/>
+      <sig xml:space="preserve">TAKE ONE TABLET BY MOUTH EVERY EVENING</sig>
+      <start value="3080728"/>
+      <status value="historical"/>
+      <stop value="3120501"/>
+      <type value="Prescription"/>
+      <vaStatus value="EXPIRED"/>
+      <vaType value="O"/>
+    </med>
+    <med>
+      <currentProvider code="983" name="PROVIDER,ONE" taxonomyCode="203B00000N" providerType="Physicians (M.D. and D.O.)" classification="Physician/Osteopath" service="MEDICINE"/>
+      <daysSupply value="90"/>
+      <doses>
+        <dose dose=".8" units="MG" unitsPerDose="2" noun="CAPSULES" route="PO" schedule="QD" doseStart="3090520" doseStop="3120501"/>
+      </doses>
+      <expires value="3120501"/>
+      <facility code="673" name="TAMPA (JAH VAH)"/>
+      <fills>
+        <fill fillDate="3110507" fillRouting="M" releaseDate="3110507" fillQuantity="90" fillDaysSupply="90"/>
+      </fills>
+      <fillCost value="77.292"/>
+      <fillsAllowed value="3"/>
+      <fillsRemaining value="2"/>
+      <form value="CAP,ORAL"/>
+      <id value="33457"/>
+      <lastFilled value="3110507"/>
+      <location code="32" name="PRIMARY CARE"/>
+      <medID value="404213;O"/>
+      <name value="TAMSULOSIN CAP,ORAL"/>
+      <orderID value="33457"/>
+      <ordered value="3110301.120716"/>
+      <orderingProvider code="983" name="PROVIDER,ONE" taxonomyCode="203B00000N" providerType="Physicians (M.D. and D.O.)" classification="Physician/Osteopath" service="MEDICINE"/>
+      <pharmacist code="10000000056" name="PHARMACIST,ONE"/>
+      <prescription value="500991"/>
+      <products>
+        <product code="1956" name="TAMSULOSIN HCL 0.4MG CAP" role="D" concentration="0.4 MG">
+          <class code="CV150" name="ALPHA BLOCKERS/RELATED" vuid="4021784"/>
+          <vaGeneric code="3440" name="TAMSULOSIN" vuid="4024076"/>
+          <vaProduct code="12741" name="TAMSULOSIN HCL 0.4MG CAP" vuid="4013106"/>
+        </product>
+      </products>
+      <quantity value="90"/>
+      <routing value="W"/>
+      <sig xml:space="preserve">TAKE TWO CAPSULES BY MOUTH EVERY DAY</sig>
+      <start value="3090520"/>
+      <status value="historical"/>
+      <stop value="3120501"/>
+      <type value="Prescription"/>
+      <vaStatus value="EXPIRED"/>
+      <vaType value="O"/>
+    </med>
+    <med>
+      <currentProvider code="983" name="PROVIDER,ONE" taxonomyCode="203B00000N" providerType="Physicians (M.D. and D.O.)" classification="Physician/Osteopath" service="MEDICINE"/>
+      <daysSupply value="90"/>
+      <doses>
+        <dose dose="2 TABLETS" route="PO" schedule="Q6H" doseStart="3080728" doseStop="3120501"/>
+      </doses>
+      <expires value="3120501"/>
+      <facility code="673" name="TAMPA (JAH VAH)"/>
+      <fills>
+        <fill fillDate="3080728" fillRouting="W" releaseDate="3080728" fillQuantity="720" fillDaysSupply="90"/>
+        <fill fillDate="3110507" fillRouting="M" releaseDate="3110507" fillQuantity="720" fillDaysSupply="90"/>
+      </fills>
+      <fillCost value="70.848"/>
+      <fillsAllowed value="3"/>
+      <fillsRemaining value="2"/>
+      <form value="TAB"/>
+      <id value="33604"/>
+      <lastFilled value="3110507"/>
+      <location code="32" name="PRIMARY CARE"/>
+      <medID value="404280;O"/>
+      <name value="CARBIDOPA/LEVODOPA TAB"/>
+      <orderID value="33604"/>
+      <ordered value="3110411.162615"/>
+      <orderingProvider code="983" name="PROVIDER,ONE" taxonomyCode="203B00000N" providerType="Physicians (M.D. and D.O.)" classification="Physician/Osteopath" service="MEDICINE"/>
+      <pharmacist code="10000000056" name="PHARMACIST,ONE"/>
+      <prescription value="501057"/>
+      <products>
+        <product code="1442" name="CARBIDOPA 25/LEVODOPA 100MG TAB" role="D">
+          <class code="CN500" name="ANTIPARKINSON AGENTS" vuid="4021593"/>
+          <vaGeneric code="287" name="CARBIDOPA/LEVODOPA" vuid="4022149"/>
+          <vaProduct code="2369" name="CARBIDOPA 25MG/LEVODOPA 100MG TAB" vuid="4002951"/>
+        </product>
+      </products>
+      <quantity value="720"/>
+      <routing value="W"/>
+      <sig xml:space="preserve">TAKE 2 TABLETS BY MOUTH EVERY 6 HOURS</sig>
+      <start value="3080728"/>
+      <status value="historical"/>
+      <stop value="3120501"/>
+      <type value="Prescription"/>
+      <vaStatus value="EXPIRED"/>
+      <vaType value="O"/>
+    </med>
+    <med>
+      <currentProvider code="983" name="PROVIDER,ONE" taxonomyCode="203B00000N" providerType="Physicians (M.D. and D.O.)" classification="Physician/Osteopath" service="MEDICINE"/>
+      <daysSupply value="90"/>
+      <doses>
+        <dose dose="1 CAPSULE" route="PO" schedule="QD" doseStart="3110507" doseStop="3120501"/>
+      </doses>
+      <expires value="3120501"/>
+      <facility code="673" name="TAMPA (JAH VAH)"/>
+      <fills>
+        <fill fillDate="3110507" fillRouting="W" fillQuantity="90" fillDaysSupply="90"/>
+      </fills>
+      <fillCost value="5.409"/>
+      <fillsAllowed value="0"/>
+      <fillsRemaining value="0"/>
+      <form value="CAP,ORAL"/>
+      <id value="33713"/>
+      <lastFilled value="3110507"/>
+      <location code="32" name="PRIMARY CARE"/>
+      <medID value="404282;O"/>
+      <name value="OXYCODONE 5MG/ACETAMINOPHEN 500MG CAP,ORAL"/>
+      <orderID value="33713"/>
+      <ordered value="3110507.133411"/>
+      <orderingProvider code="983" name="PROVIDER,ONE" taxonomyCode="203B00000N" providerType="Physicians (M.D. and D.O.)" classification="Physician/Osteopath" service="MEDICINE"/>
+      <pharmacist code="10000000056" name="PHARMACIST,ONE"/>
+      <prescription value="10055"/>
+      <products>
+        <product code="2466" name="OXYCODONE 5MG/ACETAMINOPHEN 500MG CAP" role="D">
+          <class code="CN101" name="OPIOID ANALGESICS" vuid="4021583"/>
+          <vaGeneric/>
+          <vaProduct/>
+        </product>
+      </products>
+      <quantity value="90"/>
+      <routing value="W"/>
+      <sig xml:space="preserve">TAKE 1 CAPSULE BY MOUTH EVERY DAY</sig>
+      <start value="3110507"/>
+      <status value="historical"/>
+      <stop value="3120501"/>
+      <type value="Prescription"/>
+      <vaStatus value="EXPIRED"/>
+      <vaType value="O"/>
+    </med>
+    <med>
+      <currentProvider code="983" name="PROVIDER,ONE" taxonomyCode="203B00000N" providerType="Physicians (M.D. and D.O.)" classification="Physician/Osteopath" service="MEDICINE"/>
+      <daysSupply value="90"/>
+      <doses>
+        <dose dose="500" units="MG" unitsPerDose="1" noun="TABLET" route="PO" schedule="QD" doseStart="3110507" doseStop="3120507"/>
+      </doses>
+      <expires value="3120507"/>
+      <facility code="673" name="TAMPA (JAH VAH)"/>
+      <fills>
+        <fill fillDate="3110726" fillRouting="M" fillQuantity="90" fillDaysSupply="90"/>
+      </fills>
+      <fillCost value=".558"/>
+      <fillsAllowed value="3"/>
+      <fillsRemaining value="3"/>
+      <form value="TAB"/>
+      <id value="33714"/>
+      <lastFilled value="3110726"/>
+      <location code="32" name="PRIMARY CARE"/>
+      <medID value="404283;O"/>
+      <name value="ACETAMINOPHEN TAB"/>
+      <orderID value="33714"/>
+      <ordered value="3110507.133447"/>
+      <orderingProvider code="983" name="PROVIDER,ONE" taxonomyCode="203B00000N" providerType="Physicians (M.D. and D.O.)" classification="Physician/Osteopath" service="MEDICINE"/>
+      <pharmacist code="10000000056" name="PHARMACIST,ONE"/>
+      <prescription value="500979A"/>
+      <products>
+        <product code="213" name="ACETAMINOPHEN 500MG TAB" role="D" concentration="500 MG">
+          <class code="CN103" name="NON-OPIOID ANALGESICS" vuid="4021582"/>
+          <vaGeneric code="1338" name="ACETAMINOPHEN" vuid="4017513"/>
+          <vaProduct code="6638" name="ACETAMINOPHEN 500MG TAB" vuid="4007154"/>
+        </product>
+      </products>
+      <quantity value="90"/>
+      <routing value="M"/>
+      <sig xml:space="preserve">TAKE ONE TABLET BY MOUTH EVERY DAY</sig>
+      <start value="3110507"/>
+      <status value="historical"/>
+      <stop value="3120507"/>
+      <type value="Prescription"/>
+      <vaStatus value="EXPIRED"/>
+      <vaType value="O"/>
+    </med>
+  </meds>
+</results>

@@ -34,6 +34,7 @@ public final class SystemDefinitions {
         .appointment("I3-KHQ4cxv5wNA3A6sawDxVtim61Nu7oEarzxdGh0rK0aqHGhoA2iaX0o")
         .coverage("I3-KIP2d05814vy8hy5ghAbLSc8yILbHdp9TOEEBgWJThb")
         .insurancePlan("I3-1JeCN3qnboBvfJAeuA5VVg")
+        .meds("I3-kkTZEa7lhET6XcuxlbEezSY6UuPKNAmvCDuZxI5cqdA")
         .organizations(
             OrganizationIds.builder()
                 .insTypeRead("I3-450NAk1LKUAaaGqyCDA9S9")
@@ -51,6 +52,7 @@ public final class SystemDefinitions {
         .appointment("TODO https://vajira.max.gov/browse/API-8891")
         .coverage("TODO https://vajira.max.gov/browse/API-8891")
         .insurancePlan("TODO https://vajira.max.gov/browse/API-8891")
+        .meds("TODO https://vajira.max.gov/browse/API-8891")
         .organizations(
             OrganizationIds.builder()
                 .insTypeRead("TODO https://vajira.max.gov/browse/API-8891")
@@ -68,6 +70,7 @@ public final class SystemDefinitions {
         .appointment("I3-HNJRtzLefcQ12T3j78Gb5Ol8tnTulUTbaqPY9ByPSRAIwSIfg6pK6wg6pK6w")
         .coverage("I3-onSd2F0QCJnTLBUa2wtl7ghktwQt7TS4TXKJMwHzDo9")
         .insurancePlan("I3-35bba1Pto08dShHpQSSihU")
+        .meds("I3-onSd2F0QCJnTLBUa2wtl7ghktwQt7TS4TXKJMwHzDo9")
         .organizations(
             OrganizationIds.builder()
                 .insTypeRead("I3-27zyn3hOzdy6gvpo8Unwby")

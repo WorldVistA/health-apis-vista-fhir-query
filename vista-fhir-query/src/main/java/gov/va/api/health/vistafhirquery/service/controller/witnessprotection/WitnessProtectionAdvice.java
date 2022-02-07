@@ -24,6 +24,7 @@ import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.function.BiConsumer;
 import java.util.function.Function;
@@ -248,7 +249,10 @@ public class WitnessProtectionAdvice extends IdentitySubstitution<ProtectedRefer
     }
     Operations<Resource, ProtectedReference> operations =
         Operations.<Resource, ProtectedReference>builder()
-            .toReferences(rsrc -> concat(additionalReferences.stream(), agent.referencesOf(rsrc)))
+            .toReferences(
+                rsrc ->
+                    concat(additionalReferences.stream(), agent.referencesOf(rsrc))
+                        .filter(Objects::nonNull))
             .isReplaceable(reference -> true)
             .resourceNameOf(ProtectedReference::type)
             .transform(identityProcessor.transformation())

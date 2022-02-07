@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<results version="1.13" timeZone="-0500">
+  <meds total="1">
+    <med>
+      <currentProvider code="983" name="PROVIDER,ONE" taxonomyCode="203B00000N" providerType="Physicians (M.D. and D.O.)" classification="Physician/Osteopath" service="MEDICINE"/>
+      <daysSupply value="90"/>
+      <doses>
+        <dose dose="500" units="MG" unitsPerDose="1" noun="TABLET" route="PO" schedule="QD" doseStart="3080728" doseStop="3110507"/>
+      </doses>
+      <expires value="3110514"/>
+      <facility code="673" name="TAMPA (JAH VAH)"/>
+      <fills>
+        <fill fillDate="3080728" fillRouting="W" releaseDate="3080728" fillQuantity="90" fillDaysSupply="90"/>
+        <fill fillDate="3110507" fillRouting="M" fillQuantity="90" fillDaysSupply="90"/>
+      </fills>
+      <fillCost value=".558"/>
+      <fillsAllowed value="3"/>
+      <fillsRemaining value="2"/>
+      <form value="TAB"/>
+      <id value="33445"/>
+      <lastFilled value="3110507"/>
+      <location code="32" name="PRIMARY CARE"/>
+      <medID value="404201;O"/>
+      <name value="ACETAMINOPHEN TAB"/>
+      <orderID value="33445"/>
+      <ordered value="3110301.113436"/>
+      <orderingProvider code="983" name="PROVIDER,ONE" taxonomyCode="203B00000N" providerType="Physicians (M.D. and D.O.)" classification="Physician/Osteopath" service="MEDICINE"/>
+      <pharmacist code="10000000056" name="PHARMACIST,ONE"/>
+      <prescription value="500979"/>
+      <products>
+        <product code="213" name="ACETAMINOPHEN 500MG TAB" role="D" concentration="500 MG">
+          <class code="CN103" name="NON-OPIOID ANALGESICS" vuid="4021582"/>
+          <vaGeneric code="1338" name="ACETAMINOPHEN" vuid="4017513"/>
+          <vaProduct code="6638" name="ACETAMINOPHEN 500MG TAB" vuid="4007154"/>
+        </product>
+      </products>
+      <quantity value="90"/>
+      <routing value="W"/>
+      <sig xml:space="preserve">TAKE ONE TABLET BY MOUTH EVERY DAY</sig>
+      <start value="3080728"/>
+      <status value="not active"/>
+      <stop value="3110507"/>
+      <type value="Prescription"/>
+      <vaStatus value="DISCONTINUED"/>
+      <vaType value="O"/>
+    </med>
+  </meds>
+</results>

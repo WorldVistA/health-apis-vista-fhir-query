@@ -22,6 +22,8 @@ public final class TestIds {
 
   @NonNull String insurancePlan;
 
+  @NonNull String meds;
+
   @NonNull OrganizationIds organizations;
 
   @NonNull String observationVitalSign;
