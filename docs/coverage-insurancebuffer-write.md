@@ -20,6 +20,8 @@
 | `.relationship.coding[]` | Required | Must contain 1 entry. |
 | `.relationship.coding[0].system` | Required | Must be `http://terminology.hl7.org/CodeSystem/subscriber-relationship` |
 | `.relationship.coding[0].code` | Required | X.12 271 EB03 code. 1-2 characters in length. |
+| `.payor[]` | Required | Must contain 1 entry. |
+| `.payor[0].reference` | Required | Must be a reference to an `Organization` resource in the `.contained[]` field. |
 | `.class[]` | Required | Must contain 1 entry. |
 | `.class[0].type.coding[0].system` | Required | Must be `http://terminology.hl7.org/CodeSystem/coverage-class`. |
 | `.class[0].type.coding[0].code` | Required | Must be `group`. |
@@ -50,6 +52,16 @@ Several identifiers are supported.
 | `.value` | Required | If this is a group policy enter the number which identifies this policy, i.e. group number/code that the insurance company uses to identify this  plan. Must be unique. |
 
 </details>
+
+### Organization
+
+#### Supported Fields
+
+|Path|Required|Notes|
+|---|---|---|
+|`.resourceType` | Required | Must be `Organization`. |
+| `.id` | Required | Must match the id provided in the `Coverage` `.payor[0]` field. |
+| `.name` | Required | |
 
 
 

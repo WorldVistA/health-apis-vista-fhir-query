@@ -12,6 +12,7 @@ import gov.va.api.health.r4.api.elements.Reference;
 import gov.va.api.health.r4.api.resources.Coverage;
 import gov.va.api.health.r4.api.resources.Coverage.Status;
 import gov.va.api.health.r4.api.resources.InsurancePlan;
+import gov.va.api.health.r4.api.resources.Organization;
 import gov.va.api.health.r4.api.resources.Patient;
 import gov.va.api.health.vistafhirquery.service.controller.ContainedResourceWriter;
 import gov.va.api.health.vistafhirquery.service.controller.ContainedResourceWriter.ContainableResource;
@@ -102,6 +103,11 @@ public class InsuranceBufferToR4CoverageTransformer {
             ContainableResource.<Coverage, InsurancePlan>builder()
                 .containedResource(toInsurancePlan(entry))
                 .applyReferenceId((c, id) -> c.coverageClass(coverageClass(id)))
+                .build(),
+            ContainableResource.<Coverage, Organization>builder()
+                .containedResource(toOrganization(entry))
+                .applyReferenceId(
+                    (o, id) -> o.payor(Reference.builder().reference(id).build().asList()))
                 .build()));
   }
 
@@ -191,6 +197,19 @@ public class InsuranceBufferToR4CoverageTransformer {
       return null;
     }
     return ip;
+  }
+
+  private Organization toOrganization(FilemanEntry entry) {
+    var org =
+        Organization.builder()
+            .active(true)
+            .name(
+                entry.internal(InsuranceVerificationProcessor.INSURANCE_COMPANY_NAME).orElse(null))
+            .build();
+    if (Organization.builder().active(true).build().equals(org)) {
+      return null;
+    }
+    return org;
   }
 
   private CodeableConcept type(String inqServiceTypeCode) {

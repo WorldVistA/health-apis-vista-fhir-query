@@ -13,6 +13,7 @@ import gov.va.api.health.r4.api.elements.Reference;
 import gov.va.api.health.r4.api.resources.Coverage;
 import gov.va.api.health.r4.api.resources.Coverage.Status;
 import gov.va.api.health.r4.api.resources.InsurancePlan;
+import gov.va.api.health.r4.api.resources.Organization;
 import gov.va.api.health.vistafhirquery.service.controller.PatientTypeCoordinates;
 import gov.va.api.health.vistafhirquery.service.controller.RecordCoordinates;
 import gov.va.api.health.vistafhirquery.service.controller.insuranceplan.InsurancePlanStructureDefinitions;
@@ -66,6 +67,8 @@ public class CoverageSamples {
       coverage.contained().forEach(r -> r.id(null));
       // Insurance Plan Reference
       coverage.coverageClass().forEach(c -> c.value(null));
+      // Organization Payor
+      coverage.payor().forEach(o -> o.reference(null));
     }
 
     public static BundleLink link(BundleLink.LinkRelation rel, String base, String query) {
@@ -196,6 +199,10 @@ public class CoverageSamples {
           .build();
     }
 
+    private Organization containedOrganization() {
+      return Organization.builder().active(true).name("BCBS OF SHANKSVILLE").build();
+    }
+
     public Coverage coverage() {
       return coverage("666", "1,8,", "1010101010V666666");
     }
@@ -248,7 +255,7 @@ public class CoverageSamples {
                   .build()
                   .toString())
           .meta(Meta.builder().source(station).build())
-          .contained(List.of(containedInsurancePlan()))
+          .contained(List.of(containedInsurancePlan(), containedOrganization()))
           .status(Status.draft)
           .type(
               CodeableConcept.builder()
@@ -263,6 +270,7 @@ public class CoverageSamples {
           .beneficiary(beneficiary(patient))
           .relationship(relationship())
           .coverageClass(classes(station, patient).get(0).value(null).asList())
+          .payor(Reference.builder().build().asList())
           .build();
     }
 
@@ -387,6 +395,9 @@ public class CoverageSamples {
 
     private Map<String, Values> insuranceBufferFields() {
       Map<String, Values> fields = new HashMap<>();
+      fields.put(
+          InsuranceVerificationProcessor.INSURANCE_COMPANY_NAME,
+          Values.of("BCBS OF SHANKSVILLE", "BCBS OF SHANKSVILLE"));
       fields.put(InsuranceVerificationProcessor.INQ_SERVICE_TYPE_CODE_1, Values.of("1", "1"));
       fields.put(InsuranceVerificationProcessor.PATIENT_ID, Values.of("13579", "13579"));
       fields.put(InsuranceVerificationProcessor.PT_RELATIONSHIP_HIPAA, Values.of("SPOUSE", "01"));
