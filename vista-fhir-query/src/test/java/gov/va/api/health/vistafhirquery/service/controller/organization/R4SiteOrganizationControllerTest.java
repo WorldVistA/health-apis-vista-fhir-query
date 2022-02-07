@@ -22,7 +22,6 @@ import gov.va.api.health.vistafhirquery.service.controller.witnessprotection.Alt
 import gov.va.api.lighthouse.charon.api.v1.RpcInvocationResultV1;
 import gov.va.api.lighthouse.charon.models.lhslighthouserpcgateway.InsuranceCompany;
 import gov.va.api.lighthouse.charon.models.lhslighthouserpcgateway.LhsLighthouseRpcGatewayCoverageSearch;
-import gov.va.api.lighthouse.charon.models.lhslighthouserpcgateway.LhsLighthouseRpcGatewayCoverageWrite;
 import gov.va.api.lighthouse.charon.models.lhslighthouserpcgateway.LhsLighthouseRpcGatewayGetsManifest;
 import gov.va.api.lighthouse.charon.models.lhslighthouserpcgateway.LhsLighthouseRpcGatewayListGetsManifest;
 import gov.va.api.lighthouse.charon.models.lhslighthouserpcgateway.LhsLighthouseRpcGatewayResponse;
@@ -35,7 +34,6 @@ import org.junit.jupiter.params.provider.NullSource;
 import org.junit.jupiter.params.provider.ValueSource;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.mock.web.MockHttpServletResponse;
 
 @ExtendWith(MockitoExtension.class)
 class R4SiteOrganizationControllerTest {
@@ -67,26 +65,6 @@ class R4SiteOrganizationControllerTest {
         .timezone("UTC")
         .response(json(value))
         .build();
-  }
-
-  @Test
-  void create() {
-    var response = new MockHttpServletResponse();
-    var samples = OrganizationSamples.VistaLhsLighthouseRpcGateway.create();
-    var results = samples.createOrganizationResults("ien1");
-    var captor = requestCaptor(LhsLighthouseRpcGatewayCoverageWrite.Request.class);
-    var answer =
-        answerFor(captor).value(results).invocationResult(_invocationResult(results)).build();
-    when(charon.request(captor.capture())).thenAnswer(answer);
-    witnessProtection.add("pub1", "123;36;ien1");
-    _controller()
-        .organizationCreate(
-            response, "123", OrganizationSamples.R4.create().organization("123", "ien1"));
-    assertThat(captor.getValue().rpcRequest().api())
-        .isEqualTo(LhsLighthouseRpcGatewayCoverageWrite.Request.CoverageWriteApi.CREATE);
-    assertThat(response.getStatus()).isEqualTo(201);
-    assertThat(response.getHeader("Location"))
-        .isEqualTo("http://fugazi.com/hcs/123/r4/Organization/pub1");
   }
 
   @Test
@@ -208,38 +186,5 @@ class R4SiteOrganizationControllerTest {
                 "_count=10&type=pay"));
     assertThat(captor.getValue().rpcRequest().file()).isEqualTo(Payer.FILE_NUMBER);
     assertThat(json(actual)).isEqualTo(json(expected));
-  }
-
-  @Test
-  void update() {
-    var response = new MockHttpServletResponse();
-    var samples = OrganizationSamples.VistaLhsLighthouseRpcGateway.create();
-    var results = samples.createOrganizationResults("ien1");
-    var captor = requestCaptor(LhsLighthouseRpcGatewayCoverageWrite.Request.class);
-    var answer =
-        answerFor(captor).value(results).invocationResult(_invocationResult(results)).build();
-    when(charon.request(captor.capture())).thenAnswer(answer);
-    witnessProtection.add("pub1", "123;36;ien1");
-    _controller()
-        .organizationUpdate(
-            response, "123", "pub1", OrganizationSamples.R4.create().organization("123", "ien1"));
-    assertThat(captor.getValue().rpcRequest().api())
-        .isEqualTo(LhsLighthouseRpcGatewayCoverageWrite.Request.CoverageWriteApi.UPDATE);
-    assertThat(response.getStatus()).isEqualTo(200);
-  }
-
-  @Test
-  void updateUnsupportedFileThrows() {
-    var response = new MockHttpServletResponse();
-    witnessProtection.add("pub1", "123;365.12;ien1");
-    assertThatExceptionOfType(MismatchedFileCoordinates.class)
-        .isThrownBy(
-            () ->
-                _controller()
-                    .organizationUpdate(
-                        response,
-                        "123",
-                        "pub1",
-                        OrganizationSamples.R4.create().organization("123", "ien1")));
   }
 }

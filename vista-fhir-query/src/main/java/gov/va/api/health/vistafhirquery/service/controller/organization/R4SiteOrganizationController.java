@@ -3,11 +3,8 @@ package gov.va.api.health.vistafhirquery.service.controller.organization;
 import static gov.va.api.health.vistafhirquery.service.charonclient.CharonRequests.lighthouseRpcGatewayRequest;
 import static gov.va.api.health.vistafhirquery.service.charonclient.CharonRequests.lighthouseRpcGatewayResponse;
 import static gov.va.api.health.vistafhirquery.service.charonclient.LhsGatewayErrorHandler.dieOnReadError;
-import static gov.va.api.health.vistafhirquery.service.controller.R4Controllers.updateResponseForCreatedResource;
-import static gov.va.api.health.vistafhirquery.service.controller.R4Controllers.updateResponseForUpdatedResource;
 import static gov.va.api.health.vistafhirquery.service.controller.R4Controllers.verifyAndGetResult;
 import static gov.va.api.health.vistafhirquery.service.controller.recordcontext.Validations.filesMatch;
-import static gov.va.api.health.vistafhirquery.service.controller.recordcontext.Validations.nonPatientRecordUpdateValidationRules;
 import static gov.va.api.lighthouse.charon.models.lhslighthouserpcgateway.LhsLighthouseRpcGatewayGetsManifest.Request.GetsManifestFlags;
 import static java.util.stream.Collectors.toList;
 import static org.apache.commons.lang3.StringUtils.isBlank;
@@ -21,13 +18,8 @@ import gov.va.api.health.vistafhirquery.service.controller.R4BundlerFactory;
 import gov.va.api.health.vistafhirquery.service.controller.R4Bundling;
 import gov.va.api.health.vistafhirquery.service.controller.R4Transformation;
 import gov.va.api.health.vistafhirquery.service.controller.RecordCoordinates;
-import gov.va.api.health.vistafhirquery.service.controller.recordcontext.CreateNonPatientRecordWriteContext;
-import gov.va.api.health.vistafhirquery.service.controller.recordcontext.UpdateNonPatientRecordWriteContext;
-import gov.va.api.health.vistafhirquery.service.controller.recordcontext.WriteContext;
 import gov.va.api.health.vistafhirquery.service.controller.witnessprotection.WitnessProtection;
 import gov.va.api.lighthouse.charon.models.lhslighthouserpcgateway.InsuranceCompany;
-import gov.va.api.lighthouse.charon.models.lhslighthouserpcgateway.LhsLighthouseRpcGatewayCoverageWrite;
-import gov.va.api.lighthouse.charon.models.lhslighthouserpcgateway.LhsLighthouseRpcGatewayCoverageWrite.Request.CoverageWriteApi;
 import gov.va.api.lighthouse.charon.models.lhslighthouserpcgateway.LhsLighthouseRpcGatewayGetsManifest;
 import gov.va.api.lighthouse.charon.models.lhslighthouserpcgateway.LhsLighthouseRpcGatewayListGetsManifest;
 import gov.va.api.lighthouse.charon.models.lhslighthouserpcgateway.LhsLighthouseRpcGatewayResponse;
@@ -35,7 +27,6 @@ import gov.va.api.lighthouse.charon.models.lhslighthouserpcgateway.Payer;
 import java.util.List;
 import java.util.stream.Stream;
 import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.NonNull;
@@ -44,9 +35,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.PutMapping;
-import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
@@ -113,32 +101,6 @@ public class R4SiteOrganizationController implements R4OrganizationApi {
   }
 
   @Override
-  @PostMapping(
-      value = "/hcs/{site}/r4/Organization",
-      consumes = {"application/json", "application/fhir+json"})
-  public void organizationCreate(
-      @Redact HttpServletResponse response,
-      @PathVariable(value = "site") String site,
-      @Redact @RequestBody Organization body) {
-    var ctx =
-        updateOrCreate(
-            CreateNonPatientRecordWriteContext.<Organization>builder()
-                .fileNumber(InsuranceCompany.FILE_NUMBER)
-                .site(site)
-                .body(body)
-                .build());
-    var newResourceUrl =
-        bundlerFactory
-            .linkProperties()
-            .r4()
-            .readUrl(
-                site,
-                "Organization",
-                witnessProtection.toPublicId(Organization.class, ctx.newResourceId()));
-    updateResponseForCreatedResource(response, newResourceUrl);
-  }
-
-  @Override
   @GetMapping(value = "/hcs/{site}/r4/Organization/{publicId}")
   public Organization organizationRead(
       @PathVariable(value = "site") String site, @PathVariable(value = "publicId") String id) {
@@ -177,44 +139,6 @@ public class R4SiteOrganizationController implements R4OrganizationApi {
     return toBundle(httpRequest, site).apply(lighthouseRpcGatewayResponse(charonResponse));
   }
 
-  @Override
-  @PutMapping(
-      value = "/hcs/{site}/r4/Organization/{id}",
-      consumes = {"application/json", "application/fhir+json"})
-  public void organizationUpdate(
-      @Redact HttpServletResponse response,
-      @PathVariable(value = "site") String site,
-      @PathVariable(value = "id") String id,
-      @Redact @RequestBody Organization body) {
-    var coordinates = witnessProtection.toRecordCoordinatesOrDie(id, Organization.class);
-    filesMatch(id, coordinates, InsuranceCompany.FILE_NUMBER);
-    var ctx =
-        UpdateNonPatientRecordWriteContext.<Organization>builder()
-            .fileNumber(InsuranceCompany.FILE_NUMBER)
-            .site(site)
-            .existingRecord(coordinates)
-            .existingRecordPublicId(id)
-            .body(body)
-            .build();
-    nonPatientRecordUpdateValidationRules().test(ctx);
-    updateOrCreate(ctx);
-    updateResponseForUpdatedResource(response, id);
-  }
-
-  private LhsLighthouseRpcGatewayCoverageWrite.Request organizationWriteDetails(
-      CoverageWriteApi operation, Organization body) {
-    var fieldsToWrite =
-        R4OrganizationToInsuranceCompanyFileTransformer.builder()
-            .organization(body)
-            .include277EdiNumber(operation == CoverageWriteApi.CREATE)
-            .build()
-            .toInsuranceCompanyFile();
-    return LhsLighthouseRpcGatewayCoverageWrite.Request.builder()
-        .api(operation)
-        .fields(fieldsToWrite)
-        .build();
-  }
-
   private R4Bundler<
           LhsLighthouseRpcGatewayResponse, Organization, Organization.Entry, Organization.Bundle>
       toBundle(HttpServletRequest request, String vista) {
@@ -249,15 +173,5 @@ public class R4SiteOrganizationController implements R4OrganizationApi {
                                     .toFhir()))
                     .collect(toList()))
         .build();
-  }
-
-  private <C extends WriteContext<Organization>> C updateOrCreate(C ctx) {
-    var charonRequest =
-        lighthouseRpcGatewayRequest(
-            ctx.site(), organizationWriteDetails(ctx.coverageWriteApi(), ctx.body()));
-    var charonResponse = charon.request(charonRequest);
-    var lhsResponse = lighthouseRpcGatewayResponse(charonResponse);
-    ctx.result(lhsResponse);
-    return ctx;
   }
 }
