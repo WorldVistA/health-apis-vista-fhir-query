@@ -32,7 +32,7 @@ public class R4AppointmentTransformer {
 
   @NonNull VprGetPatientData.Response.Results rpcResults;
 
-  private AppointmentStatus appointmentStatus(ValueOnlyXmlAttribute status, String dateTime) {
+  AppointmentStatus appointmentStatus(ValueOnlyXmlAttribute status, String dateTime) {
     if (status == null || status.value() == null) {
       return null;
     }
@@ -67,7 +67,7 @@ public class R4AppointmentTransformer {
   }
 
   AppointmentStatus bookedOrFulfilledStatus(String dateTime) {
-    if (dateTime == null) {
+    if (isBlank(dateTime)) {
       return AppointmentStatus.booked;
     }
     return Instant.parse(dateTime).isBefore(Instant.now())
