@@ -2,8 +2,6 @@ package gov.va.api.health.vistafhirquery.service.controller.coverageeligibilityr
 
 import static gov.va.api.health.vistafhirquery.service.charonclient.CharonRequests.lighthouseRpcGatewayRequest;
 import static gov.va.api.health.vistafhirquery.service.charonclient.CharonRequests.lighthouseRpcGatewayResponse;
-import static gov.va.api.health.vistafhirquery.service.controller.R4Controllers.updateResponseForCreatedResource;
-import static gov.va.api.health.vistafhirquery.service.controller.R4Transformers.referenceIdFromUri;
 import static gov.va.api.health.vistafhirquery.service.controller.coverage.R4SiteCoverageController.coverageByPatientIcn;
 import static gov.va.api.lighthouse.charon.models.lhslighthouserpcgateway.PatientId.forIcn;
 
@@ -16,20 +14,12 @@ import gov.va.api.health.vistafhirquery.service.controller.R4Bundler;
 import gov.va.api.health.vistafhirquery.service.controller.R4BundlerFactory;
 import gov.va.api.health.vistafhirquery.service.controller.R4Bundling;
 import gov.va.api.health.vistafhirquery.service.controller.R4Transformation;
-import gov.va.api.health.vistafhirquery.service.controller.RequestPayloadExceptions.InvalidReferenceId;
-import gov.va.api.health.vistafhirquery.service.controller.recordcontext.CreatePatientRecordWriteContext;
-import gov.va.api.health.vistafhirquery.service.controller.recordcontext.PatientRecordWriteContext;
-import gov.va.api.health.vistafhirquery.service.controller.witnessprotection.WitnessProtection;
-import gov.va.api.lighthouse.charon.models.lhslighthouserpcgateway.InsuranceType;
 import gov.va.api.lighthouse.charon.models.lhslighthouserpcgateway.LhsLighthouseRpcGatewayCoverageEligibilityResponse;
-import gov.va.api.lighthouse.charon.models.lhslighthouserpcgateway.LhsLighthouseRpcGatewayCoverageWrite;
 import gov.va.api.lighthouse.charon.models.lhslighthouserpcgateway.LhsLighthouseRpcGatewayListManifest;
-import gov.va.api.lighthouse.charon.models.lhslighthouserpcgateway.PatientId;
 import gov.va.api.lighthouse.charon.models.lhslighthouserpcgateway.PlanCoverageLimitations;
 import java.util.ArrayList;
 import java.util.List;
 import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.NonNull;
@@ -37,8 +27,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
@@ -54,8 +42,6 @@ public class R4SiteCoverageEligibilityResponseController
 
   private final CharonClient charon;
 
-  private final WitnessProtection witnessProtection;
-
   /** Create A request based off of record coordinates. */
   public static LhsLighthouseRpcGatewayCoverageEligibilityResponse.Request manifestRequest(
       PatientTypeCoordinates coordinates) {
@@ -63,13 +49,6 @@ public class R4SiteCoverageEligibilityResponseController
         .iens(coordinates.ien())
         .patientId(forIcn(coordinates.icn()))
         .build();
-  }
-
-  private static String patientOrDie(CoverageEligibilityResponse body) {
-    return referenceIdFromUri(body.patient())
-        .orElseThrow(
-            () ->
-                InvalidReferenceId.builder().jsonPath(".patient").referenceType("Patient").build());
   }
 
   private void addCoverageResultsToContext(R4CoverageEligibilityResponseSearchContext ctx) {
@@ -94,34 +73,6 @@ public class R4SiteCoverageEligibilityResponseController
         lighthouseRpcGatewayResponse(charonResponse).resultsByStation().get(ctx.site()));
   }
 
-  @Override
-  @PostMapping(
-      value = "/hcs/{site}/r4/CoverageEligibilityResponse",
-      consumes = {"application/json", "application/fhir+json"})
-  public void coverageEligibilityResponseCreate(
-      @Redact HttpServletResponse response,
-      @PathVariable(value = "site") String site,
-      @Redact @RequestBody CoverageEligibilityResponse body) {
-    var ctx =
-        updateOrCreate(
-            CreatePatientRecordWriteContext.<CoverageEligibilityResponse>builder()
-                .patientIcn(patientOrDie(body))
-                .fileNumber(InsuranceType.FILE_NUMBER)
-                .site(site)
-                .body(body)
-                .build());
-    var newResourceUrl =
-        bundlerFactory
-            .linkProperties()
-            .r4()
-            .readUrl(
-                site,
-                "CoverageEligibilityResponse",
-                witnessProtection.toPublicId(
-                    CoverageEligibilityResponse.class, ctx.newResourceId()));
-    updateResponseForCreatedResource(response, newResourceUrl);
-  }
-
   /** Search support. */
   @Override
   @GetMapping(value = "/hcs/{site}/r4/CoverageEligibilityResponse")
@@ -139,20 +90,6 @@ public class R4SiteCoverageEligibilityResponseController
     addCoverageResultsToContext(searchCtx);
     addPlanLimitationsToContext(searchCtx);
     return toBundle(httpRequest, site).apply(searchCtx);
-  }
-
-  private LhsLighthouseRpcGatewayCoverageWrite.Request coverageEligibilityResponseWriteDetails(
-      PatientRecordWriteContext<CoverageEligibilityResponse> ctx) {
-    var fieldsToWrite =
-        R4CoverageEligibilityResponseToVistaFileTransformer.builder()
-            .coverageEligibilityResponse(ctx.body())
-            .build()
-            .toVistaFiles();
-    return LhsLighthouseRpcGatewayCoverageWrite.Request.builder()
-        .api(ctx.coverageWriteApi())
-        .fields(fieldsToWrite)
-        .patient(PatientId.forIcn(ctx.patientIcn()))
-        .build();
   }
 
   private R4Bundler<
@@ -185,15 +122,5 @@ public class R4SiteCoverageEligibilityResponseController
                     .toFhir()
                     .toList())
         .build();
-  }
-
-  private <C extends PatientRecordWriteContext<CoverageEligibilityResponse>> C updateOrCreate(
-      C ctx) {
-    var charonRequest =
-        lighthouseRpcGatewayRequest(ctx.site(), coverageEligibilityResponseWriteDetails(ctx));
-    var charonResponse = charon.request(charonRequest);
-    var lhsResponse = lighthouseRpcGatewayResponse(charonResponse);
-    ctx.result(lhsResponse);
-    return ctx;
   }
 }
