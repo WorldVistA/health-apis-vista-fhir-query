@@ -4,6 +4,7 @@ import static gov.va.api.health.vistafhirquery.service.charonclient.CharonTestSu
 import static gov.va.api.health.vistafhirquery.service.charonclient.CharonTestSupport.requestCaptor;
 import static gov.va.api.health.vistafhirquery.service.controller.MockRequests.json;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
+import static org.assertj.core.api.AssertionsForClassTypes.assertThatExceptionOfType;
 import static org.mockito.Mockito.when;
 
 import gov.va.api.health.vistafhirquery.service.charonclient.CharonClient;
@@ -73,5 +74,16 @@ public class RawControllerTest {
     wp.add("pub1", "site1;36;ien1");
     var actualLhsResponse = _controller().organizationById("pub1");
     assertThat(actualLhsResponse).isEqualTo(_invocationResult(results));
+  }
+
+  @Test
+  void rawEndpointThrowsCharonsException() {
+    var samples = VistaLhsLighthouseRpcGateway.create();
+    var results = samples.getsManifestResults("ien1");
+    var captor = requestCaptor(LhsLighthouseRpcGatewayGetsManifest.Request.class);
+    when(charon.request(captor.capture())).thenThrow(IllegalArgumentException.class);
+    wp.add("pub1", "site1;36;ien1");
+    assertThatExceptionOfType(IllegalArgumentException.class)
+        .isThrownBy(() -> _controller().organizationById("pub1"));
   }
 }

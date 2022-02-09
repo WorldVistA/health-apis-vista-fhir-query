@@ -151,11 +151,6 @@ public class R4Transformers {
     return value == null;
   }
 
-  /** Returns true if Boolean is null or false . */
-  public static boolean nullOrfalse(Boolean bool) {
-    return null == bool || !bool;
-  }
-
   /** Transform an Optional Instant to a String. */
   public static String optionalInstantToString(Optional<Instant> maybeString) {
     if (maybeString.isEmpty()) {
@@ -174,13 +169,6 @@ public class R4Transformers {
         .ien(ien)
         .build()
         .toString();
-  }
-
-  /** Given a reference, get the id and try to parse it as patient coordinates. */
-  public static Optional<PatientTypeCoordinates> patientCoordinatesForReference(
-      IsReference maybeReference, String defaultFile) {
-    return coordinatesForReference(
-        maybeReference, ref -> PatientTypeCoordinates.fromString(ref, defaultFile));
   }
 
   /** Given a reference, get the id and try to parse it as record coordinates. */

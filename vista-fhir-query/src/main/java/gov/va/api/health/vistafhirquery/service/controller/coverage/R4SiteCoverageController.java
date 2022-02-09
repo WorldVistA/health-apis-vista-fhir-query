@@ -4,10 +4,8 @@ import static gov.va.api.health.vistafhirquery.service.charonclient.CharonReques
 import static gov.va.api.health.vistafhirquery.service.charonclient.CharonRequests.lighthouseRpcGatewayResponse;
 import static gov.va.api.health.vistafhirquery.service.charonclient.LhsGatewayErrorHandler.dieOnReadError;
 import static gov.va.api.health.vistafhirquery.service.controller.R4Controllers.updateResponseForCreatedResource;
-import static gov.va.api.health.vistafhirquery.service.controller.R4Controllers.updateResponseForUpdatedResource;
 import static gov.va.api.health.vistafhirquery.service.controller.R4Controllers.verifyAndGetResult;
 import static gov.va.api.health.vistafhirquery.service.controller.R4Transformers.referenceIdFromUri;
-import static gov.va.api.health.vistafhirquery.service.controller.recordcontext.Validations.patientRecordUpdateValidationRules;
 import static java.util.stream.Collectors.toList;
 
 import gov.va.api.health.autoconfig.logging.Redact;
@@ -25,7 +23,6 @@ import gov.va.api.health.vistafhirquery.service.controller.RequestPayloadExcepti
 import gov.va.api.health.vistafhirquery.service.controller.ResourceExceptions.NotFound;
 import gov.va.api.health.vistafhirquery.service.controller.recordcontext.CreatePatientRecordWriteContext;
 import gov.va.api.health.vistafhirquery.service.controller.recordcontext.PatientRecordWriteContext;
-import gov.va.api.health.vistafhirquery.service.controller.recordcontext.UpdatePatientRecordWriteContext;
 import gov.va.api.health.vistafhirquery.service.controller.witnessprotection.WitnessProtection;
 import gov.va.api.lighthouse.charon.models.lhslighthouserpcgateway.InsuranceType;
 import gov.va.api.lighthouse.charon.models.lhslighthouserpcgateway.LhsLighthouseRpcGatewayCoverageSearch.Request;
@@ -48,7 +45,6 @@ import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -169,31 +165,6 @@ public class R4SiteCoverageController {
     var request = lighthouseRpcGatewayRequest(site, coverageByPatientIcn(patientIcn));
     var response = charon.request(request);
     return toBundle(httpRequest, response).apply(lighthouseRpcGatewayResponse(response));
-  }
-
-  /** Update support. */
-  @PutMapping(
-      value = "/hcs/{site}/r4/Coverage/{id}",
-      consumes = {"application/json", "application/fhir+json"})
-  public void coverageUpdate(
-      @Redact HttpServletResponse response,
-      @PathVariable(value = "site") String site,
-      @PathVariable(value = "id") String id,
-      @Redact @RequestBody Coverage body) {
-    var ctx =
-        UpdatePatientRecordWriteContext.<Coverage>builder()
-            .fileNumber(InsuranceType.FILE_NUMBER)
-            .site(site)
-            .body(body)
-            .patientIcn(beneficiaryOrDie(body))
-            .existingRecordPublicId(id)
-            .existingRecord(
-                witnessProtection.toPatientTypeCoordinatesOrDie(
-                    id, Coverage.class, InsuranceType.FILE_NUMBER))
-            .build();
-    patientRecordUpdateValidationRules().test(ctx);
-    updateOrCreate(ctx);
-    updateResponseForUpdatedResource(response, id);
   }
 
   private LhsLighthouseRpcGatewayCoverageWrite.Request coverageWriteDetails(

@@ -6,20 +6,14 @@ import static gov.va.api.health.vistafhirquery.service.controller.MockRequests.j
 import static gov.va.api.health.vistafhirquery.service.controller.MockRequests.requestFromUri;
 import static gov.va.api.health.vistafhirquery.service.controller.coverage.CoverageSamples.R4.link;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
-import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import gov.va.api.health.r4.api.bundle.BundleLink;
 import gov.va.api.health.r4.api.resources.Coverage;
 import gov.va.api.health.vistafhirquery.service.charonclient.CharonClient;
 import gov.va.api.health.vistafhirquery.service.config.LinkProperties;
-import gov.va.api.health.vistafhirquery.service.controller.LhsGatewayExceptions.AttemptToUpdateUnknownRecord;
 import gov.va.api.health.vistafhirquery.service.controller.PatientTypeCoordinates;
 import gov.va.api.health.vistafhirquery.service.controller.R4BundlerFactory;
-import gov.va.api.health.vistafhirquery.service.controller.RequestPayloadExceptions.MissingRequiredField;
-import gov.va.api.health.vistafhirquery.service.controller.ResourceExceptions;
-import gov.va.api.health.vistafhirquery.service.controller.ResourceExceptions.CannotUpdateResourceWithMismatchedIds;
 import gov.va.api.health.vistafhirquery.service.controller.witnessprotection.AlternatePatientIds;
 import gov.va.api.health.vistafhirquery.service.controller.witnessprotection.WitnessProtection;
 import gov.va.api.lighthouse.charon.api.v1.RpcInvocationResultV1;
@@ -31,12 +25,8 @@ import gov.va.api.lighthouse.charon.models.lhslighthouserpcgateway.LhsLighthouse
 import gov.va.api.lighthouse.charon.models.lhslighthouserpcgateway.LhsLighthouseRpcGatewayGetsManifest;
 import gov.va.api.lighthouse.charon.models.lhslighthouserpcgateway.LhsLighthouseRpcGatewayResponse;
 import java.util.List;
-import javax.servlet.http.HttpServletResponse;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.NullAndEmptySource;
-import org.junit.jupiter.params.provider.ValueSource;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.mock.web.MockHttpServletResponse;
@@ -182,141 +172,5 @@ public class R4SiteCoverageControllerTest {
                 "http://fugazi.com/hcs/123/r4/Coverage",
                 "page=1&_count=10&patient=p1"));
     assertThat(json(actual)).isEqualTo(json(expected));
-  }
-
-  @Test
-  void update() {
-    var response = new MockHttpServletResponse();
-    var samples = CoverageSamples.VistaLhsLighthouseRpcGateway.create();
-    var results = samples.createInsuranceTypeResults("ip1");
-    var captor = requestCaptor(LhsLighthouseRpcGatewayCoverageWrite.Request.class);
-    var answer =
-        answerFor(captor).value(results).invocationResult(_invocationResult(results)).build();
-    when(charon.request(captor.capture())).thenAnswer(answer);
-    when(witnessProtection.toPatientTypeCoordinatesOrDie(
-            "public-c1", Coverage.class, InsuranceType.FILE_NUMBER))
-        .thenReturn(
-            PatientTypeCoordinates.builder()
-                .site("123")
-                .file(InsuranceType.FILE_NUMBER)
-                .ien("ip1")
-                .icn("p1")
-                .build());
-    _controller()
-        .coverageUpdate(
-            response, "123", "public-c1", CoverageSamples.R4.create().coverage("123", "ip1", "p1"));
-    assertThat(captor.getValue().rpcRequest().api()).isEqualTo(CoverageWriteApi.UPDATE);
-    assertThat(response.getStatus()).isEqualTo(200);
-  }
-
-  @ParameterizedTest
-  @NullAndEmptySource
-  @ValueSource(strings = {"456"})
-  void updateThrowsCannotUpdateResourceWithMismatchedIdsWhenUrlAndPayloadIdsDoNotMatch(
-      String resourceId) {
-    var response = new MockHttpServletResponse();
-    when(witnessProtection.toPatientTypeCoordinatesOrDie(
-            "public-c1", Coverage.class, InsuranceType.FILE_NUMBER))
-        .thenReturn(
-            PatientTypeCoordinates.builder()
-                .site("123")
-                .file(InsuranceType.FILE_NUMBER)
-                .ien("ip1")
-                .icn("p1")
-                .build());
-    assertThatExceptionOfType(CannotUpdateResourceWithMismatchedIds.class)
-        .isThrownBy(
-            () ->
-                _controller()
-                    .coverageUpdate(
-                        response,
-                        "123",
-                        "public-c1",
-                        CoverageSamples.R4.create().coverage().id(resourceId)));
-  }
-
-  @Test
-  void updateThrowsCannotUpdateUnknownResourceForUnknownResource() {
-    var response = new MockHttpServletResponse();
-    var samples = CoverageSamples.VistaLhsLighthouseRpcGateway.create();
-    var results = samples.updateCoverageWithNotExistsId();
-    var captor = requestCaptor(LhsLighthouseRpcGatewayCoverageWrite.Request.class);
-    var answer =
-        answerFor(captor).value(results).invocationResult(_invocationResult(results)).build();
-    when(charon.request(captor.capture())).thenAnswer(answer);
-    when(witnessProtection.toPatientTypeCoordinatesOrDie(
-            "public-c1", Coverage.class, InsuranceType.FILE_NUMBER))
-        .thenReturn(
-            PatientTypeCoordinates.builder()
-                .site("123")
-                .file(InsuranceType.FILE_NUMBER)
-                .ien("ip1")
-                .icn("p1")
-                .build());
-    assertThatExceptionOfType(AttemptToUpdateUnknownRecord.class)
-        .isThrownBy(
-            () ->
-                _controller()
-                    .coverageUpdate(
-                        response,
-                        "123",
-                        "public-c1",
-                        CoverageSamples.R4.create().coverage("123", "ip1", "p1")));
-  }
-
-  @Test
-  void updateThrowsForResourcesThatCannotBeProcessed() {
-    var response = new MockHttpServletResponse();
-    assertThatExceptionOfType(MissingRequiredField.class)
-        .isThrownBy(
-            () ->
-                _controller()
-                    .coverageUpdate(
-                        response,
-                        "123",
-                        "public-c1",
-                        CoverageSamples.R4
-                            .create()
-                            .coverage("123", "ip1", "p1")
-                            .beneficiary(null)));
-  }
-
-  @Test
-  void updateThrowsWhenPatientMismatch() {
-    var sample = CoverageSamples.R4.create().coverage("123", "456", "p1");
-    when(witnessProtection.toPatientTypeCoordinatesOrDie(
-            "public-c1", Coverage.class, InsuranceType.FILE_NUMBER))
-        .thenReturn(
-            PatientTypeCoordinates.builder()
-                .site("123")
-                .file(InsuranceType.FILE_NUMBER)
-                .ien("456")
-                .icn("p1")
-                .build());
-    sample.beneficiary().reference("Patient/p2");
-    assertThatExceptionOfType(ResourceExceptions.ExpectationFailed.class)
-        .isThrownBy(
-            () ->
-                _controller()
-                    .coverageUpdate(mock(HttpServletResponse.class), "123", "public-c1", sample));
-  }
-
-  @Test
-  void updateThrowsWhenSiteMismatch() {
-    var sample = CoverageSamples.R4.create().coverage("123", "456", "p1");
-    when(witnessProtection.toPatientTypeCoordinatesOrDie(
-            "public-c1", Coverage.class, InsuranceType.FILE_NUMBER))
-        .thenReturn(
-            PatientTypeCoordinates.builder()
-                .site("123")
-                .file(InsuranceType.FILE_NUMBER)
-                .ien("456")
-                .icn("p1")
-                .build());
-    assertThatExceptionOfType(ResourceExceptions.ExpectationFailed.class)
-        .isThrownBy(
-            () ->
-                _controller()
-                    .coverageUpdate(mock(HttpServletResponse.class), "321", "public-c1", sample));
   }
 }
