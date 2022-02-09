@@ -16,7 +16,6 @@ import gov.va.api.health.r4.api.resources.InsurancePlan;
 import gov.va.api.health.r4.api.resources.Organization;
 import gov.va.api.health.vistafhirquery.service.controller.PatientTypeCoordinates;
 import gov.va.api.health.vistafhirquery.service.controller.RecordCoordinates;
-import gov.va.api.health.vistafhirquery.service.controller.insuranceplan.InsurancePlanStructureDefinitions;
 import gov.va.api.lighthouse.charon.models.lhslighthouserpcgateway.GroupInsurancePlan;
 import gov.va.api.lighthouse.charon.models.lhslighthouserpcgateway.InsuranceCompany;
 import gov.va.api.lighthouse.charon.models.lhslighthouserpcgateway.InsuranceType;
@@ -95,75 +94,6 @@ public class CoverageSamples {
           .build();
     }
 
-    public Coverage bufferCoverage() {
-      return bufferCoverage("666", "1,8,", "1010101010V666666");
-    }
-
-    public Coverage bufferCoverage(String station, String ien, String patient) {
-      return Coverage.builder()
-          .id(
-              PatientTypeCoordinates.builder()
-                  .icn(patient)
-                  .site(station)
-                  .file(InsuranceVerificationProcessor.FILE_NUMBER)
-                  .ien(ien)
-                  .build()
-                  .toString())
-          .type(
-              CodeableConcept.builder().coding(Coding.builder().code("1").build().asList()).build())
-          .meta(Meta.builder().source(station).build())
-          .extension(extensions())
-          .status(Status.active)
-          .subscriber(Reference.builder().display("Insureds,Name").build())
-          .subscriberId("R50797108")
-          .beneficiary(beneficiary(patient))
-          .dependent("67890")
-          .relationship(relationship())
-          .period(period())
-          .payor(
-              List.of(
-                  Reference.builder()
-                      .reference(
-                          "Organization/"
-                              + RecordCoordinates.builder()
-                                  .site(station)
-                                  .file(InsuranceCompany.FILE_NUMBER)
-                                  .ien("4")
-                                  .build()
-                                  .toString())
-                      .display("BCBS OF FL")
-                      .build()))
-          .coverageClass(
-              List.of(
-                  Coverage.CoverageClass.builder()
-                      .value("#1")
-                      .type(
-                          CodeableConcept.builder()
-                              .coding(
-                                  List.of(
-                                      Coding.builder()
-                                          .system(
-                                              "http://terminology.hl7.org/CodeSystem/coverage-class")
-                                          .code("group")
-                                          .build()))
-                              .build())
-                      .build()))
-          .contained(
-              List.of(
-                  InsurancePlan.builder()
-                      .id("#1")
-                      .name("MyInsurancePlan")
-                      .identifier(
-                          Identifier.builder()
-                              .value("666")
-                              .system(InsuranceBufferStructureDefinitions.GROUP_NUMBER)
-                              .build()
-                              .asList())
-                      .build()))
-          .order(1)
-          .build();
-    }
-
     private List<Coverage.CoverageClass> classes(String station, String patient) {
       return List.of(
           Coverage.CoverageClass.builder()
@@ -187,20 +117,21 @@ public class CoverageSamples {
               .build());
     }
 
-    private InsurancePlan containedInsurancePlan() {
+    private InsurancePlan containedInsurancePlan(String id) {
       return InsurancePlan.builder()
+          .id(id)
           .name("BCBS OF SHANKSVILLE GROUP")
           .identifier(
               List.of(
                   Identifier.builder()
-                      .system(InsurancePlanStructureDefinitions.GROUP_NUMBER)
+                      .system(InsuranceBufferStructureDefinitions.GROUP_NUMBER)
                       .value("GRP123456")
                       .build()))
           .build();
     }
 
-    private Organization containedOrganization() {
-      return Organization.builder().active(true).name("BCBS OF SHANKSVILLE").build();
+    private Organization containedOrganization(String id) {
+      return Organization.builder().id(id).active(true).name("BCBS OF SHANKSVILLE").build();
     }
 
     public Coverage coverage() {
@@ -255,7 +186,7 @@ public class CoverageSamples {
                   .build()
                   .toString())
           .meta(Meta.builder().source(station).build())
-          .contained(List.of(containedInsurancePlan(), containedOrganization()))
+          .contained(List.of(containedInsurancePlan("1"), containedOrganization("2")))
           .status(Status.draft)
           .type(
               CodeableConcept.builder()
@@ -269,8 +200,8 @@ public class CoverageSamples {
           .subscriberId("R50797108")
           .beneficiary(beneficiary(patient))
           .relationship(relationship())
-          .coverageClass(classes(station, patient).get(0).value(null).asList())
-          .payor(Reference.builder().build().asList())
+          .coverageClass(classes(station, patient).get(0).value("#1").asList())
+          .payor(Reference.builder().reference("#2").build().asList())
           .build();
     }
 
@@ -322,14 +253,14 @@ public class CoverageSamples {
               InsuranceVerificationProcessor.INSURANCE_COMPANY_NAME,
               "Placeholder Insurance Company Name"),
           insuranceBufferValue(InsuranceVerificationProcessor.WHOSE_INSURANCE, "s"),
-          insuranceBufferValue(InsuranceVerificationProcessor.NAME_OF_INSURED, "Insureds,Name"),
           insuranceBufferValue(InsuranceVerificationProcessor.PT_RELATIONSHIP_HIPAA, "SPOUSE"),
           insuranceBufferValue(InsuranceVerificationProcessor.PATIENT_ID, "13579"),
           insuranceBufferValue(InsuranceVerificationProcessor.OVERRIDE_FRESHNESS_FLAG, "0"),
           insuranceBufferValue(InsuranceVerificationProcessor.STATUS, "E"),
           insuranceBufferValue(InsuranceVerificationProcessor.INQ_SERVICE_TYPE_CODE_1, "1"),
-          insuranceBufferValue(InsuranceVerificationProcessor.GROUP_NAME, "MyInsurancePlan"),
-          insuranceBufferValue(InsuranceVerificationProcessor.GROUP_NUMBER, "666"),
+          insuranceBufferValue(
+              InsuranceVerificationProcessor.GROUP_NAME, "BCBS OF SHANKSVILLE GROUP"),
+          insuranceBufferValue(InsuranceVerificationProcessor.GROUP_NUMBER, "GRP123456"),
           insuranceBufferValue(InsuranceVerificationProcessor.SUBSCRIBER_ID, "R50797108"));
     }
 

@@ -23,7 +23,8 @@ public class ContainedResourceReader {
 
   /** Get resource if contained resources have the specified reference. */
   public <T> T find(@NonNull Class<T> type, @NonNull String id) {
-    Resource containedResource = containedResources.get(id);
+    var resourceId = removeStartingOctothorpe(id);
+    Resource containedResource = containedResources.get(resourceId);
     if (isBlank(containedResource) || !type.isInstance(containedResource)) {
       throw RequestPayloadExceptions.MissingContainedResource.builder()
           .resource(type.getSimpleName())
@@ -31,5 +32,12 @@ public class ContainedResourceReader {
           .build();
     }
     return type.cast(containedResource);
+  }
+
+  private String removeStartingOctothorpe(String hasOctopthorpe) {
+    if (hasOctopthorpe.length() < 2 || !hasOctopthorpe.startsWith("#")) {
+      return hasOctopthorpe;
+    }
+    return hasOctopthorpe.substring(1);
   }
 }

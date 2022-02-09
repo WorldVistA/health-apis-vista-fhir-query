@@ -20,7 +20,7 @@ import org.junit.jupiter.api.Test;
 public class R4CoverageToInsuranceBufferTransformerTest {
   private R4CoverageToInsuranceBufferTransformer _transformer() {
     return R4CoverageToInsuranceBufferTransformer.builder()
-        .coverage(CoverageSamples.R4.create().bufferCoverage())
+        .coverage(CoverageSamples.R4.create().coverageInsuranceBufferRead("p1", "123", "c1"))
         .build();
   }
 

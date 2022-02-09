@@ -41,12 +41,13 @@ class InsuranceBufferToR4CoverageTransformerTest {
 
   @Test
   void toFhir() {
+    var expected = CoverageSamples.R4.create().coverageInsuranceBufferRead("p1", "123", "ien1");
+    CoverageSamples.R4.cleanUpContainedReferencesForComparison(expected);
     assertThat(
             _transformer()
                 .toFhir()
                 .peek(CoverageSamples.R4::cleanUpContainedReferencesForComparison))
         .usingRecursiveComparison()
-        .isEqualTo(
-            CoverageSamples.R4.create().coverageInsuranceBufferRead("p1", "123", "ien1").asList());
+        .isEqualTo(expected.asList());
   }
 }

@@ -68,7 +68,7 @@ public final class SystemDefinitions {
   private static TestIds idsForSyntheticEnvironment() {
     return TestIds.builder()
         .appointment("I3-HNJRtzLefcQ12T3j78Gb5Ol8tnTulUTbaqPY9ByPSRAIwSIfg6pK6wg6pK6w")
-        .coverage("I3-onSd2F0QCJnTLBUa2wtl7ghktwQt7TS4TXKJMwHzDo9")
+        .coverage("I3-onSd2F0QCJnTLBUa2wtl7hqxWh9zUsQ37GhxL5dxDc6")
         .insurancePlan("I3-35bba1Pto08dShHpQSSihU")
         .meds("I3-onSd2F0QCJnTLBUa2wtl7ghktwQt7TS4TXKJMwHzDo9")
         .organizations(

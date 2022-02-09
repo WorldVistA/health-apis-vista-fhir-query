@@ -17,7 +17,6 @@ import gov.va.api.health.r4.api.resources.Patient;
 import gov.va.api.health.vistafhirquery.service.controller.ContainedResourceWriter;
 import gov.va.api.health.vistafhirquery.service.controller.ContainedResourceWriter.ContainableResource;
 import gov.va.api.health.vistafhirquery.service.controller.PatientTypeCoordinates;
-import gov.va.api.health.vistafhirquery.service.controller.insuranceplan.InsurancePlanStructureDefinitions;
 import gov.va.api.lighthouse.charon.models.lhslighthouserpcgateway.InsuranceVerificationProcessor;
 import gov.va.api.lighthouse.charon.models.lhslighthouserpcgateway.LhsLighthouseRpcGatewayResponse;
 import gov.va.api.lighthouse.charon.models.lhslighthouserpcgateway.LhsLighthouseRpcGatewayResponse.FilemanEntry;
@@ -186,7 +185,7 @@ public class InsuranceBufferToR4CoverageTransformer {
                     .map(
                         num ->
                             Identifier.builder()
-                                .system(InsurancePlanStructureDefinitions.GROUP_NUMBER)
+                                .system(InsuranceBufferStructureDefinitions.GROUP_NUMBER)
                                 .value(num)
                                 .build()
                                 .asList())

@@ -3,7 +3,7 @@
   "contained": [
     {
       "resourceType": "InsurancePlan",
-      "id": "#1",
+      "id": "1",
       "extension": [
         {
           "url": "http://va.gov/fhir/StructureDefinition/insuranceplan-isUtilizationReviewRequired",
@@ -58,7 +58,7 @@
     },
     {
       "resourceType": "Organization",
-      "id": "#2",
+      "id": "2",
       "extension": [
         {
           "url": "http://va.gov/fhir/StructureDefinition/organization-willReimburseForCare",

@@ -173,17 +173,16 @@ public class R4CoverageToInsuranceBufferTransformer {
                     && "group".equals(coding.code()));
   }
 
-  WriteableFilemanValue nameOfInsured(Reference subscriber) {
+  Optional<WriteableFilemanValue> nameOfInsured(Reference subscriber) {
     if (isBlank(subscriber)) {
-      throw MissingRequiredField.builder().jsonPath(".subscriber").build();
+      return Optional.empty();
     }
     return factoryRegistry()
         .get(InsuranceVerificationProcessor.FILE_NUMBER)
         .forString(
             InsuranceVerificationProcessor.NAME_OF_INSURED,
             indexRegistry().get(InsuranceVerificationProcessor.FILE_NUMBER),
-            subscriber.display())
-        .orElseThrow(() -> MissingRequiredField.builder().jsonPath(".subscriber.display").build());
+            subscriber.display());
   }
 
   WriteableFilemanValue overrideFreshnessFlag() {
@@ -313,7 +312,7 @@ public class R4CoverageToInsuranceBufferTransformer {
     fields.add(patientId(coverage.beneficiary()));
     fields.add(patientRelationshipHipaa(coverage.relationship()));
     fields.add(subscriberId(coverage.subscriberId()));
-    fields.add(nameOfInsured(coverage.subscriber()));
+    nameOfInsured(coverage.subscriber()).ifPresent(fields::add);
     fields.add(inqServiceTypeCode1(coverage.type()));
     fields.addAll(insurancePlan());
     return fields;
