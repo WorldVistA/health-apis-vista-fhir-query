@@ -57,8 +57,6 @@ public class CreateResourceVerifier {
             .accept("application/json")
             .headers(Map.of("Authorization", "Bearer " + accessToken()))
             .body(requestBody())
-            .log()
-            .all()
             .request(Method.POST, serviceDefinition().apiPath() + requestPath());
     try {
       assertThat(response.getStatusCode()).isEqualTo(201);
@@ -66,7 +64,11 @@ public class CreateResourceVerifier {
       assertThat(location).isNotBlank();
       return location;
     } catch (AssertionError e) {
-      log.info("{}", response);
+      log.info(
+          "status: {}, location-header: {}, body: {}",
+          response.getStatusCode(),
+          response.getHeader(HttpHeaders.LOCATION),
+          response.body().print());
       throw e;
     }
   }
@@ -78,15 +80,13 @@ public class CreateResourceVerifier {
         RestAssured.given()
             .relaxedHTTPSValidation()
             .headers(Map.of("Authorization", "Bearer " + accessToken()))
-            .log()
-            .all()
             .request(Method.GET, URI.create(locationUrl));
     try {
       var status = response.getStatusCode();
       assertThat(status).isEqualTo(200);
       return response.as(requestBody().getClass());
     } catch (AssertionError e) {
-      log.info("{}", response);
+      log.info("status: {}, body: {}", response.getStatusCode(), response.body().print());
       throw e;
     }
   }
