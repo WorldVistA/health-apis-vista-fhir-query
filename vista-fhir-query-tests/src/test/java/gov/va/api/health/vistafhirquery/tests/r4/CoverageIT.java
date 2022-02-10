@@ -1,9 +1,7 @@
 package gov.va.api.health.vistafhirquery.tests.r4;
 
-import static gov.va.api.health.sentinel.EnvironmentAssumptions.assumeEnvironmentNotIn;
+import static gov.va.api.health.sentinel.EnvironmentAssumptions.assumeEnvironmentIn;
 
-import gov.va.api.health.autoconfig.configuration.JacksonConfig;
-import gov.va.api.health.fhir.testsupport.ResourceVerifier;
 import gov.va.api.health.r4.api.datatypes.CodeableConcept;
 import gov.va.api.health.r4.api.datatypes.Coding;
 import gov.va.api.health.r4.api.datatypes.Identifier;
@@ -11,38 +9,28 @@ import gov.va.api.health.r4.api.elements.Reference;
 import gov.va.api.health.r4.api.resources.Coverage;
 import gov.va.api.health.r4.api.resources.Coverage.Status;
 import gov.va.api.health.r4.api.resources.InsurancePlan;
-import gov.va.api.health.r4.api.resources.OperationOutcome;
 import gov.va.api.health.r4.api.resources.Organization;
 import gov.va.api.health.sentinel.Environment;
+import gov.va.api.health.vistafhirquery.tests.CreateResourceVerifier;
+import gov.va.api.health.vistafhirquery.tests.SystemDefinitions;
 import gov.va.api.health.vistafhirquery.tests.TestIds;
 import gov.va.api.health.vistafhirquery.tests.VistaFhirQueryResourceVerifier;
 import java.util.List;
-import java.util.Map;
-import lombok.SneakyThrows;
-import lombok.experimental.Delegate;
-import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.Test;
-import org.springframework.http.HttpHeaders;
 
 public class CoverageIT {
   private final TestIds testIds = VistaFhirQueryResourceVerifier.ids();
 
-  @Delegate
-  private final ResourceVerifier verifier = VistaFhirQueryResourceVerifier.r4ForSite("673");
-
   @Test
-  @Order(1)
-  @SneakyThrows
-  void create() {
-    assumeEnvironmentNotIn(Environment.LOCAL, Environment.STAGING, Environment.PROD);
-    var postBody = JacksonConfig.createMapper().writeValueAsString(insuranceBufferCreate());
-    verify(
-        test(
-            201,
-            Void.class,
-            "Coverage",
-            Map.of("insurance-buffer", "true", HttpHeaders.CONTENT_TYPE, "application/json"),
-            postBody));
+  void createAndRead() {
+    assumeEnvironmentIn(Environment.QA, Environment.STAGING_LAB, Environment.LAB);
+    CreateResourceVerifier.<Coverage>builder()
+        .apiName("insurance-fhir")
+        .serviceDefinition(SystemDefinitions.systemDefinition().basePath())
+        .requestPath("/hcs/673/r4/Coverage")
+        .requestBody(insuranceBufferCreate())
+        .build()
+        .test();
   }
 
   private Coverage insuranceBufferCreate() {
@@ -115,26 +103,5 @@ public class CoverageIT {
                     .build(),
                 Organization.builder().id("2").active(true).name("BCBS OF FLORIDA").build()))
         .build();
-  }
-
-  @Test
-  @Order(2)
-  void read() {
-    assumeEnvironmentNotIn(Environment.STAGING, Environment.PROD);
-    var path = "Coverage/{coverage}";
-    verifyAll(
-        test(200, Coverage.class, path, testIds.coverage()),
-        test(404, OperationOutcome.class, path, "I3-404"));
-  }
-
-  void search() {
-    assumeEnvironmentNotIn(Environment.STAGING, Environment.PROD);
-    verifyAll(
-        test(
-            200,
-            Coverage.Bundle.class,
-            R4TestSupport::atLeastOneEntry,
-            "Coverage?patient={icn}",
-            testIds.patient()));
   }
 }

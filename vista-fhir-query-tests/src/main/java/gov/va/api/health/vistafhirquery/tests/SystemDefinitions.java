@@ -174,7 +174,7 @@ public final class SystemDefinitions {
   private static SystemDefinition stagingLab() {
     String url = "https://blue.staging-lab.lighthouse.va.gov";
     return SystemDefinition.builder()
-        .internal(serviceDefinition("internal", url, 443, null, "/vista-fhir-query/"))
+        .internal(serviceDefinition("internal", url, 443, null, "/vista-fhir-query"))
         .basePath(serviceDefinition("r4", url, 443, magicAccessToken(), "/vista-fhir-query"))
         .publicIds(idsForSyntheticEnvironment())
         .clientKey(clientKey())
