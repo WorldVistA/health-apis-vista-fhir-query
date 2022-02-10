@@ -26,7 +26,7 @@ public class MedicationDispenseIT {
             200,
             MedicationDispense.class,
             "MedicationDispense/{medicationdispense}",
-            testIds.meds()),
+            testIds.medicationDispense()),
         test(404, OperationOutcome.class, "MedicationDispense/{medicationdispense}", "I3-404"));
   }
 

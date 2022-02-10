@@ -13,7 +13,6 @@ import gov.va.api.health.vistafhirquery.service.controller.R4BundlerFactory;
 import gov.va.api.health.vistafhirquery.service.controller.R4Bundling;
 import gov.va.api.health.vistafhirquery.service.controller.R4Transformation;
 import gov.va.api.health.vistafhirquery.service.controller.ResourceExceptions;
-import gov.va.api.health.vistafhirquery.service.controller.SegmentedVistaIdentifier;
 import gov.va.api.health.vistafhirquery.service.controller.witnessprotection.WitnessProtection;
 import gov.va.api.lighthouse.charon.models.vprgetpatientdata.VprGetPatientData;
 import gov.va.api.lighthouse.charon.models.vprgetpatientdata.VprGetPatientData.Domains;
@@ -61,17 +60,20 @@ public class R4SiteMedicationDispenseController implements R4MedicationDispenseA
       HttpServletRequest request,
       @PathVariable("site") String site,
       @PathVariable("id") String id) {
-    SegmentedVistaIdentifier ids = parseOrDie(id);
+    MedicationDispenseId identifier = parseOrDie(id);
     var rpcRequest =
         VprGetPatientData.Request.builder()
             .context(Optional.ofNullable(vistaApiConfig.getVprGetPatientDataContext()))
-            .dfn(PatientId.forIcn(ids.patientIdentifier()))
+            .dfn(PatientId.forIcn(identifier.vistaId().patientIdentifier()))
             .type(Set.of(Domains.meds))
-            .id(Optional.of(ids.recordId()))
+            .id(Optional.of(identifier.vistaId().recordId()))
             .build();
     var charonResponse = charonClient.request(vprGetPatientData(site, rpcRequest));
     var resources =
-        transformation(site, ids.patientIdentifier()).toResource().apply(charonResponse.value());
+        transformation(
+                site, identifier.vistaId().patientIdentifier(), Optional.of(identifier.fillDate()))
+            .toResource()
+            .apply(charonResponse.value());
     return verifyAndGetResult(resources, id);
   }
 
@@ -95,7 +97,7 @@ public class R4SiteMedicationDispenseController implements R4MedicationDispenseA
             .build();
     var charonResponse = charonClient.request(vprGetPatientData(site, rpcRequest));
     return bundlerFactory
-        .forTransformation(transformation(site, patientIcn))
+        .forTransformation(transformation(site, patientIcn, Optional.empty()))
         .site(charonResponse.invocationResult().vista())
         .bundling(
             R4Bundling.newBundle(MedicationDispense.Bundle::new)
@@ -107,16 +109,25 @@ public class R4SiteMedicationDispenseController implements R4MedicationDispenseA
         .apply(charonResponse.value());
   }
 
-  private SegmentedVistaIdentifier parseOrDie(String publicId) {
+  private MedicationDispenseId parseOrDie(String publicId) {
+    String identifier;
+    MedicationDispenseId medicationDispenseId;
     try {
-      return SegmentedVistaIdentifier.unpack(witnessProtection.toPrivateId(publicId));
-    } catch (IdEncoder.BadId | IllegalArgumentException e) {
+      identifier = witnessProtection.toPrivateId(publicId);
+      medicationDispenseId = MedicationDispenseId.fromString(identifier);
+    } catch (IdEncoder.BadId | MedicationDispenseId.MalformedId | IllegalArgumentException e) {
       throw ResourceExceptions.NotFound.because("Could not unpack id: " + publicId);
     }
+    if (medicationDispenseId.vistaId().vprRpcDomain().equals(Domains.meds)
+        && medicationDispenseId.fillDate().isEmpty()) {
+      throw new ResourceExceptions.NotFound(publicId + " is an invalid id for the meds domain");
+    }
+
+    return medicationDispenseId;
   }
 
   private R4Transformation<Results, MedicationDispense> transformation(
-      String site, String patientId) {
+      String site, String patientId, Optional<String> fillDateFilter) {
     return R4Transformation.<VprGetPatientData.Response.Results, MedicationDispense>builder()
         .toResource(
             rpcResults ->
@@ -124,6 +135,7 @@ public class R4SiteMedicationDispenseController implements R4MedicationDispenseA
                     .site(site)
                     .patientIcn(patientId)
                     .rpcResults(rpcResults)
+                    .fillDateFilter(fillDateFilter)
                     .build()
                     .toFhir()
                     .collect(toList()))

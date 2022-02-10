@@ -19,6 +19,9 @@ public class ConditionId {
   ConditionId(String privateId) {
     var colon = privateId.indexOf(':');
     if (colon == -1 || colon == privateId.length() - 1) {
+      /*
+       * Backwards compatibility to support early versions of IDs that might be in the wild.
+       */
       this.vistaId = SegmentedVistaIdentifier.unpack(privateId);
       this.icdCode = Optional.empty();
     } else {
