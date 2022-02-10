@@ -49,8 +49,10 @@ public class CreateResourceVerifier {
         "Verify POST {} is (201) with Location header present.",
         serviceDefinition().apiPath() + requestPath());
     var response =
-        serviceDefinition()
-            .requestSpecification()
+        RestAssured.given()
+            .baseUri(serviceDefinition().url())
+            .port(serviceDefinition().port())
+            .relaxedHTTPSValidation()
             .contentType("application/json")
             .accept("application/json")
             .headers(Map.of("Authorization", "Bearer " + accessToken()))
