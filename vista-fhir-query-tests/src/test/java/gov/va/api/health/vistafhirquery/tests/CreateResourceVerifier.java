@@ -48,18 +48,25 @@ public class CreateResourceVerifier {
     log.info(
         "Verify POST {} is (201) with Location header present.",
         serviceDefinition().apiPath() + requestPath());
-    var resp =
+    var response =
         serviceDefinition()
             .requestSpecification()
             .contentType("application/json")
             .accept("application/json")
             .headers(Map.of("Authorization", "Bearer " + accessToken()))
             .body(requestBody())
+            .log()
+            .all()
             .request(Method.POST, serviceDefinition().apiPath() + requestPath());
-    assertThat(resp.getStatusCode()).isEqualTo(201);
-    var location = resp.getHeader(HttpHeaders.LOCATION);
-    assertThat(location).isNotBlank();
-    return location;
+    try {
+      assertThat(response.getStatusCode()).isEqualTo(201);
+      var location = response.getHeader(HttpHeaders.LOCATION);
+      assertThat(location).isNotBlank();
+      return location;
+    } catch (AssertionError e) {
+      log.info("{}", response);
+      throw e;
+    }
   }
 
   private IsResource getNewResourceById(String locationUrl) {
@@ -69,10 +76,17 @@ public class CreateResourceVerifier {
         RestAssured.given()
             .relaxedHTTPSValidation()
             .headers(Map.of("Authorization", "Bearer " + accessToken()))
+            .log()
+            .all()
             .request(Method.GET, URI.create(locationUrl));
-    var status = response.getStatusCode();
-    assertThat(status).isEqualTo(200);
-    return response.as(requestBody().getClass());
+    try {
+      var status = response.getStatusCode();
+      assertThat(status).isEqualTo(200);
+      return response.as(requestBody().getClass());
+    } catch (AssertionError e) {
+      log.info("{}", response);
+      throw e;
+    }
   }
 
   private String getOauthToken(String apiName) {
