@@ -14,7 +14,8 @@ public class RpcPrincipalConfigTest {
   @Test
   void loadPrincipals() {
     RpcPrincipalLookup testPrincipals =
-        new RpcPrincipalConfig().loadPrincipals("src/test/resources/principals-with-unknown-properties.json");
+        new RpcPrincipalConfig()
+            .loadPrincipals("src/test/resources/principals-with-unknown-properties.json");
     assertThat(testPrincipals.findByNameAndSite("SASHIMI", "222-A"))
         .isEqualTo(
             Optional.of(
