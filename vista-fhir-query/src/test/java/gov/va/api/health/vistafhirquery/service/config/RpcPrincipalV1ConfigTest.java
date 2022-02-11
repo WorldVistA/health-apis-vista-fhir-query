@@ -2,23 +2,24 @@ package gov.va.api.health.vistafhirquery.service.config;
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThatExceptionOfType;
+import static org.junit.jupiter.api.Assertions.*;
 
-import gov.va.api.lighthouse.charon.api.RpcPrincipal;
-import gov.va.api.lighthouse.charon.api.RpcPrincipalLookup;
-import gov.va.api.lighthouse.charon.api.RpcPrincipals;
+import gov.va.api.lighthouse.charon.api.v1.RpcPrincipalLookupV1;
+import gov.va.api.lighthouse.charon.api.v1.RpcPrincipalV1;
+import gov.va.api.lighthouse.charon.api.v1.RpcPrincipalsV1;
 import java.util.Optional;
 import org.junit.jupiter.api.Test;
 
-public class RpcPrincipalConfigTest {
+class RpcPrincipalV1ConfigTest {
 
   @Test
   void loadPrincipals() {
-    RpcPrincipalLookup testPrincipals =
-        new RpcPrincipalConfig().loadPrincipals("src/test/resources/principals-with-unknown-properties.json");
+    RpcPrincipalLookupV1 testPrincipals =
+        new RpcPrincipalV1Config().loadPrincipalsV1("src/test/resources/principalsV1.json");
     assertThat(testPrincipals.findByNameAndSite("SASHIMI", "222-A"))
         .isEqualTo(
             Optional.of(
-                RpcPrincipal.builder()
+                RpcPrincipalV1.builder()
                     .applicationProxyUser("ASIAN!")
                     .accessCode("ASIAN_FOOD")
                     .verifyCode("IS_STILL_GREAT")
@@ -28,13 +29,14 @@ public class RpcPrincipalConfigTest {
   @Test
   void loadPrincipalsNullFile() {
     assertThatExceptionOfType(NullPointerException.class)
-        .isThrownBy(() -> new RpcPrincipalConfig().loadPrincipals(null));
+        .isThrownBy(() -> new RpcPrincipalV1Config().loadPrincipalsV1(null));
   }
 
   @Test
   void validate() {
     assertThatExceptionOfType(IllegalArgumentException.class)
         .isThrownBy(
-            () -> new RpcPrincipalConfig().validate(RpcPrincipals.builder().build(), "whatever"));
+            () ->
+                new RpcPrincipalV1Config().validate(RpcPrincipalsV1.builder().build(), "whatever"));
   }
 }

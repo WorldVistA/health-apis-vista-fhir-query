@@ -2,6 +2,7 @@ package gov.va.api.health.vistafhirquery.service.config;
 
 import static java.util.stream.Collectors.joining;
 
+import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import gov.va.api.lighthouse.charon.api.RpcPrincipalLookup;
 import gov.va.api.lighthouse.charon.api.RpcPrincipals;
@@ -25,7 +26,9 @@ public class RpcPrincipalConfig {
   RpcPrincipalLookup loadPrincipals(
       @NonNull @Value("${vista-fhir-query.rpc-principals.file}") String principalsFile) {
     RpcPrincipals rpcPrincipals =
-        new ObjectMapper().readValue(new File(principalsFile), RpcPrincipals.class);
+        new ObjectMapper()
+            .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)
+            .readValue(new File(principalsFile), RpcPrincipals.class);
     validate(rpcPrincipals, principalsFile);
     return RpcPrincipalLookup.of(rpcPrincipals);
   }
