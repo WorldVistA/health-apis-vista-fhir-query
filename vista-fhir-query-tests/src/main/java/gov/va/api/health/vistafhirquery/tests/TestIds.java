@@ -24,6 +24,8 @@ public final class TestIds {
 
   @NonNull String medicationDispense;
 
+  @NonNull String medicationRequest;
+
   @NonNull OrganizationIds organizations;
 
   @NonNull String observationVitalSign;

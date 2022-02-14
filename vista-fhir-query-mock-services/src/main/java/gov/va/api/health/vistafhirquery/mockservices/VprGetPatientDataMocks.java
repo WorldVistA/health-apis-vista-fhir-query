@@ -36,6 +36,8 @@ public class VprGetPatientDataMocks implements MockService {
           this::appointmentSearchDate,
           this::medicationDispenseRead,
           this::medicationDispenseSearch,
+          this::medicationRequestRead,
+          this::medicationRequestSearch,
           this::observationReadLabs,
           this::observationReadVitals,
           this::observationSearch);
@@ -136,6 +138,49 @@ public class VprGetPatientDataMocks implements MockService {
   }
 
   void medicationDispenseSearch(MockServerClient mock) {
+    var details =
+        VprGetPatientData.Request.builder()
+            .context(Optional.of("MOCKSERVICES"))
+            .dfn(forIcn("1011537977V693883"))
+            .type(Set.of(Domains.meds))
+            .build()
+            .asDetails();
+
+    supportedQueries.add(
+        "[POST] http://localhost:" + port() + "/v1/rpc with RPC Details like " + json(details));
+    mock.when(rpcQueryV1_WithExpectedRpcDetails(port(), details))
+        .respond(
+            response()
+                .withStatusCode(200)
+                .withHeader(contentTypeApplicationJson())
+                .withBody(
+                    rpcInvocationResultV1_OkWithContent(
+                        "/vistalinkapi-vprgetpatientdata-medicationdispense-searchresponse.xml")));
+  }
+
+  void medicationRequestRead(MockServerClient mock) {
+    var details =
+        VprGetPatientData.Request.builder()
+            .context(Optional.of("MOCKSERVICES"))
+            .dfn(forIcn("5000000347"))
+            .type(Set.of(Domains.meds))
+            .id(Optional.of("33445"))
+            .build()
+            .asDetails();
+
+    supportedQueries.add(
+        "[POST] http://localhost:" + port() + "/v1/rpc with RPC Details like " + json(details));
+    mock.when(rpcQueryV1_WithExpectedRpcDetails(port(), details))
+        .respond(
+            response()
+                .withStatusCode(200)
+                .withHeader(contentTypeApplicationJson())
+                .withBody(
+                    rpcInvocationResultV1_OkWithContent(
+                        "/vistalinkapi-vprgetpatientdata-medicationdispense-readresponse.xml")));
+  }
+
+  void medicationRequestSearch(MockServerClient mock) {
     var details =
         VprGetPatientData.Request.builder()
             .context(Optional.of("MOCKSERVICES"))

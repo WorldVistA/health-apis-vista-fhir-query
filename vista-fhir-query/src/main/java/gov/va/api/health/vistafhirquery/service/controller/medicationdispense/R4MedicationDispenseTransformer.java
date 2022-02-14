@@ -38,6 +38,7 @@ import lombok.Value;
 @Value
 @Builder
 public class R4MedicationDispenseTransformer {
+
   private static final Map<String, String> ROUTING_TO_DESTINATION_MAPPING =
       Map.of("W", "WINDOW", "M", "MAILED", "C", "ADMINISTERED IN CLINIC");
 
@@ -168,7 +169,7 @@ public class R4MedicationDispenseTransformer {
         .id(idOf(rpcMed, fill).toString())
         .meta(Meta.builder().source(site()).build())
         .status(status(fill))
-        .subject(toReference("Patient", patientIcn(), null))
+        .subject(toReference("Patient", patientIcn, null))
         .medicationCodeableConcept(
             Safe.stream(rpcMed.product())
                 .findFirst()
