@@ -9,6 +9,7 @@ import java.util.Optional;
 import java.util.stream.Stream;
 import org.junit.jupiter.api.Test;
 
+@SuppressWarnings("ALL")
 class R4MedicationDispenseTransformerTest {
   private Stream<MedicationDispense> _transform(VprGetPatientData.Response.Results results) {
     return R4MedicationDispenseTransformer.builder()
@@ -51,6 +52,28 @@ class R4MedicationDispenseTransformerTest {
                 .findFirst()
                 .get())
         .isEqualTo(MedicationDispenseSamples.R4.create().medicationDispenseInProgress());
+  }
+
+  @Test
+  void toFhirRoutingToDestination() {
+    assertThat(MedicationDispenseSamples.R4.create().medicationDispenseDestination("MAILED"))
+        .isEqualTo(
+            _transform(
+                    MedicationDispenseSamples.Vista.create()
+                        .results(MedicationDispenseSamples.Vista.create().medWithRouting("M")))
+                .findFirst()
+                .get());
+
+    assertThat(
+            MedicationDispenseSamples.R4
+                .create()
+                .medicationDispenseDestination("ADMINISTERED IN CLINIC"))
+        .isEqualTo(
+            _transform(
+                    MedicationDispenseSamples.Vista.create()
+                        .results(MedicationDispenseSamples.Vista.create().medWithRouting("C")))
+                .findFirst()
+                .get());
   }
 
   @Test

@@ -2,19 +2,24 @@ package gov.va.api.health.vistafhirquery.service.controller.medicationdispense;
 
 import static gov.va.api.health.vistafhirquery.service.controller.R4Transformers.allBlank;
 import static gov.va.api.health.vistafhirquery.service.controller.R4Transformers.isBlank;
+import static gov.va.api.health.vistafhirquery.service.controller.R4Transformers.toBigDecimal;
 import static gov.va.api.health.vistafhirquery.service.controller.R4Transformers.toHumanDateTime;
 import static gov.va.api.health.vistafhirquery.service.controller.R4Transformers.toReference;
+import static gov.va.api.health.vistafhirquery.service.controller.R4Transformers.valueOfValueOnlyXmlAttribute;
 import static io.micrometer.core.instrument.util.StringUtils.isNotBlank;
 
 import gov.va.api.health.fhir.api.Safe;
 import gov.va.api.health.r4.api.datatypes.CodeableConcept;
 import gov.va.api.health.r4.api.datatypes.Coding;
+import gov.va.api.health.r4.api.datatypes.SimpleQuantity;
 import gov.va.api.health.r4.api.elements.Meta;
+import gov.va.api.health.r4.api.elements.Reference;
 import gov.va.api.health.r4.api.resources.MedicationDispense;
 import gov.va.api.health.r4.api.resources.MedicationDispense.Status;
 import gov.va.api.health.vistafhirquery.service.controller.R4Transformers;
 import gov.va.api.health.vistafhirquery.service.controller.SegmentedVistaIdentifier;
 import gov.va.api.health.vistafhirquery.service.controller.SegmentedVistaIdentifier.PatientIdentifierType;
+import gov.va.api.lighthouse.charon.models.ValueOnlyXmlAttribute;
 import gov.va.api.lighthouse.charon.models.vprgetpatientdata.Meds.Med;
 import gov.va.api.lighthouse.charon.models.vprgetpatientdata.Meds.Med.Fill;
 import gov.va.api.lighthouse.charon.models.vprgetpatientdata.Meds.Med.Product;
@@ -22,6 +27,7 @@ import gov.va.api.lighthouse.charon.models.vprgetpatientdata.Meds.Med.Product.Pr
 import gov.va.api.lighthouse.charon.models.vprgetpatientdata.VprGetPatientData;
 import gov.va.api.lighthouse.charon.models.vprgetpatientdata.VprGetPatientData.Domains;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Stream;
@@ -32,6 +38,9 @@ import lombok.Value;
 @Value
 @Builder
 public class R4MedicationDispenseTransformer {
+  private static final Map<String, String> ROUTING_TO_DESTINATION_MAPPING =
+      Map.of("W", "WINDOW", "M", "MAILED", "C", "ADMINISTERED IN CLINIC");
+
   @NonNull String site;
 
   @NonNull String patientIcn;
@@ -39,6 +48,31 @@ public class R4MedicationDispenseTransformer {
   @NonNull Optional<String> fillDateFilter;
 
   @NonNull VprGetPatientData.Response.Results rpcResults;
+
+  private SimpleQuantity daysSupply(String fillDaysSupply) {
+    var value = toBigDecimal(fillDaysSupply);
+    if (isBlank(value)) {
+      return null;
+    }
+    return SimpleQuantity.builder()
+        .system("http://unitsofmeasure.org")
+        .code("d")
+        .unit("day")
+        .value(value)
+        .build();
+  }
+
+  private Reference destination(ValueOnlyXmlAttribute routing) {
+    var value = valueOfValueOnlyXmlAttribute(routing);
+    if (isBlank(value)) {
+      return null;
+    }
+    var display = ROUTING_TO_DESTINATION_MAPPING.get(value);
+    if (isBlank(display)) {
+      return null;
+    }
+    return Reference.builder().display(display).build();
+  }
 
   private boolean hasRequiredFillDate(Fill fill) {
     if (fillDateFilter().isEmpty()) {
@@ -92,6 +126,18 @@ public class R4MedicationDispenseTransformer {
         .asList();
   }
 
+  private SimpleQuantity quantity(String fillQuantity) {
+    /*
+     * https://vivian.worldvista.org/dox/SubFile_52.1.html `52.1-1` `QTY` may have alpha
+     * characters for entered prior to 2000-02-17.s
+     */
+    var value = toBigDecimal(fillQuantity);
+    if (isBlank(value)) {
+      return null;
+    }
+    return SimpleQuantity.builder().value(value).build();
+  }
+
   private Status status(Fill fill) {
     if (isBlank(fill.releaseDate())) {
       return Status.in_progress;
@@ -129,6 +175,10 @@ public class R4MedicationDispenseTransformer {
                 .map(this::medicationCodeableConcept)
                 .orElse(null))
         .whenHandedOver(toDate(fill.releaseDate()))
+        .quantity(quantity(fill.fillQuantity()))
+        .daysSupply(daysSupply(fill.fillDaysSupply()))
+        .whenPrepared(toDate(fill.fillDate()))
+        .destination(destination(rpcMed.routing()))
         .build();
   }
 }

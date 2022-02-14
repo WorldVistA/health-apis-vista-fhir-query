@@ -7,7 +7,9 @@ import gov.va.api.health.r4.api.bundle.AbstractEntry;
 import gov.va.api.health.r4.api.bundle.BundleLink;
 import gov.va.api.health.r4.api.datatypes.CodeableConcept;
 import gov.va.api.health.r4.api.datatypes.Coding;
+import gov.va.api.health.r4.api.datatypes.SimpleQuantity;
 import gov.va.api.health.r4.api.elements.Meta;
+import gov.va.api.health.r4.api.elements.Reference;
 import gov.va.api.health.r4.api.resources.MedicationDispense;
 import gov.va.api.health.r4.api.resources.MedicationDispense.Status;
 import gov.va.api.health.vistafhirquery.service.controller.R4Transformers;
@@ -19,6 +21,7 @@ import gov.va.api.lighthouse.charon.models.vprgetpatientdata.Meds.Med.Fill;
 import gov.va.api.lighthouse.charon.models.vprgetpatientdata.Meds.Med.Product;
 import gov.va.api.lighthouse.charon.models.vprgetpatientdata.Meds.Med.Product.ProductDetail;
 import gov.va.api.lighthouse.charon.models.vprgetpatientdata.VprGetPatientData;
+import java.math.BigDecimal;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
@@ -27,10 +30,8 @@ import lombok.experimental.UtilityClass;
 
 @UtilityClass
 public class MedicationDispenseSamples {
-
   @NoArgsConstructor(staticName = "create")
   public static class R4 {
-
     public static MedicationDispense.Bundle asBundle(
         String baseUrl,
         Collection<MedicationDispense> resources,
@@ -79,17 +80,34 @@ public class MedicationDispenseSamples {
                               .build()))
                   .build())
           .whenHandedOver("2011-05-08T00:00:00Z")
+          .quantity(SimpleQuantity.builder().value(new BigDecimal("30")).build())
+          .daysSupply(
+              SimpleQuantity.builder()
+                  .system("http://unitsofmeasure.org")
+                  .code("d")
+                  .unit("day")
+                  .value(new BigDecimal("8"))
+                  .build())
+          .whenPrepared("2011-05-07T00:00:00Z")
+          .destination(Reference.builder().display("WINDOW").build())
           .build();
     }
 
+    public MedicationDispense medicationDispenseDestination(String destination) {
+      return medicationDispense().destination(Reference.builder().display(destination).build());
+    }
+
     public MedicationDispense medicationDispenseInProgress() {
-      return medicationDispense().status(Status.in_progress).whenHandedOver(null);
+      return medicationDispense()
+          .status(Status.in_progress)
+          .whenHandedOver(null)
+          .quantity(null)
+          .daysSupply(null);
     }
   }
 
   @NoArgsConstructor(staticName = "create")
   public static class Vista {
-
     public Meds.Med med() {
       return med("33714");
     }
@@ -98,11 +116,14 @@ public class MedicationDispenseSamples {
       return Med.builder()
           .id(ValueOnlyXmlAttribute.of(id))
           .facility(CodeAndNameXmlAttribute.of("673", "TAMPA (JAH VAH)"))
+          .routing(ValueOnlyXmlAttribute.of("W"))
           .fill(
               List.of(
                   Fill.builder()
                       .fillDate("3110507")
                       .fillRouting("W")
+                      .fillQuantity("30")
+                      .fillDaysSupply("8")
                       .releaseDate("3110508")
                       .build()))
           .product(
@@ -122,10 +143,23 @@ public class MedicationDispenseSamples {
       return med()
           .fill(
               List.of(
-                  Fill.builder().fillDate("3080728").releaseDate("3080728").build(),
-                  Fill.builder().releaseDate("3091208").build(),
-                  Fill.builder().fillDate("3110507").build(),
+                  Fill.builder()
+                      .fillDate("3080728")
+                      .releaseDate("3080728")
+                      .fillQuantity("30")
+                      .fillDaysSupply("8")
+                      .build(),
+                  Fill.builder()
+                      .releaseDate("3091208")
+                      .fillQuantity("30")
+                      .fillDaysSupply("8")
+                      .build(),
+                  Fill.builder().fillDate("3110507").fillQuantity("0").fillDaysSupply("").build(),
                   Fill.builder().build()));
+    }
+
+    public Meds.Med medWithRouting(String routing) {
+      return med().routing(ValueOnlyXmlAttribute.of(routing));
     }
 
     public VprGetPatientData.Response.Results results() {
