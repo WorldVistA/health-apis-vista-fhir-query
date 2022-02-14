@@ -197,6 +197,11 @@ populateRpcPrincipalFile() {
                 "VPR GET PATIENT DATA",
                 "LHS LIGHTHOUSE RPC GATEWAY"
             ],
+            "tags" : [
+              "insurance-fhir-v0",
+              "clinical-fhir-v0",
+              "fugazi"
+            ],
             "applicationProxyUser" : "LHS,APPLICATION PROXY",
             "codes" : [
                 {
@@ -211,6 +216,9 @@ populateRpcPrincipalFile() {
         {
             "rpcNames" : [
                 "IBLHS AMCMS GET INS"
+            ],
+            "tags" : [
+              "fugazi"
             ],
             "applicationProxyUser" : "IBLHS,APPLICATION PROXY",
             "codes" : [
