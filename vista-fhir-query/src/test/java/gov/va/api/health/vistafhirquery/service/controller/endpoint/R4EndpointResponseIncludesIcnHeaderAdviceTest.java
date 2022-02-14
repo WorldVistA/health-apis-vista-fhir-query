@@ -28,7 +28,8 @@ public class R4EndpointResponseIncludesIcnHeaderAdviceTest {
   @Test
   @SneakyThrows
   void endpointResourceIsPatientAgnostic() {
-    when(controller.endpointSearch(any(HttpServletRequest.class), eq(15), eq(null), eq(null)))
+    when(controller.endpointSearch(
+            any(HttpServletRequest.class), eq(15), eq(null), eq(null), eq(null)))
         .thenReturn(
             Endpoint.Bundle.builder()
                 .entry(

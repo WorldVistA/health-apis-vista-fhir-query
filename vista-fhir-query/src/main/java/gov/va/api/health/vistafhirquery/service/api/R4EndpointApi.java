@@ -160,5 +160,10 @@ public interface R4EndpointApi {
               in = ParameterIn.QUERY,
               name = "status",
               description = "The availability of the endpoint for use.")
-          String status);
+          String status,
+      @Parameter(
+              in = ParameterIn.QUERY,
+              name = "tag",
+              description = "A tag that can be used to identify the endpoints usage.")
+          String tag);
 }

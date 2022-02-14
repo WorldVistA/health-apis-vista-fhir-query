@@ -7,8 +7,8 @@ import gov.va.api.health.r4.api.datatypes.CodeableConcept;
 import gov.va.api.health.r4.api.datatypes.Coding;
 import gov.va.api.health.r4.api.resources.Endpoint;
 import gov.va.api.health.vistafhirquery.service.config.LinkProperties;
-import gov.va.api.lighthouse.charon.api.RpcPrincipalLookup;
-import gov.va.api.lighthouse.charon.api.RpcPrincipals;
+import gov.va.api.lighthouse.charon.api.v1.RpcPrincipalLookupV1;
+import gov.va.api.lighthouse.charon.api.v1.RpcPrincipalsV1;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
@@ -28,41 +28,43 @@ public class EndpointSamples {
         .build();
   }
 
-  RpcPrincipalLookup rpcPrincipalLookup() {
-    return RpcPrincipalLookup.builder()
-        .rpcPrincipals(
-            RpcPrincipals.builder()
+  RpcPrincipalLookupV1 rpcPrincipalLookupV1() {
+    return RpcPrincipalLookupV1.builder()
+        .rpcPrincipalsV1(
+            RpcPrincipalsV1.builder()
                 .entries(
                     List.of(
-                        RpcPrincipals.PrincipalEntry.builder()
+                        RpcPrincipalsV1.PrincipalEntry.builder()
                             .codes(
                                 List.of(
-                                    RpcPrincipals.Codes.builder()
+                                    RpcPrincipalsV1.Codes.builder()
                                         .sites(List.of("101"))
                                         .verifyCode("1")
                                         .accessCode("2")
                                         .build(),
-                                    RpcPrincipals.Codes.builder()
+                                    RpcPrincipalsV1.Codes.builder()
                                         .sites(List.of("104"))
                                         .verifyCode("1")
                                         .accessCode("2")
                                         .build()))
                             .rpcNames(List.of("LHS LIGHTHOUSE RPC GATEWAY"))
+                            .tags(List.of("example-v1", "example-v4"))
                             .build(),
-                        RpcPrincipals.PrincipalEntry.builder()
+                        RpcPrincipalsV1.PrincipalEntry.builder()
                             .codes(
                                 List.of(
-                                    RpcPrincipals.Codes.builder()
+                                    RpcPrincipalsV1.Codes.builder()
                                         .sites(List.of("102"))
                                         .verifyCode("1")
                                         .accessCode("2")
                                         .build()))
                             .rpcNames(List.of("EXAMPLE RPC"))
+                            .tags(List.of("example-v2"))
                             .build(),
-                        RpcPrincipals.PrincipalEntry.builder()
+                        RpcPrincipalsV1.PrincipalEntry.builder()
                             .codes(
                                 List.of(
-                                    RpcPrincipals.Codes.builder()
+                                    RpcPrincipalsV1.Codes.builder()
                                         .sites(List.of("103"))
                                         .verifyCode("1")
                                         .accessCode("2")

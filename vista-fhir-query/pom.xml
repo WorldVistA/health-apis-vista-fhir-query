@@ -11,7 +11,7 @@
   <version>2.0.100-SNAPSHOT</version>
   <packaging>jar</packaging>
   <properties>
-    <charon.version>5.0.12</charon.version>
+    <charon.version>5.0.13</charon.version>
     <docker.organization>ghcr.io/department-of-veterans-affairs</docker.organization>
     <fhir-resources.version>10.0.3</fhir-resources.version>
     <jacoco.coverage>0.94</jacoco.coverage>

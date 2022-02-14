@@ -42,7 +42,7 @@ public class R4EndpointControllerTest {
     return new R4EndpointController(
         bundlerFactory,
         EndpointSamples.linkProperties(),
-        EndpointSamples.rpcPrincipalLookup(),
+        EndpointSamples.rpcPrincipalLookupV1(),
         mpiFhirQueryClient);
   }
 
@@ -62,7 +62,7 @@ public class R4EndpointControllerTest {
   @Test
   void endpointSearch() {
     var request = requestFromUri("");
-    var actual = controller().endpointSearch(request, 10, null, null);
+    var actual = controller().endpointSearch(request, 10, null, null, null);
     var expected =
         EndpointSamples.R4.asBundle(
             "http://fake.com",
@@ -81,7 +81,7 @@ public class R4EndpointControllerTest {
     var request = requestFromUri("");
     when(mpiFhirQueryClient.stationIdsForPatient("1337"))
         .thenReturn(Set.of("101", "104", "105", "106"));
-    var actual = controller().endpointSearch(request, 10, "1337", null);
+    var actual = controller().endpointSearch(request, 10, "1337", null, null);
     var expected =
         EndpointSamples.R4.asBundle(
             "http://fake.com",
@@ -98,7 +98,21 @@ public class R4EndpointControllerTest {
   void endpointSearchByPatientAndStatus() {
     var request = requestFromUri("");
     when(mpiFhirQueryClient.stationIdsForPatient("1337")).thenReturn(Set.of("101", "105", "106"));
-    var actual = controller().endpointSearch(request, 10, "1337", "active");
+    var actual = controller().endpointSearch(request, 10, "1337", "active", null);
+    var expected =
+        EndpointSamples.R4.asBundle(
+            "http://fake.com",
+            List.of(EndpointSamples.R4.create().endpoint("101")),
+            1,
+            link(BundleLink.LinkRelation.self, "http://fake.com/r4/Endpoint"));
+    assertThat(json(actual)).isEqualTo(json(expected));
+  }
+
+  @Test
+  void endpointSearchByPatientAndTag() {
+    var request = requestFromUri("");
+    when(mpiFhirQueryClient.stationIdsForPatient("1337")).thenReturn(Set.of("101", "105", "106"));
+    var actual = controller().endpointSearch(request, 10, "1337", null, "example-v1");
     var expected =
         EndpointSamples.R4.asBundle(
             "http://fake.com",
@@ -113,7 +127,7 @@ public class R4EndpointControllerTest {
   void endpointSearchByPatientAtUnknownSites() {
     var request = requestFromUri("");
     when(mpiFhirQueryClient.stationIdsForPatient("1337")).thenReturn(Set.of("222", "333", "444"));
-    var actual = controller().endpointSearch(request, 10, "1337", "active");
+    var actual = controller().endpointSearch(request, 10, "1337", "active", null);
     var expected =
         EndpointSamples.R4.asBundle(
             "http://fake.com",
@@ -124,16 +138,31 @@ public class R4EndpointControllerTest {
   }
 
   @Test
+  void endpointSearchByTag() {
+    var request = requestFromUri("");
+    var actual = controller().endpointSearch(request, 10, null, null, "example-v1");
+    var expected =
+        EndpointSamples.R4.asBundle(
+            "http://fake.com",
+            List.of(
+                EndpointSamples.R4.create().endpoint("101"),
+                EndpointSamples.R4.create().endpoint("104")),
+            2,
+            link(BundleLink.LinkRelation.self, "http://fake.com/r4/Endpoint"));
+    assertThat(json(actual)).isEqualTo(json(expected));
+  }
+
+  @Test
   void endpointSearchCountThrowsException() {
     var request = requestFromUri("?_count=-1");
     assertThatExceptionOfType(ResourceExceptions.BadSearchParameters.class)
-        .isThrownBy(() -> controller().endpointSearch(request, -1, null, null));
+        .isThrownBy(() -> controller().endpointSearch(request, -1, null, null, null));
   }
 
   @Test
   void endpointSearchWithBadStatus() {
     var request = requestFromUri("?status=NONE");
-    var actual = controller().endpointSearch(request, 10, null, "NONE");
+    var actual = controller().endpointSearch(request, 10, null, "NONE", null);
     var expected =
         EndpointSamples.R4.asBundle(
             "http://fake.com",
@@ -146,7 +175,7 @@ public class R4EndpointControllerTest {
   @Test
   void endpointSearchWithPatientAndBadStatus() {
     var request = requestFromUri("?status=NONE");
-    var actual = controller().endpointSearch(request, 10, "1337", "NONE");
+    var actual = controller().endpointSearch(request, 10, "1337", "NONE", null);
     var expected =
         EndpointSamples.R4.asBundle(
             "http://fake.com",
@@ -160,7 +189,7 @@ public class R4EndpointControllerTest {
   @ValueSource(strings = {"?status=active", "?status=active&_count=10"})
   void endpointSearchWithValidStatus(String query) {
     var request = requestFromUri(query);
-    var actual = controller().endpointSearch(request, 10, null, "active");
+    var actual = controller().endpointSearch(request, 10, null, "active", null);
     var expected =
         EndpointSamples.R4.asBundle(
             "http://fake.com",

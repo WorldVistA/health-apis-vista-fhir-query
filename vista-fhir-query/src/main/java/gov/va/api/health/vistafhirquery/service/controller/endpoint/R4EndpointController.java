@@ -14,7 +14,7 @@ import gov.va.api.health.vistafhirquery.service.controller.R4Bundling;
 import gov.va.api.health.vistafhirquery.service.controller.R4Transformation;
 import gov.va.api.health.vistafhirquery.service.controller.ResourceExceptions;
 import gov.va.api.health.vistafhirquery.service.mpifhirqueryclient.MpiFhirQueryClient;
-import gov.va.api.lighthouse.charon.api.RpcPrincipalLookup;
+import gov.va.api.lighthouse.charon.api.v1.RpcPrincipalLookupV1;
 import gov.va.api.lighthouse.charon.models.lhslighthouserpcgateway.LhsLighthouseRpcGatewayGetsManifest;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -48,7 +48,7 @@ public class R4EndpointController implements R4EndpointApi {
 
   private final LinkProperties linkProperties;
 
-  private final RpcPrincipalLookup rpcPrincipalLookup;
+  private final RpcPrincipalLookupV1 rpcPrincipalLookup;
 
   private final MpiFhirQueryClient mpiFhirQueryClient;
 
@@ -77,15 +77,21 @@ public class R4EndpointController implements R4EndpointApi {
               defaultValue = "${vista-fhir-query.default-page-size}")
           int count,
       @RequestParam(name = "patient", required = false) String patient,
-      @RequestParam(value = "status", required = false) String status) {
+      @RequestParam(value = "status", required = false) String status,
+      @RequestParam(name = "tag", required = false) String tag) {
     if (!isSupportedStatus(status)) {
       return toBundle(request).apply(emptySet());
     }
-    Set<String> stations = stations(SUPPORTED_RPC);
+    Set<String> stations = stationsByRpcName(SUPPORTED_RPC);
     if (isNotBlank(patient)) {
       Set<String> stationsForPatient = patientStations(patient);
       log.info("Patient stations:   {}", sorted(stationsForPatient));
       stations.retainAll(stationsForPatient);
+    }
+    if (isNotBlank(tag)) {
+      Set<String> taggedStations = stationsByTag(tag);
+      log.info("Tagged stations: {}", sorted(taggedStations));
+      stations.retainAll(taggedStations);
     }
     return toBundle(request).apply(stations);
   }
@@ -109,8 +115,12 @@ public class R4EndpointController implements R4EndpointApi {
     return sorted;
   }
 
-  private Set<String> stations(String rpcName) {
+  private Set<String> stationsByRpcName(String rpcName) {
     return rpcPrincipalLookup.findByName(rpcName).keySet();
+  }
+
+  private Set<String> stationsByTag(String tag) {
+    return rpcPrincipalLookup.findByTag(tag).keySet();
   }
 
   private R4Bundler<Set<String>, Endpoint, Endpoint.Entry, Endpoint.Bundle> toBundle(
