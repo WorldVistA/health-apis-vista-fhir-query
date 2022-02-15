@@ -18,13 +18,13 @@ class R4MedicationRequestTransformerTest {
   }
 
   @Test
-  void toFhir() {
-    assertThat(_transform(MedicationRequestSamples.Vista.create().results()).findFirst().get())
-        .isEqualTo(MedicationRequestSamples.R4.create().medicationRequest());
+  void empty() {
+    assertThat(_transform(VprGetPatientData.Response.Results.builder().build())).isEmpty();
   }
 
   @Test
-  void empty() {
-    assertThat(_transform(VprGetPatientData.Response.Results.builder().build())).isEmpty();
+  void toFhir() {
+    assertThat(_transform(MedicationRequestSamples.Vista.create().results()).findFirst().get())
+        .isEqualTo(MedicationRequestSamples.R4.create().medicationRequest());
   }
 }

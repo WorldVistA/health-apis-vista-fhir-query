@@ -16,7 +16,7 @@ public class MedicationRequestIT {
   private final TestIds testIds = VistaFhirQueryResourceVerifier.ids();
 
   @Delegate
-  private final ResourceVerifier verifier = VistaFhirQueryResourceVerifier.r4ForSite("673");
+  private final ResourceVerifier verifier = VistaFhirQueryResourceVerifier.r4ForSiteForTestPatient();
 
   @Test
   void medRequestRead() {
