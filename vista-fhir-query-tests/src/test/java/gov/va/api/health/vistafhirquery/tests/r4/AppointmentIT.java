@@ -1,6 +1,5 @@
 package gov.va.api.health.vistafhirquery.tests.r4;
 
-import static gov.va.api.health.sentinel.EnvironmentAssumptions.assumeEnvironmentIn;
 import static gov.va.api.health.sentinel.EnvironmentAssumptions.assumeEnvironmentNotIn;
 
 import gov.va.api.health.fhir.testsupport.ResourceVerifier;
@@ -17,19 +16,23 @@ public class AppointmentIT {
   private final TestIds testIds = VistaFhirQueryResourceVerifier.ids();
 
   @Delegate
-  private final ResourceVerifier verifier = VistaFhirQueryResourceVerifier.r4ForSite("673");
+  private final ResourceVerifier verifier =
+      VistaFhirQueryResourceVerifier.r4ForSiteForTestPatient();
 
   @Test
   void read() {
-    assumeEnvironmentIn(Environment.LOCAL);
-    verifyAll(
-        test(200, Appointment.class, "Appointment/{appointment}", testIds.appointment()),
-        test(404, OperationOutcome.class, "Appointment/{appointment}", "I3-404"));
+    assumeEnvironmentNotIn(Environment.STAGING, Environment.PROD);
+    verifyAll(test(200, Appointment.class, "Appointment/{appointment}", testIds.appointment()));
+  }
+
+  @Test
+  void readNotFound() {
+    verifyAll(test(404, OperationOutcome.class, "Appointment/{appointment}", "I3-404"));
   }
 
   @Test
   void search() {
-    assumeEnvironmentNotIn(Environment.STAGING, Environment.PROD);
+    assumeEnvironmentNotIn(Environment.STAGING);
     verifyAll(
         test(200, Appointment.Bundle.class, "Appointment?patient={icn}", testIds.patient()),
         test(

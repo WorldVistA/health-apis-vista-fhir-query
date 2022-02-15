@@ -1,6 +1,6 @@
 package gov.va.api.health.vistafhirquery.tests.r4;
 
-import static gov.va.api.health.sentinel.EnvironmentAssumptions.assumeEnvironmentIn;
+import static gov.va.api.health.sentinel.EnvironmentAssumptions.assumeEnvironmentNotIn;
 
 import gov.va.api.health.fhir.testsupport.ResourceVerifier;
 import gov.va.api.health.r4.api.resources.MedicationDispense;
@@ -16,11 +16,12 @@ public class MedicationDispenseIT {
   private final TestIds testIds = VistaFhirQueryResourceVerifier.ids();
 
   @Delegate
-  private final ResourceVerifier verifier = VistaFhirQueryResourceVerifier.r4ForSite("673");
+  private final ResourceVerifier verifier =
+      VistaFhirQueryResourceVerifier.r4ForSiteForTestPatient();
 
   @Test
   void medDispenseRead() {
-    assumeEnvironmentIn(Environment.LOCAL);
+    assumeEnvironmentNotIn(Environment.STAGING);
     verifyAll(
         test(
             200,
@@ -32,7 +33,7 @@ public class MedicationDispenseIT {
 
   @Test
   void medDispenseSearch() {
-    assumeEnvironmentIn(Environment.LOCAL);
+    assumeEnvironmentNotIn(Environment.STAGING);
     verifyAll(
         test(
             200,

@@ -7,6 +7,7 @@ import gov.va.api.health.sentinel.ReducedSpamLogger;
 import gov.va.api.health.sentinel.SentinelProperties;
 import gov.va.api.health.sentinel.ServiceDefinition;
 import gov.va.api.health.vistafhirquery.tests.TestIds.IcnAtSites;
+import gov.va.api.health.vistafhirquery.tests.TestIds.ObservationIds;
 import gov.va.api.health.vistafhirquery.tests.TestIds.OrganizationIds;
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -41,9 +42,14 @@ public final class SystemDefinitions {
                 .insTypeRead("I3-450NAk1LKUAaaGqyCDA9S9")
                 .payTypeRead("I3-1Rgkl3lKGiggGNsUfEj21yVdybD2jbbv4")
                 .build())
-        .observationLaboratory("I3-KqbQBRfPz2QzBYOB9MoX6k5Or3KfxWShgyktFPlKkGxdwjVYXnYuUJ")
-        .observationVitalSign("I3-WCE2nReXz5vFdUSsLMQmISPcK5xMGVm0vpLZAgo38ZX")
+        .observations(
+            ObservationIds.builder()
+                .laboratory("I3-KqbQBRfPz2QzBYOB9MoX6k5Or3KfxWShgyktFPlKkGxdwjVYXnYuUJ")
+                .vitalSigns("I3-WCE2nReXz5vFdUSsLMQmISPcK5xMGVm0vpLZAgo38ZX")
+                .code("8310-5")
+                .build())
         .patient("1011537977V693883")
+        .siteForPatient("673")
         .patientSites(icnAtSites())
         .build();
   }
@@ -53,35 +59,45 @@ public final class SystemDefinitions {
         .appointment("TODO https://vajira.max.gov/browse/API-8891")
         .coverage("TODO https://vajira.max.gov/browse/API-8891")
         .insurancePlan("TODO https://vajira.max.gov/browse/API-8891")
-        .medicationDispense("TODO https://vajira.max.gov/browse/API-8891")
         .medicationRequest("TODO https://vajira.max.gov/browse/API-8891")
+        .medicationDispense("I3-457Vr53po4UOEtb8EOfpsvpcybyLhT1GMkFfnvG0oDqIFWs0XoS09q")
         .organizations(
             OrganizationIds.builder()
                 .insTypeRead("TODO https://vajira.max.gov/browse/API-8891")
                 .payTypeRead("TODO https://vajira.max.gov/browse/API-8891")
                 .build())
-        .observationLaboratory("TODO https://vajira.max.gov/browse/API-8891")
-        .observationVitalSign("TODO https://vajira.max.gov/browse/API-8891")
+        .observations(
+            ObservationIds.builder()
+                .laboratory("I3-7FQnjuRsNMBvJ4b92YyAw6uMDKsFyNqmUqwSAY4Yx35fu5mo11BUDD")
+                .vitalSigns("NOT_AVAILABLE")
+                .code("14743-9")
+                .build())
         .patient("1011537977V693883")
+        .siteForPatient("642")
         .patientSites(icnAtSites())
         .build();
   }
 
   private static TestIds idsForSyntheticEnvironment() {
     return TestIds.builder()
-        .appointment("I3-HNJRtzLefcQ12T3j78Gb5Ol8tnTulUTbaqPY9ByPSRAIwSIfg6pK6wg6pK6w")
+        .appointment("I3-HNJRtzLefcQ12T3j78Gb5Ol8tnTulUTbey44wxIzFeWcUZfmIDTJLU")
         .coverage("I3-onSd2F0QCJnTLBUa2wtl7hqxWh9zUsQ37GhxL5dxDc6")
         .insurancePlan("I3-35bba1Pto08dShHpQSSihU")
-        .medicationDispense("I3-GZUsHy8hKb94Zo6FG1EieL9KESGjNpNk7nAzyuWZmeSkpLoIGoMXhz")
         .medicationRequest("I3-vBeIONImGXIKLsJU74tnViW0QxjDZINHOiE0kw25v9c")
+        .medicationDispense("I3-Gb8CL0jU5H28XaefbHqObnqlEf4hfOZhOcf8m4eMI93bKt0quIh75z")
         .organizations(
             OrganizationIds.builder()
                 .insTypeRead("I3-27zyn3hOzdy6gvpo8Unwby")
                 .payTypeRead("I3-27zyn3hOzdyErnwVlEaVkp")
                 .build())
-        .observationLaboratory("I3-IbkbEJ3pceqVRMjceHtk9zfkaWo5B2hFH018sws2KYPDg98RU2fFQC")
-        .observationVitalSign("I3-MzfzyZkSpl9HvWWWuN0JvxF6V2f0fwrUm4Cj381IfxH")
+        .observations(
+            ObservationIds.builder()
+                .laboratory("I3-IbkbEJ3pceqVRMjceHtk9zfkaWo5B2hFH018sws2KYPDg98RU2fFQC")
+                .vitalSigns("I3-MzfzyZkSpl9HvWWWuN0JvxF6V2f0fwrUm4Cj381IfxH")
+                .code("8310-5")
+                .build())
         .patient("1011537977V693883")
+        .siteForPatient("673")
         .patientSites(icnAtSites())
         .build();
   }

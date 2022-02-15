@@ -26,7 +26,7 @@ public class SmokeTestIT {
   @Test
   void read() {
     assumeEnvironmentNotIn(Environment.STAGING);
-    ResourceVerifier verifier = VistaFhirQueryResourceVerifier.r4WithoutSite();
+    ResourceVerifier verifier = VistaFhirQueryResourceVerifier.r4ForSiteForTestPatient();
     verifier.verify(
         verifier.test(
             200, Observation.Bundle.class, "Observation?patient={patient}", testIds.patient()));

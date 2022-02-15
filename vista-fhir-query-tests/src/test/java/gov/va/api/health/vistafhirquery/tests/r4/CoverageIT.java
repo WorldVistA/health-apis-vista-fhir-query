@@ -23,8 +23,9 @@ public class CoverageIT {
 
   @Test
   void createAndRead() {
+    // Requires LHS LIGHTHOUSE RPC GATEWAY to be deployed to vista
     assumeEnvironmentIn(Environment.QA, Environment.STAGING_LAB, Environment.LAB);
-    CreateResourceVerifier.<Coverage>builder()
+    CreateResourceVerifier.builder()
         .apiName("insurance-fhir")
         .serviceDefinition(SystemDefinitions.systemDefinition().basePath())
         .requestPath("/hcs/673/r4/Coverage")
