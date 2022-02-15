@@ -21,7 +21,7 @@ public class MedicationDispenseIT {
 
   @Test
   void medDispenseRead() {
-    assumeEnvironmentNotIn(Environment.STAGING);
+    assumeEnvironmentNotIn(Environment.STAGING, Environment.PROD);
     verifyAll(
         test(
             200,
@@ -33,7 +33,7 @@ public class MedicationDispenseIT {
 
   @Test
   void medDispenseSearch() {
-    assumeEnvironmentNotIn(Environment.STAGING);
+    assumeEnvironmentNotIn(Environment.STAGING, Environment.PROD);
     verifyAll(
         test(
             200,
