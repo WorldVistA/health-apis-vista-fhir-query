@@ -135,10 +135,6 @@ public class MedicationDispenseSamples {
           .build();
     }
 
-    public Meds.Med medWithEmptyFill() {
-      return med().fill(List.of(Fill.builder().build()));
-    }
-
     private Meds.Med medWithMultipleFills() {
       return med()
           .fill(
