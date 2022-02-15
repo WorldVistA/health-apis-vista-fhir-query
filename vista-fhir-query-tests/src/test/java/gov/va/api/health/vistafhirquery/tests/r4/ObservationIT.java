@@ -22,70 +22,57 @@ public class ObservationIT {
   private static Stream<Arguments> verifiers() {
     return Stream.of(
         arguments(VistaFhirQueryResourceVerifier.r4WithoutSite()),
-        arguments(VistaFhirQueryResourceVerifier.r4ForSite("673")));
+        arguments(VistaFhirQueryResourceVerifier.r4ForSiteForTestPatient()));
   }
 
   @ParameterizedTest
   @MethodSource("verifiers")
-  void read(ResourceVerifier verifier) {
+  void readLaboratory(ResourceVerifier verifier) {
+    assumeEnvironmentNotIn(Environment.STAGING);
+    var path = "Observation/{observation}";
+    verifier.verifyAll(
+        verifier.test(200, Observation.class, path, testIds.observations().laboratory()));
+  }
+
+  @ParameterizedTest
+  @MethodSource("verifiers")
+  void readNotFound(ResourceVerifier verifier) {
+    var path = "Observation/{observation}";
+    verifier.verifyAll(verifier.test(404, OperationOutcome.class, path, "I3-404"));
+  }
+
+  @ParameterizedTest
+  @MethodSource("verifiers")
+  void readVitalSign(ResourceVerifier verifier) {
     assumeEnvironmentNotIn(Environment.STAGING, Environment.PROD);
     var path = "Observation/{observation}";
     verifier.verifyAll(
-        verifier.test(200, Observation.class, path, testIds.observationVitalSign()),
-        verifier.test(200, Observation.class, path, testIds.observationLaboratory()),
-        verifier.test(404, OperationOutcome.class, path, "I3-404"));
+        verifier.test(200, Observation.class, path, testIds.observations().vitalSigns()));
   }
 
   @ParameterizedTest
   @MethodSource("verifiers")
   void search(ResourceVerifier verifier) {
-    assumeEnvironmentNotIn(Environment.STAGING, Environment.PROD);
+    assumeEnvironmentNotIn(Environment.STAGING);
     verifier.verifyAll(
         verifier.test(
             200,
             Observation.Bundle.class,
-            R4TestSupport::atLeastOneEntry,
-            "Observation?_id={id}",
-            testIds.observationVitalSign()),
-        verifier.test(
-            200,
-            Observation.Bundle.class,
-            R4TestSupport::atLeastOneEntry,
-            "Observation?identifier={id}",
-            testIds.observationLaboratory()),
-        verifier.test(
-            200,
-            Observation.Bundle.class,
-            R4TestSupport::atLeastOneEntry,
+            R4TestSupport::isBundleWithAtLeastOneEntry,
             "Observation?patient={patient}",
             testIds.patient()),
         verifier.test(
             200,
             Observation.Bundle.class,
-            R4TestSupport::atLeastOneEntry,
-            "Observation?patient={patient}&category=laboratory",
-            testIds.patient()),
+            R4TestSupport::isBundleWithAtLeastOneEntry,
+            "Observation?patient={patient}&code={code}",
+            testIds.patient(),
+            testIds.observations().code()),
         verifier.test(
             200,
             Observation.Bundle.class,
-            R4TestSupport::atLeastOneEntry,
-            "Observation?patient={patient}&code=8310-5",
-            testIds.patient()),
-        verifier.test(
-            200,
-            Observation.Bundle.class,
-            R4TestSupport::atLeastOneEntry,
+            R4TestSupport::isBundleWithAtLeastOneEntry,
             "Observation?patient={patient}&date=ge2010&date=lt2012",
-            testIds.patient()),
-        verifier.test(
-            200,
-            Observation.Bundle.class,
-            R4TestSupport::atLeastOneEntry,
-            "Observation?patient={patient}"
-                + "&category=vital-signs"
-                + "&code=8310-5"
-                + "&date=ge2010"
-                + "&date=lt2012",
             testIds.patient()),
         verifier.test(
             400,
@@ -96,10 +83,50 @@ public class ObservationIT {
 
   @ParameterizedTest
   @MethodSource("verifiers")
+  void searchLaboratory(ResourceVerifier verifier) {
+    assumeEnvironmentNotIn(Environment.STAGING);
+    verifier.verifyAll(
+        verifier.test(
+            200,
+            Observation.Bundle.class,
+            R4TestSupport::isBundleWithAtLeastOneEntry,
+            "Observation?_id={id}",
+            testIds.observations().laboratory()),
+        verifier.test(
+            200,
+            Observation.Bundle.class,
+            R4TestSupport::isBundleWithAtLeastOneEntry,
+            "Observation?identifier={id}",
+            testIds.observations().laboratory()),
+        verifier.test(
+            200,
+            Observation.Bundle.class,
+            R4TestSupport::isBundleWithAtLeastOneEntry,
+            "Observation?patient={patient}&category=laboratory",
+            testIds.patient()));
+  }
+
+  @ParameterizedTest
+  @MethodSource("verifiers")
   void searchNotMe(ResourceVerifier verifier) {
     assumeEnvironmentNotIn(Environment.LOCAL);
     verifier.verify(
         verifier.test(
             403, OperationOutcome.class, "Observation?patient={patient}", testIds.unknown()));
+  }
+
+  @ParameterizedTest
+  @MethodSource("verifiers")
+  void searchVitalSign(ResourceVerifier verifier) {
+    assumeEnvironmentNotIn(Environment.STAGING);
+    verifier.verifyAll(
+        verifier.test(
+            200,
+            Observation.Bundle.class,
+            (Environment.get() == Environment.PROD)
+                ? R4TestSupport::isAnyBundle
+                : R4TestSupport::isBundleWithAtLeastOneEntry,
+            "Observation?patient={patient}&category=vital-signs",
+            testIds.patient()));
   }
 }

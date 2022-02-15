@@ -17,10 +17,12 @@ public class InsurancePlanIT {
   private final TestIds testIds = VistaFhirQueryResourceVerifier.ids();
 
   @Delegate
-  private final ResourceVerifier verifier = VistaFhirQueryResourceVerifier.r4ForSite("673");
+  private final ResourceVerifier verifier =
+      VistaFhirQueryResourceVerifier.r4ForSiteForTestPatient();
 
   @Test
   void read() {
+    // Requires LHS LIGHTHOUSE RPC GATEWAY to be deployed to vista
     assumeEnvironmentNotIn(Environment.STAGING, Environment.PROD);
     var path = "InsurancePlan/{id}";
     verifyAll(

@@ -26,11 +26,11 @@ public final class TestIds {
 
   @NonNull OrganizationIds organizations;
 
-  @NonNull String observationVitalSign;
-
-  @NonNull String observationLaboratory;
+  @NonNull ObservationIds observations;
 
   @NonNull String patient;
+
+  @NonNull String siteForPatient;
 
   @Default String unknown = "5555555555555";
 
@@ -90,6 +90,14 @@ public final class TestIds {
       }
       return IcnAtSites.builder().icn(icn).vistas(vistas).build();
     }
+  }
+
+  @Value
+  @Builder
+  public static class ObservationIds {
+    @NonNull String laboratory;
+    @NonNull String vitalSigns;
+    @NonNull String code;
   }
 
   @Value

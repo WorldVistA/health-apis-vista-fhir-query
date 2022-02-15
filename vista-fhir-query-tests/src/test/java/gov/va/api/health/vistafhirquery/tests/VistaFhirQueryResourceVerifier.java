@@ -9,7 +9,7 @@ public class VistaFhirQueryResourceVerifier {
     return SystemDefinitions.systemDefinition().publicIds();
   }
 
-  public static ResourceVerifier r4ForSite(String site) {
+  private static ResourceVerifier r4ForSite(String site) {
     return ResourceVerifier.builder()
         .apiPath(SystemDefinitions.systemDefinition().basePath().apiPath() + "hcs/" + site + "/r4/")
         .bundleClass(gov.va.api.health.r4.api.bundle.AbstractBundle.class)
@@ -17,6 +17,10 @@ public class VistaFhirQueryResourceVerifier {
         .operationOutcomeClass(gov.va.api.health.r4.api.resources.OperationOutcome.class)
         .maxCount(9999)
         .build();
+  }
+
+  public static ResourceVerifier r4ForSiteForTestPatient() {
+    return r4ForSite(SystemDefinitions.systemDefinition().publicIds().siteForPatient());
   }
 
   public static ResourceVerifier r4WithoutSite() {

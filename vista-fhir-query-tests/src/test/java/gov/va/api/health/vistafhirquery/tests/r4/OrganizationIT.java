@@ -19,10 +19,12 @@ public class OrganizationIT {
   private final TestIds testIds = VistaFhirQueryResourceVerifier.ids();
 
   @Delegate
-  private final ResourceVerifier verifier = VistaFhirQueryResourceVerifier.r4ForSite("673");
+  private final ResourceVerifier verifier =
+      VistaFhirQueryResourceVerifier.r4ForSiteForTestPatient();
 
   @Test
   void read() {
+    // Requires LHS LIGHTHOUSE RPC GATEWAY to be deployed to vista
     assumeEnvironmentNotIn(Environment.STAGING, Environment.PROD);
     var path = "Organization/{id}";
     verifyAll(
@@ -34,6 +36,7 @@ public class OrganizationIT {
   @ParameterizedTest
   @ValueSource(strings = {"type=ins", "type=pay"})
   void search(String query) {
+    // Requires LHS LIGHTHOUSE RPC GATEWAY to be deployed to vista
     assumeEnvironmentNotIn(Environment.STAGING, Environment.PROD);
     var path = "Organization?" + query;
     verifyAll(test(200, Organization.Bundle.class, path));
