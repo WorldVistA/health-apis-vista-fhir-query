@@ -28,19 +28,19 @@ public class EndpointIT {
     return empty().negate();
   }
 
-  static Stream<Arguments> searchByPatient() {
-    final String patient = SystemDefinitions.systemDefinition().publicIds().patient();
-    return Stream.of(
-        arguments("r4/Endpoint?status=active&patient=" + patient, notEmpty()),
-        arguments("r4/Endpoint?patient=" + patient, notEmpty()));
-  }
-
   static Stream<Arguments> search() {
     final String patient = SystemDefinitions.systemDefinition().publicIds().patient();
     return Stream.of(
         arguments("r4/Endpoint", notEmpty()),
         arguments("r4/Endpoint?status=active", notEmpty()),
         arguments("r4/Endpoint?status=ANYTHING_NOT_ACTIVE", empty()));
+  }
+
+  static Stream<Arguments> searchByPatient() {
+    final String patient = SystemDefinitions.systemDefinition().publicIds().patient();
+    return Stream.of(
+        arguments("r4/Endpoint?status=active&patient=" + patient, notEmpty()),
+        arguments("r4/Endpoint?patient=" + patient, notEmpty()));
   }
 
   @Test
