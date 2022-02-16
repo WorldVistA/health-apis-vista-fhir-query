@@ -14,6 +14,13 @@ import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 
 public class R4AppointmentTransformerTest {
+  static Stream<Arguments> locationIenParsing() {
+    return Stream.of(
+        Arguments.of("A;3220221.08;23", "23"),
+        Arguments.of("A;3220221.08;", null),
+        Arguments.of("A3220221.0823", null));
+  }
+
   private static Stream<Arguments> serviceCategoryCode() {
     return Stream.of(
         Arguments.of("MEDICINE", "M"),
@@ -72,6 +79,12 @@ public class R4AppointmentTransformerTest {
     assertThat(tx().idFrom(null)).isNull();
     assertThat(tx().idFrom("")).isNull();
     assertThat(tx().idFrom("p1")).isEqualTo("sNp1+123+Ap1");
+  }
+
+  @ParameterizedTest
+  @MethodSource
+  void locationIenParsing(String id, String expectedLocationId) {
+    assertThat(tx().locationIenFrom(ValueOnlyXmlAttribute.of(id))).isEqualTo(expectedLocationId);
   }
 
   @ParameterizedTest

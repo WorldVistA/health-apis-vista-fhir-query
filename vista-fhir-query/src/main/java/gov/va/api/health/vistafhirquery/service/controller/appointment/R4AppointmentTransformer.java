@@ -8,16 +8,21 @@ import static gov.va.api.health.vistafhirquery.service.controller.R4Transformers
 
 import gov.va.api.health.r4.api.datatypes.CodeableConcept;
 import gov.va.api.health.r4.api.datatypes.Coding;
+import gov.va.api.health.r4.api.datatypes.Identifier;
 import gov.va.api.health.r4.api.elements.Meta;
+import gov.va.api.health.r4.api.elements.Reference;
 import gov.va.api.health.r4.api.resources.Appointment;
 import gov.va.api.health.r4.api.resources.Appointment.AppointmentStatus;
+import gov.va.api.health.r4.api.resources.Appointment.Participant;
 import gov.va.api.lighthouse.charon.models.CodeAndNameXmlAttribute;
 import gov.va.api.lighthouse.charon.models.ValueOnlyXmlAttribute;
 import gov.va.api.lighthouse.charon.models.vprgetpatientdata.Appointments;
 import gov.va.api.lighthouse.charon.models.vprgetpatientdata.VprGetPatientData;
 import java.time.Instant;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.stream.Stream;
 import lombok.Builder;
 import lombok.NonNull;
@@ -82,12 +87,61 @@ public class R4AppointmentTransformer {
     return toResourceId(patientIcn, site, VprGetPatientData.Domains.appointments, id);
   }
 
-  List<Appointment.Participant> participants() {
-    return Appointment.Participant.builder()
+  String locationIenFrom(ValueOnlyXmlAttribute id) {
+    if (isBlank(id) || isBlank(id.value())) {
+      return null;
+    }
+    /*
+     * Appointment record ID includes a site location IEN as the last value in it's ID, e.g.
+     * A;3220221.08;23. In this case, 23 is the location IEN.
+     */
+    String prefixDateLocationIen = id.value(); // E.g. A;3220221.08;23
+    int lastSemi = prefixDateLocationIen.lastIndexOf(";");
+    if (lastSemi < 0 || lastSemi >= prefixDateLocationIen.length() - 1) {
+      /* No semicolon or one at end of the ID. */
+      return null;
+    }
+    return prefixDateLocationIen.substring(lastSemi + 1);
+  }
+
+  Optional<Participant> participantLocation(ValueOnlyXmlAttribute id) {
+    var locationIen = locationIenFrom(id);
+    if (isBlank(locationIen)) {
+      return Optional.empty();
+    }
+    /*
+     * The Lighthouse Facilities API uses a prefixed ID. For healthcare facilities it's 'vha' plus
+     * the VAMC site plus the location (i.e. clinic).
+     */
+    var facilitiesApiIdentifier = "vha_" + site + "_" + locationIen;
+    return Optional.of(
+        Appointment.Participant.builder()
+            .actor(
+                Reference.builder()
+                    .type("Location")
+                    .identifier(
+                        Identifier.builder()
+                            .system(
+                                "https://api.va.gov/services/fhir/v0/r4/NamingSystem/va-clinic-identifier")
+                            .value(facilitiesApiIdentifier)
+                            .build())
+                    .build())
+            .status(Appointment.ParticipationStatus.accepted)
+            .build());
+  }
+
+  private Participant participantPatient() {
+    return Participant.builder()
         .actor(toReference("Patient", patientIcn, null))
         .status(Appointment.ParticipationStatus.accepted)
-        .build()
-        .asList();
+        .build();
+  }
+
+  List<Appointment.Participant> participants(ValueOnlyXmlAttribute id) {
+    var participants = new ArrayList<Appointment.Participant>(2);
+    participants.add(participantPatient());
+    participantLocation(id).ifPresent(participants::add);
+    return participants;
   }
 
   List<CodeableConcept> serviceCategory(ValueOnlyXmlAttribute serviceCategory) {
@@ -154,7 +208,7 @@ public class R4AppointmentTransformer {
         .serviceType(serviceType(rpcAppointment.clinicStop()))
         .appointmentType(appointmentType(rpcAppointment.type()))
         .start(dateTime)
-        .participant(participants())
+        .participant(participants(rpcAppointment.id()))
         .build();
   }
 

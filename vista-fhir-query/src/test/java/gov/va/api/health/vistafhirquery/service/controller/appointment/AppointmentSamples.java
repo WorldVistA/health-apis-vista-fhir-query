@@ -8,7 +8,9 @@ import gov.va.api.health.r4.api.bundle.AbstractEntry;
 import gov.va.api.health.r4.api.bundle.BundleLink;
 import gov.va.api.health.r4.api.datatypes.CodeableConcept;
 import gov.va.api.health.r4.api.datatypes.Coding;
+import gov.va.api.health.r4.api.datatypes.Identifier;
 import gov.va.api.health.r4.api.elements.Meta;
+import gov.va.api.health.r4.api.elements.Reference;
 import gov.va.api.health.r4.api.resources.Appointment;
 import gov.va.api.lighthouse.charon.models.CodeAndNameXmlAttribute;
 import gov.va.api.lighthouse.charon.models.ValueOnlyXmlAttribute;
@@ -61,11 +63,24 @@ public class AppointmentSamples {
           .appointmentType(appointmentType())
           .meta(Meta.builder().source("673").build())
           .participant(
-              Appointment.Participant.builder()
-                  .actor(toReference("Patient", "p1", null))
-                  .status(Appointment.ParticipationStatus.accepted)
-                  .build()
-                  .asList())
+              List.of(
+                  Appointment.Participant.builder()
+                      .actor(toReference("Patient", "p1", null))
+                      .status(Appointment.ParticipationStatus.accepted)
+                      .build(),
+                  Appointment.Participant.builder()
+                      .actor(
+                          Reference.builder()
+                              .type("Location")
+                              .identifier(
+                                  Identifier.builder()
+                                      .system(
+                                          "https://api.va.gov/services/fhir/v0/r4/NamingSystem/va-clinic-identifier")
+                                      .value("vha_673_23")
+                                      .build())
+                              .build())
+                      .status(Appointment.ParticipationStatus.accepted)
+                      .build()))
           .serviceCategory(serviceCategory())
           .serviceType(serviceType())
           .start("1993-10-13T07:00:00Z")
