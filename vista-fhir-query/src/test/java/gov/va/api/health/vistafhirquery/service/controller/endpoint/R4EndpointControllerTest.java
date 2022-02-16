@@ -68,9 +68,10 @@ public class R4EndpointControllerTest {
             "http://fake.com",
             List.of(
                 EndpointSamples.R4.create().endpoint("101"),
+                EndpointSamples.R4.create().endpoint("102"),
                 EndpointSamples.R4.create().endpoint("103"),
                 EndpointSamples.R4.create().endpoint("104")),
-            3,
+            4,
             link(BundleLink.LinkRelation.self, "http://fake.com/r4/Endpoint"));
     assertThat(json(actual)).isEqualTo(json(expected));
   }
@@ -195,9 +196,10 @@ public class R4EndpointControllerTest {
             "http://fake.com",
             List.of(
                 EndpointSamples.R4.create().endpoint("101"),
+                EndpointSamples.R4.create().endpoint("102"),
                 EndpointSamples.R4.create().endpoint("103"),
                 EndpointSamples.R4.create().endpoint("104")),
-            3,
+            4,
             link(BundleLink.LinkRelation.self, "http://fake.com/r4/Endpoint" + query));
     assertThat(json(actual)).isEqualTo(json(expected));
   }

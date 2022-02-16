@@ -41,7 +41,6 @@ import org.springframework.web.bind.annotation.RestController;
 @AllArgsConstructor(onConstructor_ = {@Autowired, @NonNull})
 @Slf4j
 public class R4EndpointController implements R4EndpointApi {
-
   public static final String SUPPORTED_RPC = LhsLighthouseRpcGatewayGetsManifest.RPC_NAME;
 
   private final R4BundlerFactory bundlerFactory;
@@ -51,6 +50,10 @@ public class R4EndpointController implements R4EndpointApi {
   private final RpcPrincipalLookupV1 rpcPrincipalLookup;
 
   private final MpiFhirQueryClient mpiFhirQueryClient;
+
+  private Set<String> allStations() {
+    return rpcPrincipalLookup.findAllEntries().keySet();
+  }
 
   @Override
   @GetMapping(value = "/{site}")
@@ -82,16 +85,18 @@ public class R4EndpointController implements R4EndpointApi {
     if (!isSupportedStatus(status)) {
       return toBundle(request).apply(emptySet());
     }
-    Set<String> stations = stationsByRpcName(SUPPORTED_RPC);
+    Set<String> stations;
+    if (isNotBlank(tag)) {
+      stations = stationsByTag(tag);
+      log.info("Stations tagged({}): {}", tag, sorted(stations));
+    } else {
+      stations = allStations();
+      log.info("All stations: {}", sorted(stations));
+    }
     if (isNotBlank(patient)) {
       Set<String> stationsForPatient = patientStations(patient);
       log.info("Patient stations:   {}", sorted(stationsForPatient));
       stations.retainAll(stationsForPatient);
-    }
-    if (isNotBlank(tag)) {
-      Set<String> taggedStations = stationsByTag(tag);
-      log.info("Tagged stations: {}", sorted(taggedStations));
-      stations.retainAll(taggedStations);
     }
     return toBundle(request).apply(stations);
   }
@@ -113,10 +118,6 @@ public class R4EndpointController implements R4EndpointApi {
     var sorted = new ArrayList<>(values);
     Collections.sort(sorted);
     return sorted;
-  }
-
-  private Set<String> stationsByRpcName(String rpcName) {
-    return rpcPrincipalLookup.findByName(rpcName).keySet();
   }
 
   private Set<String> stationsByTag(String tag) {
