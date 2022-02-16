@@ -4,13 +4,17 @@ import static gov.va.api.health.sentinel.EnvironmentAssumptions.assumeEnvironmen
 import static gov.va.api.health.sentinel.EnvironmentAssumptions.assumeEnvironmentNotIn;
 import static org.apache.commons.lang3.StringUtils.isNotBlank;
 
+import gov.va.api.health.fhir.api.Safe;
 import gov.va.api.health.fhir.testsupport.ResourceVerifier;
+import gov.va.api.health.r4.api.bundle.AbstractEntry;
 import gov.va.api.health.r4.api.resources.Appointment;
 import gov.va.api.health.r4.api.resources.OperationOutcome;
+import gov.va.api.health.r4.api.resources.Resource;
 import gov.va.api.health.sentinel.Environment;
 import gov.va.api.health.vistafhirquery.tests.TestIds;
 import gov.va.api.health.vistafhirquery.tests.VistaFhirQueryResourceVerifier;
 import java.time.Year;
+import java.util.Objects;
 import java.util.concurrent.atomic.AtomicReference;
 import lombok.experimental.Delegate;
 import lombok.extern.slf4j.Slf4j;
@@ -49,9 +53,13 @@ public class AppointmentIT {
             Appointment.Bundle.class,
             bundle -> {
               /* Excuse me while I abuse this validation predicate to steal an ID. */
-              if (!bundle.entry().isEmpty()) {
-                justThrewUpALittleInMyMouthAppointmentId.set(bundle.entry().get(0).id());
-              }
+              Safe.stream(bundle.entry())
+                  .map(AbstractEntry::resource)
+                  .filter(Objects::nonNull)
+                  .map(Resource::id)
+                  .filter(Objects::nonNull)
+                  .findFirst()
+                  .ifPresent(justThrewUpALittleInMyMouthAppointmentId::set);
               return true;
             },
             "Appointment?patient={icn}",
