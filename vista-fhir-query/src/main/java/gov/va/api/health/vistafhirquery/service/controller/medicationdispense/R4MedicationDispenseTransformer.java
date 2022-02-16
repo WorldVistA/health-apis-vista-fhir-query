@@ -156,7 +156,7 @@ public class R4MedicationDispenseTransformer {
         .filter(Med::isNotEmpty)
         .flatMap(
             med ->
-                med.fill().stream()
+                Safe.stream(med.fill())
                     .filter(Objects::nonNull)
                     .filter(this::isViable)
                     .filter(this::hasRequiredFillDate)
