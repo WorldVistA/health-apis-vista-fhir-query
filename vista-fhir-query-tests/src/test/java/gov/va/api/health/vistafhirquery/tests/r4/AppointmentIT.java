@@ -22,6 +22,8 @@ public class AppointmentIT {
   @Test
   void read() {
     assumeEnvironmentNotIn(Environment.STAGING, Environment.PROD);
+    /* TEMPORARY UNTIL WHILE FIXING CHANGING APPOINTMENT IDS */
+    assumeEnvironmentNotIn(Environment.QA, Environment.STAGING_LAB, Environment.LAB);
     verifyAll(test(200, Appointment.class, "Appointment/{appointment}", testIds.appointment()));
   }
 
