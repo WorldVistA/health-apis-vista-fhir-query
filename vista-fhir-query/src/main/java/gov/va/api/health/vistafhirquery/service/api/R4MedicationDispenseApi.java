@@ -10,6 +10,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import javax.servlet.http.HttpServletRequest;
+import javax.validation.constraints.Size;
 import javax.ws.rs.DefaultValue;
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
@@ -20,7 +21,7 @@ public interface R4MedicationDispenseApi {
   @Operation(
       summary = "Medication Dispense Read",
       description = "https://www.hl7.org/fhir/medicationdispense.html",
-      tags = {"Medication Dispense"})
+      tags = {"MedicationDispense"})
   @Path("/hcs/{site}/MedicationDispense/{id}")
   @ApiResponses({
     @ApiResponse(
@@ -160,6 +161,13 @@ public interface R4MedicationDispenseApi {
                   "The patient's Integration Control Number (ICN)"
                       + " assigned by the Master Patient Index (MPI).")
           String icn,
+      @Parameter(
+              in = ParameterIn.QUERY,
+              name = "date",
+              required = false,
+              description = "Date range to filter VistA Med fillDate by.")
+          @Size(max = 2)
+          String[] date,
       @Parameter(
               in = ParameterIn.QUERY,
               name = "_count",

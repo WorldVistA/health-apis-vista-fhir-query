@@ -39,6 +39,16 @@ public class MedicationDispenseIT {
             200,
             MedicationDispense.Bundle.class,
             "MedicationDispense?patient={icn}",
+            testIds.patient()),
+        test(
+            200,
+            MedicationDispense.Bundle.class,
+            "MedicationDispense?date=gt2008&patient={icn}",
+            testIds.patient()),
+        test(
+            400,
+            OperationOutcome.class,
+            "MedicationDispense?date=lt2010&date=ge2012&patient={icn}",
             testIds.patient()));
   }
 }

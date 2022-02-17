@@ -1,5 +1,8 @@
 package gov.va.api.health.vistafhirquery.service.controller.medicationdispense;
 
+import static gov.va.api.health.vistafhirquery.service.controller.medicationdispense.R4MedicationDispenseTransformer.acceptAll;
+import static gov.va.api.health.vistafhirquery.service.controller.medicationdispense.R4MedicationDispenseTransformer.acceptOnlyWithFillDateEqualTo;
+import static gov.va.api.health.vistafhirquery.service.controller.medicationdispense.R4MedicationDispenseTransformer.acceptOnlyWithFillDateInRange;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import gov.va.api.health.r4.api.datatypes.CodeableConcept;
@@ -9,6 +12,7 @@ import gov.va.api.health.r4.api.elements.Dosage;
 import gov.va.api.health.r4.api.elements.Reference;
 import gov.va.api.health.r4.api.resources.MedicationDispense;
 import gov.va.api.health.r4.api.resources.MedicationDispense.Status;
+import gov.va.api.health.vistafhirquery.service.controller.DateSearchBoundaries;
 import gov.va.api.health.vistafhirquery.service.controller.medicationdispense.MedicationDispenseSamples.Vista;
 import gov.va.api.lighthouse.charon.models.ValueOnlyXmlAttribute;
 import gov.va.api.lighthouse.charon.models.vprgetpatientdata.Meds.Med.Fill;
@@ -18,7 +22,7 @@ import gov.va.api.lighthouse.charon.models.vprgetpatientdata.VprGetPatientData;
 import gov.va.api.lighthouse.charon.models.vprgetpatientdata.VprGetPatientData.Response.Results;
 import java.math.BigDecimal;
 import java.util.List;
-import java.util.Optional;
+import java.util.function.Predicate;
 import java.util.stream.Stream;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -53,15 +57,15 @@ class R4MedicationDispenseTransformerTest {
   }
 
   static R4MedicationDispenseTransformer _tx(Results results) {
-    return _tx(results, null);
+    return _tx(results, acceptAll());
   }
 
-  static R4MedicationDispenseTransformer _tx(Results results, String fillDateFilter) {
+  static R4MedicationDispenseTransformer _tx(Results results, Predicate<Fill> fillFilter) {
     return R4MedicationDispenseTransformer.builder()
         .site("673")
         .patientIcn("p1")
         .rpcResults(results)
-        .fillDateFilter(Optional.ofNullable(fillDateFilter))
+        .fillFilter(fillFilter)
         .build();
   }
 
@@ -176,6 +180,31 @@ class R4MedicationDispenseTransformerTest {
     assertThat(actual).isEqualTo(expected);
   }
 
+  @Test
+  void predicateAcceptAll() {
+    var vista = Vista.create();
+    assertThat(acceptAll()).accepts(null, vista.fill());
+  }
+
+  @Test
+  void predicateAcceptOnlyWithFillDateEqualTo() {
+    var vista = Vista.create();
+    assertThat(acceptOnlyWithFillDateEqualTo("3050121"))
+        .accepts(vista.fill("3050121"), vista.fill("3050121", null));
+    assertThat(acceptOnlyWithFillDateEqualTo("3050121"))
+        .rejects(vista.fill("3050122"), vista.fill("3050122", "3050121"));
+  }
+
+  @Test
+  void predicateAcceptOnlyWithFillDateInRange() {
+    var vista = Vista.create();
+    var boundaries = DateSearchBoundaries.of(new String[] {"GE2005-01-21"});
+    assertThat(acceptOnlyWithFillDateInRange(boundaries))
+        .accepts(vista.fill("3060121"), vista.fill("3060121", null));
+    assertThat(acceptOnlyWithFillDateInRange(boundaries))
+        .rejects(vista.fill("3040121"), vista.fill("3040121", "3060121"));
+  }
+
   @ParameterizedTest
   @MethodSource
   void productCoding(ProductDetail detail, List<Coding> expected) {
@@ -216,7 +245,7 @@ class R4MedicationDispenseTransformerTest {
     var includeFill = vista.fill("3050121");
     var ignoredBecauseNotOnFillDate = vista.fill("3060121");
     var med = vista.med("1", includeFill, ignoredBecauseNotOnFillDate);
-    var transformer = _tx(vista.results(med), "3050121");
+    var transformer = _tx(vista.results(med), acceptOnlyWithFillDateEqualTo("3050121"));
     var transformed = transformer.toFhir().toList();
     assertThat(transformed).hasSize(1);
     assertThat(transformed.get(0).id()).isEqualTo(transformer.idOf(med, includeFill).toString());

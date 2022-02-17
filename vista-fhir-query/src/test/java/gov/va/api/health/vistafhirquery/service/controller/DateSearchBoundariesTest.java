@@ -187,6 +187,15 @@ public class DateSearchBoundariesTest {
     assertThat(new DateSearchBoundaries(date1, date2).stop()).isEqualTo(expectedStop);
   }
 
+  @Test
+  void emptyBoundsAreDetectable() {
+    var empty = DateSearchBoundaries.of(null);
+    assertThat(empty.start()).isNull();
+    assertThat(empty.stop()).isNull();
+    assertThat(empty.isEmpty()).isTrue();
+    assertThat(DateSearchBoundaries.optionallyOf(new String[0])).isEmpty();
+  }
+
   @ParameterizedTest
   @MethodSource("invalidDateArguments")
   void invalidDatesThrowBadSearchParameters(

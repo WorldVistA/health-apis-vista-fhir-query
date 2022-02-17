@@ -3,6 +3,7 @@ package gov.va.api.health.vistafhirquery.service.controller;
 import gov.va.api.health.fhir.api.FhirDateTime;
 import gov.va.api.health.fhir.api.FhirDateTimeParameter;
 import java.time.Instant;
+import java.util.Optional;
 import lombok.Getter;
 
 /** Deals with these certain date searches defined by fhir : EQ, SA, GT, EB, LT, GE, LE. */
@@ -34,6 +35,16 @@ public class DateSearchBoundaries {
     FhirDateTimeParameter d2 =
         (dates == null || dates.length < 2) ? null : new FhirDateTimeParameter(dates[1]);
     return new DateSearchBoundaries(d1, d2);
+  }
+
+  /**
+   * Takes in an array of ISO 8601 date strings and creates a DateSearchBoundaries with up to the
+   * first two. If the dates provided would create an empty boundary, an empty optional is returned
+   * instead.
+   */
+  public static Optional<DateSearchBoundaries> optionallyOf(String[] dates) {
+    var boundaries = of(dates);
+    return boundaries.isEmpty() ? Optional.empty() : Optional.of(boundaries);
   }
 
   private void createBounds(boolean isValid, Instant maybeStart, Instant maybeStop) {
@@ -223,6 +234,11 @@ public class DateSearchBoundaries {
   /** Check if a given instant is within the bounds of the start and stop. */
   public boolean isDateWithinBounds(String date) {
     return isDateWithinBounds(FhirDateTime.parseDateTime(date));
+  }
+
+  /** Check to see if the bounds are empty, in which case no dates will fall into it. */
+  public boolean isEmpty() {
+    return start == null && stop == null;
   }
 
   private void lessThanDate1() {

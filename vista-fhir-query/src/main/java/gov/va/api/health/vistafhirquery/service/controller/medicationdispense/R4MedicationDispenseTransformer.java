@@ -18,6 +18,7 @@ import gov.va.api.health.r4.api.elements.Meta;
 import gov.va.api.health.r4.api.elements.Reference;
 import gov.va.api.health.r4.api.resources.MedicationDispense;
 import gov.va.api.health.r4.api.resources.MedicationDispense.Status;
+import gov.va.api.health.vistafhirquery.service.controller.DateSearchBoundaries;
 import gov.va.api.health.vistafhirquery.service.controller.R4Transformers;
 import gov.va.api.health.vistafhirquery.service.controller.SegmentedVistaIdentifier;
 import gov.va.api.health.vistafhirquery.service.controller.SegmentedVistaIdentifier.PatientIdentifierType;
@@ -31,7 +32,7 @@ import gov.va.api.lighthouse.charon.models.vprgetpatientdata.VprGetPatientData.D
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-import java.util.Optional;
+import java.util.function.Predicate;
 import java.util.stream.Stream;
 import lombok.Builder;
 import lombok.Getter;
@@ -48,11 +49,24 @@ public class R4MedicationDispenseTransformer {
 
   @NonNull final String patientIcn;
 
-  @NonNull final Optional<String> fillDateFilter;
+  @NonNull final Predicate<Fill> fillFilter;
 
   @NonNull final VprGetPatientData.Response.Results rpcResults;
 
+  public static Predicate<Fill> acceptAll() {
+    return fill -> true;
+  }
+
+  public static Predicate<Fill> acceptOnlyWithFillDateEqualTo(@NonNull String onlyThisFillDate) {
+    return fill -> onlyThisFillDate.equals(fill.fillDate());
+  }
+
+  public static Predicate<Fill> acceptOnlyWithFillDateInRange(@NonNull DateSearchBoundaries range) {
+    return fill -> toHumanDateTime(fill.fillDate()).map(range::isDateWithinBounds).orElse(false);
+  }
+
   SimpleQuantity daysSupply(String fillDaysSupply) {
+
     var value = toBigDecimal(fillDaysSupply);
     if (isBlank(value)) {
       return null;
@@ -88,14 +102,6 @@ public class R4MedicationDispenseTransformer {
         .asList();
   }
 
-  private boolean hasRequiredFillDate(Fill fill) {
-    if (fillDateFilter().isEmpty()) {
-      /* No filter specified, everything is good. */
-      return true;
-    }
-    return fillDateFilter().get().equals(fill.fillDate());
-  }
-
   MedicationDispenseId idOf(Med rpcMed, Fill fill) {
     return MedicationDispenseId.builder()
         .vistaId(
@@ -116,6 +122,7 @@ public class R4MedicationDispenseTransformer {
   }
 
   CodeableConcept medicationCodeableConcept(Product product) {
+
     if (product == null || allBlank(product.name(), product.clazz())) {
       return null;
     }
@@ -173,7 +180,7 @@ public class R4MedicationDispenseTransformer {
                 Safe.stream(med.fill())
                     .filter(Objects::nonNull)
                     .filter(this::isViable)
-                    .filter(this::hasRequiredFillDate)
+                    .filter(fillFilter())
                     .map(fill -> toMedicationDispense(med, fill)));
   }
 
