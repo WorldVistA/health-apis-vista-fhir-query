@@ -3,83 +3,222 @@ package gov.va.api.health.vistafhirquery.service.controller.medicationdispense;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import gov.va.api.health.r4.api.datatypes.CodeableConcept;
+import gov.va.api.health.r4.api.datatypes.Coding;
+import gov.va.api.health.r4.api.datatypes.SimpleQuantity;
+import gov.va.api.health.r4.api.elements.Dosage;
+import gov.va.api.health.r4.api.elements.Reference;
 import gov.va.api.health.r4.api.resources.MedicationDispense;
+import gov.va.api.health.r4.api.resources.MedicationDispense.Status;
+import gov.va.api.health.vistafhirquery.service.controller.medicationdispense.MedicationDispenseSamples.Vista;
+import gov.va.api.lighthouse.charon.models.ValueOnlyXmlAttribute;
+import gov.va.api.lighthouse.charon.models.vprgetpatientdata.Meds.Med.Fill;
+import gov.va.api.lighthouse.charon.models.vprgetpatientdata.Meds.Med.Product;
+import gov.va.api.lighthouse.charon.models.vprgetpatientdata.Meds.Med.Product.ProductDetail;
 import gov.va.api.lighthouse.charon.models.vprgetpatientdata.VprGetPatientData;
+import gov.va.api.lighthouse.charon.models.vprgetpatientdata.VprGetPatientData.Response.Results;
+import java.math.BigDecimal;
+import java.util.List;
 import java.util.Optional;
 import java.util.stream.Stream;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 
 @SuppressWarnings("ALL")
 class R4MedicationDispenseTransformerTest {
-  private Stream<MedicationDispense> _transform(VprGetPatientData.Response.Results results) {
+  static CodeableConcept _cc(String text, List<Coding> codings) {
+    return CodeableConcept.builder().text(text).coding(codings).build();
+  }
+
+  static Product _product(String name, ProductDetail detail) {
+    return Product.builder().name(name).clazz(detail).build();
+  }
+
+  static List<Coding> _productCoding(String code, String display) {
+    return Coding.builder()
+        .system("https://www.pbm.va.gov/nationalformulary.asp")
+        .code(code)
+        .display(display)
+        .build()
+        .asList();
+  }
+
+  static ProductDetail _productDetail(String code, String name) {
+    return ProductDetail.builder().code(code).name(name).build();
+  }
+
+  static Stream<MedicationDispense> _transform(VprGetPatientData.Response.Results results) {
+    return _tx(results).toFhir();
+  }
+
+  static R4MedicationDispenseTransformer _tx(Results results) {
+    return _tx(results, null);
+  }
+
+  static R4MedicationDispenseTransformer _tx(Results results, String fillDateFilter) {
     return R4MedicationDispenseTransformer.builder()
         .site("673")
         .patientIcn("p1")
         .rpcResults(results)
-        .fillDateFilter(Optional.empty())
-        .build()
-        .toFhir();
+        .fillDateFilter(Optional.ofNullable(fillDateFilter))
+        .build();
+  }
+
+  static R4MedicationDispenseTransformer _tx() {
+    return _tx(MedicationDispenseSamples.Vista.create().results());
+  }
+
+  static Stream<Arguments> daysSupply() {
+    return Stream.of(
+        Arguments.of(null, null),
+        Arguments.of("", null),
+        Arguments.of("not a decimal", null),
+        Arguments.of(
+            "123.456",
+            SimpleQuantity.builder()
+                .system("http://unitsofmeasure.org")
+                .code("d")
+                .unit("day")
+                .value(new BigDecimal("123.456"))
+                .build()));
+  }
+
+  static Stream<Arguments> destination() {
+    return Stream.of(
+        Arguments.of(null, null),
+        Arguments.of(ValueOnlyXmlAttribute.of(""), null),
+        Arguments.of(ValueOnlyXmlAttribute.of("NOPE"), null),
+        Arguments.of(ValueOnlyXmlAttribute.of("W"), Reference.builder().display("WINDOW").build()),
+        Arguments.of(
+            ValueOnlyXmlAttribute.of("C"),
+            Reference.builder().display("ADMINISTERED IN CLINIC").build()));
+  }
+
+  static Stream<Arguments> dosageInstruction() {
+    return Stream.of(
+        Arguments.of(null, null, null),
+        Arguments.of("", "", null),
+        Arguments.of("SIG", null, Dosage.builder().text("SIG").build().asList()),
+        Arguments.of("SIG", "", Dosage.builder().text("SIG").build().asList()),
+        Arguments.of(
+            "SIG", "PTI", Dosage.builder().text("SIG").patientInstruction("PTI").build().asList()),
+        Arguments.of(null, "PTI", Dosage.builder().patientInstruction("PTI").build().asList()),
+        Arguments.of("", "PTI", Dosage.builder().patientInstruction("PTI").build().asList()));
+  }
+
+  static Stream<Arguments> medicationCodeableConcept() {
+    return Stream.of(
+        Arguments.of(null, null),
+        Arguments.of(Product.builder().build(), null),
+        Arguments.of(_product("", null), null),
+        Arguments.of(_product("SHAMWOW", null), _cc("SHAMWOW", null)),
+        Arguments.of(
+            _product(null, _productDetail("BILLY", "MAYES")),
+            _cc(null, _productCoding("BILLY", "MAYES"))),
+        Arguments.of(
+            _product("", _productDetail("BILLY", "")), _cc(null, _productCoding("BILLY", null))),
+        Arguments.of(
+            _product("SHAMWOW", _productDetail("BILLY", "MAYES")),
+            _cc("SHAMWOW", _productCoding("BILLY", "MAYES"))));
+  }
+
+  static Stream<Arguments> productCoding() {
+    return Stream.of(
+        Arguments.of(null, null),
+        Arguments.of(ProductDetail.builder().build(), null),
+        Arguments.of(_productDetail("", ""), null),
+        Arguments.of(_productDetail("BILLY", "MAYES"), _productCoding("BILLY", "MAYES")),
+        Arguments.of(_productDetail("", "MAYES"), _productCoding(null, "MAYES")),
+        Arguments.of(_productDetail(null, "MAYES"), _productCoding(null, "MAYES")),
+        Arguments.of(_productDetail("BILLY", null), _productCoding("BILLY", null)),
+        Arguments.of(_productDetail("BILLY", ""), _productCoding("BILLY", null)));
+  }
+
+  static Stream<Arguments> toFhirIgnoresUnusableFills() {
+    var ignoredBecauseNoFillDate = Vista.create().fill(null, "3050121");
+    var ignoredBecauseEmpty = Fill.builder().build();
+    return Stream.of(Arguments.of(ignoredBecauseEmpty), Arguments.of(ignoredBecauseNoFillDate));
+  }
+
+  @ParameterizedTest
+  @MethodSource
+  void daysSupply(String fillDaysSupply, SimpleQuantity expected) {
+    var actual = _tx().daysSupply(fillDaysSupply);
+    assertThat(actual).isEqualTo(expected);
+  }
+
+  @ParameterizedTest
+  @MethodSource
+  void destination(ValueOnlyXmlAttribute routing, Reference expected) {
+    var actual = _tx().destination(routing);
+    assertThat(actual).isEqualTo(expected);
+  }
+
+  @ParameterizedTest
+  @MethodSource
+  void dosageInstruction(String sig, String ptInstructions, List<Dosage> expected) {
+    var actual = _tx().dosageInstruction(sig, ptInstructions);
+    assertThat(actual).isEqualTo(expected);
   }
 
   @Test
-  void medicationDispenseIsEmpty() {
-    assertThat(_transform(VprGetPatientData.Response.Results.builder().build())).isEmpty();
+  void fillDateIsRequiredToBeConsideredViable() {
+    var fill = MedicationDispenseSamples.Vista.create().fill();
+    assertThat(_tx().isViable(fill)).isTrue();
+    assertThat(_tx().isViable(fill.fillDate(null))).isFalse();
+  }
+
+  @ParameterizedTest
+  @MethodSource
+  void medicationCodeableConcept(Product product, CodeableConcept expected) {
+    var actual = _tx().medicationCodeableConcept(product);
+    assertThat(actual).isEqualTo(expected);
+  }
+
+  @ParameterizedTest
+  @MethodSource
+  void productCoding(ProductDetail detail, List<Coding> expected) {
+    var actual = _tx().productCoding(detail);
+    assertThat(actual).isEqualTo(expected);
   }
 
   @Test
-  void toFhirProductMapsToMedicationCodeableConcept() {
-    assertThat(
-            _transform(MedicationDispenseSamples.Vista.create().resultsWithEmptyProduct())
-                .findFirst()
-                .get())
-        .hasFieldOrPropertyWithValue("medicationCodeableConcept", null);
-    assertThat(
-            _transform(MedicationDispenseSamples.Vista.create().resultsWithNullProductClazz())
-                .findFirst()
-                .get())
-        .hasFieldOrPropertyWithValue(
-            "medicationCodeableConcept", CodeableConcept.builder().text("WARFARIN").build());
+  void status() {
+    assertThat(_tx().status(Fill.builder().build())).isEqualTo(Status.in_progress);
+    assertThat(_tx().status(Fill.builder().releaseDate("3050121").build()))
+        .isEqualTo(Status.completed);
   }
 
   @Test
-  void toFhirReleaseDateMapsToStatus() {
-    assertThat(_transform(MedicationDispenseSamples.Vista.create().results()).findFirst().get())
-        .isEqualTo(MedicationDispenseSamples.R4.create().medicationDispense());
-    assertThat(
-            _transform(
-                    MedicationDispenseSamples.Vista.create()
-                        .results(MedicationDispenseSamples.Vista.create().unreleasedMed()))
-                .findFirst()
-                .get())
-        .isEqualTo(MedicationDispenseSamples.R4.create().medicationDispenseInProgress());
+  void toFhirIgnoresEmptyResults() {
+    assertThat(_tx(VprGetPatientData.Response.Results.builder().build()).toFhir()).isEmpty();
+  }
+
+  @ParameterizedTest
+  @MethodSource
+  void toFhirIgnoresUnusableFills(Fill ignoreMe) {
+    var vista = Vista.create();
+    var includeFill = vista.fill("3050121");
+    var includeFillWithoutReleaseDate = vista.fill("3060121", null);
+    var med = vista.med("1", includeFill, ignoreMe, includeFillWithoutReleaseDate);
+    var transformer = _tx(vista.results(med));
+    var transformed = transformer.toFhir().toList();
+    assertThat(transformed).hasSize(2);
+    assertThat(transformed.get(0).id()).isEqualTo(transformer.idOf(med, includeFill).toString());
+    assertThat(transformed.get(1).id())
+        .isEqualTo(transformer.idOf(med, includeFillWithoutReleaseDate).toString());
   }
 
   @Test
-  void toFhirRoutingToDestination() {
-    assertThat(MedicationDispenseSamples.R4.create().medicationDispenseDestination("MAILED"))
-        .isEqualTo(
-            _transform(
-                    MedicationDispenseSamples.Vista.create()
-                        .results(MedicationDispenseSamples.Vista.create().medWithRouting("M")))
-                .findFirst()
-                .get());
-
-    assertThat(
-            MedicationDispenseSamples.R4
-                .create()
-                .medicationDispenseDestination("ADMINISTERED IN CLINIC"))
-        .isEqualTo(
-            _transform(
-                    MedicationDispenseSamples.Vista.create()
-                        .results(MedicationDispenseSamples.Vista.create().medWithRouting("C")))
-                .findFirst()
-                .get());
-  }
-
-  @Test
-  void toFhirRpcMedWithMultipleFillsAndReleaseDate() {
-    Stream<MedicationDispense> dispenses =
-        _transform(MedicationDispenseSamples.Vista.create().resultsWithMultipleFills());
-    assertThat(dispenses.count()).isEqualTo(2);
+  void toFhirUsesOnlyFillsMatchingFileDateFilter() {
+    var vista = Vista.create();
+    var includeFill = vista.fill("3050121");
+    var ignoredBecauseNotOnFillDate = vista.fill("3060121");
+    var med = vista.med("1", includeFill, ignoredBecauseNotOnFillDate);
+    var transformer = _tx(vista.results(med), "3050121");
+    var transformed = transformer.toFhir().toList();
+    assertThat(transformed).hasSize(1);
+    assertThat(transformed.get(0).id()).isEqualTo(transformer.idOf(med, includeFill).toString());
   }
 }

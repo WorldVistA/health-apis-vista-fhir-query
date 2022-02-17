@@ -8,12 +8,14 @@ import gov.va.api.health.r4.api.bundle.BundleLink;
 import gov.va.api.health.r4.api.datatypes.CodeableConcept;
 import gov.va.api.health.r4.api.datatypes.Coding;
 import gov.va.api.health.r4.api.datatypes.SimpleQuantity;
+import gov.va.api.health.r4.api.elements.Dosage;
 import gov.va.api.health.r4.api.elements.Meta;
 import gov.va.api.health.r4.api.elements.Reference;
 import gov.va.api.health.r4.api.resources.MedicationDispense;
 import gov.va.api.health.r4.api.resources.MedicationDispense.Status;
 import gov.va.api.health.vistafhirquery.service.controller.R4Transformers;
 import gov.va.api.lighthouse.charon.models.CodeAndNameXmlAttribute;
+import gov.va.api.lighthouse.charon.models.FilemanDate;
 import gov.va.api.lighthouse.charon.models.ValueOnlyXmlAttribute;
 import gov.va.api.lighthouse.charon.models.vprgetpatientdata.Meds;
 import gov.va.api.lighthouse.charon.models.vprgetpatientdata.Meds.Med;
@@ -22,6 +24,8 @@ import gov.va.api.lighthouse.charon.models.vprgetpatientdata.Meds.Med.Product;
 import gov.va.api.lighthouse.charon.models.vprgetpatientdata.Meds.Med.Product.ProductDetail;
 import gov.va.api.lighthouse.charon.models.vprgetpatientdata.VprGetPatientData;
 import java.math.BigDecimal;
+import java.time.ZoneId;
+import java.time.temporal.ChronoUnit;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
@@ -30,8 +34,10 @@ import lombok.experimental.UtilityClass;
 
 @UtilityClass
 public class MedicationDispenseSamples {
+
   @NoArgsConstructor(staticName = "create")
   public static class R4 {
+
     public static MedicationDispense.Bundle asBundle(
         String baseUrl,
         Collection<MedicationDispense> resources,
@@ -90,42 +96,52 @@ public class MedicationDispenseSamples {
                   .build())
           .whenPrepared("2011-05-07T00:00:00Z")
           .destination(Reference.builder().display("WINDOW").build())
+          .dosageInstruction(
+              Dosage.builder()
+                  .text("TAKE 1 TAB BY MOUTH EVERY DAY")
+                  .patientInstruction("take with food")
+                  .build()
+                  .asList())
           .build();
-    }
-
-    public MedicationDispense medicationDispenseDestination(String destination) {
-      return medicationDispense().destination(Reference.builder().display(destination).build());
-    }
-
-    public MedicationDispense medicationDispenseInProgress() {
-      return medicationDispense()
-          .status(Status.in_progress)
-          .whenHandedOver(null)
-          .quantity(null)
-          .daysSupply(null);
     }
   }
 
   @NoArgsConstructor(staticName = "create")
   public static class Vista {
-    public Meds.Med med() {
-      return med("33714");
+
+    public Fill fill() {
+      return fill("3110507", "3110508");
+    }
+
+    public Fill fill(String fillDate) {
+      var oneDayLater =
+          FilemanDate.from(fillDate, ZoneId.of("UTC")).instant().plus(1, ChronoUnit.DAYS);
+      String releaseDate = FilemanDate.from(oneDayLater).formatAsDateTime(ZoneId.of("UTC"));
+      return fill(fillDate, releaseDate);
+    }
+
+    public Fill fill(String fillDate, String releaseDate) {
+      return Fill.builder()
+          .fillDate(fillDate)
+          .fillRouting("W")
+          .fillQuantity("30")
+          .fillDaysSupply("8")
+          .releaseDate(releaseDate)
+          .build();
     }
 
     public Meds.Med med(String id) {
+      return med(id, fill());
+    }
+
+    public Meds.Med med(String id, Fill... fills) {
       return Med.builder()
           .id(ValueOnlyXmlAttribute.of(id))
           .facility(CodeAndNameXmlAttribute.of("673", "TAMPA (JAH VAH)"))
           .routing(ValueOnlyXmlAttribute.of("W"))
-          .fill(
-              List.of(
-                  Fill.builder()
-                      .fillDate("3110507")
-                      .fillRouting("W")
-                      .fillQuantity("30")
-                      .fillDaysSupply("8")
-                      .releaseDate("3110508")
-                      .build()))
+          .sig("TAKE 1 TAB BY MOUTH EVERY DAY")
+          .ptInstructions(ValueOnlyXmlAttribute.of("take with food"))
+          .fill(fills == null ? null : Arrays.asList(fills))
           .product(
               List.of(
                   Product.builder()
@@ -135,31 +151,8 @@ public class MedicationDispenseSamples {
           .build();
     }
 
-    public Meds.Med medWithEmptyFill() {
-      return med().fill(List.of(Fill.builder().build()));
-    }
-
-    private Meds.Med medWithMultipleFills() {
-      return med()
-          .fill(
-              List.of(
-                  Fill.builder()
-                      .fillDate("3080728")
-                      .releaseDate("3080728")
-                      .fillQuantity("30")
-                      .fillDaysSupply("8")
-                      .build(),
-                  Fill.builder()
-                      .releaseDate("3091208")
-                      .fillQuantity("30")
-                      .fillDaysSupply("8")
-                      .build(),
-                  Fill.builder().fillDate("3110507").fillQuantity("0").fillDaysSupply("").build(),
-                  Fill.builder().build()));
-    }
-
-    public Meds.Med medWithRouting(String routing) {
-      return med().routing(ValueOnlyXmlAttribute.of(routing));
+    public Meds.Med med() {
+      return med("33714");
     }
 
     public VprGetPatientData.Response.Results results() {
@@ -172,22 +165,6 @@ public class MedicationDispenseSamples {
           .timeZone("-0500")
           .meds(Meds.builder().medResults(List.of(med)).build())
           .build();
-    }
-
-    public VprGetPatientData.Response.Results resultsWithEmptyProduct() {
-      return results(med().product(List.of()));
-    }
-
-    public VprGetPatientData.Response.Results resultsWithMultipleFills() {
-      return results().meds(Meds.builder().medResults(List.of(medWithMultipleFills())).build());
-    }
-
-    public VprGetPatientData.Response.Results resultsWithNullProductClazz() {
-      return results(med().product(List.of(med().product().get(0).clazz(null))));
-    }
-
-    public Meds.Med unreleasedMed() {
-      return med().fill(List.of(Fill.builder().fillDate("3110507").fillRouting("W").build()));
     }
   }
 }

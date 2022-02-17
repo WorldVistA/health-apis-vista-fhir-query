@@ -7,11 +7,13 @@ import static gov.va.api.health.vistafhirquery.service.controller.R4Transformers
 import static gov.va.api.health.vistafhirquery.service.controller.R4Transformers.toReference;
 import static gov.va.api.health.vistafhirquery.service.controller.R4Transformers.valueOfValueOnlyXmlAttribute;
 import static io.micrometer.core.instrument.util.StringUtils.isNotBlank;
+import static org.apache.commons.lang3.StringUtils.trimToNull;
 
 import gov.va.api.health.fhir.api.Safe;
 import gov.va.api.health.r4.api.datatypes.CodeableConcept;
 import gov.va.api.health.r4.api.datatypes.Coding;
 import gov.va.api.health.r4.api.datatypes.SimpleQuantity;
+import gov.va.api.health.r4.api.elements.Dosage;
 import gov.va.api.health.r4.api.elements.Meta;
 import gov.va.api.health.r4.api.elements.Reference;
 import gov.va.api.health.r4.api.resources.MedicationDispense;
@@ -32,24 +34,25 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Stream;
 import lombok.Builder;
+import lombok.Getter;
 import lombok.NonNull;
-import lombok.Value;
 
-@Value
 @Builder
+@Getter
 public class R4MedicationDispenseTransformer {
+
   private static final Map<String, String> ROUTING_TO_DESTINATION_MAPPING =
       Map.of("W", "WINDOW", "M", "MAILED", "C", "ADMINISTERED IN CLINIC");
 
-  @NonNull String site;
+  @NonNull final String site;
 
-  @NonNull String patientIcn;
+  @NonNull final String patientIcn;
 
-  @NonNull Optional<String> fillDateFilter;
+  @NonNull final Optional<String> fillDateFilter;
 
-  @NonNull VprGetPatientData.Response.Results rpcResults;
+  @NonNull final VprGetPatientData.Response.Results rpcResults;
 
-  private SimpleQuantity daysSupply(String fillDaysSupply) {
+  SimpleQuantity daysSupply(String fillDaysSupply) {
     var value = toBigDecimal(fillDaysSupply);
     if (isBlank(value)) {
       return null;
@@ -62,7 +65,7 @@ public class R4MedicationDispenseTransformer {
         .build();
   }
 
-  private Reference destination(ValueOnlyXmlAttribute routing) {
+  Reference destination(ValueOnlyXmlAttribute routing) {
     var value = valueOfValueOnlyXmlAttribute(routing);
     if (isBlank(value)) {
       return null;
@@ -74,6 +77,17 @@ public class R4MedicationDispenseTransformer {
     return Reference.builder().display(display).build();
   }
 
+  List<Dosage> dosageInstruction(String sig, String ptInstructions) {
+    if (allBlank(sig, ptInstructions)) {
+      return null;
+    }
+    return Dosage.builder()
+        .text(trimToNull(sig))
+        .patientInstruction(trimToNull(ptInstructions))
+        .build()
+        .asList();
+  }
+
   private boolean hasRequiredFillDate(Fill fill) {
     if (fillDateFilter().isEmpty()) {
       /* No filter specified, everything is good. */
@@ -82,7 +96,7 @@ public class R4MedicationDispenseTransformer {
     return fillDateFilter().get().equals(fill.fillDate());
   }
 
-  private MedicationDispenseId idOf(Med rpcMed, Fill fill) {
+  MedicationDispenseId idOf(Med rpcMed, Fill fill) {
     return MedicationDispenseId.builder()
         .vistaId(
             SegmentedVistaIdentifier.builder()
@@ -96,22 +110,22 @@ public class R4MedicationDispenseTransformer {
         .build();
   }
 
-  private boolean isViable(Fill fill) {
+  boolean isViable(Fill fill) {
     /* Fill date is essential for the resulting medication dispense record. */
     return isNotBlank(fill.fillDate());
   }
 
-  private CodeableConcept medicationCodeableConcept(Product product) {
+  CodeableConcept medicationCodeableConcept(Product product) {
     if (product == null || allBlank(product.name(), product.clazz())) {
       return null;
     }
     return CodeableConcept.builder()
-        .text(product.name())
+        .text(trimToNull(product.name()))
         .coding(productCoding(product.clazz()))
         .build();
   }
 
-  private List<Coding> productCoding(ProductDetail maybeDetail) {
+  List<Coding> productCoding(ProductDetail maybeDetail) {
     if (isBlank(maybeDetail)) {
       return null;
     }
@@ -138,7 +152,7 @@ public class R4MedicationDispenseTransformer {
     return SimpleQuantity.builder().value(value).build();
   }
 
-  private Status status(Fill fill) {
+  Status status(Fill fill) {
     if (isBlank(fill.releaseDate())) {
       return Status.in_progress;
     }
@@ -179,6 +193,8 @@ public class R4MedicationDispenseTransformer {
         .daysSupply(daysSupply(fill.fillDaysSupply()))
         .whenPrepared(toDate(fill.fillDate()))
         .destination(destination(rpcMed.routing()))
+        .dosageInstruction(
+            dosageInstruction(rpcMed.sig(), valueOfValueOnlyXmlAttribute(rpcMed.ptInstructions())))
         .build();
   }
 }
