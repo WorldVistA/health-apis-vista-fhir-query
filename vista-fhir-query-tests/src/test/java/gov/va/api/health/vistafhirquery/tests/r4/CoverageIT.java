@@ -5,6 +5,7 @@ import static gov.va.api.health.sentinel.EnvironmentAssumptions.assumeEnvironmen
 import gov.va.api.health.r4.api.datatypes.CodeableConcept;
 import gov.va.api.health.r4.api.datatypes.Coding;
 import gov.va.api.health.r4.api.datatypes.Identifier;
+import gov.va.api.health.r4.api.datatypes.Period;
 import gov.va.api.health.r4.api.elements.Reference;
 import gov.va.api.health.r4.api.resources.Coverage;
 import gov.va.api.health.r4.api.resources.Coverage.Status;
@@ -75,6 +76,7 @@ public class CoverageIT {
                         .asList())
                 .text("Spouse")
                 .build())
+        .period(Period.builder().start("1992-01-12T05:00:00Z").end("2025-01-01T05:00:00Z").build())
         .payor(Reference.builder().reference("#2").build().asList())
         .coverageClass(
             Coverage.CoverageClass.builder()
