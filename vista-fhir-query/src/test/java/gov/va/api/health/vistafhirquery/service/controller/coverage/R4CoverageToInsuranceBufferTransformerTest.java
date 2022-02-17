@@ -7,8 +7,11 @@ import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import gov.va.api.health.r4.api.datatypes.CodeableConcept;
 import gov.va.api.health.r4.api.datatypes.Coding;
 import gov.va.api.health.r4.api.datatypes.Identifier;
+import gov.va.api.health.r4.api.datatypes.Period;
 import gov.va.api.health.r4.api.elements.Reference;
 import gov.va.api.health.r4.api.resources.Coverage;
+import gov.va.api.health.vistafhirquery.service.controller.RequestPayloadExceptions;
+import gov.va.api.health.vistafhirquery.service.controller.RequestPayloadExceptions.InvalidStringLengthInclusively;
 import gov.va.api.health.vistafhirquery.service.controller.RequestPayloadExceptions.MissingRequiredField;
 import gov.va.api.health.vistafhirquery.service.controller.RequestPayloadExceptions.UnexpectedNumberOfValues;
 import gov.va.api.health.vistafhirquery.service.controller.RequestPayloadExceptions.UnexpectedValueForField;
@@ -25,6 +28,38 @@ public class R4CoverageToInsuranceBufferTransformerTest {
   }
 
   @Test
+  void effectiveDateAndExpirationDate() {
+    // Null
+    assertThatExceptionOfType(MissingRequiredField.class)
+        .isThrownBy(() -> _transformer().effectiveAndExpirationDate(null));
+    assertThatExceptionOfType(UnexpectedValueForField.class)
+        .isThrownBy(() -> _transformer().effectiveAndExpirationDate(Period.builder().build()));
+    // Bad start date
+    assertThatExceptionOfType(UnexpectedValueForField.class)
+        .isThrownBy(
+            () ->
+                _transformer()
+                    .effectiveAndExpirationDate(Period.builder().start("badDate").build()));
+    // Bad end date
+    assertThatExceptionOfType(UnexpectedValueForField.class)
+        .isThrownBy(
+            () ->
+                _transformer()
+                    .effectiveAndExpirationDate(
+                        Period.builder().start("1993-01-12T00:00:00Z").end("badDate").build()));
+    // End date before start date
+    assertThatExceptionOfType(RequestPayloadExceptions.EndDateOccursBeforeStartDate.class)
+        .isThrownBy(
+            () ->
+                _transformer()
+                    .effectiveAndExpirationDate(
+                        Period.builder()
+                            .start("2025-01-01T00:00:00Z")
+                            .end("1993-01-12T00:00:00Z")
+                            .build()));
+  }
+
+  @Test
   void empty() {
     assertThatExceptionOfType(MissingRequiredField.class)
         .isThrownBy(
@@ -33,6 +68,23 @@ public class R4CoverageToInsuranceBufferTransformerTest {
                     .coverage(Coverage.builder().build())
                     .build()
                     .toInsuranceBuffer());
+  }
+
+  @Test
+  void groupNumber() {
+    assertThatExceptionOfType(UnexpectedNumberOfValues.class)
+        .isThrownBy(() -> _transformer().groupNumber(null));
+    assertThatExceptionOfType(UnexpectedNumberOfValues.class)
+        .isThrownBy(() -> _transformer().groupNumber(List.of()));
+    assertThatExceptionOfType(MissingRequiredField.class)
+        .isThrownBy(
+            () ->
+                _transformer()
+                    .groupNumber(
+                        Identifier.builder()
+                            .system(InsuranceBufferStructureDefinitions.GROUP_NUMBER)
+                            .build()
+                            .asList()));
   }
 
   @Test
@@ -45,6 +97,22 @@ public class R4CoverageToInsuranceBufferTransformerTest {
                         CodeableConcept.builder()
                             .coding(List.of(Coding.builder().build(), Coding.builder().build()))
                             .build()));
+  }
+
+  @Test
+  void insuranceCompanyName() {
+    // Null
+    assertThatExceptionOfType(MissingRequiredField.class)
+        .isThrownBy(() -> _transformer().insuranceCompanyName(null));
+    // Less than 3 Characters
+    assertThatExceptionOfType(InvalidStringLengthInclusively.class)
+        .isThrownBy(() -> _transformer().insuranceCompanyName("NO"));
+    // More than 30 Characters
+    assertThatExceptionOfType(InvalidStringLengthInclusively.class)
+        .isThrownBy(
+            () ->
+                _transformer()
+                    .insuranceCompanyName("0123456789101112131415161718192021222324252627282930"));
   }
 
   @Test

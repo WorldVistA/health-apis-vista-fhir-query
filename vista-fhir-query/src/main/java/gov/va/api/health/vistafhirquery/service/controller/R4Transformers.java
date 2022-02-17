@@ -1,8 +1,9 @@
 package gov.va.api.health.vistafhirquery.service.controller;
 
-import static gov.va.api.health.fhir.api.FhirDateTime.parseDateTime;
+import static org.apache.commons.lang3.StringUtils.length;
 import static org.springframework.util.CollectionUtils.isEmpty;
 
+import gov.va.api.health.fhir.api.FhirDateTime;
 import gov.va.api.health.fhir.api.IsReference;
 import gov.va.api.health.r4.api.datatypes.CodeableConcept;
 import gov.va.api.health.r4.api.datatypes.Coding;
@@ -28,6 +29,7 @@ import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import lombok.NonNull;
 import lombok.experimental.UtilityClass;
+import org.apache.commons.lang3.Range;
 import org.apache.commons.lang3.StringUtils;
 
 /** Utility class for common transformations. */
@@ -151,6 +153,12 @@ public class R4Transformers {
     return value == null;
   }
 
+  /** Verfies that a strings length is between two values. */
+  public static boolean isStringLengthInRangeInclusively(
+      int inclusiveMinimum, int inclusiveMaximum, String value) {
+    return Range.between(inclusiveMinimum, inclusiveMaximum).contains(length(value));
+  }
+
   /** Transform an Optional Instant to a String. */
   public static String optionalInstantToString(Optional<Instant> maybeString) {
     if (maybeString.isEmpty()) {
@@ -201,22 +209,26 @@ public class R4Transformers {
     return null;
   }
 
-  /** Transform a FileMan date to a human date. */
-  public static Optional<Instant> toHumanDateTime(String filemanDateTime) {
-    FilemanDate result = FilemanDate.from(filemanDateTime, ZoneId.of("UTC"));
-    if (isBlank(result)) {
+  /** Transform a FileMan date to a human date with a specified timezone. */
+  public static Optional<Instant> toHumanDateTime(String filemanDateTime, ZoneId timezone) {
+    FilemanDate result = FilemanDate.from(filemanDateTime, timezone);
+    if (result == null) {
       return Optional.empty();
     }
     return Optional.of(result.instant());
   }
 
   /** Transform a FileMan date to a human date. */
+  public static Optional<Instant> toHumanDateTime(String filemanDateTime) {
+    return toHumanDateTime(filemanDateTime, ZoneId.of("UTC"));
+  }
+
+  /** Transform a FileMan date to a human date. */
   public static Optional<Instant> toHumanDateTime(ValueOnlyXmlAttribute filemanDateTime) {
-    FilemanDate result = FilemanDate.from(filemanDateTime, ZoneId.of("UTC"));
-    if (isBlank(result)) {
+    if (filemanDateTime == null) {
       return Optional.empty();
     }
-    return Optional.of(result.instant());
+    return toHumanDateTime(filemanDateTime.value());
   }
 
   /** Transform an Instant to an Optional String. */
@@ -293,7 +305,7 @@ public class R4Transformers {
   /** Parses a date in instant format or returns an Empty Optional. */
   public static Optional<Instant> tryParseDateTime(String dateTimeAsString) {
     try {
-      return Optional.of(parseDateTime(dateTimeAsString));
+      return Optional.ofNullable(dateTimeAsString).map(FhirDateTime::parseDateTime);
     } catch (IllegalArgumentException e) {
       return Optional.empty();
     }

@@ -1,27 +1,36 @@
 package gov.va.api.health.vistafhirquery.service.controller.coverage;
 
 import static gov.va.api.health.vistafhirquery.service.controller.R4Transformers.isBlank;
+import static gov.va.api.health.vistafhirquery.service.controller.R4Transformers.isStringLengthInRangeInclusively;
+import static gov.va.api.health.vistafhirquery.service.controller.R4Transformers.tryParseDateTime;
 import static gov.va.api.health.vistafhirquery.service.controller.WriteableFilemanValueFactory.index;
 import static gov.va.api.health.vistafhirquery.service.controller.coverage.CoverageStructureDefinitions.COVERAGE_CLASS_CODE_SYSTEM;
 import static gov.va.api.health.vistafhirquery.service.controller.coverage.CoverageStructureDefinitions.SUBSCRIBER_RELATIONSHIP_CODE_SYSTEM;
 import static java.util.stream.Collectors.toList;
 
+import gov.va.api.health.fhir.api.Safe;
 import gov.va.api.health.r4.api.datatypes.CodeableConcept;
 import gov.va.api.health.r4.api.datatypes.Identifier;
+import gov.va.api.health.r4.api.datatypes.Period;
 import gov.va.api.health.r4.api.elements.Reference;
 import gov.va.api.health.r4.api.resources.Coverage;
 import gov.va.api.health.r4.api.resources.InsurancePlan;
 import gov.va.api.health.vistafhirquery.service.controller.ContainedResourceReader;
 import gov.va.api.health.vistafhirquery.service.controller.FilemanFactoryRegistry;
 import gov.va.api.health.vistafhirquery.service.controller.FilemanIndexRegistry;
+import gov.va.api.health.vistafhirquery.service.controller.RequestPayloadExceptions.EndDateOccursBeforeStartDate;
+import gov.va.api.health.vistafhirquery.service.controller.RequestPayloadExceptions.InvalidStringLengthInclusively;
 import gov.va.api.health.vistafhirquery.service.controller.RequestPayloadExceptions.MissingRequiredField;
 import gov.va.api.health.vistafhirquery.service.controller.RequestPayloadExceptions.UnexpectedNumberOfValues;
 import gov.va.api.health.vistafhirquery.service.controller.RequestPayloadExceptions.UnexpectedValueForField;
+import gov.va.api.lighthouse.charon.models.FilemanDate;
 import gov.va.api.lighthouse.charon.models.lhslighthouserpcgateway.InsuranceVerificationProcessor;
 import gov.va.api.lighthouse.charon.models.lhslighthouserpcgateway.LhsLighthouseRpcGatewayCoverageWrite.WriteableFilemanValue;
 import java.time.Instant;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
+import java.time.temporal.ChronoUnit;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
@@ -66,6 +75,62 @@ public class R4CoverageToInsuranceBufferTransformer {
         .get();
   }
 
+  List<WriteableFilemanValue> effectiveAndExpirationDate(Period period) {
+    if (isBlank(period)) {
+      throw MissingRequiredField.builder().jsonPath(".period").build();
+    }
+    List<WriteableFilemanValue> dates = new ArrayList<>(2);
+    var startInstant = tryParseDateTime(period.start());
+    startInstant
+        .map(this::parseFilemanDateIgnoringTime)
+        .flatMap(
+            start ->
+                factoryRegistry()
+                    .get(InsuranceVerificationProcessor.FILE_NUMBER)
+                    .forString(
+                        InsuranceVerificationProcessor.EFFECTIVE_DATE,
+                        indexRegistry().get(InsuranceVerificationProcessor.FILE_NUMBER),
+                        start))
+        .ifPresentOrElse(
+            dates::add,
+            () -> {
+              throw UnexpectedValueForField.builder()
+                  .jsonPath(".period.start")
+                  .dataType("http://hl7.org/fhir/R4/datatypes.html#dateTime")
+                  .valueReceived(period.start())
+                  .build();
+            });
+    var endDateTime =
+        tryParseDateTime(period.end())
+            .orElseThrow(
+                () ->
+                    UnexpectedValueForField.builder()
+                        .jsonPath(".period.end")
+                        .dataType("http://hl7.org/fhir/R4/datatypes.html#dateTime")
+                        .valueReceived(period.end())
+                        .build());
+    if (!endDateTime.isAfter(startInstant.get())) {
+      throw EndDateOccursBeforeStartDate.builder().jsonPath(".period").build();
+    }
+    var endDate = parseFilemanDateIgnoringTime(endDateTime);
+    factoryRegistry()
+        .get(InsuranceVerificationProcessor.FILE_NUMBER)
+        .forString(
+            InsuranceVerificationProcessor.EXPIRATION_DATE,
+            indexRegistry().get(InsuranceVerificationProcessor.FILE_NUMBER),
+            endDate)
+        .ifPresentOrElse(
+            dates::add,
+            () -> {
+              throw UnexpectedValueForField.builder()
+                  .jsonPath(".period.end")
+                  .dataType("http://hl7.org/fhir/R4/datatypes.html#dateTime")
+                  .valueReceived(period.end())
+                  .build();
+            });
+    return dates;
+  }
+
   WriteableFilemanValue groupName(String name) {
     return factoryRegistry()
         .get(InsuranceVerificationProcessor.FILE_NUMBER)
@@ -78,7 +143,7 @@ public class R4CoverageToInsuranceBufferTransformer {
 
   WriteableFilemanValue groupNumber(List<Identifier> identifiers) {
     List<Identifier> groupNumbers =
-        identifiers.stream()
+        Safe.stream(identifiers)
             .filter(i -> InsuranceBufferStructureDefinitions.GROUP_NUMBER.equals(i.system()))
             .toList();
     if (groupNumbers.size() != 1) {
@@ -124,25 +189,36 @@ public class R4CoverageToInsuranceBufferTransformer {
 
   // TODO: get insurance company name from contained resource
   // https://vajira.max.gov/browse/API-13036
-  WriteableFilemanValue insuranceCompanyName() {
+  WriteableFilemanValue insuranceCompanyName(String maybeName) {
+    if (isBlank(maybeName)) {
+      throw MissingRequiredField.builder().jsonPath(".name").build();
+    }
+    if (!isStringLengthInRangeInclusively(3, 30, maybeName)) {
+      throw InvalidStringLengthInclusively.builder()
+          .jsonPath(".name")
+          .inclusiveMinimum(3)
+          .inclusiveMaximum(30)
+          .received(maybeName.length())
+          .build();
+    }
     return factoryRegistry()
         .get(InsuranceVerificationProcessor.FILE_NUMBER)
         .forString(
             InsuranceVerificationProcessor.INSURANCE_COMPANY_NAME,
             indexRegistry().get(InsuranceVerificationProcessor.FILE_NUMBER),
-            "Placeholder Insurance Company Name")
+            maybeName)
         .get();
   }
 
   List<WriteableFilemanValue> insurancePlan() {
-    if (isBlank(coverage.coverageClass())) {
+    if (isBlank(coverage().coverageClass())) {
       throw MissingRequiredField.builder().jsonPath(".coverageClass[]").build();
     }
-    if (isBlank(coverage.contained())) {
+    if (isBlank(coverage().contained())) {
       throw MissingRequiredField.builder().jsonPath(".contained[]").build();
     }
     var filteredCoverageTypes =
-        coverage.coverageClass().stream().filter(this::isGroupPlan).collect(toList());
+        coverage().coverageClass().stream().filter(this::isGroupPlan).collect(toList());
     if (filteredCoverageTypes.size() != 1) {
       throw UnexpectedNumberOfValues.builder()
           .jsonPath(".class")
@@ -154,7 +230,7 @@ public class R4CoverageToInsuranceBufferTransformer {
     }
     String referenceId = filteredCoverageTypes.get(0).value();
     InsurancePlan containedInsurancePlan =
-        containedResourceReader.find(InsurancePlan.class, referenceId);
+        containedResourceReader().find(InsurancePlan.class, referenceId);
     return Stream.of(
             groupName(containedInsurancePlan.name()),
             groupNumber(containedInsurancePlan.identifier()))
@@ -193,6 +269,11 @@ public class R4CoverageToInsuranceBufferTransformer {
             indexRegistry().get(InsuranceVerificationProcessor.FILE_NUMBER),
             "0")
         .get();
+  }
+
+  private String parseFilemanDateIgnoringTime(Instant instant) {
+    return FilemanDate.from(instant.truncatedTo(ChronoUnit.DAYS))
+        .formatAsDateTime(ZoneId.of("UTC"));
   }
 
   WriteableFilemanValue patientId(Reference beneficiary) {
@@ -308,18 +389,19 @@ public class R4CoverageToInsuranceBufferTransformer {
     fields.add(sourceOfInformation());
     fields.add(serviceDate());
     fields.add(whoseInsurance());
-    fields.add(insuranceCompanyName());
-    fields.add(patientId(coverage.beneficiary()));
-    fields.add(patientRelationshipHipaa(coverage.relationship()));
-    fields.add(subscriberId(coverage.subscriberId()));
-    nameOfInsured(coverage.subscriber()).ifPresent(fields::add);
-    fields.add(inqServiceTypeCode1(coverage.type()));
+    fields.add(insuranceCompanyName("Placeholder InsCo Name"));
+    fields.add(patientId(coverage().beneficiary()));
+    fields.add(patientRelationshipHipaa(coverage().relationship()));
+    fields.add(subscriberId(coverage().subscriberId()));
+    nameOfInsured(coverage().subscriber()).ifPresent(fields::add);
+    fields.add(inqServiceTypeCode1(coverage().type()));
+    fields.addAll(effectiveAndExpirationDate(coverage().period()));
     fields.addAll(insurancePlan());
     return fields;
   }
 
   private String today() {
-    return vistaDateFormatter.format(Instant.now());
+    return vistaDateFormatter().format(Instant.now());
   }
 
   // TODO: get whose insurance from contained resource

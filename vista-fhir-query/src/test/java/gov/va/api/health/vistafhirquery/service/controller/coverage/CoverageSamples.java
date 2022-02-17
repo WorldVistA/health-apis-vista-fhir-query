@@ -185,6 +185,7 @@ public class CoverageSamples {
                   .ien(ien)
                   .build()
                   .toString())
+          .period(period())
           .meta(Meta.builder().source(station).build())
           .contained(List.of(containedInsurancePlan("1"), containedOrganization("2")))
           .status(Status.draft)
@@ -250,14 +251,15 @@ public class CoverageSamples {
       return Set.of(
           pointerTo("355.12", "22"),
           insuranceBufferValue(
-              InsuranceVerificationProcessor.INSURANCE_COMPANY_NAME,
-              "Placeholder Insurance Company Name"),
+              InsuranceVerificationProcessor.INSURANCE_COMPANY_NAME, "Placeholder InsCo Name"),
           insuranceBufferValue(InsuranceVerificationProcessor.WHOSE_INSURANCE, "s"),
           insuranceBufferValue(InsuranceVerificationProcessor.PT_RELATIONSHIP_HIPAA, "SPOUSE"),
           insuranceBufferValue(InsuranceVerificationProcessor.PATIENT_ID, "13579"),
           insuranceBufferValue(InsuranceVerificationProcessor.OVERRIDE_FRESHNESS_FLAG, "0"),
           insuranceBufferValue(InsuranceVerificationProcessor.STATUS, "E"),
           insuranceBufferValue(InsuranceVerificationProcessor.INQ_SERVICE_TYPE_CODE_1, "1"),
+          insuranceBufferValue(InsuranceVerificationProcessor.EFFECTIVE_DATE, "2920112"),
+          insuranceBufferValue(InsuranceVerificationProcessor.EXPIRATION_DATE, "3250101"),
           insuranceBufferValue(
               InsuranceVerificationProcessor.GROUP_NAME, "BCBS OF SHANKSVILLE GROUP"),
           insuranceBufferValue(InsuranceVerificationProcessor.GROUP_NUMBER, "GRP123456"),
@@ -333,6 +335,8 @@ public class CoverageSamples {
       fields.put(InsuranceVerificationProcessor.PATIENT_ID, Values.of("13579", "13579"));
       fields.put(InsuranceVerificationProcessor.PT_RELATIONSHIP_HIPAA, Values.of("SPOUSE", "01"));
       fields.put(InsuranceVerificationProcessor.SUBSCRIBER_ID, Values.of("R50797108", "R50797108"));
+      fields.put(InsuranceVerificationProcessor.EFFECTIVE_DATE, Values.of("2920112", "2920112"));
+      fields.put(InsuranceVerificationProcessor.EXPIRATION_DATE, Values.of("3250101", "3250101"));
       fields.put(
           InsuranceVerificationProcessor.GROUP_NAME,
           Values.of("BCBS OF SHANKSVILLE GROUP", "BCBS OF SHANKSVILLE GROUP"));

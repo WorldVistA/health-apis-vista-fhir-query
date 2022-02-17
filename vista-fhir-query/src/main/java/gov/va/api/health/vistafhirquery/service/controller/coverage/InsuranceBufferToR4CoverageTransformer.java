@@ -1,12 +1,15 @@
 package gov.va.api.health.vistafhirquery.service.controller.coverage;
 
+import static gov.va.api.health.vistafhirquery.service.controller.R4Transformers.allBlank;
 import static gov.va.api.health.vistafhirquery.service.controller.R4Transformers.isBlank;
+import static gov.va.api.health.vistafhirquery.service.controller.R4Transformers.toHumanDateTime;
 import static gov.va.api.health.vistafhirquery.service.controller.R4Transformers.toReference;
 
 import gov.va.api.health.fhir.api.Safe;
 import gov.va.api.health.r4.api.datatypes.CodeableConcept;
 import gov.va.api.health.r4.api.datatypes.Coding;
 import gov.va.api.health.r4.api.datatypes.Identifier;
+import gov.va.api.health.r4.api.datatypes.Period;
 import gov.va.api.health.r4.api.elements.Meta;
 import gov.va.api.health.r4.api.elements.Reference;
 import gov.va.api.health.r4.api.resources.Coverage;
@@ -20,6 +23,9 @@ import gov.va.api.health.vistafhirquery.service.controller.PatientTypeCoordinate
 import gov.va.api.lighthouse.charon.models.lhslighthouserpcgateway.InsuranceVerificationProcessor;
 import gov.va.api.lighthouse.charon.models.lhslighthouserpcgateway.LhsLighthouseRpcGatewayResponse;
 import gov.va.api.lighthouse.charon.models.lhslighthouserpcgateway.LhsLighthouseRpcGatewayResponse.FilemanEntry;
+import java.time.ZoneId;
+import java.time.ZoneOffset;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
@@ -36,6 +42,8 @@ public class InsuranceBufferToR4CoverageTransformer {
           InsuranceVerificationProcessor.BANKING_IDENTIFICATION_NUMBER,
           InsuranceVerificationProcessor.BILLING_PHONE_NUMBER,
           InsuranceVerificationProcessor.CITY,
+          InsuranceVerificationProcessor.EFFECTIVE_DATE,
+          InsuranceVerificationProcessor.EXPIRATION_DATE,
           InsuranceVerificationProcessor.GROUP_NAME,
           InsuranceVerificationProcessor.GROUP_NUMBER,
           InsuranceVerificationProcessor.INQ_SERVICE_TYPE_CODE_1,
@@ -68,6 +76,9 @@ public class InsuranceBufferToR4CoverageTransformer {
   @NonNull String patientIcn;
 
   @NonNull String site;
+
+  /** Assumes UTC if zoneId is not provided. */
+  @Builder.Default ZoneId vistaZoneId = ZoneOffset.UTC;
 
   @NonNull LhsLighthouseRpcGatewayResponse.Results results;
 
@@ -126,6 +137,20 @@ public class InsuranceBufferToR4CoverageTransformer {
         .asList();
   }
 
+  private Period period(FilemanEntry entry) {
+    Period period = Period.builder().build();
+    entry
+        .internal(InsuranceVerificationProcessor.EFFECTIVE_DATE, this::toFilemanDate)
+        .ifPresent(period::start);
+    entry
+        .internal(InsuranceVerificationProcessor.EXPIRATION_DATE, this::toFilemanDate)
+        .ifPresent(period::end);
+    if (allBlank(period.start(), period.end())) {
+      return null;
+    }
+    return period;
+  }
+
   private CodeableConcept relationship(String ptRelationshipHipaa) {
     if (isBlank(ptRelationshipHipaa)) {
       return null;
@@ -151,6 +176,7 @@ public class InsuranceBufferToR4CoverageTransformer {
                     .ien(entry.ien())
                     .build()
                     .toString())
+            .period(period(entry))
             .meta(Meta.builder().source(site()).build())
             .status(Status.draft)
             .type(
@@ -174,6 +200,13 @@ public class InsuranceBufferToR4CoverageTransformer {
 
   public Stream<Coverage> toFhir() {
     return Safe.stream(results.results()).map(this::toCoverage).filter(Objects::nonNull);
+  }
+
+  private String toFilemanDate(String filemanDate) {
+    return toHumanDateTime(filemanDate, vistaZoneId())
+        .map(t -> t.atZone(ZoneOffset.UTC))
+        .map(t -> t.format(DateTimeFormatter.ISO_DATE_TIME))
+        .orElse(null);
   }
 
   private InsurancePlan toInsurancePlan(FilemanEntry entry) {

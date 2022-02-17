@@ -116,6 +116,21 @@ public class RequestPayloadExceptions {
     }
   }
 
+  public static class InvalidStringLengthInclusively extends InvalidField {
+    @Builder
+    InvalidStringLengthInclusively(
+        String jsonPath, int inclusiveMinimum, int inclusiveMaximum, int received) {
+      super(
+          jsonPath,
+          "Value must be between "
+              + inclusiveMinimum
+              + " and "
+              + inclusiveMaximum
+              + " characters (inclusively), but was "
+              + received);
+    }
+  }
+
   public static class InvalidReferenceId extends InvalidField {
     @Builder
     InvalidReferenceId(String jsonPath, String referenceType) {
@@ -149,7 +164,11 @@ public class RequestPayloadExceptions {
     MissingContainedResource(String resource, String id) {
       super(
           ".contained[]",
-          "Required contained resource of type " + resource + "  with id of " + id + "is missing.");
+          "Required contained resource of type "
+              + resource
+              + "  with id of "
+              + id
+              + " is missing.");
     }
   }
 
