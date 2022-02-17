@@ -16,6 +16,7 @@ import gov.va.api.health.vistafhirquery.tests.CreateResourceVerifier;
 import gov.va.api.health.vistafhirquery.tests.SystemDefinitions;
 import gov.va.api.health.vistafhirquery.tests.TestIds;
 import gov.va.api.health.vistafhirquery.tests.VistaFhirQueryResourceVerifier;
+import java.time.Instant;
 import java.util.List;
 import org.junit.jupiter.api.Test;
 
@@ -36,6 +37,7 @@ public class CoverageIT {
   }
 
   private Coverage insuranceBufferCreate() {
+    var newSubscriberEveryTime = "R" + Instant.now().getEpochSecond();
     return Coverage.builder()
         .status(Status.draft)
         .type(
@@ -52,7 +54,7 @@ public class CoverageIT {
                 .reference("Patient/" + testIds.patient())
                 .display("Sheriff Big-Boi")
                 .build())
-        .subscriberId("R50797108")
+        .subscriberId(newSubscriberEveryTime)
         .beneficiary(
             Reference.builder()
                 .identifier(
