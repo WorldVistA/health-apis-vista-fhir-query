@@ -10,6 +10,7 @@ import gov.va.api.health.r4.api.datatypes.Identifier;
 import gov.va.api.health.r4.api.datatypes.Period;
 import gov.va.api.health.r4.api.elements.Reference;
 import gov.va.api.health.r4.api.resources.Coverage;
+import gov.va.api.health.r4.api.resources.InsurancePlan;
 import gov.va.api.health.vistafhirquery.service.controller.RequestPayloadExceptions;
 import gov.va.api.health.vistafhirquery.service.controller.RequestPayloadExceptions.InvalidStringLengthInclusively;
 import gov.va.api.health.vistafhirquery.service.controller.RequestPayloadExceptions.MissingRequiredField;
@@ -192,6 +193,12 @@ public class R4CoverageToInsuranceBufferTransformerTest {
                             .build()));
   }
 
+  @Test
+  void subscriberId() {
+    assertThatExceptionOfType(MissingRequiredField.class)
+        .isThrownBy(() -> _transformer().subscriberId(null));
+  }
+
   /* filtering out the date fields because they use current date*/
   @Test
   void toInsuranceBuffer() {
@@ -205,5 +212,48 @@ public class R4CoverageToInsuranceBufferTransformerTest {
                         InsuranceVerificationProcessor.SERVICE_DATE)
                     .contains(w.field()))
         .containsExactlyInAnyOrderElementsOf(expected);
+  }
+
+  @Test
+  void typeOfPlan() {
+    // Null plan
+    assertThatExceptionOfType(MissingRequiredField.class)
+        .isThrownBy(() -> _transformer().typeOfPlan(null));
+    // Null codeableconcept
+    assertThatExceptionOfType(MissingRequiredField.class)
+        .isThrownBy(() -> _transformer().typeOfPlan(InsurancePlan.Plan.builder().build().asList()));
+    // Null coding
+    assertThatExceptionOfType(MissingRequiredField.class)
+        .isThrownBy(
+            () ->
+                _transformer()
+                    .typeOfPlan(
+                        InsurancePlan.Plan.builder()
+                            .type(CodeableConcept.builder().build())
+                            .build()
+                            .asList()));
+    // Too many plans
+    assertThatExceptionOfType(UnexpectedNumberOfValues.class)
+        .isThrownBy(
+            () ->
+                _transformer()
+                    .typeOfPlan(
+                        List.of(
+                            InsurancePlan.Plan.builder().build(),
+                            InsurancePlan.Plan.builder().build())));
+    // Too many codings
+    assertThatExceptionOfType(UnexpectedNumberOfValues.class)
+        .isThrownBy(
+            () ->
+                _transformer()
+                    .typeOfPlan(
+                        InsurancePlan.Plan.builder()
+                            .type(
+                                CodeableConcept.builder()
+                                    .coding(
+                                        List.of(Coding.builder().build(), Coding.builder().build()))
+                                    .build())
+                            .build()
+                            .asList()));
   }
 }

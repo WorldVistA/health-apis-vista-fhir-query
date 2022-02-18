@@ -1,15 +1,18 @@
 package gov.va.api.health.vistafhirquery.service.controller.coverage;
 
 import static gov.va.api.health.vistafhirquery.service.controller.R4Transformers.allBlank;
+import static gov.va.api.health.vistafhirquery.service.controller.R4Transformers.asCodeableConcept;
 import static gov.va.api.health.vistafhirquery.service.controller.R4Transformers.isBlank;
 import static gov.va.api.health.vistafhirquery.service.controller.R4Transformers.toHumanDateTime;
 import static gov.va.api.health.vistafhirquery.service.controller.R4Transformers.toReference;
+import static java.util.Collections.emptyList;
 
 import gov.va.api.health.fhir.api.Safe;
 import gov.va.api.health.r4.api.datatypes.CodeableConcept;
 import gov.va.api.health.r4.api.datatypes.Coding;
 import gov.va.api.health.r4.api.datatypes.Identifier;
 import gov.va.api.health.r4.api.datatypes.Period;
+import gov.va.api.health.r4.api.elements.Extension;
 import gov.va.api.health.r4.api.elements.Meta;
 import gov.va.api.health.r4.api.elements.Reference;
 import gov.va.api.health.r4.api.resources.Coverage;
@@ -19,6 +22,7 @@ import gov.va.api.health.r4.api.resources.Organization;
 import gov.va.api.health.r4.api.resources.Patient;
 import gov.va.api.health.vistafhirquery.service.controller.ContainedResourceWriter;
 import gov.va.api.health.vistafhirquery.service.controller.ContainedResourceWriter.ContainableResource;
+import gov.va.api.health.vistafhirquery.service.controller.ExtensionFactory;
 import gov.va.api.health.vistafhirquery.service.controller.PatientTypeCoordinates;
 import gov.va.api.lighthouse.charon.models.lhslighthouserpcgateway.InsuranceVerificationProcessor;
 import gov.va.api.lighthouse.charon.models.lhslighthouserpcgateway.LhsLighthouseRpcGatewayResponse;
@@ -27,6 +31,7 @@ import java.time.ZoneId;
 import java.time.ZoneOffset;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Stream;
@@ -39,9 +44,12 @@ import lombok.Value;
 public class InsuranceBufferToR4CoverageTransformer {
   public static final List<String> MAPPED_VISTA_FIELDS =
       List.of(
+          InsuranceVerificationProcessor.AMBULATORY_CARE_CERTIFICATION,
           InsuranceVerificationProcessor.BANKING_IDENTIFICATION_NUMBER,
+          InsuranceVerificationProcessor.BENEFITS_ASSIGNABLE,
           InsuranceVerificationProcessor.BILLING_PHONE_NUMBER,
           InsuranceVerificationProcessor.CITY,
+          InsuranceVerificationProcessor.EXCLUDE_PREEXISTING_CONDITION,
           InsuranceVerificationProcessor.EFFECTIVE_DATE,
           InsuranceVerificationProcessor.EXPIRATION_DATE,
           InsuranceVerificationProcessor.GROUP_NAME,
@@ -54,6 +62,7 @@ public class InsuranceBufferToR4CoverageTransformer {
           InsuranceVerificationProcessor.PATIENT_NAME,
           InsuranceVerificationProcessor.PHONE_NUMBER,
           InsuranceVerificationProcessor.PRECERTIFICATION_PHONE_NUMBER,
+          InsuranceVerificationProcessor.PRECERTIFICATION_REQUIRED,
           InsuranceVerificationProcessor.PROCESSOR_CONTROL_NUMBER_PCN,
           InsuranceVerificationProcessor.PT_RELATIONSHIP_HIPAA,
           InsuranceVerificationProcessor.STATE,
@@ -70,8 +79,11 @@ public class InsuranceBufferToR4CoverageTransformer {
           InsuranceVerificationProcessor.SUBSCRIBER_ID,
           InsuranceVerificationProcessor.SUBSCRIBER_PHONE,
           InsuranceVerificationProcessor.TYPE_OF_PLAN,
+          InsuranceVerificationProcessor.UTILIZATION_REVIEW_REQUIRED,
           InsuranceVerificationProcessor.WHOSE_INSURANCE,
           InsuranceVerificationProcessor.ZIP_CODE);
+
+  static final Map<String, Boolean> YES_NO = Map.of("1", true, "0", false);
 
   @NonNull String patientIcn;
 
@@ -135,6 +147,66 @@ public class InsuranceBufferToR4CoverageTransformer {
         .value(referenceId)
         .build()
         .asList();
+  }
+
+  private List<Extension> insurancePlanExtensions(FilemanEntry entry) {
+    ExtensionFactory extensions = ExtensionFactory.of(entry, YES_NO);
+    return Stream.of(
+            extensions.ofYesNoBoolean(
+                InsuranceVerificationProcessor.UTILIZATION_REVIEW_REQUIRED,
+                InsuranceBufferStructureDefinitions.UTILIZATION_REVIEW_REQUIRED),
+            extensions.ofYesNoBoolean(
+                InsuranceVerificationProcessor.PRECERTIFICATION_REQUIRED,
+                InsuranceBufferStructureDefinitions.PRECERTIFICATION_REQUIRED),
+            extensions.ofYesNoBoolean(
+                InsuranceVerificationProcessor.AMBULATORY_CARE_CERTIFICATION,
+                InsuranceBufferStructureDefinitions.AMBULATORY_CARE_CERTIFICATION),
+            extensions.ofYesNoBoolean(
+                InsuranceVerificationProcessor.EXCLUDE_PREEXISTING_CONDITION,
+                InsuranceBufferStructureDefinitions.EXCLUDE_PREEXISTING_CONDITION),
+            extensions.ofYesNoBoolean(
+                InsuranceVerificationProcessor.BENEFITS_ASSIGNABLE,
+                InsuranceBufferStructureDefinitions.BENEFITS_ASSIGNABLE))
+        .filter(Objects::nonNull)
+        .toList();
+  }
+
+  private Identifier insurancePlanIdentifier(
+      FilemanEntry entry, String fieldNumber, String system) {
+    return entry
+        .internal(fieldNumber)
+        .map(num -> Identifier.builder().system(system).value(num).build())
+        .orElse(null);
+  }
+
+  private List<Identifier> insurancePlanIdentifiers(FilemanEntry entry) {
+    return Stream.of(
+            insurancePlanIdentifier(
+                entry,
+                InsuranceVerificationProcessor.GROUP_NUMBER,
+                InsuranceBufferStructureDefinitions.GROUP_NUMBER),
+            insurancePlanIdentifier(
+                entry,
+                InsuranceVerificationProcessor.BANKING_IDENTIFICATION_NUMBER,
+                InsuranceBufferStructureDefinitions.BANKING_IDENTIFICATION_NUMBER),
+            insurancePlanIdentifier(
+                entry,
+                InsuranceVerificationProcessor.PROCESSOR_CONTROL_NUMBER_PCN,
+                InsuranceBufferStructureDefinitions.PROCESSOR_CONTROL_NUMBER_PCN))
+        .filter(Objects::nonNull)
+        .toList();
+  }
+
+  private List<InsurancePlan.Plan> insurancePlanType(FilemanEntry entry) {
+    CodeableConcept typeOfPlan =
+        type(
+            entry,
+            InsuranceVerificationProcessor.TYPE_OF_PLAN,
+            InsuranceBufferStructureDefinitions.TYPE_OF_PLAN);
+    if (typeOfPlan == null) {
+      return emptyList();
+    }
+    return InsurancePlan.Plan.builder().type(typeOfPlan).build().asList();
   }
 
   private Period period(FilemanEntry entry) {
@@ -212,18 +284,10 @@ public class InsuranceBufferToR4CoverageTransformer {
   private InsurancePlan toInsurancePlan(FilemanEntry entry) {
     var ip =
         InsurancePlan.builder()
-            .identifier(
-                entry
-                    .internal(InsuranceVerificationProcessor.GROUP_NUMBER)
-                    .map(
-                        num ->
-                            Identifier.builder()
-                                .system(InsuranceBufferStructureDefinitions.GROUP_NUMBER)
-                                .value(num)
-                                .build()
-                                .asList())
-                    .orElse(null))
+            .extension(insurancePlanExtensions(entry))
+            .identifier(insurancePlanIdentifiers(entry))
             .name(entry.internal(InsuranceVerificationProcessor.GROUP_NAME).orElse(null))
+            .plan(insurancePlanType(entry))
             .build();
     if (InsurancePlan.builder().build().equals(ip)) {
       return null;
@@ -242,6 +306,17 @@ public class InsuranceBufferToR4CoverageTransformer {
       return null;
     }
     return org;
+  }
+
+  private CodeableConcept type(FilemanEntry entry, String fieldName, String system) {
+    Optional<String> code = entry.internal(fieldName);
+    Optional<String> display = entry.external(fieldName);
+    if (isBlank(code)) {
+      return null;
+    }
+    return asCodeableConcept(
+            Coding.builder().code(code.get()).display(display.orElse(null)).system(system).build())
+        .text(display.orElse(null));
   }
 
   private CodeableConcept type(String inqServiceTypeCode) {

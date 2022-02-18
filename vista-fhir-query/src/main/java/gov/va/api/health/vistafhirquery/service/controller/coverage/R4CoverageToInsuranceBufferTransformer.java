@@ -6,6 +6,7 @@ import static gov.va.api.health.vistafhirquery.service.controller.R4Transformers
 import static gov.va.api.health.vistafhirquery.service.controller.WriteableFilemanValueFactory.index;
 import static gov.va.api.health.vistafhirquery.service.controller.coverage.CoverageStructureDefinitions.COVERAGE_CLASS_CODE_SYSTEM;
 import static gov.va.api.health.vistafhirquery.service.controller.coverage.CoverageStructureDefinitions.SUBSCRIBER_RELATIONSHIP_CODE_SYSTEM;
+import static gov.va.api.health.vistafhirquery.service.controller.extensionprocessing.ExtensionHandler.Required.OPTIONAL;
 import static java.util.stream.Collectors.toList;
 
 import gov.va.api.health.fhir.api.Safe;
@@ -18,11 +19,17 @@ import gov.va.api.health.r4.api.resources.InsurancePlan;
 import gov.va.api.health.vistafhirquery.service.controller.ContainedResourceReader;
 import gov.va.api.health.vistafhirquery.service.controller.FilemanFactoryRegistry;
 import gov.va.api.health.vistafhirquery.service.controller.FilemanIndexRegistry;
+import gov.va.api.health.vistafhirquery.service.controller.IdentifierReader;
+import gov.va.api.health.vistafhirquery.service.controller.IdentifierRecord;
 import gov.va.api.health.vistafhirquery.service.controller.RequestPayloadExceptions.EndDateOccursBeforeStartDate;
 import gov.va.api.health.vistafhirquery.service.controller.RequestPayloadExceptions.InvalidStringLengthInclusively;
 import gov.va.api.health.vistafhirquery.service.controller.RequestPayloadExceptions.MissingRequiredField;
 import gov.va.api.health.vistafhirquery.service.controller.RequestPayloadExceptions.UnexpectedNumberOfValues;
 import gov.va.api.health.vistafhirquery.service.controller.RequestPayloadExceptions.UnexpectedValueForField;
+import gov.va.api.health.vistafhirquery.service.controller.extensionprocessing.BooleanExtensionHandler;
+import gov.va.api.health.vistafhirquery.service.controller.extensionprocessing.ExtensionHandler;
+import gov.va.api.health.vistafhirquery.service.controller.extensionprocessing.ExtensionProcessor;
+import gov.va.api.health.vistafhirquery.service.controller.extensionprocessing.R4ExtensionProcessor;
 import gov.va.api.lighthouse.charon.models.FilemanDate;
 import gov.va.api.lighthouse.charon.models.lhslighthouserpcgateway.InsuranceVerificationProcessor;
 import gov.va.api.lighthouse.charon.models.lhslighthouserpcgateway.LhsLighthouseRpcGatewayCoverageWrite.WriteableFilemanValue;
@@ -34,6 +41,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
@@ -44,6 +52,8 @@ import lombok.Value;
 
 @Value
 public class R4CoverageToInsuranceBufferTransformer {
+  static final Map<Boolean, String> YES_NO = Map.of(true, "YES", false, "NO");
+
   FilemanFactoryRegistry factoryRegistry;
 
   FilemanIndexRegistry indexRegistry;
@@ -54,6 +64,8 @@ public class R4CoverageToInsuranceBufferTransformer {
 
   @NonNull Coverage coverage;
 
+  ExtensionProcessor insurancePlanExtensionProcessor;
+
   @Builder
   R4CoverageToInsuranceBufferTransformer(@NonNull Coverage coverage, ZoneId timezone) {
     this.coverage = coverage;
@@ -63,6 +75,8 @@ public class R4CoverageToInsuranceBufferTransformer {
     this.vistaDateFormatter =
         DateTimeFormatter.ofPattern("MMddyyy")
             .withZone(timezone == null ? ZoneId.of("UTC") : timezone);
+    this.insurancePlanExtensionProcessor =
+        R4ExtensionProcessor.of(".extension[]", insurancePlanExtensionHandlers());
   }
 
   WriteableFilemanValue dateEntered() {
@@ -230,12 +244,86 @@ public class R4CoverageToInsuranceBufferTransformer {
     }
     String referenceId = filteredCoverageTypes.get(0).value();
     InsurancePlan containedInsurancePlan =
-        containedResourceReader().find(InsurancePlan.class, referenceId);
-    return Stream.of(
-            groupName(containedInsurancePlan.name()),
-            groupNumber(containedInsurancePlan.identifier()))
+        containedResourceReader.find(InsurancePlan.class, referenceId);
+    var reader =
+        IdentifierReader.builder()
+            .identifiers(containedInsurancePlan.identifier())
+            .filemanFactory(factoryRegistry().get(InsuranceVerificationProcessor.FILE_NUMBER))
+            .indexRegistry(indexRegistry())
+            .build();
+    return Stream.concat(
+            Stream.of(
+                groupName(containedInsurancePlan.name()),
+                typeOfPlan(containedInsurancePlan.plan())),
+            Stream.of(
+                    insurancePlanExtensionProcessor().process(containedInsurancePlan.extension()),
+                    reader.process(insurancePlanIdentifierRecords()))
+                .flatMap(Collection::stream))
         .filter(Objects::nonNull)
         .toList();
+  }
+
+  private List<ExtensionHandler> insurancePlanExtensionHandlers() {
+    return List.of(
+        BooleanExtensionHandler.forDefiningUrl(
+                InsuranceBufferStructureDefinitions.UTILIZATION_REVIEW_REQUIRED)
+            .filemanFactory(factoryRegistry().get(InsuranceVerificationProcessor.FILE_NUMBER))
+            .fieldNumber(InsuranceVerificationProcessor.UTILIZATION_REVIEW_REQUIRED)
+            .index(1)
+            .required(OPTIONAL)
+            .booleanStringMapping(YES_NO)
+            .build(),
+        BooleanExtensionHandler.forDefiningUrl(
+                InsuranceBufferStructureDefinitions.PRECERTIFICATION_REQUIRED)
+            .filemanFactory(factoryRegistry().get(InsuranceVerificationProcessor.FILE_NUMBER))
+            .fieldNumber(InsuranceVerificationProcessor.PRECERTIFICATION_REQUIRED)
+            .index(1)
+            .required(OPTIONAL)
+            .booleanStringMapping(YES_NO)
+            .build(),
+        BooleanExtensionHandler.forDefiningUrl(
+                InsuranceBufferStructureDefinitions.AMBULATORY_CARE_CERTIFICATION)
+            .filemanFactory(factoryRegistry().get(InsuranceVerificationProcessor.FILE_NUMBER))
+            .fieldNumber(InsuranceVerificationProcessor.AMBULATORY_CARE_CERTIFICATION)
+            .index(1)
+            .required(OPTIONAL)
+            .booleanStringMapping(YES_NO)
+            .build(),
+        BooleanExtensionHandler.forDefiningUrl(
+                InsuranceBufferStructureDefinitions.EXCLUDE_PREEXISTING_CONDITION)
+            .filemanFactory(factoryRegistry().get(InsuranceVerificationProcessor.FILE_NUMBER))
+            .fieldNumber(InsuranceVerificationProcessor.EXCLUDE_PREEXISTING_CONDITION)
+            .index(1)
+            .required(OPTIONAL)
+            .booleanStringMapping(YES_NO)
+            .build(),
+        BooleanExtensionHandler.forDefiningUrl(
+                InsuranceBufferStructureDefinitions.BENEFITS_ASSIGNABLE)
+            .filemanFactory(factoryRegistry().get(InsuranceVerificationProcessor.FILE_NUMBER))
+            .fieldNumber(InsuranceVerificationProcessor.BENEFITS_ASSIGNABLE)
+            .index(1)
+            .required(OPTIONAL)
+            .booleanStringMapping(YES_NO)
+            .build());
+  }
+
+  private List<IdentifierRecord> insurancePlanIdentifierRecords() {
+    return List.of(
+        IdentifierRecord.builder()
+            .fieldNumber(InsuranceVerificationProcessor.GROUP_NUMBER)
+            .system(InsuranceBufferStructureDefinitions.GROUP_NUMBER)
+            .isRequired(true)
+            .build(),
+        IdentifierRecord.builder()
+            .fieldNumber(InsuranceVerificationProcessor.BANKING_IDENTIFICATION_NUMBER)
+            .system(InsuranceBufferStructureDefinitions.BANKING_IDENTIFICATION_NUMBER)
+            .isRequired(false)
+            .build(),
+        IdentifierRecord.builder()
+            .fieldNumber(InsuranceVerificationProcessor.PROCESSOR_CONTROL_NUMBER_PCN)
+            .system(InsuranceBufferStructureDefinitions.PROCESSOR_CONTROL_NUMBER_PCN)
+            .isRequired(false)
+            .build());
   }
 
   private boolean isGroupPlan(Coverage.CoverageClass c) {
@@ -402,6 +490,40 @@ public class R4CoverageToInsuranceBufferTransformer {
 
   private String today() {
     return vistaDateFormatter().format(Instant.now());
+  }
+
+  WriteableFilemanValue typeOfPlan(List<InsurancePlan.Plan> plan) {
+    if (isBlank(plan)) {
+      throw MissingRequiredField.builder().jsonPath(".plan[]").build();
+    }
+    if (plan.size() != 1) {
+      throw UnexpectedNumberOfValues.builder()
+          .receivedCount(plan.size())
+          .exactExpectedCount(1)
+          .jsonPath(".plan[]")
+          .build();
+    }
+    var type = plan.get(0).type();
+    if (isBlank(type)) {
+      throw MissingRequiredField.builder().jsonPath(".plan[].type").build();
+    }
+    if (isBlank(type.coding())) {
+      throw MissingRequiredField.builder().jsonPath(".plan[].type.coding[]").build();
+    }
+    if (type.coding().size() != 1) {
+      throw UnexpectedNumberOfValues.builder()
+          .receivedCount(type.coding().size())
+          .exactExpectedCount(1)
+          .jsonPath(".plan[].type.coding[]")
+          .build();
+    }
+    return factoryRegistry()
+        .get(InsuranceVerificationProcessor.FILE_NUMBER)
+        .forString(
+            InsuranceVerificationProcessor.TYPE_OF_PLAN,
+            indexRegistry().get(InsuranceVerificationProcessor.TYPE_OF_PLAN),
+            type.coding().get(0).display())
+        .orElse(null);
   }
 
   // TODO: get whose insurance from contained resource

@@ -206,6 +206,36 @@ class RequestPayloadExceptionsTest {
   }
 
   @Test
+  void requiredIdentifierIsMissing() {
+    assertThat(
+            RequestPayloadExceptions.RequiredIdentifierIsMissing.builder()
+                .jsonPath(".fugazi")
+                .system(".fugazi.foo")
+                .build()
+                .getPublicMessage())
+        .contains("Field: .fugazi")
+        .contains("Problem: Missing required identifier system: .fugazi.foo");
+  }
+
+  @Test
+  void unexpectedNumberOfIdentifiers() {
+    assertThat(
+            RequestPayloadExceptions.UnexpectedNumberOfIdentifiers.builder()
+                .jsonPath(".fugazi")
+                .receivedCount(2)
+                .exactExpectedCount(1)
+                .minimumExpectedCount(1)
+                .maximumExpectedCount(1)
+                .system(".fugazi.foo")
+                .identifyingFieldValue("foo")
+                .build()
+                .getPublicMessage())
+        .contains("Field: .fugazi")
+        .contains(
+            "Problem: Unexpected number of identifiers; expected (1) minimum of (1) maximum of (1) where system matched foo but got (2)");
+  }
+
+  @Test
   void unexpectedNumberOfValues() {
     assertThat(
             RequestPayloadExceptions.UnexpectedNumberOfValues.builder()

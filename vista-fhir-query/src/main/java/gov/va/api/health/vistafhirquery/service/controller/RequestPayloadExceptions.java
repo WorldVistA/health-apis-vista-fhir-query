@@ -42,6 +42,13 @@ public class RequestPayloadExceptions {
     }
   }
 
+  public static class RequiredIdentifierIsMissing extends InvalidIdentifier {
+    @Builder
+    RequiredIdentifierIsMissing(String jsonPath, String system) {
+      super(jsonPath, "Missing required identifier system: " + system);
+    }
+  }
+
   public static class EndDateOccursBeforeStartDate extends InvalidField {
     @Builder
     EndDateOccursBeforeStartDate(String jsonPath) {
@@ -77,6 +84,19 @@ public class RequestPayloadExceptions {
     @Override
     public String getMessage() {
       return super.getMessage() + ", Extension: " + definingUrl();
+    }
+  }
+
+  @EqualsAndHashCode(callSuper = true)
+  public static class InvalidIdentifier extends InvalidField {
+
+    InvalidIdentifier(String jsonPath, String problem) {
+      super(jsonPath, problem);
+    }
+
+    @Override
+    public String getMessage() {
+      return super.getMessage();
     }
   }
 
@@ -191,6 +211,38 @@ public class RequestPayloadExceptions {
     @Override
     public String getMessage() {
       return format("%s, Qualifiers: (%s)", super.getMessage(), qualifiers);
+    }
+  }
+
+  public static class UnexpectedNumberOfIdentifiers extends InvalidIdentifier {
+    UnexpectedNumberOfIdentifiers(String jsonPath, String problem) {
+      super(jsonPath, problem);
+    }
+
+    @Builder
+    private static UnexpectedNumberOfIdentifiers unexpectedNumberOfIdentifiers(
+        @NonNull String jsonPath,
+        String system,
+        String identifyingFieldValue,
+        Integer exactExpectedCount,
+        Integer minimumExpectedCount,
+        Integer maximumExpectedCount,
+        Integer receivedCount) {
+      var message = "Unexpected number of identifiers; expected";
+      if (!isBlank(exactExpectedCount)) {
+        message += format(" (%d)", exactExpectedCount);
+      }
+      if (!isBlank(minimumExpectedCount)) {
+        message += format(" minimum of (%d)", minimumExpectedCount);
+      }
+      if (!isBlank(maximumExpectedCount)) {
+        message += format(" maximum of (%d)", maximumExpectedCount);
+      }
+      if (!isBlank(system)) {
+        message += format(" where system matched %s", identifyingFieldValue);
+      }
+      message += format(" but got (%d).", receivedCount);
+      return new UnexpectedNumberOfIdentifiers(jsonPath, message);
     }
   }
 

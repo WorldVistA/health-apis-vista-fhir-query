@@ -6,6 +6,7 @@ import gov.va.api.health.r4.api.datatypes.CodeableConcept;
 import gov.va.api.health.r4.api.datatypes.Coding;
 import gov.va.api.health.r4.api.datatypes.Identifier;
 import gov.va.api.health.r4.api.datatypes.Period;
+import gov.va.api.health.r4.api.elements.Extension;
 import gov.va.api.health.r4.api.elements.Reference;
 import gov.va.api.health.r4.api.resources.Coverage;
 import gov.va.api.health.r4.api.resources.Coverage.Status;
@@ -98,13 +99,65 @@ public class CoverageIT {
             List.of(
                 InsurancePlan.builder()
                     .id("1")
-                    .identifier(
-                        Identifier.builder()
-                            .system("urn:oid:2.16.840.1.113883.3.8901.3.1.3558033.908002")
-                            .value("GRP123456")
-                            .build()
-                            .asList())
                     .name("BCBS OF TX GROUP")
+                    .extension(
+                        List.of(
+                            Extension.builder()
+                                .url(
+                                    "http://va.gov/fhir/StructureDefinition/insuranceplan-isUtilizationReviewRequired")
+                                .valueBoolean(true)
+                                .build(),
+                            Extension.builder()
+                                .url(
+                                    "http://va.gov/fhir/StructureDefinition/insuranceplan-isPreCertificationRequired")
+                                .valueBoolean(true)
+                                .build(),
+                            Extension.builder()
+                                .url(
+                                    "http://va.gov/fhir/StructureDefinition/insuranceplan-isCertificationRequiredForAmbulatoryCare")
+                                .valueBoolean(true)
+                                .build(),
+                            Extension.builder()
+                                .url(
+                                    "http://va.gov/fhir/StructureDefinition/insuranceplan-excludePreexistingConditions")
+                                .valueBoolean(false)
+                                .build(),
+                            Extension.builder()
+                                .url(
+                                    "http://va.gov/fhir/StructureDefinition/insuranceplan-areBenefitsAssignable")
+                                .valueBoolean(true)
+                                .build()))
+                    .identifier(
+                        List.of(
+                            Identifier.builder()
+                                .system("urn:oid:2.16.840.1.113883.3.8901.3.1.3558033.908002")
+                                .value("GRP123456")
+                                .build(),
+                            Identifier.builder()
+                                .system("urn:oid:2.16.840.1.113883.3.8901.3.1.3558033.40801")
+                                .value("88888888")
+                                .build(),
+                            Identifier.builder()
+                                .system("urn:oid:2.16.840.1.113883.3.8901.3.1.3558033.408011")
+                                .value("121212121212")
+                                .build()))
+                    .plan(
+                        List.of(
+                            InsurancePlan.Plan.builder()
+                                .type(
+                                    CodeableConcept.builder()
+                                        .coding(
+                                            List.of(
+                                                Coding.builder()
+                                                    .system(
+                                                        "urn:oid:2.16.840.1.113883.3.8901.3.1.3558033.408009")
+                                                    .code("40")
+                                                    .display(
+                                                        "PREFERRED PROVIDER ORGANIZATION (PPO)")
+                                                    .build()))
+                                        .text("PREFERRED PROVIDER ORGANIZATION (PPO)")
+                                        .build())
+                                .build()))
                     .build(),
                 Organization.builder().id("2").active(true).name("BCBS OF FLORIDA").build()))
         .build();

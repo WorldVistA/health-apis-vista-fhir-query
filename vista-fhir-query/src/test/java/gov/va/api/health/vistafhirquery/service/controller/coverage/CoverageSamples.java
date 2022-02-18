@@ -121,12 +121,22 @@ public class CoverageSamples {
       return InsurancePlan.builder()
           .id(id)
           .name("BCBS OF SHANKSVILLE GROUP")
+          .extension(insurancePlanExtensions())
           .identifier(
               List.of(
                   Identifier.builder()
                       .system(InsuranceBufferStructureDefinitions.GROUP_NUMBER)
                       .value("GRP123456")
+                      .build(),
+                  Identifier.builder()
+                      .system(InsuranceBufferStructureDefinitions.BANKING_IDENTIFICATION_NUMBER)
+                      .value("88888888")
+                      .build(),
+                  Identifier.builder()
+                      .system(InsuranceBufferStructureDefinitions.PROCESSOR_CONTROL_NUMBER_PCN)
+                      .value("121212121212")
                       .build()))
+          .plan(plan())
           .build();
     }
 
@@ -214,8 +224,49 @@ public class CoverageSamples {
               .build());
     }
 
+    private List<Extension> insurancePlanExtensions() {
+      return List.of(
+          Extension.builder()
+              .url(InsuranceBufferStructureDefinitions.UTILIZATION_REVIEW_REQUIRED)
+              .valueBoolean(true)
+              .build(),
+          Extension.builder()
+              .url(InsuranceBufferStructureDefinitions.PRECERTIFICATION_REQUIRED)
+              .valueBoolean(true)
+              .build(),
+          Extension.builder()
+              .url(InsuranceBufferStructureDefinitions.AMBULATORY_CARE_CERTIFICATION)
+              .valueBoolean(true)
+              .build(),
+          Extension.builder()
+              .url(InsuranceBufferStructureDefinitions.EXCLUDE_PREEXISTING_CONDITION)
+              .valueBoolean(false)
+              .build(),
+          Extension.builder()
+              .url(InsuranceBufferStructureDefinitions.BENEFITS_ASSIGNABLE)
+              .valueBoolean(true)
+              .build());
+    }
+
     private Period period() {
       return Period.builder().start("1992-01-12T00:00:00Z").end("2025-01-01T00:00:00Z").build();
+    }
+
+    private List<InsurancePlan.Plan> plan() {
+      return List.of(
+          InsurancePlan.Plan.builder()
+              .type(
+                  CodeableConcept.builder()
+                      .coding(
+                          List.of(
+                              Coding.builder()
+                                  .system(InsuranceBufferStructureDefinitions.TYPE_OF_PLAN)
+                                  .code("40")
+                                  .display("PREFERRED PROVIDER ORGANIZATION (PPO)")
+                                  .build()))
+                      .text("PREFERRED PROVIDER ORGANIZATION (PPO)")
+                      .build())
+              .build());
     }
 
     private CodeableConcept relationship() {
@@ -262,7 +313,18 @@ public class CoverageSamples {
           insuranceBufferValue(InsuranceVerificationProcessor.EXPIRATION_DATE, "3250101"),
           insuranceBufferValue(
               InsuranceVerificationProcessor.GROUP_NAME, "BCBS OF SHANKSVILLE GROUP"),
+          insuranceBufferValue(InsuranceVerificationProcessor.UTILIZATION_REVIEW_REQUIRED, "YES"),
+          insuranceBufferValue(InsuranceVerificationProcessor.PRECERTIFICATION_REQUIRED, "YES"),
+          insuranceBufferValue(InsuranceVerificationProcessor.AMBULATORY_CARE_CERTIFICATION, "YES"),
+          insuranceBufferValue(InsuranceVerificationProcessor.EXCLUDE_PREEXISTING_CONDITION, "NO"),
+          insuranceBufferValue(InsuranceVerificationProcessor.BENEFITS_ASSIGNABLE, "YES"),
           insuranceBufferValue(InsuranceVerificationProcessor.GROUP_NUMBER, "GRP123456"),
+          insuranceBufferValue(
+              InsuranceVerificationProcessor.BANKING_IDENTIFICATION_NUMBER, "88888888"),
+          insuranceBufferValue(
+              InsuranceVerificationProcessor.PROCESSOR_CONTROL_NUMBER_PCN, "121212121212"),
+          insuranceBufferValue(
+              InsuranceVerificationProcessor.TYPE_OF_PLAN, "PREFERRED PROVIDER ORGANIZATION (PPO)"),
           insuranceBufferValue(InsuranceVerificationProcessor.SUBSCRIBER_ID, "R50797108"));
     }
 
@@ -340,7 +402,23 @@ public class CoverageSamples {
       fields.put(
           InsuranceVerificationProcessor.GROUP_NAME,
           Values.of("BCBS OF SHANKSVILLE GROUP", "BCBS OF SHANKSVILLE GROUP"));
+      fields.put(InsuranceVerificationProcessor.UTILIZATION_REVIEW_REQUIRED, Values.of("YES", "1"));
+      fields.put(InsuranceVerificationProcessor.PRECERTIFICATION_REQUIRED, Values.of("YES", "1"));
+      fields.put(
+          InsuranceVerificationProcessor.AMBULATORY_CARE_CERTIFICATION, Values.of("YES", "1"));
+      fields.put(
+          InsuranceVerificationProcessor.EXCLUDE_PREEXISTING_CONDITION, Values.of("NO", "0"));
+      fields.put(InsuranceVerificationProcessor.BENEFITS_ASSIGNABLE, Values.of("YES", "1"));
       fields.put(InsuranceVerificationProcessor.GROUP_NUMBER, Values.of("GRP123456", "GRP123456"));
+      fields.put(
+          InsuranceVerificationProcessor.BANKING_IDENTIFICATION_NUMBER,
+          Values.of("88888888", "88888888"));
+      fields.put(
+          InsuranceVerificationProcessor.PROCESSOR_CONTROL_NUMBER_PCN,
+          Values.of("121212121212", "121212121212"));
+      fields.put(
+          InsuranceVerificationProcessor.TYPE_OF_PLAN,
+          Values.of("PREFERRED PROVIDER ORGANIZATION (PPO)", "40"));
       return Map.copyOf(fields);
     }
 
