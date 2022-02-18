@@ -6,6 +6,8 @@ import static gov.va.api.health.vistafhirquery.service.controller.R4Transformers
 import static gov.va.api.health.vistafhirquery.service.controller.R4Transformers.toHumanDateTime;
 import static gov.va.api.health.vistafhirquery.service.controller.R4Transformers.toReference;
 import static gov.va.api.health.vistafhirquery.service.controller.R4Transformers.valueOfValueOnlyXmlAttribute;
+import static gov.va.api.health.vistafhirquery.service.util.Translations.ignoreAndReturnNull;
+import static gov.va.api.health.vistafhirquery.service.util.Translations.returnNull;
 import static io.micrometer.core.instrument.util.StringUtils.isNotBlank;
 import static org.apache.commons.lang3.StringUtils.trimToNull;
 
@@ -22,6 +24,8 @@ import gov.va.api.health.vistafhirquery.service.controller.DateSearchBoundaries;
 import gov.va.api.health.vistafhirquery.service.controller.R4Transformers;
 import gov.va.api.health.vistafhirquery.service.controller.SegmentedVistaIdentifier;
 import gov.va.api.health.vistafhirquery.service.controller.SegmentedVistaIdentifier.PatientIdentifierType;
+import gov.va.api.health.vistafhirquery.service.util.Translation;
+import gov.va.api.health.vistafhirquery.service.util.Translations;
 import gov.va.api.lighthouse.charon.models.ValueOnlyXmlAttribute;
 import gov.va.api.lighthouse.charon.models.vprgetpatientdata.Meds.Med;
 import gov.va.api.lighthouse.charon.models.vprgetpatientdata.Meds.Med.Fill;
@@ -30,7 +34,6 @@ import gov.va.api.lighthouse.charon.models.vprgetpatientdata.Meds.Med.Product.Pr
 import gov.va.api.lighthouse.charon.models.vprgetpatientdata.VprGetPatientData;
 import gov.va.api.lighthouse.charon.models.vprgetpatientdata.VprGetPatientData.Domains;
 import java.util.List;
-import java.util.Map;
 import java.util.Objects;
 import java.util.function.Predicate;
 import java.util.stream.Stream;
@@ -42,8 +45,17 @@ import lombok.NonNull;
 @Getter
 public class R4MedicationDispenseTransformer {
 
-  private static final Map<String, String> ROUTING_TO_DESTINATION_MAPPING =
-      Map.of("W", "WINDOW", "M", "MAILED", "C", "ADMINISTERED IN CLINIC");
+  private static final Translation<String, String> ROUTING_TO_DESTINATION_DISPLAY =
+      Translations.ofStringToString()
+          .from("W")
+          .to("WINDOW")
+          .from("M")
+          .to("MAILED")
+          .from("C")
+          .to("ADMINISTERED IN CLINIC")
+          .whenNullOrEmpty(returnNull())
+          .whenNotFound(ignoreAndReturnNull())
+          .build();
 
   @NonNull final String site;
 
@@ -80,15 +92,10 @@ public class R4MedicationDispenseTransformer {
   }
 
   Reference destination(ValueOnlyXmlAttribute routing) {
-    var value = valueOfValueOnlyXmlAttribute(routing);
-    if (isBlank(value)) {
-      return null;
-    }
-    var display = ROUTING_TO_DESTINATION_MAPPING.get(value);
-    if (isBlank(display)) {
-      return null;
-    }
-    return Reference.builder().display(display).build();
+    return ROUTING_TO_DESTINATION_DISPLAY
+        .translate(valueOfValueOnlyXmlAttribute(routing))
+        .map(display -> Reference.builder().display(display).build())
+        .orElse(null);
   }
 
   List<Dosage> dosageInstruction(String sig, String ptInstructions) {
