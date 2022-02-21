@@ -44,8 +44,8 @@ public class RequestPayloadExceptions {
 
   public static class RequiredIdentifierIsMissing extends InvalidIdentifier {
     @Builder
-    RequiredIdentifierIsMissing(String jsonPath, String system) {
-      super(jsonPath, "Missing required identifier system: " + system);
+    RequiredIdentifierIsMissing(@NonNull String jsonPath, String system) {
+      super(jsonPath, system, "Missing required identifier.");
     }
   }
 
@@ -73,6 +73,32 @@ public class RequestPayloadExceptions {
   }
 
   @EqualsAndHashCode(callSuper = true)
+  public static class InvalidContainedResource extends InvalidField {
+
+    @Getter private final Class<?> resourceType;
+
+    @Getter private final String id;
+
+    @Getter private final Throwable cause;
+
+    @Builder
+    InvalidContainedResource(
+        @NonNull Class<?> resourceType, @NonNull String id, @NonNull Throwable cause) {
+      super(
+          ".contained[]",
+          "Contained resource "
+              + resourceType.getSimpleName()
+              + " with id "
+              + id
+              + " is invalid., Cause: "
+              + cause.getMessage());
+      this.resourceType = resourceType;
+      this.id = id;
+      this.cause = cause;
+    }
+  }
+
+  @EqualsAndHashCode(callSuper = true)
   public static class InvalidExtension extends InvalidField {
     @NonNull @Getter private final String definingUrl;
 
@@ -90,8 +116,8 @@ public class RequestPayloadExceptions {
   @EqualsAndHashCode(callSuper = true)
   public static class InvalidIdentifier extends InvalidField {
 
-    InvalidIdentifier(String jsonPath, String problem) {
-      super(jsonPath, problem);
+    InvalidIdentifier(String jsonPath, String system, String problem) {
+      super(jsonPath, problem + ", System: " + system);
     }
 
     @Override
@@ -215,15 +241,14 @@ public class RequestPayloadExceptions {
   }
 
   public static class UnexpectedNumberOfIdentifiers extends InvalidIdentifier {
-    UnexpectedNumberOfIdentifiers(String jsonPath, String problem) {
-      super(jsonPath, problem);
+    UnexpectedNumberOfIdentifiers(@NonNull String jsonPath, String system, String problem) {
+      super(jsonPath, system, problem);
     }
 
     @Builder
     private static UnexpectedNumberOfIdentifiers unexpectedNumberOfIdentifiers(
         @NonNull String jsonPath,
-        String system,
-        String identifyingFieldValue,
+        @NonNull String system,
         Integer exactExpectedCount,
         Integer minimumExpectedCount,
         Integer maximumExpectedCount,
@@ -238,11 +263,8 @@ public class RequestPayloadExceptions {
       if (!isBlank(maximumExpectedCount)) {
         message += format(" maximum of (%d)", maximumExpectedCount);
       }
-      if (!isBlank(system)) {
-        message += format(" where system matched %s", identifyingFieldValue);
-      }
       message += format(" but got (%d).", receivedCount);
-      return new UnexpectedNumberOfIdentifiers(jsonPath, message);
+      return new UnexpectedNumberOfIdentifiers(jsonPath, system, message);
     }
   }
 
@@ -327,6 +349,13 @@ public class RequestPayloadExceptions {
 
     public String buildMessage(Object valueReceived) {
       return format(message, valueReceived);
+    }
+  }
+
+  public static class UnknownIdentifierSystem extends InvalidIdentifier {
+    @Builder
+    UnknownIdentifierSystem(@NonNull String jsonPath, String system) {
+      super(jsonPath, system, "System is unknown.");
     }
   }
 

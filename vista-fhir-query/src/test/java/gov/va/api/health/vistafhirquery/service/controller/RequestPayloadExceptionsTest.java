@@ -209,30 +209,29 @@ class RequestPayloadExceptionsTest {
   void requiredIdentifierIsMissing() {
     assertThat(
             RequestPayloadExceptions.RequiredIdentifierIsMissing.builder()
-                .jsonPath(".fugazi")
+                .jsonPath(".shanktopus")
                 .system(".fugazi.foo")
                 .build()
                 .getPublicMessage())
-        .contains("Field: .fugazi")
-        .contains("Problem: Missing required identifier system: .fugazi.foo");
+        .contains("Field: .shanktopus")
+        .contains("Problem: Missing required identifier.");
   }
 
   @Test
   void unexpectedNumberOfIdentifiers() {
     assertThat(
             RequestPayloadExceptions.UnexpectedNumberOfIdentifiers.builder()
-                .jsonPath(".fugazi")
+                .jsonPath(".shanktopus")
                 .receivedCount(2)
                 .exactExpectedCount(1)
                 .minimumExpectedCount(1)
                 .maximumExpectedCount(1)
-                .system(".fugazi.foo")
-                .identifyingFieldValue("foo")
+                .system("foo")
                 .build()
                 .getPublicMessage())
-        .contains("Field: .fugazi")
+        .contains("Field: .shanktopus")
         .contains(
-            "Problem: Unexpected number of identifiers; expected (1) minimum of (1) maximum of (1) where system matched foo but got (2)");
+            "Problem: Unexpected number of identifiers; expected (1) minimum of (1) maximum of (1) but got (2)., System: foo");
   }
 
   @Test
@@ -292,5 +291,17 @@ class RequestPayloadExceptionsTest {
                 .getPublicMessage())
         .contains("Field: .fugazi")
         .contains("Problem: Expected one of ([foo]), but got (bar).");
+  }
+
+  @Test
+  void unknownIdentifierSystem() {
+    assertThat(
+            RequestPayloadExceptions.UnknownIdentifierSystem.builder()
+                .jsonPath(".shanktopus")
+                .system("shanktopus")
+                .build()
+                .getPublicMessage())
+        .contains("Field: .shanktopus")
+        .contains("Problem: System is unknown., System: shanktopus");
   }
 }

@@ -20,7 +20,8 @@ import gov.va.api.health.vistafhirquery.service.controller.ContainedResourceRead
 import gov.va.api.health.vistafhirquery.service.controller.FilemanFactoryRegistry;
 import gov.va.api.health.vistafhirquery.service.controller.FilemanIndexRegistry;
 import gov.va.api.health.vistafhirquery.service.controller.IdentifierReader;
-import gov.va.api.health.vistafhirquery.service.controller.IdentifierRecord;
+import gov.va.api.health.vistafhirquery.service.controller.RequestPayloadExceptions;
+import gov.va.api.health.vistafhirquery.service.controller.RequestPayloadExceptions.BadRequestPayload;
 import gov.va.api.health.vistafhirquery.service.controller.RequestPayloadExceptions.EndDateOccursBeforeStartDate;
 import gov.va.api.health.vistafhirquery.service.controller.RequestPayloadExceptions.InvalidStringLengthInclusively;
 import gov.va.api.health.vistafhirquery.service.controller.RequestPayloadExceptions.MissingRequiredField;
@@ -247,20 +248,28 @@ public class R4CoverageToInsuranceBufferTransformer {
         containedResourceReader.find(InsurancePlan.class, referenceId);
     var reader =
         IdentifierReader.builder()
-            .identifiers(containedInsurancePlan.identifier())
+            .readableIdentifierDefinitions(insurancePlanIdentifierRecords())
             .filemanFactory(factoryRegistry().get(InsuranceVerificationProcessor.FILE_NUMBER))
             .indexRegistry(indexRegistry())
             .build();
-    return Stream.concat(
-            Stream.of(
-                groupName(containedInsurancePlan.name()),
-                typeOfPlan(containedInsurancePlan.plan())),
-            Stream.of(
-                    insurancePlanExtensionProcessor().process(containedInsurancePlan.extension()),
-                    reader.process(insurancePlanIdentifierRecords()))
-                .flatMap(Collection::stream))
-        .filter(Objects::nonNull)
-        .toList();
+    try {
+      return Stream.concat(
+              Stream.of(
+                  groupName(containedInsurancePlan.name()),
+                  typeOfPlan(containedInsurancePlan.plan())),
+              Stream.of(
+                      insurancePlanExtensionProcessor().process(containedInsurancePlan.extension()),
+                      reader.process(containedInsurancePlan.identifier()))
+                  .flatMap(Collection::stream))
+          .filter(Objects::nonNull)
+          .toList();
+    } catch (BadRequestPayload e) {
+      throw RequestPayloadExceptions.InvalidContainedResource.builder()
+          .resourceType(InsurancePlan.class)
+          .id(referenceId)
+          .cause(e)
+          .build();
+    }
   }
 
   private List<ExtensionHandler> insurancePlanExtensionHandlers() {
@@ -307,20 +316,20 @@ public class R4CoverageToInsuranceBufferTransformer {
             .build());
   }
 
-  private List<IdentifierRecord> insurancePlanIdentifierRecords() {
+  private List<IdentifierReader.ReadableIdentifierDefinition> insurancePlanIdentifierRecords() {
     return List.of(
-        IdentifierRecord.builder()
-            .fieldNumber(InsuranceVerificationProcessor.GROUP_NUMBER)
+        IdentifierReader.ReadableIdentifierDefinition.builder()
+            .field(InsuranceVerificationProcessor.GROUP_NUMBER)
             .system(InsuranceBufferStructureDefinitions.GROUP_NUMBER)
             .isRequired(true)
             .build(),
-        IdentifierRecord.builder()
-            .fieldNumber(InsuranceVerificationProcessor.BANKING_IDENTIFICATION_NUMBER)
+        IdentifierReader.ReadableIdentifierDefinition.builder()
+            .field(InsuranceVerificationProcessor.BANKING_IDENTIFICATION_NUMBER)
             .system(InsuranceBufferStructureDefinitions.BANKING_IDENTIFICATION_NUMBER)
             .isRequired(false)
             .build(),
-        IdentifierRecord.builder()
-            .fieldNumber(InsuranceVerificationProcessor.PROCESSOR_CONTROL_NUMBER_PCN)
+        IdentifierReader.ReadableIdentifierDefinition.builder()
+            .field(InsuranceVerificationProcessor.PROCESSOR_CONTROL_NUMBER_PCN)
             .system(InsuranceBufferStructureDefinitions.PROCESSOR_CONTROL_NUMBER_PCN)
             .isRequired(false)
             .build());

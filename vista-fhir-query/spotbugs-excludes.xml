@@ -61,7 +61,10 @@
   Lombox generated builders with @NonNull is confusing spotbugs. The warnings are for generated code.
   -->
   <Match>
-    <Class name="~gov.va.api.health.vistafhirquery.service.controller.LhsGatewayExceptions.*"/>
+    <Or>
+      <Class name="~gov.va.api.health.vistafhirquery.service.controller.LhsGatewayExceptions.*"/>
+      <Class name="~gov.va.api.health.vistafhirquery.service.controller.RequestPayloadExceptions.*"/>
+    </Or>
     <Bug pattern="RCN_REDUNDANT_NULLCHECK_WOULD_HAVE_BEEN_A_NPE"/>
   </Match>
 </FindBugsFilter>

@@ -4,11 +4,28 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 
 import gov.va.api.health.r4.api.datatypes.Identifier;
+import gov.va.api.health.vistafhirquery.service.controller.IdentifierReader.ReadableIdentifierDefinition;
+import gov.va.api.health.vistafhirquery.service.controller.RequestPayloadExceptions.RequiredIdentifierIsMissing;
+import gov.va.api.health.vistafhirquery.service.controller.RequestPayloadExceptions.UnknownIdentifierSystem;
 import gov.va.api.lighthouse.charon.models.lhslighthouserpcgateway.LhsLighthouseRpcGatewayCoverageWrite.WriteableFilemanValue;
 import java.util.List;
 import org.junit.jupiter.api.Test;
 
 public class IdentifierReaderTest {
+  List<ReadableIdentifierDefinition> _definitions() {
+    return List.of(
+        ReadableIdentifierDefinition.builder()
+            .field("#1.1")
+            .system("1001")
+            .isRequired(true)
+            .build(),
+        ReadableIdentifierDefinition.builder()
+            .field("#2.1")
+            .system("2001")
+            .isRequired(false)
+            .build());
+  }
+
   @Test
   void constructorThrowsUnexpectedNumberOfValues() {
     var identifiers =
@@ -19,28 +36,35 @@ public class IdentifierReaderTest {
         .isThrownBy(
             () ->
                 IdentifierReader.builder()
-                    .identifiers(identifiers)
+                    .readableIdentifierDefinitions(_definitions())
                     .filemanFactory(factory())
                     .indexRegistry(registry())
-                    .build());
+                    .build()
+                    .process(identifiers));
   }
 
   WriteableFilemanValueFactory factory() {
     return WriteableFilemanValueFactory.forFile("1.01");
   }
 
-  List<IdentifierRecord> identifierRecords() {
-    return List.of(
-        IdentifierRecord.builder().fieldNumber("#1.1").system("1001").isRequired(true).build(),
-        IdentifierRecord.builder().fieldNumber("#2.1").system("2001").isRequired(false).build());
+  @Test
+  void identifierWithUnknownSystemThrows() {
+    var identifiers = List.of(Identifier.builder().system("NOPE").value("200").build());
+    var reader =
+        IdentifierReader.builder()
+            .readableIdentifierDefinitions(_definitions())
+            .filemanFactory(factory())
+            .indexRegistry(registry())
+            .build();
+    assertThatExceptionOfType(UnknownIdentifierSystem.class)
+        .isThrownBy(() -> reader.process(identifiers));
   }
 
   @Test
   void nullCheck() {
-    var identifiers = List.of(Identifier.builder().system("2001").value("200").build());
     var reader =
         IdentifierReader.builder()
-            .identifiers(identifiers)
+            .readableIdentifierDefinitions(List.of())
             .filemanFactory(factory())
             .indexRegistry(registry())
             .build();
@@ -52,12 +76,12 @@ public class IdentifierReaderTest {
     var identifiers = List.of(Identifier.builder().system("2001").value("200").build());
     var reader =
         IdentifierReader.builder()
-            .identifiers(identifiers)
+            .readableIdentifierDefinitions(_definitions())
             .filemanFactory(factory())
             .indexRegistry(registry())
             .build();
-    assertThatExceptionOfType(RequestPayloadExceptions.RequiredIdentifierIsMissing.class)
-        .isThrownBy(() -> reader.process(identifierRecords()));
+    assertThatExceptionOfType(RequiredIdentifierIsMissing.class)
+        .isThrownBy(() -> reader.process(identifiers));
   }
 
   @Test
@@ -68,11 +92,11 @@ public class IdentifierReaderTest {
             Identifier.builder().system("2001").value("200").build());
     var reader =
         IdentifierReader.builder()
-            .identifiers(identifiers)
+            .readableIdentifierDefinitions(_definitions())
             .filemanFactory(factory())
             .indexRegistry(registry())
             .build();
-    assertThat(reader.process(identifierRecords()))
+    assertThat(reader.process(identifiers))
         .containsExactlyInAnyOrder(
             WriteableFilemanValue.builder()
                 .file("1.01")
