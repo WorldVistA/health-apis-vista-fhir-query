@@ -58,6 +58,11 @@ public class R4Transformers {
     return CodeableConcept.builder().coding(List.of(coding)).build();
   }
 
+  /** Return the item as a list if present, otherwise return null. */
+  public static <T> List<T> asListOrNull(T item) {
+    return ifPresent(item, List::of);
+  }
+
   /** Checks if the given system value has a match in the given CodeableConcept's coding List. */
   public static boolean codeableconceptHasCodingSystem(CodeableConcept c, String system) {
     if (isBlank(c) || emptyToNull(c.coding()) == null) {
@@ -229,6 +234,15 @@ public class R4Transformers {
       return Optional.empty();
     }
     return toHumanDateTime(filemanDateTime.value());
+  }
+
+  /** Attempt to convert the value to an integer, return null if not possible. */
+  public static Integer toInteger(String maybeInteger) {
+    try {
+      return isBlank(maybeInteger) ? null : Integer.parseInt(maybeInteger);
+    } catch (NumberFormatException e) {
+      return null;
+    }
   }
 
   /** Transform an Instant to an Optional String. */

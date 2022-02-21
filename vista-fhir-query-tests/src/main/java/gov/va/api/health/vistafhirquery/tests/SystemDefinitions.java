@@ -21,6 +21,7 @@ import org.slf4j.LoggerFactory;
 /** System definitions that can be used by tests. */
 @UtilityClass
 public final class SystemDefinitions {
+
   private static final ReducedSpamLogger log =
       ReducedSpamLogger.builder().logger(LoggerFactory.getLogger(SentinelProperties.class)).build();
 
@@ -36,6 +37,7 @@ public final class SystemDefinitions {
         .coverage("I3-KIP2d05814vy8hy5ghAbLSc8yILbHdp9TOEEBgWJThb")
         .insurancePlan("I3-1JeCN3qnboBvfJAeuA5VVg")
         .medicationDispense("I3-GZUsHy8hKb94Zo6FG1EieL9KESGjNpNk7nAzyuWZmeSkpLoIGoMXhz")
+        .medicationRequest("I3-vBeIONImGXIKLsJU74tnViW0QxjDZINHOiE0kw25v9c")
         .organizations(
             OrganizationIds.builder()
                 .insTypeRead("I3-450NAk1LKUAaaGqyCDA9S9")
@@ -59,6 +61,7 @@ public final class SystemDefinitions {
         .coverage("TODO https://vajira.max.gov/browse/API-8891")
         .insurancePlan("TODO https://vajira.max.gov/browse/API-8891")
         .medicationDispense("I3-457Vr53po4UOEtb8EOfpsvpcybyLhT1GMkFfnvG0oDqIFWs0XoS09q")
+        .medicationRequest("TODO https://vajira.max.gov/browse/API-8891")
         .organizations(
             OrganizationIds.builder()
                 .insTypeRead("TODO https://vajira.max.gov/browse/API-8891")
@@ -82,6 +85,7 @@ public final class SystemDefinitions {
         .coverage("I3-onSd2F0QCJnTLBUa2wtl7hqxWh9zUsQ37GhxL5dxDc6")
         .insurancePlan("I3-35bba1Pto08dShHpQSSihU")
         .medicationDispense("I3-Gb8CL0jU5H28XaefbHqObnqlEf4hfOZhOcf8m4eMI93bKt0quIh75z")
+        .medicationRequest("I3-GTBBRHbarRNLFP8vUaCBY64wGpN0TxB7HWsJxJNbhuu")
         .organizations(
             OrganizationIds.builder()
                 .insTypeRead("I3-27zyn3hOzdy6gvpo8Unwby")

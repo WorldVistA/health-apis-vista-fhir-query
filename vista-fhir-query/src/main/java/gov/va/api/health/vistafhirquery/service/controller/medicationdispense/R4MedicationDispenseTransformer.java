@@ -1,21 +1,19 @@
 package gov.va.api.health.vistafhirquery.service.controller.medicationdispense;
 
-import static gov.va.api.health.vistafhirquery.service.controller.R4Transformers.allBlank;
+import static gov.va.api.health.vistafhirquery.service.controller.R4Transformers.asListOrNull;
 import static gov.va.api.health.vistafhirquery.service.controller.R4Transformers.isBlank;
 import static gov.va.api.health.vistafhirquery.service.controller.R4Transformers.toBigDecimal;
 import static gov.va.api.health.vistafhirquery.service.controller.R4Transformers.toHumanDateTime;
 import static gov.va.api.health.vistafhirquery.service.controller.R4Transformers.toReference;
 import static gov.va.api.health.vistafhirquery.service.controller.R4Transformers.valueOfValueOnlyXmlAttribute;
+import static gov.va.api.health.vistafhirquery.service.controller.medication.R4MedicationTransformers.dosageInstruction;
+import static gov.va.api.health.vistafhirquery.service.controller.medication.R4MedicationTransformers.quantity;
 import static gov.va.api.health.vistafhirquery.service.util.Translations.ignoreAndReturnNull;
 import static gov.va.api.health.vistafhirquery.service.util.Translations.returnNull;
 import static io.micrometer.core.instrument.util.StringUtils.isNotBlank;
-import static org.apache.commons.lang3.StringUtils.trimToNull;
 
 import gov.va.api.health.fhir.api.Safe;
-import gov.va.api.health.r4.api.datatypes.CodeableConcept;
-import gov.va.api.health.r4.api.datatypes.Coding;
 import gov.va.api.health.r4.api.datatypes.SimpleQuantity;
-import gov.va.api.health.r4.api.elements.Dosage;
 import gov.va.api.health.r4.api.elements.Meta;
 import gov.va.api.health.r4.api.elements.Reference;
 import gov.va.api.health.r4.api.resources.MedicationDispense;
@@ -24,16 +22,14 @@ import gov.va.api.health.vistafhirquery.service.controller.DateSearchBoundaries;
 import gov.va.api.health.vistafhirquery.service.controller.R4Transformers;
 import gov.va.api.health.vistafhirquery.service.controller.SegmentedVistaIdentifier;
 import gov.va.api.health.vistafhirquery.service.controller.SegmentedVistaIdentifier.PatientIdentifierType;
+import gov.va.api.health.vistafhirquery.service.controller.medication.R4MedicationTransformers;
 import gov.va.api.health.vistafhirquery.service.util.Translation;
 import gov.va.api.health.vistafhirquery.service.util.Translations;
 import gov.va.api.lighthouse.charon.models.ValueOnlyXmlAttribute;
 import gov.va.api.lighthouse.charon.models.vprgetpatientdata.Meds.Med;
 import gov.va.api.lighthouse.charon.models.vprgetpatientdata.Meds.Med.Fill;
-import gov.va.api.lighthouse.charon.models.vprgetpatientdata.Meds.Med.Product;
-import gov.va.api.lighthouse.charon.models.vprgetpatientdata.Meds.Med.Product.ProductDetail;
 import gov.va.api.lighthouse.charon.models.vprgetpatientdata.VprGetPatientData;
 import gov.va.api.lighthouse.charon.models.vprgetpatientdata.VprGetPatientData.Domains;
-import java.util.List;
 import java.util.Objects;
 import java.util.function.Predicate;
 import java.util.stream.Stream;
@@ -98,17 +94,6 @@ public class R4MedicationDispenseTransformer {
         .orElse(null);
   }
 
-  List<Dosage> dosageInstruction(String sig, String ptInstructions) {
-    if (allBlank(sig, ptInstructions)) {
-      return null;
-    }
-    return Dosage.builder()
-        .text(trimToNull(sig))
-        .patientInstruction(trimToNull(ptInstructions))
-        .build()
-        .asList();
-  }
-
   MedicationDispenseId idOf(Med rpcMed, Fill fill) {
     return MedicationDispenseId.builder()
         .vistaId(
@@ -126,44 +111,6 @@ public class R4MedicationDispenseTransformer {
   boolean isViable(Fill fill) {
     /* Fill date is essential for the resulting medication dispense record. */
     return isNotBlank(fill.fillDate());
-  }
-
-  CodeableConcept medicationCodeableConcept(Product product) {
-
-    if (product == null || allBlank(product.name(), product.clazz())) {
-      return null;
-    }
-    return CodeableConcept.builder()
-        .text(trimToNull(product.name()))
-        .coding(productCoding(product.clazz()))
-        .build();
-  }
-
-  List<Coding> productCoding(ProductDetail maybeDetail) {
-    if (isBlank(maybeDetail)) {
-      return null;
-    }
-    if (allBlank(maybeDetail.code(), maybeDetail.name())) {
-      return null;
-    }
-    return Coding.builder()
-        .system("https://www.pbm.va.gov/nationalformulary.asp")
-        .code(maybeDetail.code())
-        .display(maybeDetail.name())
-        .build()
-        .asList();
-  }
-
-  private SimpleQuantity quantity(String fillQuantity) {
-    /*
-     * https://vivian.worldvista.org/dox/SubFile_52.1.html `52.1-1` `QTY` may have alpha
-     * characters for entered prior to 2000-02-17.s
-     */
-    var value = toBigDecimal(fillQuantity);
-    if (isBlank(value)) {
-      return null;
-    }
-    return SimpleQuantity.builder().value(value).build();
   }
 
   Status status(Fill fill) {
@@ -196,19 +143,21 @@ public class R4MedicationDispenseTransformer {
         .id(idOf(rpcMed, fill).toString())
         .meta(Meta.builder().source(site()).build())
         .status(status(fill))
-        .subject(toReference("Patient", patientIcn(), null))
+        .subject(toReference("Patient", patientIcn, null))
         .medicationCodeableConcept(
             Safe.stream(rpcMed.product())
                 .findFirst()
-                .map(this::medicationCodeableConcept)
+                .map(R4MedicationTransformers::medicationCodeableConcept)
                 .orElse(null))
         .whenHandedOver(toDate(fill.releaseDate()))
-        .quantity(quantity(fill.fillQuantity()))
+        .quantity(quantity(fill.fillQuantity(), null))
         .daysSupply(daysSupply(fill.fillDaysSupply()))
         .whenPrepared(toDate(fill.fillDate()))
         .destination(destination(rpcMed.routing()))
         .dosageInstruction(
-            dosageInstruction(rpcMed.sig(), valueOfValueOnlyXmlAttribute(rpcMed.ptInstructions())))
+            asListOrNull(
+                dosageInstruction(
+                    rpcMed.sig(), valueOfValueOnlyXmlAttribute(rpcMed.ptInstructions()))))
         .build();
   }
 }

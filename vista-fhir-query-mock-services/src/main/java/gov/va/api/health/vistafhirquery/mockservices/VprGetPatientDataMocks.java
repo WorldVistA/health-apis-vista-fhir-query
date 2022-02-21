@@ -34,8 +34,8 @@ public class VprGetPatientDataMocks implements MockService {
           this::appointmentRead,
           this::appointmentSearch,
           this::appointmentSearchDate,
-          this::medicationDispenseRead,
-          this::medicationDispenseSearch,
+          this::medsDomainRead,
+          this::medsDomainSearch,
           this::observationReadLabs,
           this::observationReadVitals,
           this::observationSearch);
@@ -113,7 +113,7 @@ public class VprGetPatientDataMocks implements MockService {
                         "/vistalinkapi-vprgetpatientdata-appointment-searchresponse.xml")));
   }
 
-  void medicationDispenseRead(MockServerClient mock) {
+  void medsDomainRead(MockServerClient mock) {
     var details =
         VprGetPatientData.Request.builder()
             .context(Optional.of("MOCKSERVICES"))
@@ -132,10 +132,10 @@ public class VprGetPatientDataMocks implements MockService {
                 .withHeader(contentTypeApplicationJson())
                 .withBody(
                     rpcInvocationResultV1_OkWithContent(
-                        "/vistalinkapi-vprgetpatientdata-medicationdispense-readresponse.xml")));
+                        "/vistalinkapi-vprgetpatientdata-medsdomain-readresponse.xml")));
   }
 
-  void medicationDispenseSearch(MockServerClient mock) {
+  void medsDomainSearch(MockServerClient mock) {
     var details =
         VprGetPatientData.Request.builder()
             .context(Optional.of("MOCKSERVICES"))
@@ -153,7 +153,7 @@ public class VprGetPatientDataMocks implements MockService {
                 .withHeader(contentTypeApplicationJson())
                 .withBody(
                     rpcInvocationResultV1_OkWithContent(
-                        "/vistalinkapi-vprgetpatientdata-medicationdispense-searchresponse.xml")));
+                        "/vistalinkapi-vprgetpatientdata-medsdomain-searchresponse.xml")));
   }
 
   void observationReadLabs(MockServerClient mock) {

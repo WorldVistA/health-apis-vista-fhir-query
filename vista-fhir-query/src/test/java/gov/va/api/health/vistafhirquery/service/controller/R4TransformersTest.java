@@ -1,6 +1,7 @@
 package gov.va.api.health.vistafhirquery.service.controller;
 
 import static gov.va.api.health.vistafhirquery.service.controller.R4Transformers.allBlank;
+import static gov.va.api.health.vistafhirquery.service.controller.R4Transformers.asListOrNull;
 import static gov.va.api.health.vistafhirquery.service.controller.R4Transformers.codeableconceptHasCodingSystem;
 import static gov.va.api.health.vistafhirquery.service.controller.R4Transformers.extensionForSystem;
 import static gov.va.api.health.vistafhirquery.service.controller.R4Transformers.identifierHasCodingSystem;
@@ -9,6 +10,7 @@ import static gov.va.api.health.vistafhirquery.service.controller.R4Transformers
 import static gov.va.api.health.vistafhirquery.service.controller.R4Transformers.referenceIdFromUri;
 import static gov.va.api.health.vistafhirquery.service.controller.R4Transformers.toBigDecimal;
 import static gov.va.api.health.vistafhirquery.service.controller.R4Transformers.toHumanDateTime;
+import static gov.va.api.health.vistafhirquery.service.controller.R4Transformers.toInteger;
 import static gov.va.api.health.vistafhirquery.service.controller.R4Transformers.toIso8601;
 import static gov.va.api.health.vistafhirquery.service.controller.R4Transformers.toLocalDateMacroString;
 import static gov.va.api.health.vistafhirquery.service.controller.R4Transformers.valueOfValueOnlyXmlAttribute;
@@ -60,6 +62,12 @@ public class R4TransformersTest {
         Arguments.of(true, false),
         Arguments.of(1.23, false),
         Arguments.of(new BigDecimal("1.1"), false));
+  }
+
+  @Test
+  void asListOrNullBehavior() {
+    assertThat(asListOrNull(null)).isNull();
+    assertThat(asListOrNull("foo")).containsExactly("foo");
   }
 
   @Test
@@ -176,6 +184,15 @@ public class R4TransformersTest {
     Function<Object, String> extract = (o) -> "x" + o;
     assertThat(ifPresent(null, extract)).isNull();
     assertThat(ifPresent("abc", extract)).isEqualTo("xabc");
+  }
+
+  @Test
+  void toIntegerConversion() {
+    assertThat(toInteger(null)).isNull();
+    assertThat(toInteger("")).isNull();
+    assertThat(toInteger("nope")).isNull();
+    assertThat(toInteger("123.456")).isNull();
+    assertThat(toInteger("123")).isEqualTo(123);
   }
 
   @Test

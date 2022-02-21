@@ -13,7 +13,8 @@ import gov.va.api.health.r4.api.elements.Reference;
 import gov.va.api.health.r4.api.resources.MedicationDispense;
 import gov.va.api.health.r4.api.resources.MedicationDispense.Status;
 import gov.va.api.health.vistafhirquery.service.controller.DateSearchBoundaries;
-import gov.va.api.health.vistafhirquery.service.controller.medicationdispense.MedicationDispenseSamples.Vista;
+import gov.va.api.health.vistafhirquery.service.controller.medication.MedicationSamples;
+import gov.va.api.health.vistafhirquery.service.controller.medication.MedicationSamples.Vista;
 import gov.va.api.lighthouse.charon.models.ValueOnlyXmlAttribute;
 import gov.va.api.lighthouse.charon.models.vprgetpatientdata.Meds.Med.Fill;
 import gov.va.api.lighthouse.charon.models.vprgetpatientdata.Meds.Med.Product;
@@ -31,6 +32,7 @@ import org.junit.jupiter.params.provider.MethodSource;
 
 @SuppressWarnings("ALL")
 class R4MedicationDispenseTransformerTest {
+
   static CodeableConcept _cc(String text, List<Coding> codings) {
     return CodeableConcept.builder().text(text).coding(codings).build();
   }
@@ -70,7 +72,7 @@ class R4MedicationDispenseTransformerTest {
   }
 
   static R4MedicationDispenseTransformer _tx() {
-    return _tx(MedicationDispenseSamples.Vista.create().results());
+    return _tx(MedicationSamples.Vista.create().results());
   }
 
   static Stream<Arguments> daysSupply() {
@@ -140,7 +142,7 @@ class R4MedicationDispenseTransformerTest {
   }
 
   static Stream<Arguments> toFhirIgnoresUnusableFills() {
-    var ignoredBecauseNoFillDate = Vista.create().fill(null, "3050121");
+    var ignoredBecauseNoFillDate = MedicationSamples.Vista.create().fill(null, "3050121");
     var ignoredBecauseEmpty = Fill.builder().build();
     return Stream.of(Arguments.of(ignoredBecauseEmpty), Arguments.of(ignoredBecauseNoFillDate));
   }
@@ -159,25 +161,11 @@ class R4MedicationDispenseTransformerTest {
     assertThat(actual).isEqualTo(expected);
   }
 
-  @ParameterizedTest
-  @MethodSource
-  void dosageInstruction(String sig, String ptInstructions, List<Dosage> expected) {
-    var actual = _tx().dosageInstruction(sig, ptInstructions);
-    assertThat(actual).isEqualTo(expected);
-  }
-
   @Test
   void fillDateIsRequiredToBeConsideredViable() {
-    var fill = MedicationDispenseSamples.Vista.create().fill();
+    var fill = MedicationSamples.Vista.create().fill();
     assertThat(_tx().isViable(fill)).isTrue();
     assertThat(_tx().isViable(fill.fillDate(null))).isFalse();
-  }
-
-  @ParameterizedTest
-  @MethodSource
-  void medicationCodeableConcept(Product product, CodeableConcept expected) {
-    var actual = _tx().medicationCodeableConcept(product);
-    assertThat(actual).isEqualTo(expected);
   }
 
   @Test
@@ -205,13 +193,6 @@ class R4MedicationDispenseTransformerTest {
         .rejects(vista.fill("3040121"), vista.fill("3040121", "3060121"));
   }
 
-  @ParameterizedTest
-  @MethodSource
-  void productCoding(ProductDetail detail, List<Coding> expected) {
-    var actual = _tx().productCoding(detail);
-    assertThat(actual).isEqualTo(expected);
-  }
-
   @Test
   void status() {
     assertThat(_tx().status(Fill.builder().build())).isEqualTo(Status.in_progress);
@@ -227,7 +208,7 @@ class R4MedicationDispenseTransformerTest {
   @ParameterizedTest
   @MethodSource
   void toFhirIgnoresUnusableFills(Fill ignoreMe) {
-    var vista = Vista.create();
+    var vista = MedicationSamples.Vista.create();
     var includeFill = vista.fill("3050121");
     var includeFillWithoutReleaseDate = vista.fill("3060121", null);
     var med = vista.med("1", includeFill, ignoreMe, includeFillWithoutReleaseDate);
@@ -241,7 +222,7 @@ class R4MedicationDispenseTransformerTest {
 
   @Test
   void toFhirUsesOnlyFillsMatchingFileDateFilter() {
-    var vista = Vista.create();
+    var vista = MedicationSamples.Vista.create();
     var includeFill = vista.fill("3050121");
     var ignoredBecauseNotOnFillDate = vista.fill("3060121");
     var med = vista.med("1", includeFill, ignoredBecauseNotOnFillDate);

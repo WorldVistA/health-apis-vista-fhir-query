@@ -1,4 +1,4 @@
-package gov.va.api.health.vistafhirquery.service.controller.medicationdispense;
+package gov.va.api.health.vistafhirquery.service.controller.medicationrequest;
 
 import static gov.va.api.health.vistafhirquery.service.controller.MockRequests.json;
 import static gov.va.api.health.vistafhirquery.service.controller.MockRequests.requestFromUri;
@@ -16,7 +16,6 @@ import gov.va.api.health.vistafhirquery.service.config.VistaApiConfig;
 import gov.va.api.health.vistafhirquery.service.controller.MockWitnessProtection;
 import gov.va.api.health.vistafhirquery.service.controller.R4BundlerFactory;
 import gov.va.api.health.vistafhirquery.service.controller.medication.MedicationSamples;
-import gov.va.api.health.vistafhirquery.service.controller.medication.MedicationSamples.Vista;
 import gov.va.api.health.vistafhirquery.service.controller.witnessprotection.AlternatePatientIds.DisabledAlternatePatientIds;
 import gov.va.api.lighthouse.charon.api.v1.RpcInvocationResultV1;
 import gov.va.api.lighthouse.charon.models.TypeSafeRpcRequest;
@@ -27,15 +26,13 @@ import gov.va.api.lighthouse.charon.models.vprgetpatientdata.VprGetPatientData.R
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
-import java.util.function.Function;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-@SuppressWarnings("unchecked")
 @ExtendWith(MockitoExtension.class)
-public class R4SiteMedicationDispenseControllerTest {
+public class R4SiteMedicationRequestControllerTest {
 
   @Mock CharonClient charonClient;
 
@@ -61,8 +58,8 @@ public class R4SiteMedicationDispenseControllerTest {
         .build();
   }
 
-  private R4SiteMedicationDispenseController _controller() {
-    return R4SiteMedicationDispenseController.builder()
+  private R4SiteMedicationRequestController _controller() {
+    return R4SiteMedicationRequestController.builder()
         .bundlerFactory(
             R4BundlerFactory.builder()
                 .linkProperties(
@@ -101,10 +98,10 @@ public class R4SiteMedicationDispenseControllerTest {
     var charonResponse = MedicationSamples.Vista.create().results();
     when(charonClient.request(any(CharonRequest.class)))
         .thenReturn(_charonResponseFor(charonRequest, charonResponse));
-    witnessProtection.add("p1", "sNp1+673+M33714:3110507");
-    var actual = _controller().medicationDispenseRead(httpRequest, "673", "p1");
+    witnessProtection.add("p1", "sNp1+673+M33714");
+    var actual = _controller().medicationRequestRead(httpRequest, "673", "p1");
     assertThat(json(actual))
-        .isEqualTo(json(MedicationDispenseSamples.R4.create().medicationDispense()));
+        .isEqualTo(json(MedicationRequestSamples.R4.create().medicationRequest()));
   }
 
   @Test
@@ -120,54 +117,16 @@ public class R4SiteMedicationDispenseControllerTest {
     var charonResponse = MedicationSamples.Vista.create().results();
     when(charonClient.request(any(CharonRequest.class)))
         .thenReturn(_charonResponseFor(charonRequest, charonResponse));
-    var actual = _controller().medicationDispenseSearch(httpRequest, "673", "p1", null, 15);
+    var actual = _controller().medicationRequestSearch(httpRequest, "673", "p1", 15);
     var expected =
-        MedicationDispenseSamples.R4.asBundle(
+        MedicationRequestSamples.R4.asBundle(
             "http://fugazi.com/hcs/673/r4",
-            List.of(MedicationDispenseSamples.R4.create().medicationDispense()),
+            List.of(MedicationRequestSamples.R4.create().medicationRequest()),
             1,
             link(
                 BundleLink.LinkRelation.self,
-                "http://fugazi.com/hcs/673/r4/MedicationDispense",
+                "http://fugazi.com/hcs/673/r4/MedicationRequest",
                 "_count=15&patient=p1"));
     assertThat(json(actual)).isEqualTo(json(expected));
-  }
-
-  @Test
-  void searchByPatientWithDate() {
-    var httpRequest = requestFromUri("?date=gt2020&patient=p1");
-    var rpcRequest =
-        VprGetPatientData.Request.builder()
-            .context(Optional.ofNullable(vistaApiConfig.getVprGetPatientDataContext()))
-            .dfn(PatientId.forIcn("p1"))
-            .type(Set.of(Domains.meds))
-            .build();
-    var charonRequest = _charonRequestFor(rpcRequest);
-    var vista = Vista.create();
-    var charonResponse =
-        vista.results(
-            vista.med(
-                "1",
-                vista.fill("3040121"),
-                vista.fill("3050121"),
-                vista.fill("3060121"),
-                vista.fill("3070121")));
-    when(charonClient.request(any(CharonRequest.class)))
-        .thenReturn(_charonResponseFor(charonRequest, charonResponse));
-
-    String[] anytime = {};
-    String[] gt2004 = {"gt2004"};
-    String[] gt2004lt2007 = {"gt2004", "lt2007"};
-    String[] zombieApocalypse = {"eq2022"};
-
-    Function<String[], Integer> totalFor =
-        dates ->
-            _controller().medicationDispenseSearch(httpRequest, "673", "p1", dates, 15).total();
-
-    assertThat(totalFor.apply(null)).isEqualTo(4);
-    assertThat(totalFor.apply(anytime)).isEqualTo(4);
-    assertThat(totalFor.apply(gt2004)).isEqualTo(3);
-    assertThat(totalFor.apply(gt2004lt2007)).isEqualTo(2);
-    assertThat(totalFor.apply(zombieApocalypse)).isEqualTo(0);
   }
 }

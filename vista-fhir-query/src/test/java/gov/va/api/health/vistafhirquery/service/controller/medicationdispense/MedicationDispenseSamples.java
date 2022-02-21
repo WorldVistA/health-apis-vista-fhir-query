@@ -14,18 +14,7 @@ import gov.va.api.health.r4.api.elements.Reference;
 import gov.va.api.health.r4.api.resources.MedicationDispense;
 import gov.va.api.health.r4.api.resources.MedicationDispense.Status;
 import gov.va.api.health.vistafhirquery.service.controller.R4Transformers;
-import gov.va.api.lighthouse.charon.models.CodeAndNameXmlAttribute;
-import gov.va.api.lighthouse.charon.models.FilemanDate;
-import gov.va.api.lighthouse.charon.models.ValueOnlyXmlAttribute;
-import gov.va.api.lighthouse.charon.models.vprgetpatientdata.Meds;
-import gov.va.api.lighthouse.charon.models.vprgetpatientdata.Meds.Med;
-import gov.va.api.lighthouse.charon.models.vprgetpatientdata.Meds.Med.Fill;
-import gov.va.api.lighthouse.charon.models.vprgetpatientdata.Meds.Med.Product;
-import gov.va.api.lighthouse.charon.models.vprgetpatientdata.Meds.Med.Product.ProductDetail;
-import gov.va.api.lighthouse.charon.models.vprgetpatientdata.VprGetPatientData;
 import java.math.BigDecimal;
-import java.time.ZoneId;
-import java.time.temporal.ChronoUnit;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
@@ -102,68 +91,6 @@ public class MedicationDispenseSamples {
                   .patientInstruction("take with food")
                   .build()
                   .asList())
-          .build();
-    }
-  }
-
-  @NoArgsConstructor(staticName = "create")
-  public static class Vista {
-
-    public Fill fill() {
-      return fill("3110507", "3110508");
-    }
-
-    public Fill fill(String fillDate) {
-      var oneDayLater =
-          FilemanDate.from(fillDate, ZoneId.of("UTC")).instant().plus(1, ChronoUnit.DAYS);
-      String releaseDate = FilemanDate.from(oneDayLater).formatAsDateTime(ZoneId.of("UTC"));
-      return fill(fillDate, releaseDate);
-    }
-
-    public Fill fill(String fillDate, String releaseDate) {
-      return Fill.builder()
-          .fillDate(fillDate)
-          .fillRouting("W")
-          .fillQuantity("30")
-          .fillDaysSupply("8")
-          .releaseDate(releaseDate)
-          .build();
-    }
-
-    public Meds.Med med(String id) {
-      return med(id, fill());
-    }
-
-    public Meds.Med med(String id, Fill... fills) {
-      return Med.builder()
-          .id(ValueOnlyXmlAttribute.of(id))
-          .facility(CodeAndNameXmlAttribute.of("673", "TAMPA (JAH VAH)"))
-          .routing(ValueOnlyXmlAttribute.of("W"))
-          .sig("TAKE 1 TAB BY MOUTH EVERY DAY")
-          .ptInstructions(ValueOnlyXmlAttribute.of("take with food"))
-          .fill(fills == null ? null : Arrays.asList(fills))
-          .product(
-              List.of(
-                  Product.builder()
-                      .name("WARFARIN")
-                      .clazz(ProductDetail.builder().name("ANTICOAGULANTS").code("BL110").build())
-                      .build()))
-          .build();
-    }
-
-    public Meds.Med med() {
-      return med("33714");
-    }
-
-    public VprGetPatientData.Response.Results results() {
-      return results(med());
-    }
-
-    public VprGetPatientData.Response.Results results(Meds.Med med) {
-      return VprGetPatientData.Response.Results.builder()
-          .version("1.13")
-          .timeZone("-0500")
-          .meds(Meds.builder().medResults(List.of(med)).build())
           .build();
     }
   }
