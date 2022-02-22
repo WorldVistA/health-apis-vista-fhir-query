@@ -2,14 +2,17 @@ package gov.va.api.health.vistafhirquery.service.controller.coverage;
 
 import static gov.va.api.health.vistafhirquery.service.controller.R4Transformers.allBlank;
 import static gov.va.api.health.vistafhirquery.service.controller.R4Transformers.asCodeableConcept;
+import static gov.va.api.health.vistafhirquery.service.controller.R4Transformers.emptyToNull;
 import static gov.va.api.health.vistafhirquery.service.controller.R4Transformers.isBlank;
 import static gov.va.api.health.vistafhirquery.service.controller.R4Transformers.toHumanDateTime;
 import static gov.va.api.health.vistafhirquery.service.controller.R4Transformers.toReference;
 import static java.util.Collections.emptyList;
 
 import gov.va.api.health.fhir.api.Safe;
+import gov.va.api.health.r4.api.datatypes.Address;
 import gov.va.api.health.r4.api.datatypes.CodeableConcept;
 import gov.va.api.health.r4.api.datatypes.Coding;
+import gov.va.api.health.r4.api.datatypes.ContactPoint;
 import gov.va.api.health.r4.api.datatypes.Identifier;
 import gov.va.api.health.r4.api.datatypes.Period;
 import gov.va.api.health.r4.api.elements.Extension;
@@ -34,6 +37,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import lombok.Builder;
 import lombok.NonNull;
@@ -94,6 +98,33 @@ public class InsuranceBufferToR4CoverageTransformer {
 
   @NonNull LhsLighthouseRpcGatewayResponse.Results results;
 
+  private List<Address> address(FilemanEntry entry) {
+    String streetAddressLine1 =
+        entry.internal(InsuranceVerificationProcessor.STREET_ADDRESS_LINE_1).orElse(null);
+    String streetAddressLine2 =
+        entry.internal(InsuranceVerificationProcessor.STREET_ADDRESS_LINE_2).orElse(null);
+    String streetAddressLine3 =
+        entry.internal(InsuranceVerificationProcessor.STREET_ADDRESS_LINE_3).orElse(null);
+    String city = entry.internal(InsuranceVerificationProcessor.CITY).orElse(null);
+    String state = entry.external(InsuranceVerificationProcessor.STATE).orElse(null);
+    String zipCode = entry.internal(InsuranceVerificationProcessor.ZIP_CODE).orElse(null);
+    if (allBlank(
+        streetAddressLine1, streetAddressLine2, streetAddressLine3, city, state, zipCode)) {
+      return null;
+    }
+    return Address.builder()
+        .city(city)
+        .state(state)
+        .line(
+            emptyToNull(
+                Stream.of(streetAddressLine1, streetAddressLine2, streetAddressLine3)
+                    .filter(Objects::nonNull)
+                    .toList()))
+        .postalCode(zipCode)
+        .build()
+        .asList();
+  }
+
   private Reference beneficiary(@NonNull String patientIcn, Optional<String> maybePatientId) {
     var ref = toReference(Patient.class.getSimpleName(), patientIcn, null);
     if (ref == null) {
@@ -117,6 +148,31 @@ public class InsuranceBufferToR4CoverageTransformer {
                     .value(patientId)
                     .build()));
     return ref;
+  }
+
+  private Organization.Contact billingContact(FilemanEntry entry) {
+    var billingPhoneNumber =
+        entry.internal(InsuranceVerificationProcessor.BILLING_PHONE_NUMBER).map(this::phone);
+    if (isBlank(billingPhoneNumber)) {
+      return null;
+    }
+    return Organization.Contact.builder()
+        .telecom(billingPhoneNumber.get().asList())
+        .purpose(
+            asCodeableConcept(
+                Coding.builder()
+                    .code("BILL")
+                    .display("BILL")
+                    .system("http://terminology.hl7.org/CodeSystem/contactentity-type")
+                    .build()))
+        .build();
+  }
+
+  private List<Organization.Contact> contacts(LhsLighthouseRpcGatewayResponse.FilemanEntry entry) {
+    return emptyToNull(
+        Stream.of(billingContact(entry), precertificationContact(entry))
+            .filter(Objects::nonNull)
+            .collect(Collectors.toList()));
   }
 
   private ContainedResourceWriter<Coverage> contained(FilemanEntry entry) {
@@ -147,6 +203,18 @@ public class InsuranceBufferToR4CoverageTransformer {
         .value(referenceId)
         .build()
         .asList();
+  }
+
+  private List<Extension> extensions(LhsLighthouseRpcGatewayResponse.FilemanEntry entry) {
+    ExtensionFactory extensions = ExtensionFactory.of(entry, YES_NO);
+    return emptyToNull(
+        Stream.of(
+                extensions.ofCodeableConceptFromExternalValue(
+                    InsuranceVerificationProcessor.REIMBURSE,
+                    InsuranceBufferStructureDefinitions.REIMBURSE_URN_OID,
+                    InsuranceBufferStructureDefinitions.REIMBURSE))
+            .filter(Objects::nonNull)
+            .collect(Collectors.toList()));
   }
 
   private List<Extension> insurancePlanExtensions(FilemanEntry entry) {
@@ -221,6 +289,36 @@ public class InsuranceBufferToR4CoverageTransformer {
       return null;
     }
     return period;
+  }
+
+  private ContactPoint phone(String maybePhone) {
+    if (isBlank(maybePhone)) {
+      return null;
+    }
+    return ContactPoint.builder()
+        .value(maybePhone)
+        .system(ContactPoint.ContactPointSystem.phone)
+        .build();
+  }
+
+  private Organization.Contact precertificationContact(FilemanEntry entry) {
+    var precertificationPhoneNumber =
+        entry
+            .internal(InsuranceVerificationProcessor.PRECERTIFICATION_PHONE_NUMBER)
+            .map(this::phone);
+    if (isBlank(precertificationPhoneNumber)) {
+      return null;
+    }
+    return Organization.Contact.builder()
+        .telecom(precertificationPhoneNumber.get().asList())
+        .purpose(
+            asCodeableConcept(
+                Coding.builder()
+                    .code("PRECERT")
+                    .display("PRECERT")
+                    .system("https://va.gov/fhir/CodeSystem/organization-contactType")
+                    .build()))
+        .build();
   }
 
   private CodeableConcept relationship(String ptRelationshipHipaa) {
@@ -299,8 +397,17 @@ public class InsuranceBufferToR4CoverageTransformer {
     var org =
         Organization.builder()
             .active(true)
+            .address(address(entry))
+            .contact(contacts(entry))
+            .extension(extensions(entry))
             .name(
                 entry.internal(InsuranceVerificationProcessor.INSURANCE_COMPANY_NAME).orElse(null))
+            .telecom(
+                entry
+                    .internal(InsuranceVerificationProcessor.PHONE_NUMBER)
+                    .map(this::phone)
+                    .map(ContactPoint::asList)
+                    .orElse(null))
             .build();
     if (Organization.builder().active(true).build().equals(org)) {
       return null;

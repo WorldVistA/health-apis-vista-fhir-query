@@ -18,6 +18,10 @@ public interface InsuranceBufferStructureDefinitions {
   String PRECERTIFICATION_REQUIRED =
       "http://va.gov/fhir/StructureDefinition/insuranceplan-isPreCertificationRequired";
 
+  String REIMBURSE = "http://va.gov/fhir/StructureDefinition/organization-willReimburseForCare";
+
+  String REIMBURSE_URN_OID = "urn:oid:2.16.840.1.113883.3.8901.3.1.3558033.208005";
+
   String INQ_SERVICE_TYPE_CODE = "urn:oid:2.16.840.1.113883.3.8901.3.1.3558033.8808001";
 
   String UTILIZATION_REVIEW_REQUIRED =

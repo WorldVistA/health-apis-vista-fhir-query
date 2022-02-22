@@ -3,8 +3,10 @@ package gov.va.api.health.vistafhirquery.service.controller.coverage;
 import gov.va.api.health.r4.api.bundle.AbstractBundle;
 import gov.va.api.health.r4.api.bundle.AbstractEntry;
 import gov.va.api.health.r4.api.bundle.BundleLink;
+import gov.va.api.health.r4.api.datatypes.Address;
 import gov.va.api.health.r4.api.datatypes.CodeableConcept;
 import gov.va.api.health.r4.api.datatypes.Coding;
+import gov.va.api.health.r4.api.datatypes.ContactPoint;
 import gov.va.api.health.r4.api.datatypes.Identifier;
 import gov.va.api.health.r4.api.datatypes.Period;
 import gov.va.api.health.r4.api.elements.Extension;
@@ -25,6 +27,7 @@ import gov.va.api.lighthouse.charon.models.lhslighthouserpcgateway.LhsLighthouse
 import gov.va.api.lighthouse.charon.models.lhslighthouserpcgateway.LhsLighthouseRpcGatewayResponse.Values;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -74,6 +77,16 @@ public class CoverageSamples {
       return BundleLink.builder().relation(rel).url(base + "?" + query).build();
     }
 
+    private List<Address> address() {
+      return Address.builder()
+          .state("FLORIDA")
+          .city("SHANK CITY")
+          .line(List.of("SHANKSVILLE LINE 1", "SHANKSVILLE LINE 2", "SHANKSVILLE LINE 3"))
+          .postalCode("322310014")
+          .build()
+          .asList();
+    }
+
     private Reference beneficiary(String patient) {
       return Reference.builder()
           .reference("Patient/" + patient)
@@ -90,6 +103,27 @@ public class CoverageSamples {
                                       .build()))
                           .build())
                   .value("13579")
+                  .build())
+          .build();
+    }
+
+    private Organization.Contact billingContact() {
+      return Organization.Contact.builder()
+          .telecom(
+              List.of(
+                  ContactPoint.builder()
+                      .value("800-SHANK-BILLING")
+                      .system(ContactPoint.ContactPointSystem.phone)
+                      .build()))
+          .purpose(
+              CodeableConcept.builder()
+                  .coding(
+                      Collections.singletonList(
+                          Coding.builder()
+                              .system("http://terminology.hl7.org/CodeSystem/contactentity-type")
+                              .code("BILL")
+                              .display("BILL")
+                              .build()))
                   .build())
           .build();
     }
@@ -141,7 +175,15 @@ public class CoverageSamples {
     }
 
     private Organization containedOrganization(String id) {
-      return Organization.builder().id(id).active(true).name("BCBS OF SHANKSVILLE").build();
+      return Organization.builder()
+          .id(id)
+          .active(true)
+          .name("BCBS OF SHANKSVILLE")
+          .address(address())
+          .contact(List.of(billingContact(), precertificationContact()))
+          .telecom(telecom())
+          .extension(organizationExtensions())
+          .build();
     }
 
     public Coverage coverage() {
@@ -248,6 +290,22 @@ public class CoverageSamples {
               .build());
     }
 
+    private List<Extension> organizationExtensions() {
+      return Extension.builder()
+          .url(InsuranceBufferStructureDefinitions.REIMBURSE)
+          .valueCodeableConcept(
+              CodeableConcept.builder()
+                  .coding(
+                      Collections.singletonList(
+                          Coding.builder()
+                              .code("WILL REIMBURSE")
+                              .system(InsuranceBufferStructureDefinitions.REIMBURSE_URN_OID)
+                              .build()))
+                  .build())
+          .build()
+          .asList();
+    }
+
     private Period period() {
       return Period.builder().start("1992-01-12T00:00:00Z").end("2025-01-01T00:00:00Z").build();
     }
@@ -269,6 +327,27 @@ public class CoverageSamples {
               .build());
     }
 
+    private Organization.Contact precertificationContact() {
+      return Organization.Contact.builder()
+          .telecom(
+              List.of(
+                  ContactPoint.builder()
+                      .value("800-SHANK-PRECERT")
+                      .system(ContactPoint.ContactPointSystem.phone)
+                      .build()))
+          .purpose(
+              CodeableConcept.builder()
+                  .coding(
+                      Collections.singletonList(
+                          Coding.builder()
+                              .system("https://va.gov/fhir/CodeSystem/organization-contactType")
+                              .code("PRECERT")
+                              .display("PRECERT")
+                              .build()))
+                  .build())
+          .build();
+    }
+
     private CodeableConcept relationship() {
       return CodeableConcept.builder()
           .coding(
@@ -279,6 +358,14 @@ public class CoverageSamples {
                       .display("Spouse")
                       .build()))
           .build();
+    }
+
+    private List<ContactPoint> telecom() {
+      return ContactPoint.builder()
+          .value("800-SHANK-TELE")
+          .system(ContactPoint.ContactPointSystem.phone)
+          .build()
+          .asList();
     }
   }
 
@@ -306,6 +393,7 @@ public class CoverageSamples {
           insuranceBufferValue(InsuranceVerificationProcessor.WHOSE_INSURANCE, "s"),
           insuranceBufferValue(InsuranceVerificationProcessor.PT_RELATIONSHIP_HIPAA, "SPOUSE"),
           insuranceBufferValue(InsuranceVerificationProcessor.PATIENT_ID, "13579"),
+          insuranceBufferValue(InsuranceVerificationProcessor.GROUP_NUMBER, "GRP123456"),
           insuranceBufferValue(InsuranceVerificationProcessor.OVERRIDE_FRESHNESS_FLAG, "0"),
           insuranceBufferValue(InsuranceVerificationProcessor.STATUS, "E"),
           insuranceBufferValue(InsuranceVerificationProcessor.INQ_SERVICE_TYPE_CODE_1, "1"),
@@ -318,7 +406,6 @@ public class CoverageSamples {
           insuranceBufferValue(InsuranceVerificationProcessor.AMBULATORY_CARE_CERTIFICATION, "YES"),
           insuranceBufferValue(InsuranceVerificationProcessor.EXCLUDE_PREEXISTING_CONDITION, "NO"),
           insuranceBufferValue(InsuranceVerificationProcessor.BENEFITS_ASSIGNABLE, "YES"),
-          insuranceBufferValue(InsuranceVerificationProcessor.GROUP_NUMBER, "GRP123456"),
           insuranceBufferValue(
               InsuranceVerificationProcessor.BANKING_IDENTIFICATION_NUMBER, "88888888"),
           insuranceBufferValue(
@@ -399,6 +486,29 @@ public class CoverageSamples {
       fields.put(InsuranceVerificationProcessor.SUBSCRIBER_ID, Values.of("R50797108", "R50797108"));
       fields.put(InsuranceVerificationProcessor.EFFECTIVE_DATE, Values.of("2920112", "2920112"));
       fields.put(InsuranceVerificationProcessor.EXPIRATION_DATE, Values.of("3250101", "3250101"));
+      fields.put(
+          InsuranceVerificationProcessor.PHONE_NUMBER,
+          Values.of("800-SHANK-TELE", "800-SHANK-TELE"));
+      fields.put(
+          InsuranceVerificationProcessor.STREET_ADDRESS_LINE_1,
+          Values.of("SHANKSVILLE LINE 1", "SHANKSVILLE LINE 1"));
+      fields.put(
+          InsuranceVerificationProcessor.STREET_ADDRESS_LINE_2,
+          Values.of("SHANKSVILLE LINE 2", "SHANKSVILLE LINE 2"));
+      fields.put(
+          InsuranceVerificationProcessor.STREET_ADDRESS_LINE_3,
+          Values.of("SHANKSVILLE LINE 3", "SHANKSVILLE LINE 3"));
+      fields.put(InsuranceVerificationProcessor.CITY, Values.of("SHANK CITY", "SHANK CITY"));
+      fields.put(InsuranceVerificationProcessor.ZIP_CODE, Values.of("322310014", "322310014"));
+      fields.put(InsuranceVerificationProcessor.STATE, Values.of("FLORIDA", "FL"));
+      fields.put(
+          InsuranceVerificationProcessor.BILLING_PHONE_NUMBER,
+          Values.of("800-SHANK-BILLING", "800-SHANK-BILLING"));
+      fields.put(
+          InsuranceVerificationProcessor.PRECERTIFICATION_PHONE_NUMBER,
+          Values.of("800-SHANK-PRECERT", "800-SHANK-PRECERT"));
+      fields.put(
+          InsuranceVerificationProcessor.REIMBURSE, Values.of("WILL REIMBURSE", "WILL REIMBURSE"));
       fields.put(
           InsuranceVerificationProcessor.GROUP_NAME,
           Values.of("BCBS OF SHANKSVILLE GROUP", "BCBS OF SHANKSVILLE GROUP"));
