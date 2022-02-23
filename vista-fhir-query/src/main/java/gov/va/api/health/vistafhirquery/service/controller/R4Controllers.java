@@ -7,6 +7,7 @@ import gov.va.api.health.fhir.api.IsResource;
 import gov.va.api.health.vistafhirquery.service.controller.ResourceExceptions.ExpectationFailed;
 import gov.va.api.health.vistafhirquery.service.controller.ResourceExceptions.NotFound;
 import gov.va.api.lighthouse.charon.models.lhslighthouserpcgateway.LhsLighthouseRpcGatewayResponse;
+import gov.va.api.lighthouse.talos.ResponseIncludesIcnHeaderAdvice;
 import java.util.List;
 import javax.servlet.http.HttpServletResponse;
 import lombok.extern.slf4j.Slf4j;
@@ -14,6 +15,11 @@ import org.springframework.http.HttpHeaders;
 
 @Slf4j
 public class R4Controllers {
+  private static void addLocationHeaderAndStatus201(
+      HttpServletResponse response, String newResourceUrl) {
+    response.addHeader(HttpHeaders.LOCATION, newResourceUrl);
+    response.setStatus(201);
+  }
 
   /** Clear the ID field used when creating new resources. */
   public static void unsetIdForCreate(IsResource resource) {
@@ -21,11 +27,18 @@ public class R4Controllers {
   }
 
   /** Set the Location header and response status to 201. */
+  public static void updateResponseForCreatedPatientCentricResource(
+      HttpServletResponse response, String icn, String newResourceUrl) {
+    log.info("Resource created for {}: {}", icn, newResourceUrl);
+    addLocationHeaderAndStatus201(response, newResourceUrl);
+    ResponseIncludesIcnHeaderAdvice.addHeader(response, icn);
+  }
+
+  /** Set the Location header and response status to 201. */
   public static void updateResponseForCreatedResource(
       HttpServletResponse response, String newResourceUrl) {
     log.info("Resource created: {}", newResourceUrl);
-    response.addHeader(HttpHeaders.LOCATION, newResourceUrl);
-    response.setStatus(201);
+    addLocationHeaderAndStatus201(response, newResourceUrl);
   }
 
   /** Set the status to 200. */

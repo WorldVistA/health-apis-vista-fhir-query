@@ -16,6 +16,7 @@ import gov.va.api.lighthouse.charon.api.v1.RpcInvocationResultV1;
 import gov.va.api.lighthouse.charon.models.lhslighthouserpcgateway.LhsLighthouseRpcGatewayCoverageWrite;
 import gov.va.api.lighthouse.charon.models.lhslighthouserpcgateway.LhsLighthouseRpcGatewayCoverageWrite.Request.CoverageWriteApi;
 import gov.va.api.lighthouse.charon.models.lhslighthouserpcgateway.LhsLighthouseRpcGatewayGetsManifest;
+import gov.va.api.lighthouse.talos.ResponseIncludesIcnHeaderAdvice;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
@@ -83,6 +84,8 @@ class R4SiteInsuranceBufferCoverageControllerTest {
     assertThat(response.getStatus()).isEqualTo(201);
     assertThat(response.getHeader(HttpHeaders.LOCATION))
         .isEqualTo("http://fugazi.com/hcs/123/r4/Coverage/public-cov1");
+    assertThat(response.getHeader(ResponseIncludesIcnHeaderAdvice.INCLUDES_ICN_HEADER))
+        .isEqualTo("p1");
   }
 
   @Test
