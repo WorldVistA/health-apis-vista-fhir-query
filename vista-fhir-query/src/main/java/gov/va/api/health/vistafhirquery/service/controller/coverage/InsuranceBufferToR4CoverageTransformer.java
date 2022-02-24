@@ -23,10 +23,12 @@ import gov.va.api.health.r4.api.resources.Coverage.Status;
 import gov.va.api.health.r4.api.resources.InsurancePlan;
 import gov.va.api.health.r4.api.resources.Organization;
 import gov.va.api.health.r4.api.resources.Patient;
+import gov.va.api.health.r4.api.resources.RelatedPerson;
 import gov.va.api.health.vistafhirquery.service.controller.ContainedResourceWriter;
 import gov.va.api.health.vistafhirquery.service.controller.ContainedResourceWriter.ContainableResource;
 import gov.va.api.health.vistafhirquery.service.controller.ExtensionFactory;
 import gov.va.api.health.vistafhirquery.service.controller.PatientTypeCoordinates;
+import gov.va.api.health.vistafhirquery.service.controller.R4Transformers;
 import gov.va.api.lighthouse.charon.models.lhslighthouserpcgateway.InsuranceVerificationProcessor;
 import gov.va.api.lighthouse.charon.models.lhslighthouserpcgateway.LhsLighthouseRpcGatewayResponse;
 import gov.va.api.lighthouse.charon.models.lhslighthouserpcgateway.LhsLighthouseRpcGatewayResponse.FilemanEntry;
@@ -99,33 +101,6 @@ public class InsuranceBufferToR4CoverageTransformer {
 
   @NonNull LhsLighthouseRpcGatewayResponse.Results results;
 
-  private List<Address> address(FilemanEntry entry) {
-    String streetAddressLine1 =
-        entry.internal(InsuranceVerificationProcessor.STREET_ADDRESS_LINE_1).orElse(null);
-    String streetAddressLine2 =
-        entry.internal(InsuranceVerificationProcessor.STREET_ADDRESS_LINE_2).orElse(null);
-    String streetAddressLine3 =
-        entry.internal(InsuranceVerificationProcessor.STREET_ADDRESS_LINE_3).orElse(null);
-    String city = entry.internal(InsuranceVerificationProcessor.CITY).orElse(null);
-    String state = entry.external(InsuranceVerificationProcessor.STATE).orElse(null);
-    String zipCode = entry.internal(InsuranceVerificationProcessor.ZIP_CODE).orElse(null);
-    if (allBlank(
-        streetAddressLine1, streetAddressLine2, streetAddressLine3, city, state, zipCode)) {
-      return null;
-    }
-    return Address.builder()
-        .city(city)
-        .state(state)
-        .line(
-            emptyToNull(
-                Stream.of(streetAddressLine1, streetAddressLine2, streetAddressLine3)
-                    .filter(Objects::nonNull)
-                    .toList()))
-        .postalCode(zipCode)
-        .build()
-        .asList();
-  }
-
   private Reference beneficiary(@NonNull String patientIcn, Optional<String> maybePatientId) {
     var ref = toReference(Patient.class.getSimpleName(), patientIcn, null);
     if (ref == null) {
@@ -186,7 +161,23 @@ public class InsuranceBufferToR4CoverageTransformer {
             ContainableResource.<Coverage, Organization>builder()
                 .containedResource(toOrganization(entry))
                 .applyReferenceId(
-                    (o, id) -> o.payor(Reference.builder().reference(id).build().asList()))
+                    (o, id) ->
+                        o.payor(
+                            Reference.builder()
+                                .type(Organization.class.getSimpleName())
+                                .reference(id)
+                                .build()
+                                .asList()))
+                .build(),
+            ContainableResource.<Coverage, RelatedPerson>builder()
+                .containedResource(toRelatedPerson(entry))
+                .applyReferenceId(
+                    (c, id) ->
+                        c.subscriber(
+                            Reference.builder()
+                                .type(RelatedPerson.class.getSimpleName())
+                                .reference(id)
+                                .build()))
                 .build()));
   }
 
@@ -278,6 +269,33 @@ public class InsuranceBufferToR4CoverageTransformer {
     return InsurancePlan.Plan.builder().type(typeOfPlan).build().asList();
   }
 
+  private List<Address> payorAddress(FilemanEntry entry) {
+    String streetAddressLine1 =
+        entry.internal(InsuranceVerificationProcessor.STREET_ADDRESS_LINE_1).orElse(null);
+    String streetAddressLine2 =
+        entry.internal(InsuranceVerificationProcessor.STREET_ADDRESS_LINE_2).orElse(null);
+    String streetAddressLine3 =
+        entry.internal(InsuranceVerificationProcessor.STREET_ADDRESS_LINE_3).orElse(null);
+    String city = entry.internal(InsuranceVerificationProcessor.CITY).orElse(null);
+    String state = entry.external(InsuranceVerificationProcessor.STATE).orElse(null);
+    String zipCode = entry.internal(InsuranceVerificationProcessor.ZIP_CODE).orElse(null);
+    if (allBlank(
+        streetAddressLine1, streetAddressLine2, streetAddressLine3, city, state, zipCode)) {
+      return null;
+    }
+    return Address.builder()
+        .city(city)
+        .state(state)
+        .line(
+            emptyToNull(
+                Stream.of(streetAddressLine1, streetAddressLine2, streetAddressLine3)
+                    .filter(Objects::nonNull)
+                    .toList()))
+        .postalCode(zipCode)
+        .build()
+        .asList();
+  }
+
   private Period period(FilemanEntry entry) {
     Period period = Period.builder().build();
     entry
@@ -330,6 +348,85 @@ public class InsuranceBufferToR4CoverageTransformer {
         .map(
             relationship ->
                 CodeableConcept.builder().coding(relationship.asCoding().asList()).build())
+        .orElse(null);
+  }
+
+  private List<Address> subscriberAddress(FilemanEntry entry) {
+    String streetAddressLine1 =
+        entry.internal(InsuranceVerificationProcessor.SUBSCRIBER_ADDRESS_LINE_1).orElse(null);
+    String streetAddressLine2 =
+        entry.internal(InsuranceVerificationProcessor.SUBSCRIBER_ADDRESS_LINE_2).orElse(null);
+    String city =
+        entry.internal(InsuranceVerificationProcessor.SUBSCRIBER_ADDRESS_CITY).orElse(null);
+    String state =
+        entry.external(InsuranceVerificationProcessor.SUBSCRIBER_ADDRESS_STATE).orElse(null);
+    String country =
+        entry.internal(InsuranceVerificationProcessor.SUBSCRIBER_ADDRESS_COUNTRY).orElse(null);
+    String subdivision =
+        entry.internal(InsuranceVerificationProcessor.SUBSCRIBER_ADDRESS_SUBDIVISION).orElse(null);
+    String zipCode =
+        entry.internal(InsuranceVerificationProcessor.SUBSCRIBER_ADDRESS_ZIP).orElse(null);
+    if (allBlank(
+        streetAddressLine1, streetAddressLine2, city, subdivision, state, country, zipCode)) {
+      return null;
+    }
+    return Address.builder()
+        .city(city)
+        .state(state)
+        .line(
+            emptyToNull(
+                Stream.of(streetAddressLine1, streetAddressLine2)
+                    .filter(Objects::nonNull)
+                    .toList()))
+        .postalCode(zipCode)
+        .country(country)
+        .district(subdivision)
+        .build()
+        .asList();
+  }
+
+  private String subscriberBirthDate(FilemanEntry entry) {
+    return entry
+        .internal(InsuranceVerificationProcessor.INSUREDS_DOB)
+        .flatMap(R4Transformers::toHumanDateTime)
+        .map(hdt -> hdt.atZone(ZoneOffset.UTC).format(DateTimeFormatter.ISO_LOCAL_DATE))
+        .orElse(null);
+  }
+
+  private List<Extension> subscriberExtensions(FilemanEntry entry) {
+    ExtensionFactory extensions = ExtensionFactory.of(entry, YES_NO);
+    return emptyToNull(
+        Stream.of(
+                extensions.ofCodeableConceptFromInternalValue(
+                    InsuranceVerificationProcessor.INSUREDS_SEX,
+                    InsuranceBufferStructureDefinitions.INSUREDS_SEX_SYSTEM,
+                    InsuranceBufferStructureDefinitions.INSUREDS_SEX_URL))
+            .filter(Objects::nonNull)
+            .collect(Collectors.toList()));
+  }
+
+  private List<Identifier> subscriberIdentifier(FilemanEntry entry) {
+    return entry
+        .internal(InsuranceVerificationProcessor.INSUREDS_SSN)
+        .map(
+            ssn ->
+                Identifier.builder()
+                    .use(Identifier.IdentifierUse.official)
+                    .type(
+                        CodeableConcept.builder()
+                            .coding(
+                                Coding.builder()
+                                    .system("http://hl7.org/fhir/v2/0203")
+                                    .code("SB")
+                                    .build()
+                                    .asList())
+                            .build())
+                    .system("http://hl7.org/fhir/sid/us-ssn")
+                    .value(ssn)
+                    .assigner(
+                        Reference.builder().display("United States Social Security Number").build())
+                    .build()
+                    .asList())
         .orElse(null);
   }
 
@@ -398,7 +495,7 @@ public class InsuranceBufferToR4CoverageTransformer {
     var org =
         Organization.builder()
             .active(true)
-            .address(address(entry))
+            .address(payorAddress(entry))
             .contact(contacts(entry))
             .extension(extensions(entry))
             .name(
@@ -414,6 +511,26 @@ public class InsuranceBufferToR4CoverageTransformer {
       return null;
     }
     return org;
+  }
+
+  private RelatedPerson toRelatedPerson(FilemanEntry entry) {
+    var rp =
+        RelatedPerson.builder()
+            .birthDate(subscriberBirthDate(entry))
+            .extension(subscriberExtensions(entry))
+            .identifier(subscriberIdentifier(entry))
+            .address(subscriberAddress(entry))
+            .telecom(
+                entry
+                    .internal(InsuranceVerificationProcessor.SUBSCRIBER_PHONE)
+                    .map(this::phone)
+                    .map(ContactPoint::asList)
+                    .orElse(null))
+            .build();
+    if (RelatedPerson.builder().build().equals(rp)) {
+      return null;
+    }
+    return rp;
   }
 
   private CodeableConcept type(FilemanEntry entry, String fieldName, String system) {

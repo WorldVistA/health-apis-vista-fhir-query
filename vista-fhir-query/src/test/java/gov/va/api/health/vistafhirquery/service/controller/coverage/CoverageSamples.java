@@ -16,6 +16,7 @@ import gov.va.api.health.r4.api.resources.Coverage;
 import gov.va.api.health.r4.api.resources.Coverage.Status;
 import gov.va.api.health.r4.api.resources.InsurancePlan;
 import gov.va.api.health.r4.api.resources.Organization;
+import gov.va.api.health.r4.api.resources.RelatedPerson;
 import gov.va.api.health.vistafhirquery.service.controller.PatientTypeCoordinates;
 import gov.va.api.health.vistafhirquery.service.controller.RecordCoordinates;
 import gov.va.api.lighthouse.charon.models.lhslighthouserpcgateway.GroupInsurancePlan;
@@ -186,6 +187,60 @@ public class CoverageSamples {
           .build();
     }
 
+    private RelatedPerson containedRelatedPerson(String id) {
+      return RelatedPerson.builder()
+          .birthDate("1994-01-01")
+          .extension(
+              Extension.builder()
+                  .valueCodeableConcept(
+                      CodeableConcept.builder()
+                          .coding(
+                              Coding.builder()
+                                  .code("M")
+                                  .system(InsuranceBufferStructureDefinitions.INSUREDS_SEX_SYSTEM)
+                                  .build()
+                                  .asList())
+                          .build())
+                  .url(InsuranceBufferStructureDefinitions.INSUREDS_SEX_URL)
+                  .build()
+                  .asList())
+          .identifier(
+              Identifier.builder()
+                  .use(Identifier.IdentifierUse.official)
+                  .type(
+                      CodeableConcept.builder()
+                          .coding(
+                              Coding.builder()
+                                  .system("http://hl7.org/fhir/v2/0203")
+                                  .code("SB")
+                                  .build()
+                                  .asList())
+                          .build())
+                  .system("http://hl7.org/fhir/sid/us-ssn")
+                  .value("012345678")
+                  .assigner(
+                      Reference.builder().display("United States Social Security Number").build())
+                  .build()
+                  .asList())
+          .address(
+              Address.builder()
+                  .city("SHANKSVILLE")
+                  .state("FLORIDA")
+                  .line(List.of("Shank Address Line 1", "Shank Address Line 2"))
+                  .postalCode("54545")
+                  .country("UNITED STATES")
+                  .district("CUTSORTIUM")
+                  .build()
+                  .asList())
+          .telecom(
+              ContactPoint.builder()
+                  .system(ContactPoint.ContactPointSystem.phone)
+                  .value("555-867-5309")
+                  .build()
+                  .asList())
+          .build();
+    }
+
     public Coverage coverage() {
       return coverage("666", "1,8,", "1010101010V666666");
     }
@@ -238,7 +293,11 @@ public class CoverageSamples {
                   .toString())
           .period(period())
           .meta(Meta.builder().source(station).build())
-          .contained(List.of(containedInsurancePlan("1"), containedOrganization("2")))
+          .contained(
+              List.of(
+                  containedInsurancePlan("1"),
+                  containedOrganization("2"),
+                  containedRelatedPerson("3")))
           .status(Status.draft)
           .type(
               CodeableConcept.builder()
@@ -253,7 +312,14 @@ public class CoverageSamples {
           .beneficiary(beneficiary(patient))
           .relationship(relationship())
           .coverageClass(classes(station, patient).get(0).value("#1").asList())
-          .payor(Reference.builder().reference("#2").build().asList())
+          .payor(
+              Reference.builder()
+                  .type(Organization.class.getSimpleName())
+                  .reference("#2")
+                  .build()
+                  .asList())
+          .subscriber(
+              Reference.builder().type(RelatedPerson.class.getSimpleName()).reference("#3").build())
           .build();
     }
 
@@ -556,6 +622,31 @@ public class CoverageSamples {
       fields.put(InsuranceVerificationProcessor.CITY, Values.of("SHANK CITY", "SHANK CITY"));
       fields.put(InsuranceVerificationProcessor.ZIP_CODE, Values.of("322310014", "322310014"));
       fields.put(InsuranceVerificationProcessor.STATE, Values.of("FLORIDA", "FL"));
+      fields.put(
+          InsuranceVerificationProcessor.SUBSCRIBER_PHONE,
+          Values.of("555-867-5309", "555-867-5309"));
+      fields.put(InsuranceVerificationProcessor.INSUREDS_SSN, Values.of("012345678", "012345678"));
+      fields.put(InsuranceVerificationProcessor.INSUREDS_DOB, Values.of("2940101", "2940101"));
+      fields.put(InsuranceVerificationProcessor.INSUREDS_SEX, Values.of("Male", "M"));
+      fields.put(
+          InsuranceVerificationProcessor.SUBSCRIBER_ADDRESS_LINE_1,
+          Values.of("Shank Address Line 1", "Shank Address Line 1"));
+      fields.put(
+          InsuranceVerificationProcessor.SUBSCRIBER_ADDRESS_LINE_2,
+          Values.of("Shank Address Line 2", "Shank Address Line 2"));
+      fields.put(
+          InsuranceVerificationProcessor.SUBSCRIBER_ADDRESS_SUBDIVISION,
+          Values.of("CUTSORTIUM", "CUTSORTIUM"));
+      fields.put(
+          InsuranceVerificationProcessor.SUBSCRIBER_ADDRESS_CITY,
+          Values.of("SHANKSVILLE", "SHANKSVILLE"));
+      fields.put(
+          InsuranceVerificationProcessor.SUBSCRIBER_ADDRESS_ZIP, Values.of("54545", "54545"));
+      fields.put(
+          InsuranceVerificationProcessor.SUBSCRIBER_ADDRESS_STATE, Values.of("FLORIDA", "FL"));
+      fields.put(
+          InsuranceVerificationProcessor.SUBSCRIBER_ADDRESS_COUNTRY,
+          Values.of("UNITED STATES", "UNITED STATES"));
       fields.put(
           InsuranceVerificationProcessor.BILLING_PHONE_NUMBER,
           Values.of("800-SHANK-BILLING", "800-SHANK-BILLING"));

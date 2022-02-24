@@ -30,4 +30,9 @@ public interface InsuranceBufferStructureDefinitions {
   String PROCESSOR_CONTROL_NUMBER_PCN = "urn:oid:2.16.840.1.113883.3.8901.3.1.3558033.408011";
 
   String TYPE_OF_PLAN = "urn:oid:2.16.840.1.113883.3.8901.3.1.3558033.408009";
+
+  String INSUREDS_SEX_URL = "http://hl7.org/fhir/us/core/STU4/StructureDefinition-us-core-birthsex";
+
+  String INSUREDS_SEX_SYSTEM =
+      "https://terminology.hl7.org/1.0.0//CodeSystem-v3-AdministrativeGender";
 }
