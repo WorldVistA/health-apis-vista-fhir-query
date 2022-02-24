@@ -226,7 +226,6 @@ public class CoverageSamples {
           .build();
     }
 
-    /* ToDo Remove when insBuffer read and write catch up to eachother: API-13088 */
     public Coverage coverageInsuranceBufferRead(String patient, String station, String ien) {
       return Coverage.builder()
           .id(
@@ -304,6 +303,47 @@ public class CoverageSamples {
                   .build())
           .build()
           .asList();
+    }
+
+    private List<Organization.Contact> organzationContacts() {
+      return List.of(
+          Organization.Contact.builder()
+              .telecom(
+                  ContactPoint.builder()
+                      .value("800-SHANK-BILLING")
+                      .system(ContactPoint.ContactPointSystem.phone)
+                      .build()
+                      .asList())
+              .purpose(
+                  CodeableConcept.builder()
+                      .coding(
+                          Collections.singletonList(
+                              Coding.builder()
+                                  .system(
+                                      "http://terminology.hl7.org/CodeSystem/contactentity-type")
+                                  .code("BILL")
+                                  .display("BILL")
+                                  .build()))
+                      .build())
+              .build(),
+          Organization.Contact.builder()
+              .telecom(
+                  ContactPoint.builder()
+                      .value("800-SHANK-PRECERT")
+                      .system(ContactPoint.ContactPointSystem.phone)
+                      .build()
+                      .asList())
+              .purpose(
+                  CodeableConcept.builder()
+                      .coding(
+                          Collections.singletonList(
+                              Coding.builder()
+                                  .system("https://va.gov/fhir/CodeSystem/organization-contactType")
+                                  .code("PRECERT")
+                                  .display("PRECERT")
+                                  .build()))
+                      .build())
+              .build());
     }
 
     private Period period() {
@@ -388,8 +428,6 @@ public class CoverageSamples {
     public Set<WriteableFilemanValue> createInsuranceBufferInput() {
       return Set.of(
           pointerTo("355.12", "22"),
-          insuranceBufferValue(
-              InsuranceVerificationProcessor.INSURANCE_COMPANY_NAME, "Placeholder InsCo Name"),
           insuranceBufferValue(InsuranceVerificationProcessor.WHOSE_INSURANCE, "s"),
           insuranceBufferValue(InsuranceVerificationProcessor.PT_RELATIONSHIP_HIPAA, "SPOUSE"),
           insuranceBufferValue(InsuranceVerificationProcessor.PATIENT_ID, "13579"),
@@ -412,7 +450,24 @@ public class CoverageSamples {
               InsuranceVerificationProcessor.PROCESSOR_CONTROL_NUMBER_PCN, "121212121212"),
           insuranceBufferValue(
               InsuranceVerificationProcessor.TYPE_OF_PLAN, "PREFERRED PROVIDER ORGANIZATION (PPO)"),
-          insuranceBufferValue(InsuranceVerificationProcessor.SUBSCRIBER_ID, "R50797108"));
+          insuranceBufferValue(InsuranceVerificationProcessor.SUBSCRIBER_ID, "R50797108"),
+          insuranceBufferValue(
+              InsuranceVerificationProcessor.INSURANCE_COMPANY_NAME, "BCBS OF SHANKSVILLE"),
+          insuranceBufferValue(InsuranceVerificationProcessor.PHONE_NUMBER, "800-SHANK-TELE"),
+          insuranceBufferValue(
+              InsuranceVerificationProcessor.BILLING_PHONE_NUMBER, "800-SHANK-BILLING"),
+          insuranceBufferValue(
+              InsuranceVerificationProcessor.PRECERTIFICATION_PHONE_NUMBER, "800-SHANK-PRECERT"),
+          insuranceBufferValue(InsuranceVerificationProcessor.REIMBURSE, "WILL REIMBURSE"),
+          insuranceBufferValue(
+              InsuranceVerificationProcessor.STREET_ADDRESS_LINE_1, "SHANKSVILLE LINE 1"),
+          insuranceBufferValue(
+              InsuranceVerificationProcessor.STREET_ADDRESS_LINE_2, "SHANKSVILLE LINE 2"),
+          insuranceBufferValue(
+              InsuranceVerificationProcessor.STREET_ADDRESS_LINE_3, "SHANKSVILLE LINE 3"),
+          insuranceBufferValue(InsuranceVerificationProcessor.CITY, "SHANK CITY"),
+          insuranceBufferValue(InsuranceVerificationProcessor.STATE, "FLORIDA"),
+          insuranceBufferValue(InsuranceVerificationProcessor.ZIP_CODE, "322310014"));
     }
 
     public LhsLighthouseRpcGatewayResponse.Results createInsuranceBufferResults(String id) {

@@ -69,6 +69,7 @@ public class InsuranceBufferToR4CoverageTransformer {
           InsuranceVerificationProcessor.PRECERTIFICATION_REQUIRED,
           InsuranceVerificationProcessor.PROCESSOR_CONTROL_NUMBER_PCN,
           InsuranceVerificationProcessor.PT_RELATIONSHIP_HIPAA,
+          InsuranceVerificationProcessor.REIMBURSE,
           InsuranceVerificationProcessor.STATE,
           InsuranceVerificationProcessor.STREET_ADDRESS_LINE_1,
           InsuranceVerificationProcessor.STREET_ADDRESS_LINE_2,

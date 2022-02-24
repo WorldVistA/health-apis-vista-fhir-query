@@ -7,29 +7,34 @@ import static gov.va.api.health.vistafhirquery.service.controller.WriteableFilem
 import static gov.va.api.health.vistafhirquery.service.controller.coverage.CoverageStructureDefinitions.COVERAGE_CLASS_CODE_SYSTEM;
 import static gov.va.api.health.vistafhirquery.service.controller.coverage.CoverageStructureDefinitions.SUBSCRIBER_RELATIONSHIP_CODE_SYSTEM;
 import static gov.va.api.health.vistafhirquery.service.controller.extensionprocessing.ExtensionHandler.Required.OPTIONAL;
+import static gov.va.api.health.vistafhirquery.service.controller.extensionprocessing.ExtensionHandler.Required.REQUIRED;
+import static java.util.Collections.emptySet;
 import static java.util.stream.Collectors.toList;
 
 import gov.va.api.health.fhir.api.Safe;
+import gov.va.api.health.r4.api.datatypes.Address;
 import gov.va.api.health.r4.api.datatypes.CodeableConcept;
+import gov.va.api.health.r4.api.datatypes.ContactPoint;
 import gov.va.api.health.r4.api.datatypes.Identifier;
 import gov.va.api.health.r4.api.datatypes.Period;
 import gov.va.api.health.r4.api.elements.Reference;
 import gov.va.api.health.r4.api.resources.Coverage;
 import gov.va.api.health.r4.api.resources.InsurancePlan;
+import gov.va.api.health.r4.api.resources.Organization;
 import gov.va.api.health.vistafhirquery.service.controller.ContainedResourceReader;
 import gov.va.api.health.vistafhirquery.service.controller.FilemanFactoryRegistry;
 import gov.va.api.health.vistafhirquery.service.controller.FilemanIndexRegistry;
 import gov.va.api.health.vistafhirquery.service.controller.IdentifierReader;
-import gov.va.api.health.vistafhirquery.service.controller.RequestPayloadExceptions;
 import gov.va.api.health.vistafhirquery.service.controller.RequestPayloadExceptions.BadRequestPayload;
 import gov.va.api.health.vistafhirquery.service.controller.RequestPayloadExceptions.EndDateOccursBeforeStartDate;
+import gov.va.api.health.vistafhirquery.service.controller.RequestPayloadExceptions.InvalidContainedResource;
 import gov.va.api.health.vistafhirquery.service.controller.RequestPayloadExceptions.InvalidStringLengthInclusively;
 import gov.va.api.health.vistafhirquery.service.controller.RequestPayloadExceptions.MissingRequiredField;
 import gov.va.api.health.vistafhirquery.service.controller.RequestPayloadExceptions.UnexpectedNumberOfValues;
 import gov.va.api.health.vistafhirquery.service.controller.RequestPayloadExceptions.UnexpectedValueForField;
 import gov.va.api.health.vistafhirquery.service.controller.extensionprocessing.BooleanExtensionHandler;
+import gov.va.api.health.vistafhirquery.service.controller.extensionprocessing.CodeableConceptExtensionHandler;
 import gov.va.api.health.vistafhirquery.service.controller.extensionprocessing.ExtensionHandler;
-import gov.va.api.health.vistafhirquery.service.controller.extensionprocessing.ExtensionProcessor;
 import gov.va.api.health.vistafhirquery.service.controller.extensionprocessing.R4ExtensionProcessor;
 import gov.va.api.lighthouse.charon.models.FilemanDate;
 import gov.va.api.lighthouse.charon.models.lhslighthouserpcgateway.InsuranceVerificationProcessor;
@@ -65,8 +70,6 @@ public class R4CoverageToInsuranceBufferTransformer {
 
   @NonNull Coverage coverage;
 
-  ExtensionProcessor insurancePlanExtensionProcessor;
-
   @Builder
   R4CoverageToInsuranceBufferTransformer(@NonNull Coverage coverage, ZoneId timezone) {
     this.coverage = coverage;
@@ -76,8 +79,105 @@ public class R4CoverageToInsuranceBufferTransformer {
     this.vistaDateFormatter =
         DateTimeFormatter.ofPattern("MMddyyy")
             .withZone(timezone == null ? ZoneId.of("UTC") : timezone);
-    this.insurancePlanExtensionProcessor =
-        R4ExtensionProcessor.of(".extension[]", insurancePlanExtensionHandlers());
+  }
+
+  Set<WriteableFilemanValue> address(
+      String cityField,
+      String stateField,
+      String zipcodeField,
+      List<String> lineFields,
+      List<Address> addresses) {
+    if (isBlank(addresses)) {
+      return emptySet();
+    }
+    if (addresses.size() > 1) {
+      throw UnexpectedNumberOfValues.builder()
+          .exactExpectedCount(1)
+          .receivedCount(addresses.size())
+          .jsonPath(".contained[].address[]")
+          .build();
+    }
+    Address address = addresses.get(0);
+    Set<WriteableFilemanValue> addressValues = new HashSet<>();
+    List<String> lines = address.line();
+    if (!isBlank(lineFields) && !isBlank(lines)) {
+      if (lineFields.size() < lines.size()) {
+        throw UnexpectedNumberOfValues.builder()
+            .exactExpectedCount(lineFields.size())
+            .receivedCount(lines.size())
+            .jsonPath(".contained[].address[].line[]")
+            .build();
+      }
+      for (int i = 0; i < lines.size(); i++) {
+        if (!isBlank(lineFields.get(i))) {
+          factoryRegistry()
+              .get(InsuranceVerificationProcessor.FILE_NUMBER)
+              .forString(
+                  lineFields.get(i),
+                  indexRegistry().get(InsuranceVerificationProcessor.FILE_NUMBER),
+                  lines.get(i))
+              .ifPresent(addressValues::add);
+        }
+      }
+    }
+    factoryRegistry()
+        .get(InsuranceVerificationProcessor.FILE_NUMBER)
+        .forString(
+            cityField,
+            indexRegistry().get(InsuranceVerificationProcessor.FILE_NUMBER),
+            address.city())
+        .ifPresent(addressValues::add);
+    factoryRegistry()
+        .get(InsuranceVerificationProcessor.FILE_NUMBER)
+        .forString(
+            stateField,
+            indexRegistry().get(InsuranceVerificationProcessor.FILE_NUMBER),
+            address.state())
+        .ifPresent(addressValues::add);
+    factoryRegistry()
+        .get(InsuranceVerificationProcessor.FILE_NUMBER)
+        .forString(
+            zipcodeField,
+            indexRegistry().get(InsuranceVerificationProcessor.FILE_NUMBER),
+            address.postalCode())
+        .ifPresent(addressValues::add);
+    return addressValues;
+  }
+
+  WriteableFilemanValue contactFor(List<Organization.Contact> contacts, String code, String field) {
+    if (isBlank(code) || isBlank(field)) {
+      return null;
+    }
+    var contactPointFiltered =
+        Safe.stream(contacts)
+            .filter(contact -> organizationContactHasCode(contact, code))
+            .flatMap(c -> Safe.stream(c.telecom()))
+            .filter(this::contactPointIsPhone)
+            .map(ContactPoint::value)
+            .filter(Objects::nonNull)
+            .collect(toList());
+    if (contactPointFiltered.size() > 1) {
+      throw UnexpectedNumberOfValues.builder()
+          .receivedCount(contactPointFiltered.size())
+          .exactExpectedCount(1)
+          .jsonPath(".contained[].contact[]")
+          .build();
+    }
+    var contactPointValue = contactPointFiltered.size() == 0 ? null : contactPointFiltered.get(0);
+    return factoryRegistry()
+        .get(InsuranceVerificationProcessor.FILE_NUMBER)
+        .forString(
+            field,
+            indexRegistry().get(InsuranceVerificationProcessor.FILE_NUMBER),
+            contactPointValue)
+        .orElse(null);
+  }
+
+  private boolean contactPointIsPhone(ContactPoint contactPoint) {
+    if (isBlank(contactPoint) || isBlank(contactPoint.system())) {
+      return false;
+    }
+    return "phone".equals(contactPoint.system().name());
   }
 
   WriteableFilemanValue dateEntered() {
@@ -202,8 +302,6 @@ public class R4CoverageToInsuranceBufferTransformer {
         .orElseThrow(() -> MissingRequiredField.builder().jsonPath(".type.coding[].code").build());
   }
 
-  // TODO: get insurance company name from contained resource
-  // https://vajira.max.gov/browse/API-13036
   WriteableFilemanValue insuranceCompanyName(String maybeName) {
     if (isBlank(maybeName)) {
       throw MissingRequiredField.builder().jsonPath(".name").build();
@@ -252,19 +350,21 @@ public class R4CoverageToInsuranceBufferTransformer {
             .filemanFactory(factoryRegistry().get(InsuranceVerificationProcessor.FILE_NUMBER))
             .indexRegistry(indexRegistry())
             .build();
+    var insurancePlanExtensionProcessor =
+        R4ExtensionProcessor.of(".extension[]", insurancePlanExtensionHandlers());
     try {
       return Stream.concat(
               Stream.of(
                   groupName(containedInsurancePlan.name()),
                   typeOfPlan(containedInsurancePlan.plan())),
               Stream.of(
-                      insurancePlanExtensionProcessor().process(containedInsurancePlan.extension()),
+                      insurancePlanExtensionProcessor.process(containedInsurancePlan.extension()),
                       reader.process(containedInsurancePlan.identifier()))
                   .flatMap(Collection::stream))
           .filter(Objects::nonNull)
           .toList();
     } catch (BadRequestPayload e) {
-      throw RequestPayloadExceptions.InvalidContainedResource.builder()
+      throw InvalidContainedResource.builder()
           .resourceType(InsurancePlan.class)
           .id(referenceId)
           .cause(e)
@@ -278,7 +378,7 @@ public class R4CoverageToInsuranceBufferTransformer {
                 InsuranceBufferStructureDefinitions.UTILIZATION_REVIEW_REQUIRED)
             .filemanFactory(factoryRegistry().get(InsuranceVerificationProcessor.FILE_NUMBER))
             .fieldNumber(InsuranceVerificationProcessor.UTILIZATION_REVIEW_REQUIRED)
-            .index(1)
+            .index(indexRegistry().get(InsuranceVerificationProcessor.FILE_NUMBER))
             .required(OPTIONAL)
             .booleanStringMapping(YES_NO)
             .build(),
@@ -286,7 +386,7 @@ public class R4CoverageToInsuranceBufferTransformer {
                 InsuranceBufferStructureDefinitions.PRECERTIFICATION_REQUIRED)
             .filemanFactory(factoryRegistry().get(InsuranceVerificationProcessor.FILE_NUMBER))
             .fieldNumber(InsuranceVerificationProcessor.PRECERTIFICATION_REQUIRED)
-            .index(1)
+            .index(indexRegistry().get(InsuranceVerificationProcessor.FILE_NUMBER))
             .required(OPTIONAL)
             .booleanStringMapping(YES_NO)
             .build(),
@@ -294,7 +394,7 @@ public class R4CoverageToInsuranceBufferTransformer {
                 InsuranceBufferStructureDefinitions.AMBULATORY_CARE_CERTIFICATION)
             .filemanFactory(factoryRegistry().get(InsuranceVerificationProcessor.FILE_NUMBER))
             .fieldNumber(InsuranceVerificationProcessor.AMBULATORY_CARE_CERTIFICATION)
-            .index(1)
+            .index(indexRegistry().get(InsuranceVerificationProcessor.FILE_NUMBER))
             .required(OPTIONAL)
             .booleanStringMapping(YES_NO)
             .build(),
@@ -302,7 +402,7 @@ public class R4CoverageToInsuranceBufferTransformer {
                 InsuranceBufferStructureDefinitions.EXCLUDE_PREEXISTING_CONDITION)
             .filemanFactory(factoryRegistry().get(InsuranceVerificationProcessor.FILE_NUMBER))
             .fieldNumber(InsuranceVerificationProcessor.EXCLUDE_PREEXISTING_CONDITION)
-            .index(1)
+            .index(indexRegistry().get(InsuranceVerificationProcessor.FILE_NUMBER))
             .required(OPTIONAL)
             .booleanStringMapping(YES_NO)
             .build(),
@@ -310,7 +410,7 @@ public class R4CoverageToInsuranceBufferTransformer {
                 InsuranceBufferStructureDefinitions.BENEFITS_ASSIGNABLE)
             .filemanFactory(factoryRegistry().get(InsuranceVerificationProcessor.FILE_NUMBER))
             .fieldNumber(InsuranceVerificationProcessor.BENEFITS_ASSIGNABLE)
-            .index(1)
+            .index(indexRegistry().get(InsuranceVerificationProcessor.FILE_NUMBER))
             .required(OPTIONAL)
             .booleanStringMapping(YES_NO)
             .build());
@@ -356,6 +456,83 @@ public class R4CoverageToInsuranceBufferTransformer {
             InsuranceVerificationProcessor.NAME_OF_INSURED,
             indexRegistry().get(InsuranceVerificationProcessor.FILE_NUMBER),
             subscriber.display());
+  }
+
+  List<WriteableFilemanValue> organization() {
+    if (isBlank(coverage().payor())) {
+      throw MissingRequiredField.builder().jsonPath(".payor[]").build();
+    }
+    var payor = coverage().payor();
+    if (payor.size() != 1) {
+      throw UnexpectedNumberOfValues.builder()
+          .jsonPath(".payor")
+          .identifyingFieldValue(".reference")
+          .exactExpectedCount(1)
+          .receivedCount(payor.size())
+          .build();
+    }
+    String referenceId = payor.get(0).reference();
+    Organization containedOrganization =
+        containedResourceReader.find(Organization.class, referenceId);
+    var addressLineFields =
+        List.of(
+            InsuranceVerificationProcessor.STREET_ADDRESS_LINE_1,
+            InsuranceVerificationProcessor.STREET_ADDRESS_LINE_2,
+            InsuranceVerificationProcessor.STREET_ADDRESS_LINE_3);
+    var address =
+        address(
+            InsuranceVerificationProcessor.CITY,
+            InsuranceVerificationProcessor.STATE,
+            InsuranceVerificationProcessor.ZIP_CODE,
+            addressLineFields,
+            containedOrganization.address());
+    var organizationExtensionProcessor =
+        R4ExtensionProcessor.of(".extension[]", organizationExtensionHandlers());
+    try {
+      return Stream.concat(
+              Stream.of(
+                  insuranceCompanyName(containedOrganization.name()),
+                  phoneNumber(containedOrganization.telecom()),
+                  contactFor(
+                      containedOrganization.contact(),
+                      "BILL",
+                      InsuranceVerificationProcessor.BILLING_PHONE_NUMBER),
+                  contactFor(
+                      containedOrganization.contact(),
+                      "PRECERT",
+                      InsuranceVerificationProcessor.PRECERTIFICATION_PHONE_NUMBER)),
+              Stream.of(
+                      address,
+                      organizationExtensionProcessor.process(containedOrganization.extension()))
+                  .flatMap(Collection::stream))
+          .filter(Objects::nonNull)
+          .toList();
+    } catch (BadRequestPayload e) {
+      throw InvalidContainedResource.builder()
+          .resourceType(Organization.class)
+          .id(referenceId)
+          .cause(e)
+          .build();
+    }
+  }
+
+  private boolean organizationContactHasCode(Organization.Contact contact, String code) {
+    if (isBlank(contact) || isBlank(contact.purpose())) {
+      return false;
+    }
+    return Safe.stream(contact.purpose().coding()).anyMatch(p -> code.equals(p.code()));
+  }
+
+  private List<ExtensionHandler> organizationExtensionHandlers() {
+    return List.of(
+        CodeableConceptExtensionHandler.forDefiningUrl(
+                InsuranceBufferStructureDefinitions.REIMBURSE)
+            .filemanFactory(factoryRegistry().get(InsuranceVerificationProcessor.FILE_NUMBER))
+            .index(indexRegistry().get(InsuranceVerificationProcessor.FILE_NUMBER))
+            .fieldNumber(InsuranceVerificationProcessor.REIMBURSE)
+            .codingSystem(InsuranceBufferStructureDefinitions.REIMBURSE_URN_OID)
+            .required(REQUIRED)
+            .build());
   }
 
   WriteableFilemanValue overrideFreshnessFlag() {
@@ -435,6 +612,29 @@ public class R4CoverageToInsuranceBufferTransformer {
                     .build());
   }
 
+  WriteableFilemanValue phoneNumber(List<ContactPoint> telecom) {
+    var contactPointFiltered =
+        Safe.stream(telecom)
+            .filter(this::contactPointIsPhone)
+            .map(ContactPoint::value)
+            .collect(toList());
+    if (contactPointFiltered.size() > 1) {
+      throw UnexpectedNumberOfValues.builder()
+          .exactExpectedCount(1)
+          .receivedCount(contactPointFiltered.size())
+          .jsonPath(".contained[].identifiers[]")
+          .build();
+    }
+    var contactPointValue = contactPointFiltered.size() == 0 ? null : contactPointFiltered.get(0);
+    return factoryRegistry()
+        .get(InsuranceVerificationProcessor.FILE_NUMBER)
+        .forString(
+            InsuranceVerificationProcessor.PHONE_NUMBER,
+            indexRegistry().get(InsuranceVerificationProcessor.FILE_NUMBER),
+            contactPointValue)
+        .orElse(null);
+  }
+
   WriteableFilemanValue serviceDate() {
     return factoryRegistry()
         .get(InsuranceVerificationProcessor.FILE_NUMBER)
@@ -486,7 +686,6 @@ public class R4CoverageToInsuranceBufferTransformer {
     fields.add(sourceOfInformation());
     fields.add(serviceDate());
     fields.add(whoseInsurance());
-    fields.add(insuranceCompanyName("Placeholder InsCo Name"));
     fields.add(patientId(coverage().beneficiary()));
     fields.add(patientRelationshipHipaa(coverage().relationship()));
     fields.add(subscriberId(coverage().subscriberId()));
@@ -494,6 +693,7 @@ public class R4CoverageToInsuranceBufferTransformer {
     fields.add(inqServiceTypeCode1(coverage().type()));
     fields.addAll(effectiveAndExpirationDate(coverage().period()));
     fields.addAll(insurancePlan());
+    fields.addAll(organization());
     return fields;
   }
 

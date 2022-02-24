@@ -4,19 +4,23 @@ import static gov.va.api.health.vistafhirquery.service.controller.coverage.Cover
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 
+import gov.va.api.health.r4.api.datatypes.Address;
 import gov.va.api.health.r4.api.datatypes.CodeableConcept;
 import gov.va.api.health.r4.api.datatypes.Coding;
+import gov.va.api.health.r4.api.datatypes.ContactPoint;
 import gov.va.api.health.r4.api.datatypes.Identifier;
 import gov.va.api.health.r4.api.datatypes.Period;
 import gov.va.api.health.r4.api.elements.Reference;
 import gov.va.api.health.r4.api.resources.Coverage;
 import gov.va.api.health.r4.api.resources.InsurancePlan;
+import gov.va.api.health.r4.api.resources.Organization;
 import gov.va.api.health.vistafhirquery.service.controller.RequestPayloadExceptions;
 import gov.va.api.health.vistafhirquery.service.controller.RequestPayloadExceptions.InvalidStringLengthInclusively;
 import gov.va.api.health.vistafhirquery.service.controller.RequestPayloadExceptions.MissingRequiredField;
 import gov.va.api.health.vistafhirquery.service.controller.RequestPayloadExceptions.UnexpectedNumberOfValues;
 import gov.va.api.health.vistafhirquery.service.controller.RequestPayloadExceptions.UnexpectedValueForField;
 import gov.va.api.lighthouse.charon.models.lhslighthouserpcgateway.InsuranceVerificationProcessor;
+import gov.va.api.lighthouse.charon.models.lhslighthouserpcgateway.LhsLighthouseRpcGatewayCoverageWrite.WriteableFilemanValue;
 import java.util.List;
 import java.util.Set;
 import org.junit.jupiter.api.Test;
@@ -26,6 +30,220 @@ public class R4CoverageToInsuranceBufferTransformerTest {
     return R4CoverageToInsuranceBufferTransformer.builder()
         .coverage(CoverageSamples.R4.create().coverageInsuranceBufferRead("p1", "123", "c1"))
         .build();
+  }
+
+  @Test
+  void address() {
+    assertThat(
+            _transformer()
+                .address(
+                    InsuranceVerificationProcessor.CITY,
+                    InsuranceVerificationProcessor.STATE,
+                    InsuranceVerificationProcessor.ZIP_CODE,
+                    addressLineFields(),
+                    null))
+        .isEmpty();
+    assertThat(
+            _transformer()
+                .address(
+                    InsuranceVerificationProcessor.CITY,
+                    InsuranceVerificationProcessor.STATE,
+                    InsuranceVerificationProcessor.ZIP_CODE,
+                    addressLineFields(),
+                    List.of(Address.builder().build())))
+        .isEmpty();
+    assertThatExceptionOfType(UnexpectedNumberOfValues.class)
+        .isThrownBy(
+            () ->
+                _transformer()
+                    .address(
+                        InsuranceVerificationProcessor.CITY,
+                        InsuranceVerificationProcessor.STATE,
+                        InsuranceVerificationProcessor.ZIP_CODE,
+                        addressLineFields(),
+                        List.of(Address.builder().build(), Address.builder().build())));
+    assertThatExceptionOfType(UnexpectedNumberOfValues.class)
+        .isThrownBy(
+            () ->
+                _transformer()
+                    .address(
+                        InsuranceVerificationProcessor.CITY,
+                        InsuranceVerificationProcessor.STATE,
+                        InsuranceVerificationProcessor.ZIP_CODE,
+                        addressLineFields(),
+                        List.of(
+                            Address.builder()
+                                .line(
+                                    List.of(
+                                        "STREET ADDRESS LINE 1",
+                                        "STREET ADDRESS LINE 2",
+                                        "STREET ADDRESS LINE 3",
+                                        "STREET ADDRESS LINE 4"))
+                                .build())));
+    assertThat(
+            _transformer()
+                .address(
+                    InsuranceVerificationProcessor.CITY,
+                    InsuranceVerificationProcessor.STATE,
+                    InsuranceVerificationProcessor.ZIP_CODE,
+                    addressLineFields(),
+                    List.of(Address.builder().line(List.of("PO BOX 1798")).build())))
+        .containsExactly(
+            WriteableFilemanValue.builder()
+                .file(InsuranceVerificationProcessor.FILE_NUMBER)
+                .index(1)
+                .field(InsuranceVerificationProcessor.STREET_ADDRESS_LINE_1)
+                .value("PO BOX 1798")
+                .build());
+  }
+
+  private List<String> addressLineFields() {
+    return List.of(
+        InsuranceVerificationProcessor.STREET_ADDRESS_LINE_1,
+        InsuranceVerificationProcessor.STREET_ADDRESS_LINE_2,
+        InsuranceVerificationProcessor.STREET_ADDRESS_LINE_3);
+  }
+
+  @Test
+  void contactFor() {
+    // Null list
+    assertThat(_transformer().contactFor(null, "code", "field")).isNull();
+    // Null field
+    assertThat(
+            _transformer()
+                .contactFor(Organization.Contact.builder().build().asList(), "code", null))
+        .isNull();
+    // Null code
+    assertThat(
+            _transformer()
+                .contactFor(Organization.Contact.builder().build().asList(), null, "field"))
+        .isNull();
+    // Null purpose
+    assertThat(
+            _transformer()
+                .contactFor(
+                    Organization.Contact.builder()
+                        .telecom(
+                            ContactPoint.builder()
+                                .system(ContactPoint.ContactPointSystem.phone)
+                                .value("800-CONTACT")
+                                .build()
+                                .asList())
+                        .build()
+                        .asList(),
+                    "code",
+                    "field"))
+        .isNull();
+    // Null coding
+    assertThat(
+            _transformer()
+                .contactFor(
+                    Organization.Contact.builder()
+                        .telecom(
+                            ContactPoint.builder()
+                                .system(ContactPoint.ContactPointSystem.phone)
+                                .value("800-CONTACT")
+                                .build()
+                                .asList())
+                        .purpose(CodeableConcept.builder().build())
+                        .build()
+                        .asList(),
+                    "code",
+                    "field"))
+        .isNull();
+    // Null telecom
+    assertThat(
+            _transformer()
+                .contactFor(
+                    Organization.Contact.builder()
+                        .purpose(
+                            CodeableConcept.builder()
+                                .coding(Coding.builder().code("code").build().asList())
+                                .build())
+                        .build()
+                        .asList(),
+                    "code",
+                    "field"))
+        .isNull();
+    // Null system
+    assertThat(
+            _transformer()
+                .contactFor(
+                    Organization.Contact.builder()
+                        .telecom(ContactPoint.builder().value("800-CONTACT").build().asList())
+                        .purpose(
+                            CodeableConcept.builder()
+                                .coding(Coding.builder().code("code").build().asList())
+                                .build())
+                        .build()
+                        .asList(),
+                    "code",
+                    "field"))
+        .isNull();
+    // Null value
+    assertThat(
+            _transformer()
+                .contactFor(
+                    Organization.Contact.builder()
+                        .telecom(
+                            ContactPoint.builder()
+                                .system(ContactPoint.ContactPointSystem.phone)
+                                .build()
+                                .asList())
+                        .purpose(
+                            CodeableConcept.builder()
+                                .coding(Coding.builder().code("code").build().asList())
+                                .build())
+                        .build()
+                        .asList(),
+                    "code",
+                    "field"))
+        .isNull();
+    // Code not found
+    assertThat(
+            _transformer()
+                .contactFor(
+                    Organization.Contact.builder()
+                        .telecom(
+                            ContactPoint.builder()
+                                .system(ContactPoint.ContactPointSystem.phone)
+                                .value("800-CONTACT")
+                                .build()
+                                .asList())
+                        .purpose(
+                            CodeableConcept.builder()
+                                .coding(Coding.builder().code("code").build().asList())
+                                .build())
+                        .build()
+                        .asList(),
+                    "not-found",
+                    "field"))
+        .isNull();
+    // More than one
+    assertThatExceptionOfType(UnexpectedNumberOfValues.class)
+        .isThrownBy(
+            () ->
+                _transformer()
+                    .contactFor(
+                        Organization.Contact.builder()
+                            .telecom(
+                                List.of(
+                                    ContactPoint.builder()
+                                        .system(ContactPoint.ContactPointSystem.phone)
+                                        .value("800-CONTACT")
+                                        .build(),
+                                    ContactPoint.builder()
+                                        .system(ContactPoint.ContactPointSystem.phone)
+                                        .value("800-PHONE")
+                                        .build()))
+                            .purpose(
+                                CodeableConcept.builder()
+                                    .coding(Coding.builder().code("code").build().asList())
+                                    .build())
+                            .build()
+                            .asList(),
+                        "code",
+                        "field"));
   }
 
   @Test
@@ -191,6 +409,40 @@ public class R4CoverageToInsuranceBufferTransformerTest {
                                         .code("NOPE")
                                         .build()))
                             .build()));
+  }
+
+  @Test
+  void phoneNumber() {
+    // Null list
+    assertThat(_transformer().phoneNumber(null)).isNull();
+    // Null system
+    assertThat(
+            _transformer().phoneNumber(List.of(ContactPoint.builder().value("800-PHONE").build())))
+        .isNull();
+    // Null value
+    assertThat(
+            _transformer()
+                .phoneNumber(
+                    List.of(
+                        ContactPoint.builder()
+                            .system(ContactPoint.ContactPointSystem.phone)
+                            .build())))
+        .isNull();
+    // More than one
+    assertThatExceptionOfType(UnexpectedNumberOfValues.class)
+        .isThrownBy(
+            () ->
+                _transformer()
+                    .phoneNumber(
+                        List.of(
+                            ContactPoint.builder()
+                                .system(ContactPoint.ContactPointSystem.phone)
+                                .value("800-PHONE")
+                                .build(),
+                            ContactPoint.builder()
+                                .system(ContactPoint.ContactPointSystem.phone)
+                                .value("800-PHONE")
+                                .build())));
   }
 
   @Test
