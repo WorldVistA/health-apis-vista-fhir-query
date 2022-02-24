@@ -19,17 +19,31 @@ import javax.ws.rs.Path;
       @SecurityRequirement(
           name = "OauthFlowSandbox",
           scopes = {
+            "system/Appointment.read",
+            "patient/Condition.read",
+            "system/Coverage.read",
+            "system/Coverage.write",
             "system/Endpoint.read",
+            "system/InsurancePlan.read",
             "patient/Observation.read",
+            "system/Organization.read",
             "offline_access",
+            "launch",
             "launch/patient"
           }),
       @SecurityRequirement(
           name = "OauthFlowProduction",
           scopes = {
+            "system/Appointment.read",
+            "patient/Condition.read",
+            "system/Coverage.read",
+            "system/Coverage.write",
             "system/Endpoint.read",
+            "system/InsurancePlan.read",
             "patient/Observation.read",
+            "system/Organization.read",
             "offline_access",
+            "launch",
             "launch/patient"
           })
     },
@@ -68,15 +82,30 @@ import javax.ws.rs.Path;
           @OAuthFlows(
               authorizationCode =
                   @OAuthFlow(
-                      authorizationUrl = "https://sandbox-api.va.gov/oauth2/authorization",
-                      tokenUrl = "https://sandbox-api.va.gov/services/clinical-fhir/v0/r4/token",
+                      authorizationUrl =
+                          "https://sandbox-api.va.gov/oauth2/clinical-health/v2/authorization",
+                      tokenUrl = "https://sandbox-api.va.gov/oauth2/clinical-health/v2/token",
                       scopes = {
+                        @OAuthScope(
+                            name = "system/Appointment.read",
+                            description = "read appointments"),
+                        @OAuthScope(
+                            name = "patient/Condition.read",
+                            description = "read conditions"),
+                        @OAuthScope(name = "system/Coverage.read", description = "read coverages"),
+                        @OAuthScope(
+                            name = "system/Coverage.write",
+                            description = "write coverages"),
                         @OAuthScope(name = "system/Endpoint.read", description = "read endpoints"),
+                        @OAuthScope(
+                            name = "patient/MedicationRequest.read",
+                            description = "read medicationRequests"),
                         @OAuthScope(
                             name = "patient/Observation.read",
                             description = "read observations"),
                         @OAuthScope(name = "offline_access", description = "offline access"),
-                        @OAuthScope(name = "launch/patient", description = "patient launch"),
+                        @OAuthScope(name = "launch", description = "launch"),
+                        @OAuthScope(name = "launch/patient", description = "patient launch")
                       }))),
   @SecurityScheme(
       name = "OauthFlowProduction",
@@ -85,23 +114,41 @@ import javax.ws.rs.Path;
           @OAuthFlows(
               authorizationCode =
                   @OAuthFlow(
-                      authorizationUrl = "https://api.va.gov/oauth2/authorization",
-                      tokenUrl = "https://api.va.gov/services/clinical-fhir/v0/r4/token",
+                      authorizationUrl =
+                          "https://sandbox-api.va.gov/oauth2/clinical-health/v2/authorization",
+                      tokenUrl = "https://sandbox-api.va.gov/oauth2/clinical-health/v2/token",
                       scopes = {
+                        @OAuthScope(
+                            name = "system/Appointment.read",
+                            description = "read appointments"),
+                        @OAuthScope(
+                            name = "patient/Condition.read",
+                            description = "read conditions"),
+                        @OAuthScope(name = "system/Coverage.read", description = "read coverages"),
+                        @OAuthScope(
+                            name = "system/Coverage.write",
+                            description = "write coverages"),
                         @OAuthScope(name = "system/Endpoint.read", description = "read endpoints"),
+                        @OAuthScope(
+                            name = "patient/MedicationRequest.read",
+                            description = "read medicationRequests"),
                         @OAuthScope(
                             name = "patient/Observation.read",
                             description = "read observations"),
                         @OAuthScope(name = "offline_access", description = "offline access"),
-                        @OAuthScope(name = "launch/patient", description = "patient launch"),
+                        @OAuthScope(name = "launch", description = "launch"),
+                        @OAuthScope(name = "launch/patient", description = "patient launch")
                       })))
 })
 @Path("/")
 public interface R4VistaFhirQueryService
     extends R4AppointmentApi,
+        R4ConditionApi,
         R4CoverageApi,
         R4CoverageEligibilityResponseApi,
         R4EndpointApi,
+        R4MedicationDispenseApi,
+        R4MedicationRequestApi,
         R4MetadataApi,
-        R4ObservationApi,
+        R4SiteObservationApi,
         R4OrganizationApi {}

@@ -164,6 +164,34 @@ class R4MetadataController {
 
   private Stream<SupportedResource> supportedResources() {
     return Stream.of(
+        support("Appointment")
+            .profileUrl("https://www.hl7.org/fhir/r4/appointment.html")
+            .search(Set.of(SearchParam.DATE, SearchParam.PATIENT))
+            .build(),
+        support("Condition")
+            .profileUrl("http://hl7.org/fhir/us/core/StructureDefinition/us-core-condition")
+            .search(
+                Set.of(
+                    SearchParam.CATEGORY,
+                    SearchParam.CLINICAL_STATUS,
+                    SearchParam.CODE,
+                    SearchParam.ID,
+                    SearchParam.IDENTIFIER,
+                    SearchParam.ONSET_DATE,
+                    SearchParam.PATIENT))
+            .build(),
+        support("Coverage")
+            .profileUrl("http://hl7.org/fhir/us/carin/StructureDefinition/carin-bb-coverage")
+            .search(Set.of())
+            .build(),
+        support("Endpoint")
+            .profileUrl("https://www.hl7.org/fhir/r4/endpoint.html")
+            .search(Set.of(SearchParam.PATIENT, SearchParam.STATUS, SearchParam.TAG))
+            .build(),
+        support("InsurancePlan")
+            .profileUrl("https://www.hl7.org/fhir/r4/insuranceplan.html")
+            .search(Set.of(SearchParam.IDENTIFIER))
+            .build(),
         support("Observation")
             .profileUrl("http://hl7.org/fhir/us/core/StructureDefinition/us-core-observation-lab")
             .search(
@@ -174,6 +202,10 @@ class R4MetadataController {
                     SearchParam.CATEGORY,
                     SearchParam.CODE,
                     SearchParam.DATE))
+            .build(),
+        support("Organization")
+            .profileUrl("http://hl7.org/fhir/us/carin/StructureDefinition/carin-bb-organization")
+            .search(Set.of(SearchParam.TYPE))
             .build());
   }
 
@@ -181,11 +213,16 @@ class R4MetadataController {
   @AllArgsConstructor
   enum SearchParam {
     CATEGORY("category", SearchParamType.token),
+    CLINICAL_STATUS("clinical-status", SearchParamType.token),
     CODE("code", SearchParamType.token),
     DATE("date", SearchParamType.date),
     ID("_id", SearchParamType.token),
     IDENTIFIER("identifier", SearchParamType.token),
-    PATIENT("patient", SearchParamType.reference);
+    ONSET_DATE("onset-date", SearchParamType.date),
+    PATIENT("patient", SearchParamType.reference),
+    STATUS("status", SearchParamType.token),
+    TAG("tag", SearchParamType.string),
+    TYPE("type", SearchParamType.token);
 
     private final String param;
 

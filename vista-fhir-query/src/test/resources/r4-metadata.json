@@ -79,6 +79,157 @@
       },
       "resource" : [
         {
+          "type" : "Appointment",
+          "profile" : "https://www.hl7.org/fhir/r4/appointment.html",
+          "interaction" : [
+            {
+              "code" : "search-type",
+              "documentation" : "Implemented per specification."
+            },
+            {
+              "code" : "read",
+              "documentation" : "Implemented per specification."
+            }
+          ],
+          "versioning" : "no-version",
+          "referencePolicy" : [
+            "literal",
+            "local"
+          ],
+          "searchParam" : [
+            {
+              "name" : "date",
+              "type" : "date"
+            },
+            {
+              "name" : "patient",
+              "type" : "reference"
+            }
+          ]
+        },
+        {
+          "type" : "Condition",
+          "profile" : "http://hl7.org/fhir/us/core/StructureDefinition/us-core-condition",
+          "interaction" : [
+            {
+              "code" : "search-type",
+              "documentation" : "Implemented per specification."
+            },
+            {
+              "code" : "read",
+              "documentation" : "Implemented per specification."
+            }
+          ],
+          "versioning" : "no-version",
+          "referencePolicy" : [
+            "literal",
+            "local"
+          ],
+          "searchParam" : [
+            {
+              "name" : "_id",
+              "type" : "token"
+            },
+            {
+              "name" : "category",
+              "type" : "token"
+            },
+            {
+              "name" : "clinical-status",
+              "type" : "token"
+            },
+            {
+              "name" : "code",
+              "type" : "token"
+            },
+            {
+              "name" : "identifier",
+              "type" : "token"
+            },
+            {
+              "name" : "onset-date",
+              "type" : "date"
+            },
+            {
+              "name" : "patient",
+              "type" : "reference"
+            }
+          ]
+        },
+        {
+          "type" : "Coverage",
+          "profile" : "http://hl7.org/fhir/us/carin/StructureDefinition/carin-bb-coverage",
+          "interaction" : [
+            {
+              "code" : "read",
+              "documentation" : "Implemented per specification."
+            }
+          ],
+          "versioning" : "no-version",
+          "referencePolicy" : [
+            "literal",
+            "local"
+          ]
+        },
+        {
+          "type" : "Endpoint",
+          "profile" : "https://www.hl7.org/fhir/r4/endpoint.html",
+          "interaction" : [
+            {
+              "code" : "search-type",
+              "documentation" : "Implemented per specification."
+            },
+            {
+              "code" : "read",
+              "documentation" : "Implemented per specification."
+            }
+          ],
+          "versioning" : "no-version",
+          "referencePolicy" : [
+            "literal",
+            "local"
+          ],
+          "searchParam" : [
+            {
+              "name" : "patient",
+              "type" : "reference"
+            },
+            {
+              "name" : "status",
+              "type" : "token"
+            },
+            {
+              "name" : "tag",
+              "type" : "string"
+            }
+          ]
+        },
+        {
+          "type" : "InsurancePlan",
+          "profile" : "https://www.hl7.org/fhir/r4/insuranceplan.html",
+          "interaction" : [
+            {
+              "code" : "search-type",
+              "documentation" : "Implemented per specification."
+            },
+            {
+              "code" : "read",
+              "documentation" : "Implemented per specification."
+            }
+          ],
+          "versioning" : "no-version",
+          "referencePolicy" : [
+            "literal",
+            "local"
+          ],
+          "searchParam" : [
+            {
+              "name" : "identifier",
+              "type" : "token"
+            }
+          ]
+        },
+        {
           "type" : "Observation",
           "profile" : "http://hl7.org/fhir/us/core/StructureDefinition/us-core-observation-lab",
           "interaction" : [
@@ -120,6 +271,31 @@
             {
               "name" : "patient",
               "type" : "reference"
+            }
+          ]
+        },
+        {
+          "type" : "Organization",
+          "profile" : "http://hl7.org/fhir/us/carin/StructureDefinition/carin-bb-organization",
+          "interaction" : [
+            {
+              "code" : "search-type",
+              "documentation" : "Implemented per specification."
+            },
+            {
+              "code" : "read",
+              "documentation" : "Implemented per specification."
+            }
+          ],
+          "versioning" : "no-version",
+          "referencePolicy" : [
+            "literal",
+            "local"
+          ],
+          "searchParam" : [
+            {
+              "name" : "type",
+              "type" : "token"
             }
           ]
         }
