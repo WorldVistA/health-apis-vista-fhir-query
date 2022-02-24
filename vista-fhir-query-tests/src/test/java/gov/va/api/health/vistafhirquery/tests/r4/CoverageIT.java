@@ -2,8 +2,10 @@ package gov.va.api.health.vistafhirquery.tests.r4;
 
 import static gov.va.api.health.sentinel.EnvironmentAssumptions.assumeEnvironmentIn;
 
+import gov.va.api.health.r4.api.datatypes.Address;
 import gov.va.api.health.r4.api.datatypes.CodeableConcept;
 import gov.va.api.health.r4.api.datatypes.Coding;
+import gov.va.api.health.r4.api.datatypes.ContactPoint;
 import gov.va.api.health.r4.api.datatypes.Identifier;
 import gov.va.api.health.r4.api.datatypes.Period;
 import gov.va.api.health.r4.api.elements.Extension;
@@ -18,6 +20,7 @@ import gov.va.api.health.vistafhirquery.tests.SystemDefinitions;
 import gov.va.api.health.vistafhirquery.tests.TestIds;
 import gov.va.api.health.vistafhirquery.tests.VistaFhirQueryResourceVerifier;
 import java.time.Instant;
+import java.util.Collections;
 import java.util.List;
 import org.junit.jupiter.api.Test;
 
@@ -159,7 +162,81 @@ public class CoverageIT {
                                         .build())
                                 .build()))
                     .build(),
-                Organization.builder().id("2").active(true).name("BCBS OF FLORIDA").build()))
+                Organization.builder()
+                    .id("2")
+                    .active(true)
+                    .name("BCBS OF FLORIDA")
+                    .address(
+                        Address.builder()
+                            .state("FLORIDA")
+                            .city("JACKSONVILLE")
+                            .line(List.of("PO BOX 1798", "REGIONAL CLAIMS OFFICE", "ATTN: MICHAEL"))
+                            .postalCode("322310014")
+                            .build()
+                            .asList())
+                    .contact(
+                        List.of(
+                            Organization.Contact.builder()
+                                .telecom(
+                                    List.of(
+                                        ContactPoint.builder()
+                                            .value("800-727-222")
+                                            .system(ContactPoint.ContactPointSystem.phone)
+                                            .build()))
+                                .purpose(
+                                    CodeableConcept.builder()
+                                        .coding(
+                                            Collections.singletonList(
+                                                Coding.builder()
+                                                    .system(
+                                                        "http://terminology.hl7.org/CodeSystem/contactentity-type")
+                                                    .code("BILL")
+                                                    .display("BILL")
+                                                    .build()))
+                                        .build())
+                                .build(),
+                            Organization.Contact.builder()
+                                .telecom(
+                                    List.of(
+                                        ContactPoint.builder()
+                                            .value("800-955-5692")
+                                            .system(ContactPoint.ContactPointSystem.phone)
+                                            .build()))
+                                .purpose(
+                                    CodeableConcept.builder()
+                                        .coding(
+                                            Collections.singletonList(
+                                                Coding.builder()
+                                                    .system(
+                                                        "https://va.gov/fhir/CodeSystem/organization-contactType")
+                                                    .code("PRECERT")
+                                                    .display("PRECERT")
+                                                    .build()))
+                                        .build())
+                                .build()))
+                    .telecom(
+                        ContactPoint.builder()
+                            .value("777-999-4444")
+                            .system(ContactPoint.ContactPointSystem.phone)
+                            .build()
+                            .asList())
+                    .extension(
+                        Extension.builder()
+                            .url(
+                                "http://va.gov/fhir/StructureDefinition/organization-willReimburseForCare")
+                            .valueCodeableConcept(
+                                CodeableConcept.builder()
+                                    .coding(
+                                        Collections.singletonList(
+                                            Coding.builder()
+                                                .code("WILL REIMBURSE")
+                                                .system(
+                                                    "urn:oid:2.16.840.1.113883.3.8901.3.1.3558033.208005")
+                                                .build()))
+                                    .build())
+                            .build()
+                            .asList())
+                    .build()))
         .build();
   }
 }

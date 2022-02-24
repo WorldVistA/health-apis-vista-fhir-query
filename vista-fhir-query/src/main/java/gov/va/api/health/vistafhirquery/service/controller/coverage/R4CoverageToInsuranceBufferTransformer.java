@@ -7,7 +7,6 @@ import static gov.va.api.health.vistafhirquery.service.controller.WriteableFilem
 import static gov.va.api.health.vistafhirquery.service.controller.coverage.CoverageStructureDefinitions.COVERAGE_CLASS_CODE_SYSTEM;
 import static gov.va.api.health.vistafhirquery.service.controller.coverage.CoverageStructureDefinitions.SUBSCRIBER_RELATIONSHIP_CODE_SYSTEM;
 import static gov.va.api.health.vistafhirquery.service.controller.extensionprocessing.ExtensionHandler.Required.OPTIONAL;
-import static gov.va.api.health.vistafhirquery.service.controller.extensionprocessing.ExtensionHandler.Required.REQUIRED;
 import static java.util.Collections.emptySet;
 import static java.util.stream.Collectors.toList;
 
@@ -15,6 +14,7 @@ import gov.va.api.health.fhir.api.Safe;
 import gov.va.api.health.r4.api.datatypes.Address;
 import gov.va.api.health.r4.api.datatypes.CodeableConcept;
 import gov.va.api.health.r4.api.datatypes.ContactPoint;
+import gov.va.api.health.r4.api.datatypes.ContactPoint.ContactPointSystem;
 import gov.va.api.health.r4.api.datatypes.Identifier;
 import gov.va.api.health.r4.api.datatypes.Period;
 import gov.va.api.health.r4.api.elements.Reference;
@@ -177,7 +177,7 @@ public class R4CoverageToInsuranceBufferTransformer {
     if (isBlank(contactPoint) || isBlank(contactPoint.system())) {
       return false;
     }
-    return "phone".equals(contactPoint.system().name());
+    return ContactPointSystem.phone.name().equals(contactPoint.system().name());
   }
 
   WriteableFilemanValue dateEntered() {
@@ -531,7 +531,7 @@ public class R4CoverageToInsuranceBufferTransformer {
             .index(indexRegistry().get(InsuranceVerificationProcessor.FILE_NUMBER))
             .fieldNumber(InsuranceVerificationProcessor.REIMBURSE)
             .codingSystem(InsuranceBufferStructureDefinitions.REIMBURSE_URN_OID)
-            .required(REQUIRED)
+            .required(OPTIONAL)
             .build());
   }
 
