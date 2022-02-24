@@ -5,7 +5,6 @@ import static gov.va.api.health.vistafhirquery.service.charonclient.CharonReques
 import gov.va.api.health.r4.api.resources.CoverageEligibilityResponse;
 import gov.va.api.health.r4.api.resources.Organization;
 import gov.va.api.health.vistafhirquery.service.charonclient.CharonClient;
-import gov.va.api.health.vistafhirquery.service.controller.coverage.R4SiteCoverageController;
 import gov.va.api.health.vistafhirquery.service.controller.coverageeligibilityresponse.R4SiteCoverageEligibilityResponseController;
 import gov.va.api.health.vistafhirquery.service.controller.organization.R4SiteOrganizationController;
 import gov.va.api.health.vistafhirquery.service.controller.witnessprotection.WitnessProtection;
@@ -39,11 +38,11 @@ public class RawController {
 
   /** Get the raw response that the coverage controller transforms to fhir. */
   @GetMapping(
-      value = "/Coverage",
+      value = "/CoverageEligibilityResponse",
       params = {"hcs", "icn"})
   public RpcInvocationResultV1 coverageBySiteAndIcn(
       @RequestParam(name = "hcs") String site, @RequestParam(name = "icn") String icn) {
-    return makeRequest(site, R4SiteCoverageController.coverageByPatientIcn(icn));
+    return makeRequest(site, R4SiteCoverageEligibilityResponseController.coverageByPatientIcn(icn));
   }
 
   /** Raw CoverageEligibilityResponse read. */

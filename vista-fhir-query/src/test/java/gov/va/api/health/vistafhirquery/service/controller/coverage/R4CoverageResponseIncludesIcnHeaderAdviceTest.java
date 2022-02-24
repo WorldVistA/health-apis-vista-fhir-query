@@ -1,14 +1,11 @@
 package gov.va.api.health.vistafhirquery.service.controller.coverage;
 
-import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 
 import gov.va.api.health.r4.api.resources.Coverage;
 import gov.va.api.health.vistafhirquery.service.controller.witnessprotection.AlternatePatientIds;
-import java.util.List;
-import javax.servlet.http.HttpServletRequest;
 import lombok.SneakyThrows;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -21,7 +18,7 @@ import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
 @ExtendWith(MockitoExtension.class)
 public class R4CoverageResponseIncludesIcnHeaderAdviceTest {
-  @Mock R4SiteCoverageController controller;
+  @Mock R4SiteInsuranceBufferCoverageController controller;
 
   @Mock AlternatePatientIds alternatePatientIds;
 
@@ -38,49 +35,31 @@ public class R4CoverageResponseIncludesIcnHeaderAdviceTest {
   @Test
   @SneakyThrows
   public void subjectNotPopulated() {
-    when(controller.coverageSearch(
-            any(HttpServletRequest.class), eq("123"), eq("p1"), eq(1), eq(15)))
-        .thenReturn(Coverage.Bundle.builder().entry(List.of()).build());
+    when(controller.coverageRead("123", "456")).thenReturn(Coverage.builder().build());
     mockMvc
-        .perform(get("/hcs/123/r4/Coverage?patient=p1&page=1&_count=15"))
+        .perform(get("/hcs/123/r4/Coverage/456"))
         .andExpect(MockMvcResultMatchers.header().string("X-VA-INCLUDES-ICN", "NONE"));
   }
 
   @Test
   @SneakyThrows
   public void subjectPopulated() {
-    when(controller.coverageSearch(
-            any(HttpServletRequest.class), eq("123"), eq("p1"), eq(1), eq(15)))
-        .thenReturn(
-            Coverage.Bundle.builder()
-                .entry(
-                    List.of(
-                        Coverage.Entry.builder()
-                            .resource(CoverageSamples.R4.create().coverage("666", "1,8,", "p1"))
-                            .build()))
-                .build());
+    when(controller.coverageRead("123", "456"))
+        .thenReturn(CoverageSamples.R4.create().coverage("666", "1,8,", "p1"));
     when(alternatePatientIds.toPublicId(eq("p1"))).thenReturn("p1");
     mockMvc
-        .perform(get("/hcs/123/r4/Coverage?patient=p1&page=1&_count=15"))
+        .perform(get("/hcs/123/r4/Coverage/456"))
         .andExpect(MockMvcResultMatchers.header().string("X-VA-INCLUDES-ICN", "p1"));
   }
 
   @Test
   @SneakyThrows
   public void subjectPopulatedWithAlternateId() {
-    when(controller.coverageSearch(
-            any(HttpServletRequest.class), eq("123"), eq("p1"), eq(1), eq(15)))
-        .thenReturn(
-            Coverage.Bundle.builder()
-                .entry(
-                    List.of(
-                        Coverage.Entry.builder()
-                            .resource(CoverageSamples.R4.create().coverage("666", "1,8,", "p1"))
-                            .build()))
-                .build());
+    when(controller.coverageRead("123", "456"))
+        .thenReturn(CoverageSamples.R4.create().coverage("666", "1,8,", "p1"));
     when(alternatePatientIds.toPublicId(eq("p1"))).thenReturn("p99");
     mockMvc
-        .perform(get("/hcs/123/r4/Coverage?patient=p1&page=1&_count=15"))
+        .perform(get("/hcs/123/r4/Coverage/456"))
         .andExpect(MockMvcResultMatchers.header().string("X-VA-INCLUDES-ICN", "p99"));
   }
 }

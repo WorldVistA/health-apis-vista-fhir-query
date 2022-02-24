@@ -31,7 +31,9 @@ import lombok.Builder;
 import lombok.NonNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.validation.annotation.Validated;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -57,6 +59,9 @@ public class R4SiteInsuranceBufferCoverageController {
   }
 
   /** Create Support. */
+  @PostMapping(
+      value = "/hcs/{site}/r4/Coverage",
+      consumes = {"application/json", "application/fhir+json"})
   public void coverageCreate(
       @Redact HttpServletResponse response, String site, @Redact Coverage body) {
     var ctx =
@@ -77,6 +82,7 @@ public class R4SiteInsuranceBufferCoverageController {
   }
 
   /** Read support. */
+  @GetMapping(value = "/hcs/{site}/r4/Coverage/{publicId}")
   public Coverage coverageRead(
       @PathVariable(value = "site") String site, @PathVariable(value = "publicId") String id) {
     var coordinates =

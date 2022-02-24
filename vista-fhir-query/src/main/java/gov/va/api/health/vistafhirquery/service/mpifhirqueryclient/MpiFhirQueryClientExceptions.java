@@ -1,7 +1,5 @@
 package gov.va.api.health.vistafhirquery.service.mpifhirqueryclient;
 
-import com.google.errorprone.annotations.FormatMethod;
-
 public class MpiFhirQueryClientExceptions {
   static class MpiFhirQueryClientException extends RuntimeException {
     MpiFhirQueryClientException(String message, Throwable cause) {
@@ -25,11 +23,6 @@ public class MpiFhirQueryClientExceptions {
 
     public static MpiFhirQueryRequestFailed because(String message) {
       return new MpiFhirQueryRequestFailed(message);
-    }
-
-    @FormatMethod
-    public static MpiFhirQueryRequestFailed because(String message, Object... values) {
-      return because(String.format(message, values));
     }
   }
 }

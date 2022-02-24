@@ -2,7 +2,6 @@ package gov.va.api.health.vistafhirquery.service.controller.coverageeligibilityr
 
 import static gov.va.api.health.vistafhirquery.service.charonclient.CharonRequests.lighthouseRpcGatewayRequest;
 import static gov.va.api.health.vistafhirquery.service.charonclient.CharonRequests.lighthouseRpcGatewayResponse;
-import static gov.va.api.health.vistafhirquery.service.controller.coverage.R4SiteCoverageController.coverageByPatientIcn;
 import static gov.va.api.lighthouse.charon.models.lhslighthouserpcgateway.PatientId.forIcn;
 
 import gov.va.api.health.autoconfig.logging.Redact;
@@ -15,7 +14,9 @@ import gov.va.api.health.vistafhirquery.service.controller.R4BundlerFactory;
 import gov.va.api.health.vistafhirquery.service.controller.R4Bundling;
 import gov.va.api.health.vistafhirquery.service.controller.R4Transformation;
 import gov.va.api.lighthouse.charon.models.lhslighthouserpcgateway.LhsLighthouseRpcGatewayCoverageEligibilityResponse;
+import gov.va.api.lighthouse.charon.models.lhslighthouserpcgateway.LhsLighthouseRpcGatewayCoverageSearch.Request;
 import gov.va.api.lighthouse.charon.models.lhslighthouserpcgateway.LhsLighthouseRpcGatewayListManifest;
+import gov.va.api.lighthouse.charon.models.lhslighthouserpcgateway.PatientId;
 import gov.va.api.lighthouse.charon.models.lhslighthouserpcgateway.PlanCoverageLimitations;
 import java.util.ArrayList;
 import java.util.List;
@@ -41,6 +42,10 @@ public class R4SiteCoverageEligibilityResponseController
   private final R4BundlerFactory bundlerFactory;
 
   private final CharonClient charon;
+
+  public static Request coverageByPatientIcn(String patientIcn) {
+    return Request.builder().id(PatientId.forIcn(patientIcn)).build();
+  }
 
   /** Create A request based off of record coordinates. */
   public static LhsLighthouseRpcGatewayCoverageEligibilityResponse.Request manifestRequest(

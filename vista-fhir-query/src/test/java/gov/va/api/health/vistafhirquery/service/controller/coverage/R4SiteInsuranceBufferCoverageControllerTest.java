@@ -51,14 +51,6 @@ class R4SiteInsuranceBufferCoverageControllerTest {
         .build();
   }
 
-  private R4SiteCoverageController _insuranceTypeCoverageController() {
-    return R4SiteCoverageController.builder()
-        .bundlerFactory(_bundlerFactory())
-        .charon(mockCharon)
-        .witnessProtection(mockWitnessProtection)
-        .build();
-  }
-
   private RpcInvocationResultV1 _invocationResult(Object value) {
     return RpcInvocationResultV1.builder()
         .vista("123")
@@ -86,25 +78,6 @@ class R4SiteInsuranceBufferCoverageControllerTest {
         .isEqualTo("http://fugazi.com/hcs/123/r4/Coverage/public-cov1");
     assertThat(response.getHeader(ResponseIncludesIcnHeaderAdvice.INCLUDES_ICN_HEADER))
         .isEqualTo("p1");
-  }
-
-  @Test
-  void coverageCreateUsingInsuranceTypeControllerHack() {
-    var results =
-        CoverageSamples.VistaLhsLighthouseRpcGateway.create().createInsuranceBufferResults("cov1");
-    var captor = requestCaptor(LhsLighthouseRpcGatewayCoverageWrite.Request.class);
-    var answer =
-        answerFor(captor).value(results).invocationResult(invocationResultV1(results)).build();
-    when(mockCharon.request(captor.capture())).thenAnswer(answer);
-    var coverageSample =
-        CoverageSamples.R4.create().coverageInsuranceBufferRead("p1", "123", "cov1");
-    mockWitnessProtection.add("public-cov1", "p1+123+355.33+cov1");
-    var response = new MockHttpServletResponse();
-    _insuranceTypeCoverageController().coverageCreate(response, "123", true, coverageSample);
-    assertThat(captor.getValue().rpcRequest().api()).isEqualTo(CoverageWriteApi.CREATE);
-    assertThat(response.getStatus()).isEqualTo(201);
-    assertThat(response.getHeader(HttpHeaders.LOCATION))
-        .isEqualTo("http://fugazi.com/hcs/123/r4/Coverage/public-cov1");
   }
 
   @Test
