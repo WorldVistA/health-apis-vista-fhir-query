@@ -1,5 +1,6 @@
 package gov.va.api.health.vistafhirquery.service.controller.medicationdispense;
 
+import static gov.va.api.health.vistafhirquery.service.controller.R4Transformers.toReference;
 import static java.util.stream.Collectors.toList;
 
 import gov.va.api.health.r4.api.bundle.AbstractBundle;
@@ -13,7 +14,6 @@ import gov.va.api.health.r4.api.elements.Meta;
 import gov.va.api.health.r4.api.elements.Reference;
 import gov.va.api.health.r4.api.resources.MedicationDispense;
 import gov.va.api.health.r4.api.resources.MedicationDispense.Status;
-import gov.va.api.health.vistafhirquery.service.controller.R4Transformers;
 import java.math.BigDecimal;
 import java.util.Arrays;
 import java.util.Collection;
@@ -62,7 +62,7 @@ public class MedicationDispenseSamples {
           .id(id)
           .meta(Meta.builder().source("673").build())
           .status(Status.completed)
-          .subject(R4Transformers.toReference("Patient", "p1", null))
+          .subject(toReference("Patient", "p1", null))
           .medicationCodeableConcept(
               CodeableConcept.builder()
                   .text("WARFARIN")
@@ -91,6 +91,8 @@ public class MedicationDispenseSamples {
                   .patientInstruction("take with food")
                   .build()
                   .asList())
+          .authorizingPrescription(
+              toReference("MedicationRequest", "sNp1+673+M33714", null).asList())
           .build();
     }
   }

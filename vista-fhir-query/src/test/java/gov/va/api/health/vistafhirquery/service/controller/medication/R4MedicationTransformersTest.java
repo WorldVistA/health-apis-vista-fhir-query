@@ -16,7 +16,6 @@ import org.mockito.Mockito;
 
 @SuppressWarnings("ALL")
 class R4MedicationTransformersTest {
-
   private final R4MedicationTransformers _tx =
       Mockito.mock(R4MedicationTransformers.class, Mockito.CALLS_REAL_METHODS);
 
@@ -68,6 +67,13 @@ class R4MedicationTransformersTest {
             _cc("SHAMWOW", _productCoding("BILLY", "MAYES").asList())));
   }
 
+  static Stream<Arguments> medicationRequestIdFrom() {
+    return Stream.of(
+        Arguments.of("1234", "100053443", "673", "sN100053443+673+M1234"),
+        Arguments.of("", "111", "673", null),
+        Arguments.of(null, "111", "673", null));
+  }
+
   static Stream<Arguments> productCoding() {
     return Stream.of(
         Arguments.of(null, null),
@@ -92,6 +98,12 @@ class R4MedicationTransformersTest {
   void medicationCodeableConcept(Product product, CodeableConcept expected) {
     var actual = _tx.medicationCodeableConcept(product);
     assertThat(actual).isEqualTo(expected);
+  }
+
+  @ParameterizedTest
+  @MethodSource
+  void medicationRequestIdFrom(String vistaId, String patientIcn, String site, String expected) {
+    assertThat(_tx.medicationRequestIdFrom(vistaId, patientIcn, site)).isEqualTo(expected);
   }
 
   @ParameterizedTest

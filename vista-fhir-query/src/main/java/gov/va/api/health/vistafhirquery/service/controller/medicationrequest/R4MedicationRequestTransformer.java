@@ -7,7 +7,6 @@ import static gov.va.api.health.vistafhirquery.service.controller.R4Transformers
 import static gov.va.api.health.vistafhirquery.service.controller.R4Transformers.toHumanDateTime;
 import static gov.va.api.health.vistafhirquery.service.controller.R4Transformers.toInteger;
 import static gov.va.api.health.vistafhirquery.service.controller.R4Transformers.toReference;
-import static gov.va.api.health.vistafhirquery.service.controller.R4Transformers.toResourceId;
 import static gov.va.api.health.vistafhirquery.service.controller.R4Transformers.valueOfValueOnlyXmlAttribute;
 import static gov.va.api.health.vistafhirquery.service.util.Translations.ignoreAndReturnNull;
 import static gov.va.api.health.vistafhirquery.service.util.Translations.ignoreAndReturnValue;
@@ -107,13 +106,6 @@ public class R4MedicationRequestTransformer extends R4MedicationTransformers {
         .build();
   }
 
-  String idFrom(String id) {
-    if (isBlank(id)) {
-      return null;
-    }
-    return toResourceId(patientIcn, site, VprGetPatientData.Domains.meds, id);
-  }
-
   Reference requester(Med.Provider orderingProvider) {
     if (isBlank(orderingProvider) || isBlank(orderingProvider.name())) {
       return null;
@@ -134,7 +126,7 @@ public class R4MedicationRequestTransformer extends R4MedicationTransformers {
   /** required fields to be updated with correct logic later. * */
   private MedicationRequest toMedicationRequest(Med rpcMed) {
     return MedicationRequest.builder()
-        .id(idFrom(rpcMed.id().value()))
+        .id(medicationRequestIdFrom(rpcMed.id().value(), patientIcn, site))
         .meta(Meta.builder().source(site()).build())
         .subject(toReference("Patient", patientIcn, null))
         .intent(Intent.order)

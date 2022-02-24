@@ -1,5 +1,6 @@
 package gov.va.api.health.vistafhirquery.service.controller.medicationdispense;
 
+import static gov.va.api.health.vistafhirquery.service.controller.R4Transformers.toReference;
 import static java.util.stream.Collectors.toList;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
@@ -23,6 +24,7 @@ public class R4MedicationDispenseWitnessProtectionAgentTest {
             .id("md1")
             .meta(Meta.builder().source("123").build())
             .subject(Reference.builder().reference("Patient/p1").build())
+            .authorizingPrescription(toReference("MedicationRequest", "mr1", null).asList())
             .build();
     var wpa =
         new R4MedicationDispenseWitnessProtectionAgent(
@@ -37,10 +39,11 @@ public class R4MedicationDispenseWitnessProtectionAgentTest {
                 .resource("MedicationDispense")
                 .identifier("md1")
                 .build(),
+            ResourceIdentity.builder().system("VISTA").resource("Patient").identifier("p1").build(),
             ResourceIdentity.builder()
                 .system("VISTA")
-                .resource("Patient")
-                .identifier("p1")
+                .resource("MedicationRequest")
+                .identifier("mr1")
                 .build());
   }
 }

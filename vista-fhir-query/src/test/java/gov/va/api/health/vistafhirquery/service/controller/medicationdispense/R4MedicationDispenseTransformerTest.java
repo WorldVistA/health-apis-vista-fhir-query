@@ -32,7 +32,6 @@ import org.junit.jupiter.params.provider.MethodSource;
 
 @SuppressWarnings("ALL")
 class R4MedicationDispenseTransformerTest {
-
   static CodeableConcept _cc(String text, List<Coding> codings) {
     return CodeableConcept.builder().text(text).coding(codings).build();
   }
@@ -73,6 +72,15 @@ class R4MedicationDispenseTransformerTest {
 
   static R4MedicationDispenseTransformer _tx() {
     return _tx(MedicationSamples.Vista.create().results());
+  }
+
+  static Stream<Arguments> authorizingPrescription() {
+    return Stream.of(
+        Arguments.of(
+            MedicationSamples.Vista.create().med().id().value(),
+            Reference.builder().reference("MedicationRequest/sNp1+673+M33714").build().asList()),
+        Arguments.of("", null),
+        Arguments.of(null, null));
   }
 
   static Stream<Arguments> daysSupply() {
@@ -141,10 +149,22 @@ class R4MedicationDispenseTransformerTest {
         Arguments.of(_productDetail("BILLY", ""), _productCoding("BILLY", null)));
   }
 
+  static Stream<Arguments> status() {
+    return Stream.of(
+        Arguments.of(Fill.builder().build(), Status.in_progress),
+        Arguments.of(Fill.builder().releaseDate("3050121").build(), Status.completed));
+  }
+
   static Stream<Arguments> toFhirIgnoresUnusableFills() {
     var ignoredBecauseNoFillDate = MedicationSamples.Vista.create().fill(null, "3050121");
     var ignoredBecauseEmpty = Fill.builder().build();
     return Stream.of(Arguments.of(ignoredBecauseEmpty), Arguments.of(ignoredBecauseNoFillDate));
+  }
+
+  @ParameterizedTest
+  @MethodSource
+  void authorizingPrescription(String vistaId, List<Reference> mrReference) {
+    assertThat(_tx().authorizingPrescription(vistaId)).isEqualTo(mrReference);
   }
 
   @ParameterizedTest
@@ -193,11 +213,10 @@ class R4MedicationDispenseTransformerTest {
         .rejects(vista.fill("3040121"), vista.fill("3040121", "3060121"));
   }
 
-  @Test
-  void status() {
-    assertThat(_tx().status(Fill.builder().build())).isEqualTo(Status.in_progress);
-    assertThat(_tx().status(Fill.builder().releaseDate("3050121").build()))
-        .isEqualTo(Status.completed);
+  @ParameterizedTest
+  @MethodSource
+  void status(Fill fill, Status status) {
+    assertThat(_tx().status(fill)).isEqualTo(status);
   }
 
   @Test

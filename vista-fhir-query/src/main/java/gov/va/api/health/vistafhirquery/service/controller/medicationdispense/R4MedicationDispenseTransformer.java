@@ -7,6 +7,7 @@ import static gov.va.api.health.vistafhirquery.service.controller.R4Transformers
 import static gov.va.api.health.vistafhirquery.service.controller.R4Transformers.toReference;
 import static gov.va.api.health.vistafhirquery.service.controller.R4Transformers.valueOfValueOnlyXmlAttribute;
 import static gov.va.api.health.vistafhirquery.service.controller.medication.R4MedicationTransformers.dosageInstruction;
+import static gov.va.api.health.vistafhirquery.service.controller.medication.R4MedicationTransformers.medicationRequestIdFrom;
 import static gov.va.api.health.vistafhirquery.service.controller.medication.R4MedicationTransformers.quantity;
 import static gov.va.api.health.vistafhirquery.service.util.Translations.ignoreAndReturnNull;
 import static gov.va.api.health.vistafhirquery.service.util.Translations.returnNull;
@@ -30,6 +31,7 @@ import gov.va.api.lighthouse.charon.models.vprgetpatientdata.Meds.Med;
 import gov.va.api.lighthouse.charon.models.vprgetpatientdata.Meds.Med.Fill;
 import gov.va.api.lighthouse.charon.models.vprgetpatientdata.VprGetPatientData;
 import gov.va.api.lighthouse.charon.models.vprgetpatientdata.VprGetPatientData.Domains;
+import java.util.List;
 import java.util.Objects;
 import java.util.function.Predicate;
 import java.util.stream.Stream;
@@ -73,8 +75,17 @@ public class R4MedicationDispenseTransformer {
     return fill -> toHumanDateTime(fill.fillDate()).map(range::isDateWithinBounds).orElse(false);
   }
 
-  SimpleQuantity daysSupply(String fillDaysSupply) {
+  List<Reference> authorizingPrescription(String vistaMedId) {
+    if (isBlank(vistaMedId)) {
+      return null;
+    }
+    Reference reference =
+        toReference(
+            "MedicationRequest", medicationRequestIdFrom(vistaMedId, patientIcn, site), null);
+    return isBlank(reference) ? null : reference.asList();
+  }
 
+  SimpleQuantity daysSupply(String fillDaysSupply) {
     var value = toBigDecimal(fillDaysSupply);
     if (isBlank(value)) {
       return null;
@@ -158,6 +169,7 @@ public class R4MedicationDispenseTransformer {
             asListOrNull(
                 dosageInstruction(
                     rpcMed.sig(), valueOfValueOnlyXmlAttribute(rpcMed.ptInstructions()))))
+        .authorizingPrescription(authorizingPrescription(valueOfValueOnlyXmlAttribute(rpcMed.id())))
         .build();
   }
 }
