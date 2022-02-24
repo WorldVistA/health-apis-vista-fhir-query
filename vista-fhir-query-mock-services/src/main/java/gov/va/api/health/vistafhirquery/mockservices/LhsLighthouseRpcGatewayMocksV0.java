@@ -51,8 +51,6 @@ public class LhsLighthouseRpcGatewayMocksV0 implements MockService {
             .map(
                 matcher ->
                     switch (matcher) {
-                      case "2.312", "coverage" -> "/lhslighthouserpcgateway/"
-                          + "response-coverage-search-by-patient.json";
                       case "36" -> "/lhslighthouserpcgateway/response-organization-read.json";
                       default -> null;
                     })

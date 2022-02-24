@@ -4,7 +4,6 @@ import static gov.va.api.health.vistafhirquery.mockservices.MockServiceRequests.
 import static gov.va.api.health.vistafhirquery.mockservices.MockServiceRequests.json;
 import static gov.va.api.health.vistafhirquery.mockservices.MockServiceRequests.rpcInvocationResultV1_OkWithContent;
 import static gov.va.api.health.vistafhirquery.mockservices.MockServiceRequests.rpcQueryV1_WithExpectedRpcDetails;
-import static org.mockserver.model.HttpRequest.request;
 import static org.mockserver.model.HttpResponse.response;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -52,8 +51,6 @@ public class LhsLighthouseRpcGatewayMocksV1 implements MockService {
             .map(
                 matcher ->
                     switch (matcher) {
-                      case "2.312", "coverage" -> "/lhslighthouserpcgateway/"
-                          + "response-coverage-search-by-patient.json";
                       case "36" -> "/lhslighthouserpcgateway/response-organization-read.json";
                       case "355.3" -> "/lhslighthouserpcgateway/response-insurance-plan-read.json";
                       case "365.12" -> "/lhslighthouserpcgateway"

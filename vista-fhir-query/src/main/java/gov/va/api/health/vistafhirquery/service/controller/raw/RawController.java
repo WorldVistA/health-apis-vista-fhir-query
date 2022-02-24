@@ -2,15 +2,12 @@ package gov.va.api.health.vistafhirquery.service.controller.raw;
 
 import static gov.va.api.health.vistafhirquery.service.charonclient.CharonRequests.lighthouseRpcGatewayRequest;
 
-import gov.va.api.health.r4.api.resources.CoverageEligibilityResponse;
 import gov.va.api.health.r4.api.resources.Organization;
 import gov.va.api.health.vistafhirquery.service.charonclient.CharonClient;
-import gov.va.api.health.vistafhirquery.service.controller.coverageeligibilityresponse.R4SiteCoverageEligibilityResponseController;
 import gov.va.api.health.vistafhirquery.service.controller.organization.R4SiteOrganizationController;
 import gov.va.api.health.vistafhirquery.service.controller.witnessprotection.WitnessProtection;
 import gov.va.api.lighthouse.charon.api.v1.RpcInvocationResultV1;
 import gov.va.api.lighthouse.charon.models.TypeSafeRpcRequest;
-import gov.va.api.lighthouse.charon.models.lhslighthouserpcgateway.InsuranceType;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.NonNull;
@@ -35,30 +32,6 @@ public class RawController {
   private final CharonClient charon;
 
   private final WitnessProtection witnessProtection;
-
-  /** Get the raw response that the coverage controller transforms to fhir. */
-  @GetMapping(
-      value = "/CoverageEligibilityResponse",
-      params = {"hcs", "icn"})
-  public RpcInvocationResultV1 coverageBySiteAndIcn(
-      @RequestParam(name = "hcs") String site, @RequestParam(name = "icn") String icn) {
-    return makeRequest(site, R4SiteCoverageEligibilityResponseController.coverageByPatientIcn(icn));
-  }
-
-  /** Raw CoverageEligibilityResponse read. */
-  @GetMapping(
-      value = {"/CoverageEligibilityResponse"},
-      params = {"id"})
-  @NonNull
-  public RpcInvocationResultV1 coverageEligibilityResponseById(
-      @RequestParam(name = "id") String id) {
-    var coordinates =
-        witnessProtection.toPatientTypeCoordinatesOrDie(
-            id, CoverageEligibilityResponse.class, InsuranceType.FILE_NUMBER);
-    return makeRequest(
-        coordinates.site(),
-        R4SiteCoverageEligibilityResponseController.manifestRequest(coordinates));
-  }
 
   private <I extends TypeSafeRpcRequest> RpcInvocationResultV1 makeRequest(String site, I request) {
     try {

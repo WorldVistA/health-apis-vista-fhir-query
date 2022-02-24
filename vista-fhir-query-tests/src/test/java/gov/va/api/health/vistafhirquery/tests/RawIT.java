@@ -18,10 +18,6 @@ public class RawIT {
     TestIds testIds = VistaFhirQueryResourceVerifier.ids();
     var icnAtSite = testIds.patientSites().get(0);
     return List.of(
-        "/internal/raw/CoverageEligibilityResponse?icn="
-            + icnAtSite.icn()
-            + "&hcs="
-            + icnAtSite.vistas().get(0),
         "/internal/raw/Organization?id=" + testIds.organizations().insTypeRead(),
         "/internal/raw/Organization?id=" + testIds.organizations().payTypeRead());
   }
