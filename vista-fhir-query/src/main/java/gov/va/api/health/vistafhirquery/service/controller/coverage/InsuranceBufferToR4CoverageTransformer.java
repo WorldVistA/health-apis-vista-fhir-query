@@ -361,7 +361,7 @@ public class InsuranceBufferToR4CoverageTransformer {
     String state =
         entry.external(InsuranceVerificationProcessor.SUBSCRIBER_ADDRESS_STATE).orElse(null);
     String country =
-        entry.internal(InsuranceVerificationProcessor.SUBSCRIBER_ADDRESS_COUNTRY).orElse(null);
+        entry.external(InsuranceVerificationProcessor.SUBSCRIBER_ADDRESS_COUNTRY).orElse(null);
     String subdivision =
         entry.internal(InsuranceVerificationProcessor.SUBSCRIBER_ADDRESS_SUBDIVISION).orElse(null);
     String zipCode =

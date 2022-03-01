@@ -17,11 +17,15 @@
 | `.beneficiary.identifier` | Required | |
 | `.beneficiary.identifier.type.coding[0].code` | Required | Must be `MB`. |
 | `.beneficiary.identifier.value` | Required | Subscriber's primary ID number. This number is assigned by the payer and can be found on the subscriber's insurance card. |
+| `.effectiveDate` | Required | The date this policy went into effect for this patient. Must not be after expiration date |
+| `.expirationDate` | Required | The date this policy expires for this patient. Must not be before effective date. |
 | `.relationship.coding[]` | Required | Must contain 1 entry. |
 | `.relationship.coding[0].system` | Required | Must be `http://terminology.hl7.org/CodeSystem/subscriber-relationship` |
-| `.relationship.coding[0].code` | Required | X.12 271 EB03 code. 1-2 characters in length. |
+| `.relationship.coding[0].code` | Required | Must be one of the codes defined in the above system.  |
 | `.payor[]` | Required | Must contain 1 entry. |
 | `.payor[0].reference` | Required | Must be a reference to an `Organization` resource in the `.contained[]` field. |
+| `.subscriber` | Conditional | Required unless the `relationship.coding[0].code` is `self`. |
+| `.subscriber.reference` | Optional | Should  be a reference to a `RelatedPerson` resource in the `.contained[]` field. |
 | `.class[]` | Required | Must contain 1 entry. |
 | `.class[0].type.coding[0].system` | Required | Must be `http://terminology.hl7.org/CodeSystem/coverage-class`. |
 | `.class[0].type.coding[0].code` | Required | Must be `group`. |
@@ -165,7 +169,92 @@ Several identifiers are supported.
 |---|---|---|
 |`.resourceType` | Required | Must be `Organization`. |
 | `.id` | Required | Must match the id provided in the `Coverage` `.payor[0]` field. |
-| `.name` | Required | |
+| `.name` | Required | The name of the Insurance Carrier that provides coverage for this patient. 3-30 characters in length. |
+|`.address[]` | Optional | Should contain at most 1 entry. |
+|`.address[0].line[]` | Optional | Should contain 1 to 3 items. |
+|`.address[0].line[0]` | Optional | 3-35 characters. |
+|`.address[0].line[1]` | Optional | 3-30 characters. |
+|`.address[0].line[2]` | Optional | 3-30 characters. |
+|`.address[0].city` | Optional | 2-25 characters. |
+|`.address[0].state` | Optional | 2 characters. |
+|`.address[0].postalCode` | Optional | Format `[0-9]{9}` or `[0-9]{5}-[0-9]{4}`. |
+| `contact.telecom.value` | Optional | The insurance carriers phone number where specific inquires should be made. 7-20 characters in length.
+| `contact.telecom.system` | Optional | Should be `phone`.
+| `contact.purpose` | Optional | Should be `BILL` or `PRECERT`.
+| `.telecom.system` | Optional | Should be `phone`.
+| `.telecom.value` | Optional | The phone number at which this insurance company can be reached. 7-20 characters in length.
+| `.extension[]` | Optional | See [Supported Extensions](#supported-extensions) below. |
+
+## Supported Extensions
+
+| Defining URL | Type | Required | Notes |
+|---|---|---|---|
+| `http://va.gov/fhir/StructureDefinition/organization-willReimburseForCare` | `valueCodeableConcept` | Optional | `.coding[0].system` is `urn:oid:2.16.840.1.113883.3.8901.3.1.3558033.208005`. `.coding[0].value` is _
+Will Reimburse For Care Codes_ defined below. |
 
 
 
+### Will Reimburse For Care Codes
+
+System `urn:oid:2.16.840.1.113883.3.8901.3.1.3558033.208005`
+
+Used with
+
+- `http://va.gov/fhir/StructureDefinition/organization-willReimburseForCare`
+
+This code denotes under which circumstances this insurance carrier will reimburse the Dept. of Veterans Affairs for care
+received.
+
+- `REIMBURSE`
+- `WILL REIMBURSE IF TREATED UNDER VAR 6046(C) OR VAR 6060.2(A)`
+- `DEPENDS ON POLICY, CHECK WITH COMPANY`
+- `WILL NOT REIMBURSE`
+
+### RelatedPerson
+
+#### Supported Fields
+
+|Path|Required|Notes|
+|---|---|---|
+|`.resourceType` | Required | Must be `RelatedPerson`. |
+| `.id` | Required | Must match the id provided in the `Coverage` `.subscriber` field. |
+| `.birthDate` | Conditional | The Date of Birth of the policy holder. Must be populated if the patient is not the subscriber. |
+| `.identifier[]` | Optional | Should contain an entry if patient is not the insured. |
+| `.identifier[0].system` | Optional | Should be `http://hl7.org/fhir/sid/us-ssn` |
+| `.identifier[0].value` | Optional | Insured's SSN. Must be 9-13 characters in length. |
+|`.address[]` | Optional | Should contain at most 1 entry. |
+|`.address[0].line[]` | Optional | Should contain 0 to 2 items. |
+|`.address[0].line[0]` | Optional | Subscriber's street line 1, 1-55 characters. |
+|`.address[0].line[1]` | Optional | Subscriber's street line 2, 1-55 characters. |
+|`.address[0].city` | Optional | Subscriber's city, 1-30 characters. |
+|`.address[0].state` | Optional | Subscriber's state, 2 characters. |
+|`.address[0].country` | Optional | Subscriber's country, 2-3 characters. |
+|`.address[0].district` | Optional | Subscriber's district, 1-3 characters. |
+|`.address[0].postalCode` | Optional | Subscriber's zipcode,1-15 characters. |
+| `.telecom.system` | Optional | Should be `phone`.
+| `.telecom.value` | Optional | The phone number at which this insurance company can be reached. 7-20 characters in length.
+| `.extension[]` | Optional | See [Supported Extensions](#supported-extensions) below. |
+
+## Supported Extensions
+
+| Defining URL | Type | Required | Notes |
+|---|---|---|---|
+| `http://hl7.org/fhir/us/core/STU4/StructureDefinition-us-core-birthsex` | `valueCodeableConcept` | Required | `.coding[0].system` is `https://terminology.hl7.org/1.0.0/CodeSystem-v3-AdministrativeGender`. `.coding[0].value` is _
+Administrative Gender Codes_ defined below. |
+
+### Administrative Gender Codes
+
+System `https://terminology.hl7.org/1.0.0/CodeSystem-v3-AdministrativeGender`
+
+Used with
+
+- `http://hl7.org/fhir/us/core/STU4/StructureDefinition-us-core-birthsex`
+
+This code denotes under which circumstances this insurance carrier will reimburse the Dept. of Veterans Affairs for care
+received.
+
+| Code | Display
+|---|---|
+|`F` | `Female`
+|`M` | `Male`
+|`UN` | `Unknown`
