@@ -29,6 +29,7 @@
       <groupId>gov.va.api.health</groupId>
       <artifactId>vista-fhir-query</artifactId>
       <version>${project.version}</version>
+      <classifier>library</classifier>
       <scope>test</scope>
     </dependency>
   </dependencies>
