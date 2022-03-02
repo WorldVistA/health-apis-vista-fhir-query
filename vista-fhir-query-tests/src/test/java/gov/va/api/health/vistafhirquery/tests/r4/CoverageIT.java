@@ -1,6 +1,6 @@
 package gov.va.api.health.vistafhirquery.tests.r4;
 
-import static gov.va.api.health.sentinel.EnvironmentAssumptions.assumeEnvironmentIn;
+import static gov.va.api.health.sentinel.EnvironmentAssumptions.assumeEnvironmentNotIn;
 
 import gov.va.api.health.r4.api.datatypes.Address;
 import gov.va.api.health.r4.api.datatypes.CodeableConcept;
@@ -30,7 +30,7 @@ public class CoverageIT {
   @Test
   void createAndRead() {
     // Requires LHS LIGHTHOUSE RPC GATEWAY to be deployed to vista
-    assumeEnvironmentIn(Environment.QA, Environment.STAGING_LAB, Environment.LAB);
+    assumeEnvironmentNotIn(Environment.STAGING, Environment.PROD);
     CreateResourceVerifier.builder()
         .apiName("insurance-fhir")
         .serviceDefinition(SystemDefinitions.systemDefinition().basePath())

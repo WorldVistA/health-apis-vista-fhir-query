@@ -127,6 +127,11 @@
                 <argument>-Duser.timezone=UTC</argument>
                 <argument>-Dvista.api.url=http://localhost:8096</argument>
                 <argument>-Dvista.api.vpr-get-patient-data-context=MOCKSERVICES</argument>
+                <argument>-Dvista-fhir-query.public-url=http://localhost:8095</argument>
+                <argument>-Dvista-fhir-query.public-r4-base-path=hcs/{site}/r4</argument>
+                <argument>-Dvista-fhir-query.custom-r4-url-and-path.Endpoint=http:\/\/localhost:8095\/r4</argument>
+                <argument>-Dvista-fhir-query.custom-r4-url-and-path.Observation=http:\/\/localhost:8095\/r4</argument>
+                <argument>-Dvista-fhir-query.custom-r4-url-and-path.Patient=http:\/\/localhost:8090\/data-query\/r4</argument>
                 <argument>-Dvista-fhir-query.rpc-principals.file=${project.basedir}/src/test/resources/principals.json</argument>
                 <argument>-Dvista-fhir-query.internal.client-keys=~shanktopus~</argument>
                 <argument>-Dvista-fhir-query.public-web-exception-key=-shanktopus-for-the-win-</argument>

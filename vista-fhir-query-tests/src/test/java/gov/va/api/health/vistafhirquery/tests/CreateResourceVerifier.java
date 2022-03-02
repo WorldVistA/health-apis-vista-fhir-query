@@ -4,6 +4,7 @@ import static org.apache.commons.lang3.StringUtils.isBlank;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import gov.va.api.health.fhir.api.IsResource;
+import gov.va.api.health.sentinel.Environment;
 import gov.va.api.health.sentinel.ServiceDefinition;
 import gov.va.api.lighthouse.testclients.clientcredentials.ClientCredentialsOauthClient;
 import gov.va.api.lighthouse.testclients.clientcredentials.ClientCredentialsRequestConfiguration;
@@ -92,6 +93,9 @@ public class CreateResourceVerifier {
   }
 
   private String getOauthToken(String apiName) {
+    if (Environment.get() == Environment.LOCAL) {
+      return "LOCAL";
+    }
     var tokenUrl =
         loadSystemPropertyOrEnvironmentVariable(apiName + ".client-credentials.token-url");
     var scopes =
