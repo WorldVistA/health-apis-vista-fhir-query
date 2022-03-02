@@ -21,13 +21,21 @@ import gov.va.api.health.r4.api.resources.Resource;
 import gov.va.api.health.vistafhirquery.interactivetests.InteractiveTestContext;
 import gov.va.api.health.vistafhirquery.interactivetests.TestContext;
 import gov.va.api.health.vistafhirquery.service.controller.coverage.InsuranceBufferStructureDefinitions;
-
 import java.util.ArrayList;
 import java.util.List;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.condition.EnabledIfSystemProperty;
 
 public class CoverageInsuranceBufferCreateForPatientTest {
+  private ArrayList<Resource> containedResources(TestContext ctx) {
+    ArrayList<Resource> contained = new ArrayList<>(3);
+    contained.add(insurancePlan(ctx));
+    contained.add(organization(ctx));
+    if (!"self".equals(ctx.property("relationship"))) {
+      contained.add(relatedPerson(ctx));
+    }
+    return contained;
+  }
 
   @Test
   @EnabledIfSystemProperty(named = "interactive-tests", matches = "true")
@@ -96,16 +104,6 @@ public class CoverageInsuranceBufferCreateForPatientTest {
                     .asList())
             .order(parseInt(ctx.property("order")))
             .build());
-  }
-
-  private ArrayList<Resource> containedResources(TestContext ctx) {
-    ArrayList<Resource> contained = new ArrayList<>(3);
-    contained.add(insurancePlan(ctx));
-    contained.add(organization(ctx));
-    if (!"self".equals(ctx.property("relationship"))) {
-      contained.add(relatedPerson(ctx));
-    }
-    return contained;
   }
 
   private InsurancePlan insurancePlan(TestContext ctx) {
