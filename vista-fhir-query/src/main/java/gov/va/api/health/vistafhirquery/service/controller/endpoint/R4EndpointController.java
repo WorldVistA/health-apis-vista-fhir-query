@@ -15,7 +15,6 @@ import gov.va.api.health.vistafhirquery.service.controller.R4Transformation;
 import gov.va.api.health.vistafhirquery.service.controller.ResourceExceptions;
 import gov.va.api.health.vistafhirquery.service.mpifhirqueryclient.MpiFhirQueryClient;
 import gov.va.api.lighthouse.charon.api.v1.RpcPrincipalLookupV1;
-import gov.va.api.lighthouse.charon.models.lhslighthouserpcgateway.LhsLighthouseRpcGatewayGetsManifest;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -41,7 +40,6 @@ import org.springframework.web.bind.annotation.RestController;
 @AllArgsConstructor(onConstructor_ = {@Autowired, @NonNull})
 @Slf4j
 public class R4EndpointController implements R4EndpointApi {
-  public static final String SUPPORTED_RPC = LhsLighthouseRpcGatewayGetsManifest.RPC_NAME;
 
   private final R4BundlerFactory bundlerFactory;
 
@@ -102,7 +100,7 @@ public class R4EndpointController implements R4EndpointApi {
   }
 
   private boolean isKnownSite(String site) {
-    return rpcPrincipalLookup.findByNameAndSite(SUPPORTED_RPC, site).isPresent();
+    return rpcPrincipalLookup.findAllEntries().containsKey(site);
   }
 
   private boolean isSupportedStatus(String status) {

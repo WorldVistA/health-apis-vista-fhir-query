@@ -48,8 +48,8 @@ public class R4EndpointControllerTest {
 
   @Test
   void endpointReadKnownSite() {
-    var actual = controller().endpointRead("101");
-    var expected = EndpointSamples.R4.create().endpoint("101");
+    var actual = controller().endpointRead("102");
+    var expected = EndpointSamples.R4.create().endpoint("102");
     assertThat(json(actual)).isEqualTo(json(expected));
   }
 
