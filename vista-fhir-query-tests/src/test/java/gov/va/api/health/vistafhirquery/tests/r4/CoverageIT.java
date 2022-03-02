@@ -53,11 +53,6 @@ public class CoverageIT {
                         .build()
                         .asList())
                 .build())
-        .subscriber(
-            Reference.builder()
-                .reference("Patient/" + testIds.patient())
-                .display("Sheriff Big-Boi")
-                .build())
         .subscriberId(newSubscriberEveryTime)
         .beneficiary(
             Reference.builder()

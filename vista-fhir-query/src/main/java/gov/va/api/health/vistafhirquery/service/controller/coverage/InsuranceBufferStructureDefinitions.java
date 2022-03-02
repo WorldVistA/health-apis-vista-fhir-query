@@ -33,6 +33,5 @@ public interface InsuranceBufferStructureDefinitions {
 
   String INSUREDS_SEX_URL = "http://hl7.org/fhir/us/core/STU4/StructureDefinition-us-core-birthsex";
 
-  String INSUREDS_SEX_SYSTEM =
-      "https://terminology.hl7.org/1.0.0/CodeSystem-v3-AdministrativeGender";
+  String INSURED_SSN_SYSTEM = "http://hl7.org/fhir/sid/us-ssn";
 }

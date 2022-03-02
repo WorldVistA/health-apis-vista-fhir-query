@@ -7,34 +7,40 @@ import gov.va.api.health.vistafhirquery.service.controller.RequestPayloadExcepti
 import gov.va.api.health.vistafhirquery.service.controller.WriteableFilemanValueFactory;
 import gov.va.api.lighthouse.charon.models.lhslighthouserpcgateway.LhsLighthouseRpcGatewayCoverageWrite;
 import java.util.List;
+import java.util.function.Function;
 import lombok.Builder;
+import lombok.Getter;
 import lombok.NonNull;
 
-public class StringExtensionHandler extends AbstractSingleFieldExtensionHandler {
+public class CodeExtensionHandler extends AbstractSingleFieldExtensionHandler {
+  @Getter private final Function<String, String> toCode;
+
   @Builder
-  public StringExtensionHandler(
+  public CodeExtensionHandler(
       @NonNull WriteableFilemanValueFactory filemanFactory,
       @NonNull String definingUrl,
       @NonNull ExtensionHandler.Required required,
       @NonNull String fieldNumber,
+      Function<String, String> toCode,
       int index) {
     super(definingUrl, required, filemanFactory, fieldNumber, index);
+    this.toCode = toCode == null ? Function.identity() : toCode;
   }
 
-  public static StringExtensionHandler.StringExtensionHandlerBuilder forDefiningUrl(
+  public static CodeExtensionHandler.CodeExtensionHandlerBuilder forDefiningUrl(
       String definingUrl) {
-    return StringExtensionHandler.builder().definingUrl(definingUrl);
+    return CodeExtensionHandler.builder().definingUrl(definingUrl);
   }
 
   @Override
   public List<LhsLighthouseRpcGatewayCoverageWrite.WriteableFilemanValue> handle(
       String jsonPath, @NonNull Extension extension) {
-    var value = extension.valueString();
+    String value = toCode.apply(extension.valueCode());
     if (isBlank(value)) {
       throw ExtensionMissingRequiredField.builder()
           .jsonPath(jsonPath)
           .definingUrl(definingUrl())
-          .requiredFieldJsonPath(".valueString")
+          .requiredFieldJsonPath(".extension[].valueCode")
           .build();
     }
     return List.of(filemanFactory().forString(fieldNumber(), index(), value).get());

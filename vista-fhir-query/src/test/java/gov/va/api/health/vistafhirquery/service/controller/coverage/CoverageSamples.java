@@ -7,6 +7,7 @@ import gov.va.api.health.r4.api.datatypes.Address;
 import gov.va.api.health.r4.api.datatypes.CodeableConcept;
 import gov.va.api.health.r4.api.datatypes.Coding;
 import gov.va.api.health.r4.api.datatypes.ContactPoint;
+import gov.va.api.health.r4.api.datatypes.HumanName;
 import gov.va.api.health.r4.api.datatypes.Identifier;
 import gov.va.api.health.r4.api.datatypes.Period;
 import gov.va.api.health.r4.api.elements.Extension;
@@ -189,18 +190,12 @@ public class CoverageSamples {
 
     private RelatedPerson containedRelatedPerson(String id) {
       return RelatedPerson.builder()
+          .id(id)
+          .name(HumanName.builder().text("Shankey").build().asList())
           .birthDate("1994-01-01")
           .extension(
               Extension.builder()
-                  .valueCodeableConcept(
-                      CodeableConcept.builder()
-                          .coding(
-                              Coding.builder()
-                                  .code("M")
-                                  .system(InsuranceBufferStructureDefinitions.INSUREDS_SEX_SYSTEM)
-                                  .build()
-                                  .asList())
-                          .build())
+                  .valueCode("M")
                   .url(InsuranceBufferStructureDefinitions.INSUREDS_SEX_URL)
                   .build()
                   .asList())
@@ -533,7 +528,24 @@ public class CoverageSamples {
               InsuranceVerificationProcessor.STREET_ADDRESS_LINE_3, "SHANKSVILLE LINE 3"),
           insuranceBufferValue(InsuranceVerificationProcessor.CITY, "SHANK CITY"),
           insuranceBufferValue(InsuranceVerificationProcessor.STATE, "FLORIDA"),
-          insuranceBufferValue(InsuranceVerificationProcessor.ZIP_CODE, "322310014"));
+          insuranceBufferValue(InsuranceVerificationProcessor.ZIP_CODE, "322310014"),
+          insuranceBufferValue(InsuranceVerificationProcessor.SUBSCRIBER_PHONE, "555-867-5309"),
+          insuranceBufferValue(InsuranceVerificationProcessor.INSUREDS_SSN, "012345678"),
+          insuranceBufferValue(InsuranceVerificationProcessor.NAME_OF_INSURED, "Shankey"),
+          insuranceBufferValue(InsuranceVerificationProcessor.INSUREDS_SEX, "M"),
+          insuranceBufferValue(InsuranceVerificationProcessor.INSUREDS_DOB, "2940101"),
+          insuranceBufferValue(
+              InsuranceVerificationProcessor.SUBSCRIBER_ADDRESS_LINE_1, "Shank Address Line 1"),
+          insuranceBufferValue(
+              InsuranceVerificationProcessor.SUBSCRIBER_ADDRESS_LINE_2, "Shank Address Line 2"),
+          insuranceBufferValue(
+              InsuranceVerificationProcessor.SUBSCRIBER_ADDRESS_CITY, "SHANKSVILLE"),
+          insuranceBufferValue(InsuranceVerificationProcessor.SUBSCRIBER_ADDRESS_STATE, "FLORIDA"),
+          insuranceBufferValue(InsuranceVerificationProcessor.SUBSCRIBER_ADDRESS_ZIP, "54545"),
+          insuranceBufferValue(
+              InsuranceVerificationProcessor.SUBSCRIBER_ADDRESS_COUNTRY, "UNITED STATES"),
+          insuranceBufferValue(
+              InsuranceVerificationProcessor.SUBSCRIBER_ADDRESS_SUBDIVISION, "CUTSORTIUM"));
     }
 
     public LhsLighthouseRpcGatewayResponse.Results createInsuranceBufferResults(String id) {
@@ -626,6 +638,7 @@ public class CoverageSamples {
           InsuranceVerificationProcessor.SUBSCRIBER_PHONE,
           Values.of("555-867-5309", "555-867-5309"));
       fields.put(InsuranceVerificationProcessor.INSUREDS_SSN, Values.of("012345678", "012345678"));
+      fields.put(InsuranceVerificationProcessor.NAME_OF_INSURED, Values.of("Shankey", "Shankey"));
       fields.put(InsuranceVerificationProcessor.INSUREDS_DOB, Values.of("2940101", "2940101"));
       fields.put(InsuranceVerificationProcessor.INSUREDS_SEX, Values.of("Male", "M"));
       fields.put(

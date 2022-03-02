@@ -8,6 +8,7 @@ import gov.va.api.health.r4.api.datatypes.Address;
 import gov.va.api.health.r4.api.datatypes.CodeableConcept;
 import gov.va.api.health.r4.api.datatypes.Coding;
 import gov.va.api.health.r4.api.datatypes.ContactPoint;
+import gov.va.api.health.r4.api.datatypes.HumanName;
 import gov.va.api.health.r4.api.datatypes.Identifier;
 import gov.va.api.health.r4.api.datatypes.Period;
 import gov.va.api.health.r4.api.elements.Reference;
@@ -247,6 +248,16 @@ public class R4CoverageToInsuranceBufferTransformerTest {
   }
 
   @Test
+  void countryAndSubdivision() {
+    assertThatExceptionOfType(UnexpectedNumberOfValues.class)
+        .isThrownBy(
+            () ->
+                _transformer()
+                    .relatedPersonAddress(
+                        List.of(Address.builder().build(), Address.builder().build())));
+  }
+
+  @Test
   void effectiveDateAndExpirationDate() {
     // Null
     assertThatExceptionOfType(MissingRequiredField.class)
@@ -335,6 +346,16 @@ public class R4CoverageToInsuranceBufferTransformerTest {
   }
 
   @Test
+  void nameOfInsured() {
+    assertThatExceptionOfType(UnexpectedNumberOfValues.class)
+        .isThrownBy(
+            () ->
+                _transformer()
+                    .nameOfInsured(
+                        List.of(HumanName.builder().build(), HumanName.builder().build())));
+  }
+
+  @Test
   void patientId() {
     // Null
     assertThatExceptionOfType(MissingRequiredField.class)
@@ -414,10 +435,12 @@ public class R4CoverageToInsuranceBufferTransformerTest {
   @Test
   void phoneNumber() {
     // Null list
-    assertThat(_transformer().phoneNumber(null)).isNull();
+    assertThat(_transformer().phoneNumber(null, "phoneField")).isNull();
     // Null system
     assertThat(
-            _transformer().phoneNumber(List.of(ContactPoint.builder().value("800-PHONE").build())))
+            _transformer()
+                .phoneNumber(
+                    List.of(ContactPoint.builder().value("800-PHONE").build()), "phoneField"))
         .isNull();
     // Null value
     assertThat(
@@ -426,7 +449,8 @@ public class R4CoverageToInsuranceBufferTransformerTest {
                     List.of(
                         ContactPoint.builder()
                             .system(ContactPoint.ContactPointSystem.phone)
-                            .build())))
+                            .build()),
+                    "phoneField"))
         .isNull();
     // More than one
     assertThatExceptionOfType(UnexpectedNumberOfValues.class)
@@ -442,7 +466,8 @@ public class R4CoverageToInsuranceBufferTransformerTest {
                             ContactPoint.builder()
                                 .system(ContactPoint.ContactPointSystem.phone)
                                 .value("800-PHONE")
-                                .build())));
+                                .build()),
+                        "phoneField"));
   }
 
   @Test

@@ -2,6 +2,9 @@ package gov.va.api.health.vistafhirquery.service.controller.coverage;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import gov.va.api.health.r4.api.elements.Extension;
+import gov.va.api.lighthouse.charon.models.lhslighthouserpcgateway.InsuranceVerificationProcessor;
+import gov.va.api.lighthouse.charon.models.lhslighthouserpcgateway.LhsLighthouseRpcGatewayResponse;
 import gov.va.api.lighthouse.charon.models.lhslighthouserpcgateway.LhsLighthouseRpcGatewayResponse.FilemanEntry;
 import gov.va.api.lighthouse.charon.models.lhslighthouserpcgateway.LhsLighthouseRpcGatewayResponse.Results;
 import java.util.List;
@@ -20,6 +23,33 @@ class InsuranceBufferToR4CoverageTransformerTest {
   private InsuranceBufferToR4CoverageTransformer _transformer() {
     return _transformer(
         CoverageSamples.VistaLhsLighthouseRpcGateway.create().createInsuranceBufferResults("ien1"));
+  }
+
+  @Test
+  void birthsex() {
+    assertThat(_transformer().birthsex(FilemanEntry.builder().build()))
+        .isEqualTo(
+            Extension.builder()
+                .url(InsuranceBufferStructureDefinitions.INSUREDS_SEX_URL)
+                .valueCode("UNK")
+                .build());
+    assertThat(
+            _transformer()
+                .birthsex(
+                    FilemanEntry.builder()
+                        .fields(
+                            Map.of(
+                                InsuranceVerificationProcessor.INSUREDS_SEX,
+                                LhsLighthouseRpcGatewayResponse.Values.builder()
+                                    .ext("M")
+                                    .in("M")
+                                    .build()))
+                        .build()))
+        .isEqualTo(
+            Extension.builder()
+                .url(InsuranceBufferStructureDefinitions.INSUREDS_SEX_URL)
+                .valueCode("M")
+                .build());
   }
 
   @Test

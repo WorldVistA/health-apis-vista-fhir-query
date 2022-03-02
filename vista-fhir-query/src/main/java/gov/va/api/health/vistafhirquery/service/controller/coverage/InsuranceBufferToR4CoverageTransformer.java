@@ -13,6 +13,7 @@ import gov.va.api.health.r4.api.datatypes.Address;
 import gov.va.api.health.r4.api.datatypes.CodeableConcept;
 import gov.va.api.health.r4.api.datatypes.Coding;
 import gov.va.api.health.r4.api.datatypes.ContactPoint;
+import gov.va.api.health.r4.api.datatypes.HumanName;
 import gov.va.api.health.r4.api.datatypes.Identifier;
 import gov.va.api.health.r4.api.datatypes.Period;
 import gov.va.api.health.r4.api.elements.Extension;
@@ -63,6 +64,7 @@ public class InsuranceBufferToR4CoverageTransformer {
           InsuranceVerificationProcessor.INQ_SERVICE_TYPE_CODE_1,
           InsuranceVerificationProcessor.INSURANCE_COMPANY_NAME,
           InsuranceVerificationProcessor.INSUREDS_DOB,
+          InsuranceVerificationProcessor.INSUREDS_SEX,
           InsuranceVerificationProcessor.NAME_OF_INSURED,
           InsuranceVerificationProcessor.PATIENT_ID,
           InsuranceVerificationProcessor.PATIENT_NAME,
@@ -141,6 +143,20 @@ public class InsuranceBufferToR4CoverageTransformer {
                     .display("BILL")
                     .system("http://terminology.hl7.org/CodeSystem/contactentity-type")
                     .build()))
+        .build();
+  }
+
+  Extension birthsex(FilemanEntry entry) {
+    var value = entry.internal(InsuranceVerificationProcessor.INSUREDS_SEX);
+    if (value.isEmpty()) {
+      return Extension.builder()
+          .url(InsuranceBufferStructureDefinitions.INSUREDS_SEX_URL)
+          .valueCode("UNK")
+          .build();
+    }
+    return Extension.builder()
+        .url(InsuranceBufferStructureDefinitions.INSUREDS_SEX_URL)
+        .valueCode(value.get())
         .build();
   }
 
@@ -394,15 +410,7 @@ public class InsuranceBufferToR4CoverageTransformer {
   }
 
   private List<Extension> subscriberExtensions(FilemanEntry entry) {
-    ExtensionFactory extensions = ExtensionFactory.of(entry, YES_NO);
-    return emptyToNull(
-        Stream.of(
-                extensions.ofCodeableConceptFromInternalValue(
-                    InsuranceVerificationProcessor.INSUREDS_SEX,
-                    InsuranceBufferStructureDefinitions.INSUREDS_SEX_SYSTEM,
-                    InsuranceBufferStructureDefinitions.INSUREDS_SEX_URL))
-            .filter(Objects::nonNull)
-            .collect(Collectors.toList()));
+    return List.of(birthsex(entry));
   }
 
   private List<Identifier> subscriberIdentifier(FilemanEntry entry) {
@@ -421,12 +429,19 @@ public class InsuranceBufferToR4CoverageTransformer {
                                     .build()
                                     .asList())
                             .build())
-                    .system("http://hl7.org/fhir/sid/us-ssn")
+                    .system(InsuranceBufferStructureDefinitions.INSURED_SSN_SYSTEM)
                     .value(ssn)
                     .assigner(
                         Reference.builder().display("United States Social Security Number").build())
                     .build()
                     .asList())
+        .orElse(null);
+  }
+
+  private List<HumanName> subscriberName(FilemanEntry entry) {
+    return entry
+        .internal(InsuranceVerificationProcessor.NAME_OF_INSURED)
+        .map(n -> HumanName.builder().text(n).build().asList())
         .orElse(null);
   }
 
@@ -517,6 +532,7 @@ public class InsuranceBufferToR4CoverageTransformer {
     var rp =
         RelatedPerson.builder()
             .birthDate(subscriberBirthDate(entry))
+            .name(subscriberName(entry))
             .extension(subscriberExtensions(entry))
             .identifier(subscriberIdentifier(entry))
             .address(subscriberAddress(entry))

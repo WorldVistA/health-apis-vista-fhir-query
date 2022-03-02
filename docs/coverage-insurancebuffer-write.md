@@ -239,13 +239,10 @@ received.
 
 | Defining URL | Type | Required | Notes |
 |---|---|---|---|
-| `http://hl7.org/fhir/us/core/STU4/StructureDefinition-us-core-birthsex` | `valueCodeableConcept` | Required | `.coding[0].system` is `https://terminology.hl7.org/1.0.0/CodeSystem-v3-AdministrativeGender`. `.coding[0].value` is _
+| `http://hl7.org/fhir/us/core/STU4/StructureDefinition-us-core-birthsex` | `valueCode` | Required |  `.valueCode` is _
 Administrative Gender Codes_ defined below. |
 
 ### Administrative Gender Codes
-
-System `https://terminology.hl7.org/1.0.0/CodeSystem-v3-AdministrativeGender`
-
 Used with
 
 - `http://hl7.org/fhir/us/core/STU4/StructureDefinition-us-core-birthsex`
@@ -257,4 +254,4 @@ received.
 |---|---|
 |`F` | `Female`
 |`M` | `Male`
-|`UN` | `Unknown`
+|`UNK` | `Unknown`

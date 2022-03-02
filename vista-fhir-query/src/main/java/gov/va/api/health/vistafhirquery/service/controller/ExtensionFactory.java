@@ -30,6 +30,15 @@ public class ExtensionFactory {
         .build();
   }
 
+  /** Creates a valueCode extension. */
+  public Extension ofCode(String fieldNumber, String url) {
+    var value = entry.internal(fieldNumber);
+    if (value.isEmpty()) {
+      return null;
+    }
+    return Extension.builder().url(url).valueCode(value.get()).build();
+  }
+
   /** Creates a valueCodeableConcept extension with an external value. */
   public Extension ofCodeableConceptFromExternalValue(
       String fieldNumber, String system, String url) {
