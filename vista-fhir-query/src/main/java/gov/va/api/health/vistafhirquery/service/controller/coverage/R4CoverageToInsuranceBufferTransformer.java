@@ -17,7 +17,6 @@ import gov.va.api.health.r4.api.datatypes.CodeableConcept;
 import gov.va.api.health.r4.api.datatypes.ContactPoint;
 import gov.va.api.health.r4.api.datatypes.ContactPoint.ContactPointSystem;
 import gov.va.api.health.r4.api.datatypes.HumanName;
-import gov.va.api.health.r4.api.datatypes.Identifier;
 import gov.va.api.health.r4.api.datatypes.Period;
 import gov.va.api.health.r4.api.elements.Reference;
 import gov.va.api.health.r4.api.resources.Coverage;
@@ -114,15 +113,16 @@ public class R4CoverageToInsuranceBufferTransformer {
             .build();
       }
       for (int i = 0; i < lines.size(); i++) {
-        if (!isBlank(lineFields.get(i))) {
-          factoryRegistry()
-              .get(InsuranceVerificationProcessor.FILE_NUMBER)
-              .forString(
-                  lineFields.get(i),
-                  indexRegistry().get(InsuranceVerificationProcessor.FILE_NUMBER),
-                  lines.get(i))
-              .ifPresent(addressValues::add);
+        if (isBlank(lineFields.get(i))) {
+          throw new IllegalStateException("Value of line[N] is blank at index: " + i);
         }
+        factoryRegistry()
+            .get(InsuranceVerificationProcessor.FILE_NUMBER)
+            .forString(
+                lineFields.get(i),
+                indexRegistry().get(InsuranceVerificationProcessor.FILE_NUMBER),
+                lines.get(i))
+            .ifPresent(addressValues::add);
       }
     }
     factoryRegistry()
@@ -269,31 +269,6 @@ public class R4CoverageToInsuranceBufferTransformer {
             indexRegistry().get(InsuranceVerificationProcessor.FILE_NUMBER),
             name)
         .orElse(null);
-  }
-
-  WriteableFilemanValue groupNumber(List<Identifier> identifiers) {
-    List<Identifier> groupNumbers =
-        Safe.stream(identifiers)
-            .filter(i -> InsuranceBufferStructureDefinitions.GROUP_NUMBER.equals(i.system()))
-            .toList();
-    if (groupNumbers.size() != 1) {
-      throw UnexpectedNumberOfValues.builder()
-          .exactExpectedCount(1)
-          .receivedCount(groupNumbers.size())
-          .jsonPath(".contained[].identifiers[]")
-          .build();
-    }
-    return factoryRegistry()
-        .get(InsuranceVerificationProcessor.FILE_NUMBER)
-        .forString(
-            InsuranceVerificationProcessor.GROUP_NUMBER,
-            indexRegistry().get(InsuranceVerificationProcessor.FILE_NUMBER),
-            groupNumbers.get(0).value())
-        .orElseThrow(
-            () ->
-                MissingRequiredField.builder()
-                    .jsonPath(".contained[].identifiers[].value")
-                    .build());
   }
 
   WriteableFilemanValue inqServiceTypeCode1(CodeableConcept type) {
@@ -471,7 +446,7 @@ public class R4CoverageToInsuranceBufferTransformer {
 
   WriteableFilemanValue nameOfInsured(List<HumanName> name) {
     if (isBlank(name)) {
-      return null;
+      throw MissingRequiredField.builder().jsonPath(".name[]").build();
     }
     if (name.size() != 1) {
       throw UnexpectedNumberOfValues.builder()
@@ -486,7 +461,7 @@ public class R4CoverageToInsuranceBufferTransformer {
             InsuranceVerificationProcessor.NAME_OF_INSURED,
             indexRegistry().get(InsuranceVerificationProcessor.FILE_NUMBER),
             name.get(0).text())
-        .orElse(null);
+        .orElseThrow(() -> MissingRequiredField.builder().jsonPath(".name[0].text").build());
   }
 
   private WriteableFilemanValue order(Integer order) {
@@ -852,16 +827,14 @@ public class R4CoverageToInsuranceBufferTransformer {
   }
 
   WriteableFilemanValue subscriberId(String subscriberId) {
-    if (isBlank(subscriberId)) {
-      throw MissingRequiredField.builder().jsonPath(".subscriberId").build();
-    }
+
     return factoryRegistry()
         .get(InsuranceVerificationProcessor.FILE_NUMBER)
         .forString(
             InsuranceVerificationProcessor.SUBSCRIBER_ID,
             indexRegistry().get(InsuranceVerificationProcessor.FILE_NUMBER),
             subscriberId)
-        .get();
+        .orElseThrow(() -> MissingRequiredField.builder().jsonPath(".subscriberId").build());
   }
 
   /** Create a set of writeable fileman values. */

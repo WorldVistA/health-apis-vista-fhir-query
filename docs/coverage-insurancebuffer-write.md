@@ -44,9 +44,9 @@
 | `.extension[]` | Required | See [Supported Extensions](#supported-extensions) below. |
 | `.identifier[]` | Required | See [Supported Identifiers](#supported-identifiers) below. |
 | `.name` | Optional | This is the name that the insurance company uses to identify the plan. |
-| `.plan[]` | Required | Must contain 1 entry. |
-| `.plan[0].type.coding[0].system` | Required | Must be `urn:oid:2.16.840.1.113883.3.8901.3.1.3558033.408009`. |
-| `.plan[0].type.coding[0].display` | Required | Name of the plan type. See _Type of Plan_ defined below. |
+| `.plan[]` | Optional | Should contain 1 entry. |
+| `.plan[0].type.coding[0].system` | Optional | Should be `urn:oid:2.16.840.1.113883.3.8901.3.1.3558033.408009`. |
+| `.plan[0].type.coding[0].display` | Optional | Should of the plan type. See _Type of Plan_ defined below. |
 
 <details>
 <summary><strong>Type of Plan</strong></summary>
@@ -234,6 +234,7 @@ received.
 | `.telecom.system` | Optional | Should be `phone`.
 | `.telecom.value` | Optional | The phone number at which this insurance company can be reached. 7-20 characters in length.
 | `.extension[]` | Optional | See [Supported Extensions](#supported-extensions) below. |
+| `.name.text` | Required | The name of the person who holds the policy. Must be 2-30 characters in length.
 
 ## Supported Extensions
 

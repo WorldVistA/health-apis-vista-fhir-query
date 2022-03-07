@@ -301,23 +301,6 @@ public class R4CoverageToInsuranceBufferTransformerTest {
   }
 
   @Test
-  void groupNumber() {
-    assertThatExceptionOfType(UnexpectedNumberOfValues.class)
-        .isThrownBy(() -> _transformer().groupNumber(null));
-    assertThatExceptionOfType(UnexpectedNumberOfValues.class)
-        .isThrownBy(() -> _transformer().groupNumber(List.of()));
-    assertThatExceptionOfType(MissingRequiredField.class)
-        .isThrownBy(
-            () ->
-                _transformer()
-                    .groupNumber(
-                        Identifier.builder()
-                            .system(InsuranceBufferStructureDefinitions.GROUP_NUMBER)
-                            .build()
-                            .asList()));
-  }
-
-  @Test
   void inqServiceTypeCode1() {
     assertThatExceptionOfType(UnexpectedNumberOfValues.class)
         .isThrownBy(
@@ -355,6 +338,10 @@ public class R4CoverageToInsuranceBufferTransformerTest {
                 _transformer()
                     .nameOfInsured(
                         List.of(HumanName.builder().build(), HumanName.builder().build())));
+    assertThatExceptionOfType(MissingRequiredField.class)
+        .isThrownBy(() -> _transformer().nameOfInsured(null));
+    assertThatExceptionOfType(MissingRequiredField.class)
+        .isThrownBy(() -> _transformer().nameOfInsured(List.of()));
   }
 
   @Test
