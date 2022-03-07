@@ -512,8 +512,9 @@ public class R4CoverageToInsuranceBufferTransformerTest {
   @Test
   void typeOfPlan() {
     // Null plan
-    assertThatExceptionOfType(MissingRequiredField.class)
-        .isThrownBy(() -> _transformer().typeOfPlan(null));
+    assertThat(_transformer().typeOfPlan(null)).isNull();
+    // Empty list
+    assertThat(_transformer().typeOfPlan(List.of())).isNull();
     // Null codeableconcept
     assertThatExceptionOfType(MissingRequiredField.class)
         .isThrownBy(() -> _transformer().typeOfPlan(InsurancePlan.Plan.builder().build().asList()));

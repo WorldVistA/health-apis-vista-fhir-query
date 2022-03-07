@@ -891,7 +891,7 @@ public class R4CoverageToInsuranceBufferTransformer {
 
   WriteableFilemanValue typeOfPlan(List<InsurancePlan.Plan> plan) {
     if (isBlank(plan)) {
-      throw MissingRequiredField.builder().jsonPath(".plan[]").build();
+      return null;
     }
     if (plan.size() != 1) {
       throw UnexpectedNumberOfValues.builder()
