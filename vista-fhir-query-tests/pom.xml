@@ -53,6 +53,13 @@
       <artifactId>vista-fhir-query</artifactId>
       <version>${project.version}</version>
       <scope>test</scope>
+      <classifier>library</classifier>
+    </dependency>
+    <dependency>
+      <groupId>gov.va.api.health</groupId>
+      <artifactId>vista-fhir-query</artifactId>
+      <version>${project.version}</version>
+      <scope>test</scope>
     </dependency>
     <dependency>
       <groupId>gov.va.api.health</groupId>

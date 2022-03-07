@@ -327,6 +327,8 @@ public class R4CoverageToInsuranceBufferTransformerTest {
                         CodeableConcept.builder()
                             .coding(List.of(Coding.builder().build(), Coding.builder().build()))
                             .build()));
+    assertThatExceptionOfType(MissingRequiredField.class)
+        .isThrownBy(() -> _transformer().inqServiceTypeCode1(null));
   }
 
   @Test
@@ -353,6 +355,14 @@ public class R4CoverageToInsuranceBufferTransformerTest {
                 _transformer()
                     .nameOfInsured(
                         List.of(HumanName.builder().build(), HumanName.builder().build())));
+  }
+
+  @Test
+  void organizationStatus() {
+    assertThatExceptionOfType(UnexpectedValueForField.class)
+        .isThrownBy(() -> _transformer().organizationStatus(null));
+    assertThatExceptionOfType(UnexpectedValueForField.class)
+        .isThrownBy(() -> _transformer().organizationStatus(false));
   }
 
   @Test
@@ -468,6 +478,14 @@ public class R4CoverageToInsuranceBufferTransformerTest {
                                 .value("800-PHONE")
                                 .build()),
                         "phoneField"));
+  }
+
+  @Test
+  void relatedPersonBirthDate() {
+    assertThatExceptionOfType(UnexpectedValueForField.class)
+        .isThrownBy(() -> _transformer().relatedPersonBirthDate("bad date"));
+    assertThatExceptionOfType(MissingRequiredField.class)
+        .isThrownBy(() -> _transformer().relatedPersonBirthDate(null));
   }
 
   @Test

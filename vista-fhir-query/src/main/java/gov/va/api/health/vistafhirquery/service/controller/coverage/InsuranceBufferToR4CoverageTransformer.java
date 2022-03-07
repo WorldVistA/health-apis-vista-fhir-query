@@ -56,6 +56,7 @@ public class InsuranceBufferToR4CoverageTransformer {
           InsuranceVerificationProcessor.BENEFITS_ASSIGNABLE,
           InsuranceVerificationProcessor.BILLING_PHONE_NUMBER,
           InsuranceVerificationProcessor.CITY,
+          InsuranceVerificationProcessor.COORDINATION_OF_BENEFITS,
           InsuranceVerificationProcessor.EXCLUDE_PREEXISTING_CONDITION,
           InsuranceVerificationProcessor.EFFECTIVE_DATE,
           InsuranceVerificationProcessor.EXPIRATION_DATE,
@@ -65,9 +66,11 @@ public class InsuranceBufferToR4CoverageTransformer {
           InsuranceVerificationProcessor.INSURANCE_COMPANY_NAME,
           InsuranceVerificationProcessor.INSUREDS_DOB,
           InsuranceVerificationProcessor.INSUREDS_SEX,
+          InsuranceVerificationProcessor.INSUREDS_SSN,
           InsuranceVerificationProcessor.NAME_OF_INSURED,
           InsuranceVerificationProcessor.PATIENT_ID,
           InsuranceVerificationProcessor.PATIENT_NAME,
+          InsuranceVerificationProcessor.PHARMACY_PERSON_CODE,
           InsuranceVerificationProcessor.PHONE_NUMBER,
           InsuranceVerificationProcessor.PRECERTIFICATION_PHONE_NUMBER,
           InsuranceVerificationProcessor.PRECERTIFICATION_REQUIRED,
@@ -459,9 +462,16 @@ public class InsuranceBufferToR4CoverageTransformer {
                     .ien(entry.ien())
                     .build()
                     .toString())
+            .order(
+                entry
+                    .internal(InsuranceVerificationProcessor.COORDINATION_OF_BENEFITS)
+                    .map(R4Transformers::toInteger)
+                    .orElse(null))
             .period(period(entry))
             .meta(Meta.builder().source(site()).build())
             .status(Status.draft)
+            .dependent(
+                entry.internal(InsuranceVerificationProcessor.PHARMACY_PERSON_CODE).orElse(null))
             .type(
                 entry
                     .internal(InsuranceVerificationProcessor.INQ_SERVICE_TYPE_CODE_1)
@@ -488,7 +498,7 @@ public class InsuranceBufferToR4CoverageTransformer {
   private String toFilemanDate(String filemanDate) {
     return toHumanDateTime(filemanDate, vistaZoneId())
         .map(t -> t.atZone(ZoneOffset.UTC))
-        .map(t -> t.format(DateTimeFormatter.ISO_DATE_TIME))
+        .map(t -> t.format(DateTimeFormatter.ISO_LOCAL_DATE))
         .orElse(null);
   }
 

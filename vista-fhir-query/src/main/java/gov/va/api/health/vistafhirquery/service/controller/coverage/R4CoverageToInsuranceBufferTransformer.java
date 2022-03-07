@@ -55,6 +55,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import lombok.Builder;
 import lombok.NonNull;
@@ -194,6 +195,16 @@ public class R4CoverageToInsuranceBufferTransformer {
         .get();
   }
 
+  private WriteableFilemanValue dependent(String dependent) {
+    return factoryRegistry
+        .get(InsuranceVerificationProcessor.FILE_NUMBER)
+        .forString(
+            InsuranceVerificationProcessor.PHARMACY_PERSON_CODE,
+            indexRegistry.get(InsuranceVerificationProcessor.FILE_NUMBER),
+            dependent)
+        .orElse(null);
+  }
+
   List<WriteableFilemanValue> effectiveAndExpirationDate(Period period) {
     if (isBlank(period)) {
       throw MissingRequiredField.builder().jsonPath(".period").build();
@@ -285,16 +296,24 @@ public class R4CoverageToInsuranceBufferTransformer {
                     .build());
   }
 
-  // TODO: add system urn checking for protection https://vajira.max.gov/browse/API-12859
   WriteableFilemanValue inqServiceTypeCode1(CodeableConcept type) {
     if (isBlank(type) || isBlank(type.coding())) {
       throw MissingRequiredField.builder().jsonPath(".type.coding[]").build();
     }
-    if (type.coding().size() != 1) {
+    var serviceTypeCoding =
+        type.coding().stream()
+            .filter(
+                coding ->
+                    InsuranceBufferStructureDefinitions.INQ_SERVICE_TYPE_CODE.equals(
+                        coding.system()))
+            .collect(toList());
+    if (serviceTypeCoding.size() != 1) {
       throw UnexpectedNumberOfValues.builder()
+          .identifyingFieldJsonPath(".type.coding[].system")
+          .identifyingFieldValue(InsuranceBufferStructureDefinitions.INQ_SERVICE_TYPE_CODE)
           .jsonPath(".type.coding[]")
           .exactExpectedCount(1)
-          .receivedCount(type.coding().size())
+          .receivedCount(serviceTypeCoding.size())
           .build();
     }
     return factoryRegistry()
@@ -470,6 +489,24 @@ public class R4CoverageToInsuranceBufferTransformer {
         .orElse(null);
   }
 
+  private WriteableFilemanValue order(Integer order) {
+    if (isBlank(order)) {
+      return null;
+    }
+    return factoryRegistry
+        .get(InsuranceVerificationProcessor.FILE_NUMBER)
+        .forInteger(
+            InsuranceVerificationProcessor.COORDINATION_OF_BENEFITS,
+            indexRegistry.get(InsuranceVerificationProcessor.FILE_NUMBER),
+            order)
+        .orElseThrow(
+            () ->
+                UnexpectedValueForField.builder()
+                    .valueReceived(order)
+                    .dataType("https://www.hl7.org/fhir/datatypes.html#positiveInt")
+                    .build());
+  }
+
   List<WriteableFilemanValue> organization() {
     if (isBlank(coverage().payor())) {
       throw MissingRequiredField.builder().jsonPath(".payor[]").build();
@@ -501,6 +538,7 @@ public class R4CoverageToInsuranceBufferTransformer {
     var organizationExtensionProcessor =
         R4ExtensionProcessor.of(".extension[]", organizationExtensionHandlers());
     try {
+      organizationStatus(containedOrganization.active());
       return Stream.concat(
               Stream.of(
                   insuranceCompanyName(containedOrganization.name()),
@@ -546,6 +584,17 @@ public class R4CoverageToInsuranceBufferTransformer {
             .codingSystem(InsuranceBufferStructureDefinitions.REIMBURSE_URN_OID)
             .required(OPTIONAL)
             .build());
+  }
+
+  void organizationStatus(Boolean active) {
+    if (!Boolean.TRUE.equals(active)) {
+      throw UnexpectedValueForField.builder()
+          .supportedValues(List.of("true"))
+          .valueReceived(active)
+          .jsonPath("contained[].active")
+          .dataType("https://www.hl7.org/fhir/datatypes.html#boolean")
+          .build();
+    }
   }
 
   WriteableFilemanValue overrideFreshnessFlag() {
@@ -730,7 +779,7 @@ public class R4CoverageToInsuranceBufferTransformer {
     return addressValues;
   }
 
-  private WriteableFilemanValue relatedPersonBirthDate(String birthDate) {
+  WriteableFilemanValue relatedPersonBirthDate(String birthDate) {
     if (isBlank(birthDate)) {
       throw MissingRequiredField.builder().jsonPath(".contained[].birthDate").build();
     }
@@ -823,8 +872,9 @@ public class R4CoverageToInsuranceBufferTransformer {
     fields.add(dateEntered());
     fields.add(sourceOfInformation());
     fields.add(serviceDate());
-    fields.add(whoseInsurance());
     fields.add(patientId(coverage().beneficiary()));
+    fields.add(dependent(coverage().dependent()));
+    fields.add(order(coverage().order()));
     fields.add(patientRelationshipHipaa(coverage().relationship()));
     fields.add(subscriberId(coverage().subscriberId()));
     fields.add(inqServiceTypeCode1(coverage().type()));
@@ -832,7 +882,7 @@ public class R4CoverageToInsuranceBufferTransformer {
     fields.addAll(insurancePlan());
     fields.addAll(organization());
     fields.addAll(relatedPerson());
-    return fields;
+    return fields.stream().filter(Objects::nonNull).collect(Collectors.toSet());
   }
 
   private String today() {
@@ -875,17 +925,5 @@ public class R4CoverageToInsuranceBufferTransformer {
 
   private List<WriteableFilemanValue> unknownToEmpty(List<WriteableFilemanValue> extensions) {
     return extensions.stream().filter(s -> !"EMPTY".equals(s.value())).toList();
-  }
-
-  // TODO: get whose insurance from contained resource
-  // https://vajira.max.gov/browse/API-13036
-  WriteableFilemanValue whoseInsurance() {
-    return factoryRegistry()
-        .get(InsuranceVerificationProcessor.FILE_NUMBER)
-        .forString(
-            InsuranceVerificationProcessor.WHOSE_INSURANCE,
-            indexRegistry().get(InsuranceVerificationProcessor.FILE_NUMBER),
-            "s")
-        .get();
   }
 }

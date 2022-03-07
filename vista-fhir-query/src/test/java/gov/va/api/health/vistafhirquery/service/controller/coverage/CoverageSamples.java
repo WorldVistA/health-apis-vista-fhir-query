@@ -307,6 +307,8 @@ public class CoverageSamples {
           .beneficiary(beneficiary(patient))
           .relationship(relationship())
           .coverageClass(classes(station, patient).get(0).value("#1").asList())
+          .order(1)
+          .dependent("2")
           .payor(
               Reference.builder()
                   .type(Organization.class.getSimpleName())
@@ -408,7 +410,7 @@ public class CoverageSamples {
     }
 
     private Period period() {
-      return Period.builder().start("1992-01-12T00:00:00Z").end("2025-01-01T00:00:00Z").build();
+      return Period.builder().start("1992-01-12").end("2025-01-01").build();
     }
 
     private List<InsurancePlan.Plan> plan() {
@@ -489,7 +491,6 @@ public class CoverageSamples {
     public Set<WriteableFilemanValue> createInsuranceBufferInput() {
       return Set.of(
           pointerTo("355.12", "22"),
-          insuranceBufferValue(InsuranceVerificationProcessor.WHOSE_INSURANCE, "s"),
           insuranceBufferValue(InsuranceVerificationProcessor.PT_RELATIONSHIP_HIPAA, "SPOUSE"),
           insuranceBufferValue(InsuranceVerificationProcessor.PATIENT_ID, "13579"),
           insuranceBufferValue(InsuranceVerificationProcessor.GROUP_NUMBER, "GRP123456"),
@@ -540,6 +541,8 @@ public class CoverageSamples {
               InsuranceVerificationProcessor.SUBSCRIBER_ADDRESS_LINE_2, "Shank Address Line 2"),
           insuranceBufferValue(
               InsuranceVerificationProcessor.SUBSCRIBER_ADDRESS_CITY, "SHANKSVILLE"),
+          insuranceBufferValue(InsuranceVerificationProcessor.COORDINATION_OF_BENEFITS, "1"),
+          insuranceBufferValue(InsuranceVerificationProcessor.PHARMACY_PERSON_CODE, "2"),
           insuranceBufferValue(InsuranceVerificationProcessor.SUBSCRIBER_ADDRESS_STATE, "FLORIDA"),
           insuranceBufferValue(InsuranceVerificationProcessor.SUBSCRIBER_ADDRESS_ZIP, "54545"),
           insuranceBufferValue(
@@ -641,6 +644,8 @@ public class CoverageSamples {
       fields.put(InsuranceVerificationProcessor.NAME_OF_INSURED, Values.of("Shankey", "Shankey"));
       fields.put(InsuranceVerificationProcessor.INSUREDS_DOB, Values.of("2940101", "2940101"));
       fields.put(InsuranceVerificationProcessor.INSUREDS_SEX, Values.of("Male", "M"));
+      fields.put(InsuranceVerificationProcessor.COORDINATION_OF_BENEFITS, Values.of("1", "1"));
+      fields.put(InsuranceVerificationProcessor.PHARMACY_PERSON_CODE, Values.of("2", "2"));
       fields.put(
           InsuranceVerificationProcessor.SUBSCRIBER_ADDRESS_LINE_1,
           Values.of("Shank Address Line 1", "Shank Address Line 1"));

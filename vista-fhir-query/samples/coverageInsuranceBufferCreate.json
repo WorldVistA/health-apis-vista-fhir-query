@@ -72,6 +72,7 @@
           }
         }
       ],
+      "active": true,
       "name": "BCBS OF FL",
       "telecom": [
         {
@@ -189,14 +190,13 @@
   "type": {
     "coding": [
       {
-        "system": "urn:oid:2.16.840.1.113883.3.8901.3.1.3558033.608012",
+        "system": "urn:oid:2.16.840.1.113883.3.8901.3.1.3558033.8808001",
         "code": "1"
       }
     ]
   },
   "subscriber": {
-    "reference": "#3",
-    "display": "Sheriff Big-Boi"
+    "reference": "#3"
   },
   "subscriberId": "R50797109",
   "beneficiary": {
@@ -224,8 +224,8 @@
     "text": "Spouse"
   },
   "period": {
-    "start": "1992-01-12T05:00:00Z",
-    "end": "2025-01-01T05:00:00Z"
+    "start": "1992-01-12",
+    "end": "2025-01-01"
   },
   "payor": [
     {

@@ -15,6 +15,7 @@ import gov.va.api.health.r4.api.resources.Coverage.Status;
 import gov.va.api.health.r4.api.resources.InsurancePlan;
 import gov.va.api.health.r4.api.resources.Organization;
 import gov.va.api.health.sentinel.Environment;
+import gov.va.api.health.vistafhirquery.service.controller.coverage.InsuranceBufferStructureDefinitions;
 import gov.va.api.health.vistafhirquery.tests.CreateResourceVerifier;
 import gov.va.api.health.vistafhirquery.tests.SystemDefinitions;
 import gov.va.api.health.vistafhirquery.tests.TestIds;
@@ -48,7 +49,7 @@ public class CoverageIT {
             CodeableConcept.builder()
                 .coding(
                     Coding.builder()
-                        .system("urn:oid:2.16.840.1.113883.3.8901.3.1.3558033.608012")
+                        .system(InsuranceBufferStructureDefinitions.INQ_SERVICE_TYPE_CODE)
                         .code("1")
                         .build()
                         .asList())
@@ -77,7 +78,7 @@ public class CoverageIT {
                         .asList())
                 .text("Self")
                 .build())
-        .period(Period.builder().start("1992-01-12T05:00:00Z").end("2025-01-01T05:00:00Z").build())
+        .period(Period.builder().start("1992-01-12").end("2025-01-01").build())
         .payor(Reference.builder().reference("#2").build().asList())
         .coverageClass(
             Coverage.CoverageClass.builder()
@@ -102,41 +103,45 @@ public class CoverageIT {
                         List.of(
                             Extension.builder()
                                 .url(
-                                    "http://va.gov/fhir/StructureDefinition/insuranceplan-isUtilizationReviewRequired")
+                                    InsuranceBufferStructureDefinitions.UTILIZATION_REVIEW_REQUIRED)
+                                .valueBoolean(true)
+                                .build(),
+                            Extension.builder()
+                                .url(InsuranceBufferStructureDefinitions.PRECERTIFICATION_REQUIRED)
                                 .valueBoolean(true)
                                 .build(),
                             Extension.builder()
                                 .url(
-                                    "http://va.gov/fhir/StructureDefinition/insuranceplan-isPreCertificationRequired")
+                                    InsuranceBufferStructureDefinitions
+                                        .AMBULATORY_CARE_CERTIFICATION)
                                 .valueBoolean(true)
                                 .build(),
                             Extension.builder()
                                 .url(
-                                    "http://va.gov/fhir/StructureDefinition/insuranceplan-isCertificationRequiredForAmbulatoryCare")
-                                .valueBoolean(true)
-                                .build(),
-                            Extension.builder()
-                                .url(
-                                    "http://va.gov/fhir/StructureDefinition/insuranceplan-excludePreexistingConditions")
+                                    InsuranceBufferStructureDefinitions
+                                        .EXCLUDE_PREEXISTING_CONDITION)
                                 .valueBoolean(false)
                                 .build(),
                             Extension.builder()
-                                .url(
-                                    "http://va.gov/fhir/StructureDefinition/insuranceplan-areBenefitsAssignable")
+                                .url(InsuranceBufferStructureDefinitions.BENEFITS_ASSIGNABLE)
                                 .valueBoolean(true)
                                 .build()))
                     .identifier(
                         List.of(
                             Identifier.builder()
-                                .system("urn:oid:2.16.840.1.113883.3.8901.3.1.3558033.908002")
+                                .system(InsuranceBufferStructureDefinitions.GROUP_NUMBER)
                                 .value("GRP123456")
                                 .build(),
                             Identifier.builder()
-                                .system("urn:oid:2.16.840.1.113883.3.8901.3.1.3558033.40801")
+                                .system(
+                                    InsuranceBufferStructureDefinitions
+                                        .BANKING_IDENTIFICATION_NUMBER)
                                 .value("88888888")
                                 .build(),
                             Identifier.builder()
-                                .system("urn:oid:2.16.840.1.113883.3.8901.3.1.3558033.408011")
+                                .system(
+                                    InsuranceBufferStructureDefinitions
+                                        .PROCESSOR_CONTROL_NUMBER_PCN)
                                 .value("121212121212")
                                 .build()))
                     .plan(
@@ -148,7 +153,8 @@ public class CoverageIT {
                                             List.of(
                                                 Coding.builder()
                                                     .system(
-                                                        "urn:oid:2.16.840.1.113883.3.8901.3.1.3558033.408009")
+                                                        InsuranceBufferStructureDefinitions
+                                                            .TYPE_OF_PLAN)
                                                     .code("40")
                                                     .display(
                                                         "PREFERRED PROVIDER ORGANIZATION (PPO)")
@@ -217,8 +223,7 @@ public class CoverageIT {
                             .asList())
                     .extension(
                         Extension.builder()
-                            .url(
-                                "http://va.gov/fhir/StructureDefinition/organization-willReimburseForCare")
+                            .url(InsuranceBufferStructureDefinitions.REIMBURSE)
                             .valueCodeableConcept(
                                 CodeableConcept.builder()
                                     .coding(
@@ -226,7 +231,8 @@ public class CoverageIT {
                                             Coding.builder()
                                                 .code("WILL REIMBURSE")
                                                 .system(
-                                                    "urn:oid:2.16.840.1.113883.3.8901.3.1.3558033.208005")
+                                                    InsuranceBufferStructureDefinitions
+                                                        .REIMBURSE_URN_OID)
                                                 .build()))
                                     .build())
                             .build()
