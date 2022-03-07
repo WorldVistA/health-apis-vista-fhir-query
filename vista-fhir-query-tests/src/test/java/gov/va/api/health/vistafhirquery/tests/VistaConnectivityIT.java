@@ -7,6 +7,7 @@ import static org.assertj.core.api.Assumptions.assumeThat;
 import gov.va.api.health.r4.api.resources.Observation;
 import gov.va.api.health.sentinel.Environment;
 import gov.va.api.health.sentinel.ExpectedResponse;
+import gov.va.api.health.sentinel.ServiceDefinition;
 import gov.va.api.health.vistafhirquery.tests.TestIds.IcnAtSites;
 import gov.va.api.lighthouse.testclients.OauthClient;
 import gov.va.api.lighthouse.testclients.PropertiesLoader;
@@ -32,6 +33,10 @@ public class VistaConnectivityIT {
 
   @BeforeAll
   static void acquireToken() {
+    if (Environment.LOCAL == Environment.get()) {
+      token = "not-used";
+      return;
+    }
     var client = tryToBuildSsoiClient();
     assumeThat(client).as(client.getClass().getSimpleName() + " cannot be created.").isPresent();
     var tokenResponse = client.get().requestToken();
@@ -67,25 +72,22 @@ public class VistaConnectivityIT {
   @ParameterizedTest
   @MethodSource
   void connected(IcnAtSites icnAtSites) {
-    assumeEnvironmentNotIn(Environment.LOCAL, Environment.STAGING, Environment.PROD);
+    assumeEnvironmentNotIn(Environment.STAGING, Environment.PROD);
     var sd = SystemDefinitions.systemDefinition().basePath();
     log.info("Testing connectivity with {}:{} with path {}", sd.url(), sd.port(), sd.apiPath());
     ExpectedResponse bundleResponse =
         ExpectedResponse.of(
             request(sd)
                 .request(
-                    Method.GET, sd.apiPath() + "r4/Observation?patient={icn}", icnAtSites.icn()));
+                    Method.GET,
+                    sd.apiPath() + "hcs/{site}/r4/Observation?patient={icn}",
+                    icnAtSites.vistas().get(0),
+                    icnAtSites.icn()));
     var bundle = bundleResponse.expect(200).expectValid(Observation.Bundle.class);
     assertThat(bundle.total()).isGreaterThan(0);
-    String id = bundle.entry().get(0).resource().id();
-    var observation =
-        ExpectedResponse.of(request(sd).request(Method.GET, sd.apiPath() + "r4/Observation/" + id))
-            .expect(200)
-            .expectValid(Observation.class);
-    assertThat(observation.id()).isEqualTo(id);
   }
 
-  private RequestSpecification request(gov.va.api.health.sentinel.ServiceDefinition sd) {
+  private RequestSpecification request(ServiceDefinition sd) {
     return RestAssured.given()
         .baseUri(sd.url())
         .port(sd.port())
