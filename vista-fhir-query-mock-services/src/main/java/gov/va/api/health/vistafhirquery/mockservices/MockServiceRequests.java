@@ -5,14 +5,10 @@ import static org.mockserver.model.HttpRequest.request;
 import com.google.common.io.Resources;
 import gov.va.api.health.autoconfig.configuration.JacksonConfig;
 import gov.va.api.lighthouse.charon.api.RpcDetails;
-import gov.va.api.lighthouse.charon.api.RpcInvocationResult;
-import gov.va.api.lighthouse.charon.api.RpcRequest;
-import gov.va.api.lighthouse.charon.api.RpcResponse;
 import gov.va.api.lighthouse.charon.api.v1.RpcInvocationResultV1;
 import gov.va.api.lighthouse.charon.api.v1.RpcRequestV1;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
-import java.util.List;
 import lombok.SneakyThrows;
 import lombok.experimental.UtilityClass;
 import lombok.extern.slf4j.Slf4j;
@@ -53,12 +49,6 @@ public class MockServiceRequests {
     return response;
   }
 
-  /** Create an HTTP Request for mocking a Vistalink API /rpc endpoint. */
-  public static HttpRequest rpcQueryV0_WithExpectedRpcDetails(int port, RpcDetails rpcDetails) {
-    return rpcQueryWithPathAndRequest(
-        port, "/rpc", rpcDetails == null ? null : RpcRequest.builder().rpc(rpcDetails).build());
-  }
-
   /** Create an HTTP Request for mocking a Vistalink API /v1/rpc endpoint. */
   public static HttpRequest rpcQueryV1_WithExpectedRpcDetails(int port, RpcDetails rpcDetails) {
     return rpcQueryWithPathAndRequest(
@@ -84,21 +74,5 @@ public class MockServiceRequests {
               JsonBody.json(body, StandardCharsets.UTF_8, MatchType.ONLY_MATCHING_FIELDS));
     }
     return request;
-  }
-
-  /** Return a json string representation of an RPC Response with an OK status. */
-  public static String rpcResponseV0_OkWithContent(String rpcResponseFile) {
-    String response =
-        json(
-            RpcResponse.builder()
-                .status(RpcResponse.Status.OK)
-                .results(
-                    List.of(
-                        RpcInvocationResult.builder()
-                            .vista("673")
-                            .response(fileContent(rpcResponseFile))
-                            .build())));
-    log.info("Respond with: {}", response);
-    return response;
   }
 }

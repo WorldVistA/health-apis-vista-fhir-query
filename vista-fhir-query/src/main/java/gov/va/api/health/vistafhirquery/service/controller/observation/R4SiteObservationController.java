@@ -10,7 +10,7 @@ import static org.apache.commons.lang3.StringUtils.isBlank;
 
 import gov.va.api.health.ids.client.IdEncoder;
 import gov.va.api.health.r4.api.resources.Observation;
-import gov.va.api.health.vistafhirquery.service.api.R4SiteObservationApi;
+import gov.va.api.health.vistafhirquery.service.api.R4ObservationApi;
 import gov.va.api.health.vistafhirquery.service.charonclient.CharonClient;
 import gov.va.api.health.vistafhirquery.service.config.VistaApiConfig;
 import gov.va.api.health.vistafhirquery.service.controller.DateSearchBoundaries;
@@ -52,7 +52,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @AllArgsConstructor(onConstructor_ = {@Autowired, @NonNull})
 @RequestMapping(produces = {"application/json", "application/fhir+json"})
-public class R4SiteObservationController implements R4SiteObservationApi {
+public class R4SiteObservationController implements R4ObservationApi {
   private final CharonClient charon;
 
   private final R4BundlerFactory bundlerFactory;

@@ -23,7 +23,6 @@ public class MockServices {
 
   private final List<MockService> supportedMocks =
       List.of(
-          LhsLighthouseRpcGatewayMocksV0.using(PORT),
           LhsLighthouseRpcGatewayMocksV1.using(PORT),
           VprGetPatientDataMocks.using(PORT),
           MockMpiFhirQuery.using(PORT));

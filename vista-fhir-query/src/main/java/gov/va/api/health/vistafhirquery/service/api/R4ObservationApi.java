@@ -9,6 +9,8 @@ import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import javax.servlet.http.HttpServletRequest;
+import javax.validation.constraints.Size;
 import javax.ws.rs.DefaultValue;
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
@@ -20,7 +22,7 @@ public interface R4ObservationApi {
       description = "http://hl7.org/fhir/us/core/StructureDefinition/us-core-observation-lab",
       tags = {"Observation"})
   @GET
-  @Path("Observation/{id}")
+  @Path("/hcs/{site}/Observation/{id}")
   @ApiResponses({
     @ApiResponse(
         responseCode = "200",
@@ -74,6 +76,12 @@ public interface R4ObservationApi {
   Observation observationRead(
       @Parameter(
               in = ParameterIn.PATH,
+              name = "site",
+              required = true,
+              description = "The id of the site where this resource can be found.")
+          String site,
+      @Parameter(
+              in = ParameterIn.PATH,
               name = "id",
               required = true,
               description =
@@ -86,7 +94,7 @@ public interface R4ObservationApi {
       description = "http://hl7.org/fhir/us/core/StructureDefinition/us-core-observation-lab",
       tags = {"Observation"})
   @GET
-  @Path("Observation")
+  @Path("/hcs/{site}/Observation")
   @ApiResponses({
     @ApiResponse(
         responseCode = "200",
@@ -138,6 +146,13 @@ public interface R4ObservationApi {
         })
   })
   Observation.Bundle observationSearch(
+      @Parameter(hidden = true) HttpServletRequest request,
+      @Parameter(
+              in = ParameterIn.PATH,
+              name = "site",
+              required = true,
+              description = "The id of the site where this resource can be found.")
+          String site,
       @Parameter(
               in = ParameterIn.QUERY,
               name = "patient",
@@ -179,13 +194,12 @@ public interface R4ObservationApi {
               description =
                   "A date or range of dates (maximum of 2) that describes the date that "
                       + "the observation was recorded.")
+          @Size(max = 2)
           String[] date,
       @Parameter(
               in = ParameterIn.QUERY,
               name = "_count",
-              description =
-                  "The number of resources that should be returned in a single page. "
-                      + "The maximum count size is 100.")
+              description = "The number of resources that should be returned in a single page.")
           @DefaultValue("30")
           int count);
 }

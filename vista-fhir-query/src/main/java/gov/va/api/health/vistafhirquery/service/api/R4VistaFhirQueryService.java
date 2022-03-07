@@ -150,5 +150,5 @@ public interface R4VistaFhirQueryService
         R4MedicationDispenseApi,
         R4MedicationRequestApi,
         R4MetadataApi,
-        R4SiteObservationApi,
+        R4ObservationApi,
         R4OrganizationApi {}

@@ -18,7 +18,7 @@ import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
 @ExtendWith(MockitoExtension.class)
 public class ObservationResponseIncludesIcnHeaderAdviceTest {
-  @Mock R4ObservationController controller;
+  @Mock R4SiteObservationController controller;
 
   @Mock AlternatePatientIds alternatePatientIds;
 
@@ -36,19 +36,20 @@ public class ObservationResponseIncludesIcnHeaderAdviceTest {
   @Test
   @SneakyThrows
   public void subjectNotPopulated() {
-    when(controller.read("123")).thenReturn(Observation.builder().build());
+    when(controller.observationRead("123", "456")).thenReturn(Observation.builder().build());
     mockMvc
-        .perform(get("/r4/Observation/123"))
+        .perform(get("/hcs/123/r4/Observation/456"))
         .andExpect(MockMvcResultMatchers.header().string("X-VA-INCLUDES-ICN", "NONE"));
   }
 
   @Test
   @SneakyThrows
   public void subjectPopulated() {
-    when(controller.read("123")).thenReturn(ObservationVitalSamples.Fhir.create().weight());
+    when(controller.observationRead("123", "456"))
+        .thenReturn(ObservationVitalSamples.Fhir.create().weight());
     when(alternatePatientIds.toPublicId(eq("p1"))).thenReturn("p1");
     mockMvc
-        .perform(get("/r4/Observation/123"))
+        .perform(get("/hcs/123/r4/Observation/456"))
         .andExpect(MockMvcResultMatchers.header().string("X-VA-INCLUDES-ICN", "p1"));
   }
 }

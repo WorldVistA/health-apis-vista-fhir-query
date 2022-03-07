@@ -11,7 +11,7 @@
   <version>2.0.137-SNAPSHOT</version>
   <packaging>jar</packaging>
   <properties>
-    <charon.version>5.0.14</charon.version>
+    <charon.version>6.0.0</charon.version>
     <docker.organization>ghcr.io/department-of-veterans-affairs</docker.organization>
     <fhir-resources.version>10.0.4</fhir-resources.version>
     <jacoco.coverage>0.94</jacoco.coverage>
@@ -21,11 +21,6 @@
     <talos.version>2.0.0</talos.version>
   </properties>
   <dependencies>
-    <dependency>
-      <groupId>gov.va.api.lighthouse</groupId>
-      <artifactId>charon-api</artifactId>
-      <version>${charon.version}</version>
-    </dependency>
     <dependency>
       <groupId>gov.va.api.lighthouse</groupId>
       <artifactId>charon-api-v1</artifactId>
@@ -134,9 +129,9 @@
         </executions>
       </plugin>
       <!--
-                    Needed by health-apis-datamart-synthetic-records to
-                    access entities and populate the database.
-                  -->
+                          Needed by health-apis-datamart-synthetic-records to
+                          access entities and populate the database.
+                        -->
       <plugin>
         <artifactId>maven-jar-plugin</artifactId>
         <executions>
