@@ -14,13 +14,17 @@ import gov.va.api.health.r4.api.datatypes.Identifier;
 import gov.va.api.health.r4.api.datatypes.Period;
 import gov.va.api.health.r4.api.elements.Reference;
 import gov.va.api.health.r4.api.resources.Coverage;
+import gov.va.api.health.r4.api.resources.InsurancePlan;
 import gov.va.api.health.r4.api.resources.InsurancePlan.Plan;
 import gov.va.api.health.r4.api.resources.Organization;
+import gov.va.api.health.vistafhirquery.service.controller.FilemanFactoryRegistry;
+import gov.va.api.health.vistafhirquery.service.controller.FilemanIndexRegistry;
 import gov.va.api.health.vistafhirquery.service.controller.RequestPayloadExceptions.EndDateOccursBeforeStartDate;
 import gov.va.api.health.vistafhirquery.service.controller.RequestPayloadExceptions.InvalidStringLengthInclusively;
 import gov.va.api.health.vistafhirquery.service.controller.RequestPayloadExceptions.MissingRequiredField;
 import gov.va.api.health.vistafhirquery.service.controller.RequestPayloadExceptions.UnexpectedNumberOfValues;
 import gov.va.api.health.vistafhirquery.service.controller.RequestPayloadExceptions.UnexpectedValueForField;
+import gov.va.api.health.vistafhirquery.service.controller.coverage.R4CoverageToInsuranceBufferTransformer.ContainedInsurancePlanTransformer;
 import gov.va.api.lighthouse.charon.models.lhslighthouserpcgateway.InsuranceVerificationProcessor;
 import gov.va.api.lighthouse.charon.models.lhslighthouserpcgateway.LhsLighthouseRpcGatewayCoverageWrite.WriteableFilemanValue;
 import java.util.List;
@@ -78,6 +82,23 @@ public class R4CoverageToInsuranceBufferTransformerTest {
   private R4CoverageToInsuranceBufferTransformer _transformer() {
     return R4CoverageToInsuranceBufferTransformer.builder()
         .coverage(CoverageSamples.R4.create().coverageInsuranceBufferRead("p1", "123", "c1"))
+        .build();
+  }
+
+  private ContainedInsurancePlanTransformer _insurancePlan() {
+    return ContainedInsurancePlanTransformer.builder()
+        .insurancePlan(
+            CoverageSamples.R4
+                .create()
+                .coverageInsuranceBufferRead("p1", "123", "c1")
+                .contained()
+                .stream()
+                .filter(r -> InsurancePlan.class.getSimpleName().equals(r.resourceType()))
+                .findFirst()
+                .map(r -> (InsurancePlan) r)
+                .get())
+        .indexRegistry(FilemanIndexRegistry.create())
+        .factoryRegistry(FilemanFactoryRegistry.create())
         .build();
   }
 
@@ -532,13 +553,13 @@ public class R4CoverageToInsuranceBufferTransformerTest {
   @ParameterizedTest
   @MethodSource
   void typeOfPlanInvalidValueThrows(List<Plan> sample, Class<Throwable> isThrown) {
-    assertThatExceptionOfType(isThrown).isThrownBy(() -> _transformer().typeOfPlan(sample));
+    assertThatExceptionOfType(isThrown).isThrownBy(() -> _insurancePlan().typeOfPlan(sample));
   }
 
   @ParameterizedTest
   @NullAndEmptySource
   @MethodSource
   void typeOfPlanIsOptional(List<Plan> sample) {
-    assertThat(_transformer().typeOfPlan(sample)).isNull();
+    assertThat(_insurancePlan().typeOfPlan(sample)).isEmpty();
   }
 }
