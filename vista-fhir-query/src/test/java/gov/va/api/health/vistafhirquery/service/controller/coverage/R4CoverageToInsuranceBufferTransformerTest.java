@@ -79,12 +79,6 @@ public class R4CoverageToInsuranceBufferTransformerTest {
         arguments(Plan.builder().type(CodeableConcept.builder().build()).build().asList()));
   }
 
-  private R4CoverageToInsuranceBufferTransformer _transformer() {
-    return R4CoverageToInsuranceBufferTransformer.builder()
-        .coverage(CoverageSamples.R4.create().coverageInsuranceBufferRead("p1", "123", "c1"))
-        .build();
-  }
-
   private ContainedInsurancePlanTransformer _insurancePlan() {
     return ContainedInsurancePlanTransformer.builder()
         .insurancePlan(
@@ -99,6 +93,12 @@ public class R4CoverageToInsuranceBufferTransformerTest {
                 .get())
         .indexRegistry(FilemanIndexRegistry.create())
         .factoryRegistry(FilemanFactoryRegistry.create())
+        .build();
+  }
+
+  private R4CoverageToInsuranceBufferTransformer _transformer() {
+    return R4CoverageToInsuranceBufferTransformer.builder()
+        .coverage(CoverageSamples.R4.create().coverageInsuranceBufferRead("p1", "123", "c1"))
         .build();
   }
 

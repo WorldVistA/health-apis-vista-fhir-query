@@ -729,7 +729,6 @@ public class R4CoverageToInsuranceBufferTransformer {
   }
 
   WriteableFilemanValue subscriberId(String subscriberId) {
-
     return factoryRegistry()
         .get(InsuranceVerificationProcessor.FILE_NUMBER)
         .forString(
@@ -781,79 +780,6 @@ public class R4CoverageToInsuranceBufferTransformer {
 
     @NonNull FilemanIndexRegistry indexRegistry;
 
-    public Set<WriteableFilemanValue> toInsuranceBufferFields() {
-      Set<WriteableFilemanValue> filemanValues = new HashSet<>();
-      filemanValues.addAll(identifierReader().process(insurancePlan().identifier()));
-      filemanValues.addAll(
-          R4ExtensionProcessor.of(".extension[]", extensionHandlers())
-              .process(insurancePlan().extension()));
-      groupName(insurancePlan().name()).ifPresent(filemanValues::add);
-      typeOfPlan(insurancePlan().plan()).ifPresent(filemanValues::add);
-      return filemanValues;
-    }
-
-    private IdentifierReader identifierReader() {
-      // GroupNumber is required
-      if (isBlank(insurancePlan().identifier())) {
-        throw MissingRequiredField.builder().jsonPath(".identifier[]").build();
-      }
-      return IdentifierReader.forDefinitions(
-              List.of(
-                  InsuranceBufferDefinitions.get().groupNumber(),
-                  InsuranceBufferDefinitions.get().bankingIdentificationNumber(),
-                  InsuranceBufferDefinitions.get().processorControlNumber()))
-          .filemanFactory(factoryRegistry().get(InsuranceVerificationProcessor.FILE_NUMBER))
-          .indexRegistry(indexRegistry())
-          .build();
-    }
-
-    Optional<WriteableFilemanValue> groupName(String name) {
-      return factoryRegistry()
-          .get(InsuranceVerificationProcessor.FILE_NUMBER)
-          .forString(
-              InsuranceVerificationProcessor.GROUP_NAME,
-              indexRegistry().get(InsuranceVerificationProcessor.FILE_NUMBER),
-              name);
-    }
-
-    Optional<WriteableFilemanValue> typeOfPlan(List<InsurancePlan.Plan> plan) {
-      if (isBlank(plan)) {
-        return Optional.empty();
-      }
-      if (plan.size() != 1) {
-        throw UnexpectedNumberOfValues.builder()
-            .jsonPath(".plan[]")
-            .exactExpectedCount(1)
-            .receivedCount(plan.size())
-            .build();
-      }
-      var type = plan.get(0).type();
-      if (isBlank(type) || isBlank(type.coding())) {
-        return Optional.empty();
-      }
-      var definition = InsuranceBufferDefinitions.get().typeOfPlan();
-      var planTypes =
-          type.coding().stream()
-              .filter(t -> definition.valueSet().equals(t.system()))
-              .map(Coding::display)
-              .toList();
-      if (planTypes.size() != 1) {
-        throw UnexpectedNumberOfValues.builder()
-            .jsonPath(".plan[0].type.coding[]")
-            .exactExpectedCount(1)
-            .receivedCount(planTypes.size())
-            .identifyingFieldJsonPath(".system")
-            .identifyingFieldValue(definition.valueSet())
-            .build();
-      }
-      return factoryRegistry()
-          .get(InsuranceVerificationProcessor.FILE_NUMBER)
-          .forString(
-              definition.vistaField(),
-              indexRegistry().get(InsuranceVerificationProcessor.FILE_NUMBER),
-              planTypes.get(0));
-    }
-
     private List<ExtensionHandler> extensionHandlers() {
       return List.of(
           BooleanExtensionHandler.forDefiningUrl(
@@ -896,6 +822,80 @@ public class R4CoverageToInsuranceBufferTransformer {
               .required(OPTIONAL)
               .booleanStringMapping(YES_NO)
               .build());
+    }
+
+    Optional<WriteableFilemanValue> groupName(String name) {
+      return factoryRegistry()
+          .get(InsuranceVerificationProcessor.FILE_NUMBER)
+          .forString(
+              InsuranceVerificationProcessor.GROUP_NAME,
+              indexRegistry().get(InsuranceVerificationProcessor.FILE_NUMBER),
+              name);
+    }
+
+    private IdentifierReader identifierReader() {
+      // GroupNumber is required
+      if (isBlank(insurancePlan().identifier())) {
+        throw MissingRequiredField.builder().jsonPath(".identifier[]").build();
+      }
+      return IdentifierReader.forDefinitions(
+              List.of(
+                  InsuranceBufferDefinitions.get().groupNumber(),
+                  InsuranceBufferDefinitions.get().bankingIdentificationNumber(),
+                  InsuranceBufferDefinitions.get().processorControlNumber()))
+          .filemanFactory(factoryRegistry().get(InsuranceVerificationProcessor.FILE_NUMBER))
+          .indexRegistry(indexRegistry())
+          .build();
+    }
+
+    /** Transform InsurancePlan resource to InsuranceVerificationProcessor fields. */
+    public Set<WriteableFilemanValue> toInsuranceBufferFields() {
+      Set<WriteableFilemanValue> filemanValues = new HashSet<>();
+      filemanValues.addAll(identifierReader().process(insurancePlan().identifier()));
+      filemanValues.addAll(
+          R4ExtensionProcessor.of(".extension[]", extensionHandlers())
+              .process(insurancePlan().extension()));
+      groupName(insurancePlan().name()).ifPresent(filemanValues::add);
+      typeOfPlan(insurancePlan().plan()).ifPresent(filemanValues::add);
+      return filemanValues;
+    }
+
+    Optional<WriteableFilemanValue> typeOfPlan(List<InsurancePlan.Plan> plan) {
+      if (isBlank(plan)) {
+        return Optional.empty();
+      }
+      if (plan.size() != 1) {
+        throw UnexpectedNumberOfValues.builder()
+            .jsonPath(".plan[]")
+            .exactExpectedCount(1)
+            .receivedCount(plan.size())
+            .build();
+      }
+      var type = plan.get(0).type();
+      if (isBlank(type) || isBlank(type.coding())) {
+        return Optional.empty();
+      }
+      var definition = InsuranceBufferDefinitions.get().typeOfPlan();
+      var planTypes =
+          type.coding().stream()
+              .filter(t -> definition.valueSet().equals(t.system()))
+              .map(Coding::display)
+              .toList();
+      if (planTypes.size() != 1) {
+        throw UnexpectedNumberOfValues.builder()
+            .jsonPath(".plan[0].type.coding[]")
+            .exactExpectedCount(1)
+            .receivedCount(planTypes.size())
+            .identifyingFieldJsonPath(".system")
+            .identifyingFieldValue(definition.valueSet())
+            .build();
+      }
+      return factoryRegistry()
+          .get(InsuranceVerificationProcessor.FILE_NUMBER)
+          .forString(
+              definition.vistaField(),
+              indexRegistry().get(InsuranceVerificationProcessor.FILE_NUMBER),
+              planTypes.get(0));
     }
   }
 }
