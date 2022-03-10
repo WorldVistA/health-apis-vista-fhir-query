@@ -836,6 +836,8 @@ public class R4CoverageToInsuranceBufferTransformer {
     if (isBlank(plan)) {
       return null;
     }
+    var definition = InsuranceBufferDefinitions.get().insuredsSsn();
+
     if (plan.size() != 1) {
       throw UnexpectedNumberOfValues.builder()
           .receivedCount(plan.size())
