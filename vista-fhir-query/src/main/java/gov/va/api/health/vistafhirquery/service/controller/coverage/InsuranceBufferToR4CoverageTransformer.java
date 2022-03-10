@@ -79,6 +79,7 @@ public class InsuranceBufferToR4CoverageTransformer {
           InsuranceVerificationProcessor.PROCESSOR_CONTROL_NUMBER_PCN,
           InsuranceVerificationProcessor.PT_RELATIONSHIP_HIPAA,
           InsuranceVerificationProcessor.REIMBURSE,
+          InsuranceVerificationProcessor.SERVICE_DATE,
           InsuranceVerificationProcessor.STATE,
           InsuranceVerificationProcessor.STREET_ADDRESS_LINE_1,
           InsuranceVerificationProcessor.STREET_ADDRESS_LINE_2,
@@ -216,12 +217,12 @@ public class InsuranceBufferToR4CoverageTransformer {
         .asList();
   }
 
-  private List<Extension> extensions(LhsLighthouseRpcGatewayResponse.FilemanEntry entry) {
+  private List<Extension> coverageExtensions(LhsLighthouseRpcGatewayResponse.FilemanEntry entry) {
     ExtensionFactory extensions = ExtensionFactory.of(entry, YES_NO);
     return emptyToNull(
         Stream.of(
-                extensions.ofCodeableConceptFromExternalValue(
-                    InsuranceBufferDefinitions.get().reimburse()))
+                extensions.ofValueDateFromInternalValue(
+                    InsuranceBufferDefinitions.get().serviceDate()))
             .filter(Objects::nonNull)
             .collect(Collectors.toList()));
   }
@@ -273,6 +274,17 @@ public class InsuranceBufferToR4CoverageTransformer {
       return emptyList();
     }
     return InsurancePlan.Plan.builder().type(typeOfPlan).build().asList();
+  }
+
+  private List<Extension> organizationExtensions(
+      LhsLighthouseRpcGatewayResponse.FilemanEntry entry) {
+    ExtensionFactory extensions = ExtensionFactory.of(entry, YES_NO);
+    return emptyToNull(
+        Stream.of(
+                extensions.ofCodeableConceptFromExternalValue(
+                    InsuranceBufferDefinitions.get().reimburse()))
+            .filter(Objects::nonNull)
+            .collect(Collectors.toList()));
   }
 
   private List<Address> payorAddress(FilemanEntry entry) {
@@ -450,6 +462,7 @@ public class InsuranceBufferToR4CoverageTransformer {
                     .ien(entry.ien())
                     .build()
                     .toString())
+            .extension(coverageExtensions(entry))
             .order(
                 entry
                     .internal(InsuranceVerificationProcessor.COORDINATION_OF_BENEFITS)
@@ -510,7 +523,7 @@ public class InsuranceBufferToR4CoverageTransformer {
             .active(true)
             .address(payorAddress(entry))
             .contact(contacts(entry))
-            .extension(extensions(entry))
+            .extension(organizationExtensions(entry))
             .name(
                 entry.internal(InsuranceVerificationProcessor.INSURANCE_COMPANY_NAME).orElse(null))
             .telecom(

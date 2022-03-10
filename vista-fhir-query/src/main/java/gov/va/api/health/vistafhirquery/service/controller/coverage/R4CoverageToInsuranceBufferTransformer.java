@@ -18,6 +18,7 @@ import gov.va.api.health.r4.api.datatypes.ContactPoint;
 import gov.va.api.health.r4.api.datatypes.ContactPoint.ContactPointSystem;
 import gov.va.api.health.r4.api.datatypes.HumanName;
 import gov.va.api.health.r4.api.datatypes.Period;
+import gov.va.api.health.r4.api.elements.Extension;
 import gov.va.api.health.r4.api.elements.Reference;
 import gov.va.api.health.r4.api.resources.Coverage;
 import gov.va.api.health.r4.api.resources.InsurancePlan;
@@ -37,6 +38,7 @@ import gov.va.api.health.vistafhirquery.service.controller.RequestPayloadExcepti
 import gov.va.api.health.vistafhirquery.service.controller.extensionprocessing.BooleanExtensionHandler;
 import gov.va.api.health.vistafhirquery.service.controller.extensionprocessing.CodeExtensionHandler;
 import gov.va.api.health.vistafhirquery.service.controller.extensionprocessing.CodeableConceptExtensionHandler;
+import gov.va.api.health.vistafhirquery.service.controller.extensionprocessing.DateExtensionHandler;
 import gov.va.api.health.vistafhirquery.service.controller.extensionprocessing.ExtensionHandler;
 import gov.va.api.health.vistafhirquery.service.controller.extensionprocessing.R4ExtensionProcessor;
 import gov.va.api.lighthouse.charon.models.FilemanDate;
@@ -81,7 +83,7 @@ public class R4CoverageToInsuranceBufferTransformer {
     this.factoryRegistry = FilemanFactoryRegistry.create();
     this.indexRegistry = FilemanIndexRegistry.create();
     this.vistaDateFormatter =
-        DateTimeFormatter.ofPattern("MMddyyy")
+        DateTimeFormatter.ofPattern("MMddyyyy")
             .withZone(timezone == null ? ZoneId.of("UTC") : timezone);
   }
 
@@ -183,6 +185,15 @@ public class R4CoverageToInsuranceBufferTransformer {
       return false;
     }
     return ContactPointSystem.phone.name().equals(contactPoint.system().name());
+  }
+
+  private List<ExtensionHandler> coverageExtensionHandlers() {
+    return List.of(
+        DateExtensionHandler.builder()
+            .definition(InsuranceBufferDefinitions.get().serviceDate())
+            .filemanFactory(factoryRegistry().get(InsuranceVerificationProcessor.FILE_NUMBER))
+            .index(indexRegistry.get(InsuranceVerificationProcessor.FILE_NUMBER))
+            .build());
   }
 
   WriteableFilemanValue dateEntered() {
@@ -767,14 +778,28 @@ public class R4CoverageToInsuranceBufferTransformer {
             .build());
   }
 
-  WriteableFilemanValue serviceDate() {
-    return factoryRegistry()
-        .get(InsuranceVerificationProcessor.FILE_NUMBER)
-        .forString(
-            InsuranceVerificationProcessor.SERVICE_DATE,
-            indexRegistry().get(InsuranceVerificationProcessor.FILE_NUMBER),
-            today())
-        .get();
+  WriteableFilemanValue serviceDate(List<Extension> extensions) {
+    var serviceDateExtension =
+        Safe.stream(extensions)
+            .filter(
+                e ->
+                    InsuranceBufferDefinitions.get()
+                        .serviceDate()
+                        .structureDefinition()
+                        .equals(e.url()))
+            .collect(toList());
+    if (serviceDateExtension.isEmpty()) {
+      return factoryRegistry()
+          .get(InsuranceVerificationProcessor.FILE_NUMBER)
+          .forString(
+              InsuranceVerificationProcessor.SERVICE_DATE,
+              indexRegistry().get(InsuranceVerificationProcessor.FILE_NUMBER),
+              today())
+          .get();
+    }
+    var coverageExtensionProcessor =
+        R4ExtensionProcessor.of(".extension[]", coverageExtensionHandlers());
+    return coverageExtensionProcessor.process(extensions).get(0);
   }
 
   WriteableFilemanValue sourceOfInformation() {
@@ -814,7 +839,7 @@ public class R4CoverageToInsuranceBufferTransformer {
     fields.add(overrideFreshnessFlag());
     fields.add(dateEntered());
     fields.add(sourceOfInformation());
-    fields.add(serviceDate());
+    fields.add(serviceDate(coverage().extension()));
     fields.add(patientId(coverage().beneficiary()));
     fields.add(dependent(coverage().dependent()));
     fields.add(order(coverage().order()));
