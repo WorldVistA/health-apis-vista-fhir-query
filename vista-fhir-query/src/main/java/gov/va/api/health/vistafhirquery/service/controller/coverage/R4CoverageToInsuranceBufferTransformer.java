@@ -14,6 +14,7 @@ import static java.util.stream.Collectors.toList;
 import gov.va.api.health.fhir.api.Safe;
 import gov.va.api.health.r4.api.datatypes.Address;
 import gov.va.api.health.r4.api.datatypes.CodeableConcept;
+import gov.va.api.health.r4.api.datatypes.Coding;
 import gov.va.api.health.r4.api.datatypes.ContactPoint;
 import gov.va.api.health.r4.api.datatypes.ContactPoint.ContactPointSystem;
 import gov.va.api.health.r4.api.datatypes.HumanName;
@@ -836,35 +837,38 @@ public class R4CoverageToInsuranceBufferTransformer {
     if (isBlank(plan)) {
       return null;
     }
-    var definition = InsuranceBufferDefinitions.get().insuredsSsn();
-
     if (plan.size() != 1) {
       throw UnexpectedNumberOfValues.builder()
-          .receivedCount(plan.size())
-          .exactExpectedCount(1)
           .jsonPath(".plan[]")
+          .exactExpectedCount(1)
+          .receivedCount(plan.size())
           .build();
     }
     var type = plan.get(0).type();
-    if (isBlank(type)) {
-      throw MissingRequiredField.builder().jsonPath(".plan[].type").build();
+    if (isBlank(type) || isBlank(type.coding())) {
+      return null;
     }
-    if (isBlank(type.coding())) {
-      throw MissingRequiredField.builder().jsonPath(".plan[].type.coding[]").build();
-    }
-    if (type.coding().size() != 1) {
+    var definition = InsuranceBufferDefinitions.get().typeOfPlan();
+    var planTypes =
+        type.coding().stream()
+            .filter(t -> definition.valueSet().equals(t.system()))
+            .map(Coding::display)
+            .toList();
+    if (planTypes.size() != 1) {
       throw UnexpectedNumberOfValues.builder()
-          .receivedCount(type.coding().size())
+          .jsonPath(".plan[0].type.coding[]")
           .exactExpectedCount(1)
-          .jsonPath(".plan[].type.coding[]")
+          .receivedCount(planTypes.size())
+          .identifyingFieldJsonPath(".system")
+          .identifyingFieldValue(definition.valueSet())
           .build();
     }
     return factoryRegistry()
         .get(InsuranceVerificationProcessor.FILE_NUMBER)
         .forString(
-            InsuranceBufferDefinitions.get().typeOfPlan().vistaField(),
-            indexRegistry().get(InsuranceBufferDefinitions.get().typeOfPlan().vistaField()),
-            type.coding().get(0).display())
+            definition.vistaField(),
+            indexRegistry().get(InsuranceVerificationProcessor.FILE_NUMBER),
+            planTypes.get(0))
         .orElse(null);
   }
 
