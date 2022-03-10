@@ -30,6 +30,8 @@ import gov.va.api.health.vistafhirquery.service.controller.ContainedResourceWrit
 import gov.va.api.health.vistafhirquery.service.controller.ExtensionFactory;
 import gov.va.api.health.vistafhirquery.service.controller.PatientTypeCoordinates;
 import gov.va.api.health.vistafhirquery.service.controller.R4Transformers;
+import gov.va.api.health.vistafhirquery.service.controller.definitions.MappableCodeableConceptDefinition;
+import gov.va.api.health.vistafhirquery.service.controller.definitions.MappableIdentifierDefinition;
 import gov.va.api.lighthouse.charon.models.lhslighthouserpcgateway.InsuranceVerificationProcessor;
 import gov.va.api.lighthouse.charon.models.lhslighthouserpcgateway.LhsLighthouseRpcGatewayResponse;
 import gov.va.api.lighthouse.charon.models.lhslighthouserpcgateway.LhsLighthouseRpcGatewayResponse.FilemanEntry;
@@ -150,16 +152,14 @@ public class InsuranceBufferToR4CoverageTransformer {
   }
 
   Extension birthsex(FilemanEntry entry) {
-    var value = entry.internal(InsuranceVerificationProcessor.INSUREDS_SEX);
-    if (value.isEmpty()) {
-      return Extension.builder()
-          .url(InsuranceBufferStructureDefinitions.INSUREDS_SEX_URL)
-          .valueCode("UNK")
-          .build();
-    }
+    var definition = InsuranceBufferDefinitions.get().insuredsSex();
+    var value =
+        entry
+            .internal(definition.valueDefinition().vistaField())
+            .map(definition.valueDefinition().toCode());
     return Extension.builder()
-        .url(InsuranceBufferStructureDefinitions.INSUREDS_SEX_URL)
-        .valueCode(value.get())
+        .url(definition.structureDefinition())
+        .valueCode(value.orElse("UNK"))
         .build();
   }
 
@@ -221,9 +221,7 @@ public class InsuranceBufferToR4CoverageTransformer {
     return emptyToNull(
         Stream.of(
                 extensions.ofCodeableConceptFromExternalValue(
-                    InsuranceVerificationProcessor.REIMBURSE,
-                    InsuranceBufferStructureDefinitions.REIMBURSE_URN_OID,
-                    InsuranceBufferStructureDefinitions.REIMBURSE))
+                    InsuranceBufferDefinitions.get().reimburse()))
             .filter(Objects::nonNull)
             .collect(Collectors.toList()));
   }
@@ -251,37 +249,26 @@ public class InsuranceBufferToR4CoverageTransformer {
   }
 
   private Identifier insurancePlanIdentifier(
-      FilemanEntry entry, String fieldNumber, String system) {
+      FilemanEntry entry, MappableIdentifierDefinition definition) {
     return entry
-        .internal(fieldNumber)
-        .map(num -> Identifier.builder().system(system).value(num).build())
+        .internal(definition.vistaField())
+        .map(num -> Identifier.builder().system(definition.system()).value(num).build())
         .orElse(null);
   }
 
   private List<Identifier> insurancePlanIdentifiers(FilemanEntry entry) {
     return Stream.of(
+            insurancePlanIdentifier(entry, InsuranceBufferDefinitions.get().groupNumber()),
             insurancePlanIdentifier(
-                entry,
-                InsuranceVerificationProcessor.GROUP_NUMBER,
-                InsuranceBufferStructureDefinitions.GROUP_NUMBER),
+                entry, InsuranceBufferDefinitions.get().bankingIdentificationNumber()),
             insurancePlanIdentifier(
-                entry,
-                InsuranceVerificationProcessor.BANKING_IDENTIFICATION_NUMBER,
-                InsuranceBufferStructureDefinitions.BANKING_IDENTIFICATION_NUMBER),
-            insurancePlanIdentifier(
-                entry,
-                InsuranceVerificationProcessor.PROCESSOR_CONTROL_NUMBER_PCN,
-                InsuranceBufferStructureDefinitions.PROCESSOR_CONTROL_NUMBER_PCN))
+                entry, InsuranceBufferDefinitions.get().processorControlNumber()))
         .filter(Objects::nonNull)
         .toList();
   }
 
   private List<InsurancePlan.Plan> insurancePlanType(FilemanEntry entry) {
-    CodeableConcept typeOfPlan =
-        type(
-            entry,
-            InsuranceVerificationProcessor.TYPE_OF_PLAN,
-            InsuranceBufferStructureDefinitions.TYPE_OF_PLAN);
+    CodeableConcept typeOfPlan = type(entry, InsuranceBufferDefinitions.get().typeOfPlan());
     if (typeOfPlan == null) {
       return emptyList();
     }
@@ -417,8 +404,9 @@ public class InsuranceBufferToR4CoverageTransformer {
   }
 
   private List<Identifier> subscriberIdentifier(FilemanEntry entry) {
+    var definition = InsuranceBufferDefinitions.get().insuredsSsn();
     return entry
-        .internal(InsuranceVerificationProcessor.INSUREDS_SSN)
+        .internal(definition.vistaField())
         .map(
             ssn ->
                 Identifier.builder()
@@ -432,7 +420,7 @@ public class InsuranceBufferToR4CoverageTransformer {
                                     .build()
                                     .asList())
                             .build())
-                    .system(InsuranceBufferStructureDefinitions.INSURED_SSN_SYSTEM)
+                    .system(definition.system())
                     .value(ssn)
                     .assigner(
                         Reference.builder().display("United States Social Security Number").build())
@@ -474,7 +462,7 @@ public class InsuranceBufferToR4CoverageTransformer {
                 entry.internal(InsuranceVerificationProcessor.PHARMACY_PERSON_CODE).orElse(null))
             .type(
                 entry
-                    .internal(InsuranceVerificationProcessor.INQ_SERVICE_TYPE_CODE_1)
+                    .internal(InsuranceBufferDefinitions.get().inqServiceTypeCode().vistaField())
                     .map(this::type)
                     .orElse(null))
             .subscriberId(entry.internal(InsuranceVerificationProcessor.SUBSCRIBER_ID).orElse(null))
@@ -559,14 +547,18 @@ public class InsuranceBufferToR4CoverageTransformer {
     return rp;
   }
 
-  private CodeableConcept type(FilemanEntry entry, String fieldName, String system) {
-    Optional<String> code = entry.internal(fieldName);
-    Optional<String> display = entry.external(fieldName);
+  private CodeableConcept type(FilemanEntry entry, MappableCodeableConceptDefinition definition) {
+    Optional<String> code = entry.internal(definition.vistaField());
+    Optional<String> display = entry.external(definition.vistaField());
     if (isBlank(code)) {
       return null;
     }
     return asCodeableConcept(
-            Coding.builder().code(code.get()).display(display.orElse(null)).system(system).build())
+            Coding.builder()
+                .code(code.get())
+                .display(display.orElse(null))
+                .system(definition.valueSet())
+                .build())
         .text(display.orElse(null));
   }
 
@@ -577,7 +569,7 @@ public class InsuranceBufferToR4CoverageTransformer {
     return CodeableConcept.builder()
         .coding(
             Coding.builder()
-                .system(InsuranceBufferStructureDefinitions.INQ_SERVICE_TYPE_CODE)
+                .system(InsuranceBufferDefinitions.get().inqServiceTypeCode().valueSet())
                 .code(inqServiceTypeCode)
                 .build()
                 .asList())

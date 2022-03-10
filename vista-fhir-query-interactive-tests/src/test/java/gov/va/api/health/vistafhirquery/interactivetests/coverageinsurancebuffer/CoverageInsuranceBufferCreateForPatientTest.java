@@ -20,6 +20,7 @@ import gov.va.api.health.r4.api.resources.RelatedPerson;
 import gov.va.api.health.r4.api.resources.Resource;
 import gov.va.api.health.vistafhirquery.interactivetests.InteractiveTestContext;
 import gov.va.api.health.vistafhirquery.interactivetests.TestContext;
+import gov.va.api.health.vistafhirquery.service.controller.coverage.InsuranceBufferDefinitions;
 import gov.va.api.health.vistafhirquery.service.controller.coverage.InsuranceBufferStructureDefinitions;
 import java.util.ArrayList;
 import java.util.List;
@@ -134,15 +135,15 @@ public class CoverageInsuranceBufferCreateForPatientTest {
         .identifier(
             List.of(
                 Identifier.builder()
-                    .system(InsuranceBufferStructureDefinitions.GROUP_NUMBER)
+                    .system(InsuranceBufferDefinitions.get().groupNumber().system())
                     .value(ctx.property("groupNumber"))
                     .build(),
                 Identifier.builder()
-                    .system(InsuranceBufferStructureDefinitions.BANKING_IDENTIFICATION_NUMBER)
+                    .system(InsuranceBufferDefinitions.get().bankingIdentificationNumber().system())
                     .value(ctx.property("bankingIdentificationNumber"))
                     .build(),
                 Identifier.builder()
-                    .system(InsuranceBufferStructureDefinitions.PROCESSOR_CONTROL_NUMBER_PCN)
+                    .system(InsuranceBufferDefinitions.get().processorControlNumber().system())
                     .value(ctx.property("processorControlNumberPcn"))
                     .build()))
         .name(ctx.property("insurancePlanName"))
@@ -152,7 +153,7 @@ public class CoverageInsuranceBufferCreateForPatientTest {
                     CodeableConcept.builder()
                         .coding(
                             Coding.builder()
-                                .system(InsuranceBufferStructureDefinitions.TYPE_OF_PLAN)
+                                .system(InsuranceBufferDefinitions.get().typeOfPlan().valueSet())
                                 .code(ctx.property("insurancePlanCode"))
                                 .display(ctx.property("insurancePlanDisplayText"))
                                 .build()
@@ -169,12 +170,16 @@ public class CoverageInsuranceBufferCreateForPatientTest {
         .id("2")
         .extension(
             Extension.builder()
-                .url(InsuranceBufferStructureDefinitions.REIMBURSE)
+                .url(InsuranceBufferDefinitions.get().reimburse().structureDefinition())
                 .valueCodeableConcept(
                     CodeableConcept.builder()
                         .coding(
                             Coding.builder()
-                                .system(InsuranceBufferStructureDefinitions.REIMBURSE_URN_OID)
+                                .system(
+                                    InsuranceBufferDefinitions.get()
+                                        .reimburse()
+                                        .valueDefinition()
+                                        .valueSet())
                                 .code(ctx.property("willReimburseForCare"))
                                 .build()
                                 .asList())
@@ -257,7 +262,7 @@ public class CoverageInsuranceBufferCreateForPatientTest {
         .id("#3")
         .extension(
             Extension.builder()
-                .url(InsuranceBufferStructureDefinitions.INSUREDS_SEX_URL)
+                .url(InsuranceBufferDefinitions.get().insuredsSex().structureDefinition())
                 .valueCode(ctx.property("relatedPersonSex"))
                 .build()
                 .asList())

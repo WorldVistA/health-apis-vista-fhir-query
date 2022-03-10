@@ -8,6 +8,7 @@ import gov.va.api.health.r4.api.datatypes.Identifier;
 import gov.va.api.health.vistafhirquery.service.controller.RequestPayloadExceptions.RequiredIdentifierIsMissing;
 import gov.va.api.health.vistafhirquery.service.controller.RequestPayloadExceptions.UnexpectedNumberOfIdentifiers;
 import gov.va.api.health.vistafhirquery.service.controller.RequestPayloadExceptions.UnknownIdentifierSystem;
+import gov.va.api.health.vistafhirquery.service.controller.definitions.MappableIdentifierDefinition;
 import gov.va.api.lighthouse.charon.models.lhslighthouserpcgateway.LhsLighthouseRpcGatewayCoverageWrite.WriteableFilemanValue;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -21,7 +22,6 @@ import lombok.Value;
 
 @Value
 public class IdentifierReader {
-
   Map<String, ReadableIdentifierDefinition> handlersBySystem;
 
   WriteableFilemanValueFactory filemanFactory;
@@ -38,6 +38,22 @@ public class IdentifierReader {
     this.handlersBySystem =
         readableIdentifierDefinitions.stream()
             .collect(toMap(ReadableIdentifierDefinition::system, Function.identity()));
+  }
+
+  /** Build an IdentifierReader using MappableIdentifierDefinitions. */
+  public static IdentifierReaderBuilder forDefinitions(
+      Collection<MappableIdentifierDefinition> definitions) {
+    return IdentifierReader.builder()
+        .readableIdentifierDefinitions(
+            definitions.stream()
+                .map(
+                    def ->
+                        ReadableIdentifierDefinition.builder()
+                            .field(def.vistaField())
+                            .system(def.system())
+                            .isRequired(def.isRequired())
+                            .build())
+                .toList());
   }
 
   /** IdentifierReader processes a given collection of the expected identifier records. */

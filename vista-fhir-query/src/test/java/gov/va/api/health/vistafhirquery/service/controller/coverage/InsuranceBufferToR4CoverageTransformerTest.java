@@ -30,7 +30,7 @@ class InsuranceBufferToR4CoverageTransformerTest {
     assertThat(_transformer().birthsex(FilemanEntry.builder().build()))
         .isEqualTo(
             Extension.builder()
-                .url(InsuranceBufferStructureDefinitions.INSUREDS_SEX_URL)
+                .url(InsuranceBufferDefinitions.get().insuredsSex().structureDefinition())
                 .valueCode("UNK")
                 .build());
     assertThat(
@@ -47,7 +47,7 @@ class InsuranceBufferToR4CoverageTransformerTest {
                         .build()))
         .isEqualTo(
             Extension.builder()
-                .url(InsuranceBufferStructureDefinitions.INSUREDS_SEX_URL)
+                .url(InsuranceBufferDefinitions.get().insuredsSex().structureDefinition())
                 .valueCode("M")
                 .build());
   }

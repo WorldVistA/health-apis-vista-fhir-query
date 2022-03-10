@@ -8,6 +8,8 @@ import gov.va.api.health.r4.api.datatypes.Coding;
 import gov.va.api.health.r4.api.datatypes.Quantity;
 import gov.va.api.health.r4.api.elements.Extension;
 import gov.va.api.health.r4.api.elements.Reference;
+import gov.va.api.health.vistafhirquery.service.controller.definitions.MappableCodeableConceptDefinition;
+import gov.va.api.health.vistafhirquery.service.controller.definitions.MappableExtensionDefinition;
 import gov.va.api.lighthouse.charon.models.lhslighthouserpcgateway.LhsLighthouseRpcGatewayResponse;
 import java.math.BigDecimal;
 import java.util.Map;
@@ -37,6 +39,15 @@ public class ExtensionFactory {
       return null;
     }
     return Extension.builder().url(url).valueCode(value.get()).build();
+  }
+
+  /** Creates a valueCodeableConcept extension with an external value. */
+  public Extension ofCodeableConceptFromExternalValue(
+      MappableExtensionDefinition<MappableCodeableConceptDefinition> definition) {
+    return ofCodeableConceptFromExternalValue(
+        definition.valueDefinition().vistaField(),
+        definition.valueDefinition().valueSet(),
+        definition.structureDefinition());
   }
 
   /** Creates a valueCodeableConcept extension with an external value. */

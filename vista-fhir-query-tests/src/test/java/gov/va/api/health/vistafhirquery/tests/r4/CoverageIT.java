@@ -15,6 +15,7 @@ import gov.va.api.health.r4.api.resources.Coverage.Status;
 import gov.va.api.health.r4.api.resources.InsurancePlan;
 import gov.va.api.health.r4.api.resources.Organization;
 import gov.va.api.health.sentinel.Environment;
+import gov.va.api.health.vistafhirquery.service.controller.coverage.InsuranceBufferDefinitions;
 import gov.va.api.health.vistafhirquery.service.controller.coverage.InsuranceBufferStructureDefinitions;
 import gov.va.api.health.vistafhirquery.tests.CreateResourceVerifier;
 import gov.va.api.health.vistafhirquery.tests.SystemDefinitions;
@@ -49,7 +50,7 @@ public class CoverageIT {
             CodeableConcept.builder()
                 .coding(
                     Coding.builder()
-                        .system(InsuranceBufferStructureDefinitions.INQ_SERVICE_TYPE_CODE)
+                        .system(InsuranceBufferDefinitions.get().inqServiceTypeCode().valueSet())
                         .code("1")
                         .build()
                         .asList())
@@ -129,19 +130,21 @@ public class CoverageIT {
                     .identifier(
                         List.of(
                             Identifier.builder()
-                                .system(InsuranceBufferStructureDefinitions.GROUP_NUMBER)
+                                .system(InsuranceBufferDefinitions.get().groupNumber().system())
                                 .value("GRP123456")
                                 .build(),
                             Identifier.builder()
                                 .system(
-                                    InsuranceBufferStructureDefinitions
-                                        .BANKING_IDENTIFICATION_NUMBER)
+                                    InsuranceBufferDefinitions.get()
+                                        .bankingIdentificationNumber()
+                                        .system())
                                 .value("88888888")
                                 .build(),
                             Identifier.builder()
                                 .system(
-                                    InsuranceBufferStructureDefinitions
-                                        .PROCESSOR_CONTROL_NUMBER_PCN)
+                                    InsuranceBufferDefinitions.get()
+                                        .processorControlNumber()
+                                        .system())
                                 .value("121212121212")
                                 .build()))
                     .plan(
@@ -153,8 +156,9 @@ public class CoverageIT {
                                             List.of(
                                                 Coding.builder()
                                                     .system(
-                                                        InsuranceBufferStructureDefinitions
-                                                            .TYPE_OF_PLAN)
+                                                        InsuranceBufferDefinitions.get()
+                                                            .typeOfPlan()
+                                                            .valueSet())
                                                     .code("40")
                                                     .display(
                                                         "PREFERRED PROVIDER ORGANIZATION (PPO)")
@@ -223,7 +227,7 @@ public class CoverageIT {
                             .asList())
                     .extension(
                         Extension.builder()
-                            .url(InsuranceBufferStructureDefinitions.REIMBURSE)
+                            .url(InsuranceBufferDefinitions.get().reimburse().structureDefinition())
                             .valueCodeableConcept(
                                 CodeableConcept.builder()
                                     .coding(
@@ -231,8 +235,10 @@ public class CoverageIT {
                                             Coding.builder()
                                                 .code("WILL REIMBURSE")
                                                 .system(
-                                                    InsuranceBufferStructureDefinitions
-                                                        .REIMBURSE_URN_OID)
+                                                    InsuranceBufferDefinitions.get()
+                                                        .reimburse()
+                                                        .valueDefinition()
+                                                        .valueSet())
                                                 .build()))
                                     .build())
                             .build()

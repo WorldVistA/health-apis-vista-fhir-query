@@ -161,15 +161,16 @@ public class CoverageSamples {
           .identifier(
               List.of(
                   Identifier.builder()
-                      .system(InsuranceBufferStructureDefinitions.GROUP_NUMBER)
+                      .system(InsuranceBufferDefinitions.get().groupNumber().system())
                       .value("GRP123456")
                       .build(),
                   Identifier.builder()
-                      .system(InsuranceBufferStructureDefinitions.BANKING_IDENTIFICATION_NUMBER)
+                      .system(
+                          InsuranceBufferDefinitions.get().bankingIdentificationNumber().system())
                       .value("88888888")
                       .build(),
                   Identifier.builder()
-                      .system(InsuranceBufferStructureDefinitions.PROCESSOR_CONTROL_NUMBER_PCN)
+                      .system(InsuranceBufferDefinitions.get().processorControlNumber().system())
                       .value("121212121212")
                       .build()))
           .plan(plan())
@@ -196,7 +197,7 @@ public class CoverageSamples {
           .extension(
               Extension.builder()
                   .valueCode("M")
-                  .url(InsuranceBufferStructureDefinitions.INSUREDS_SEX_URL)
+                  .url(InsuranceBufferDefinitions.get().insuredsSex().structureDefinition())
                   .build()
                   .asList())
           .identifier(
@@ -298,7 +299,7 @@ public class CoverageSamples {
               CodeableConcept.builder()
                   .coding(
                       Coding.builder()
-                          .system(InsuranceBufferStructureDefinitions.INQ_SERVICE_TYPE_CODE)
+                          .system(InsuranceBufferDefinitions.get().inqServiceTypeCode().valueSet())
                           .code("1")
                           .build()
                           .asList())
@@ -354,14 +355,18 @@ public class CoverageSamples {
 
     private List<Extension> organizationExtensions() {
       return Extension.builder()
-          .url(InsuranceBufferStructureDefinitions.REIMBURSE)
+          .url(InsuranceBufferDefinitions.get().reimburse().structureDefinition())
           .valueCodeableConcept(
               CodeableConcept.builder()
                   .coding(
                       Collections.singletonList(
                           Coding.builder()
                               .code("WILL REIMBURSE")
-                              .system(InsuranceBufferStructureDefinitions.REIMBURSE_URN_OID)
+                              .system(
+                                  InsuranceBufferDefinitions.get()
+                                      .reimburse()
+                                      .valueDefinition()
+                                      .valueSet())
                               .build()))
                   .build())
           .build()
@@ -421,7 +426,7 @@ public class CoverageSamples {
                       .coding(
                           List.of(
                               Coding.builder()
-                                  .system(InsuranceBufferStructureDefinitions.TYPE_OF_PLAN)
+                                  .system(InsuranceBufferDefinitions.get().typeOfPlan().valueSet())
                                   .code("40")
                                   .display("PREFERRED PROVIDER ORGANIZATION (PPO)")
                                   .build()))

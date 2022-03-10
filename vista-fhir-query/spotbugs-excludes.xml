@@ -62,6 +62,7 @@
   -->
   <Match>
     <Or>
+      <Class name="~gov.va.api.health.vistafhirquery.service.controller.extensionprocessing.CodeExtensionHandler"/>
       <Class name="~gov.va.api.health.vistafhirquery.service.controller.LhsGatewayExceptions.*"/>
       <Class name="~gov.va.api.health.vistafhirquery.service.controller.RequestPayloadExceptions.*"/>
     </Or>

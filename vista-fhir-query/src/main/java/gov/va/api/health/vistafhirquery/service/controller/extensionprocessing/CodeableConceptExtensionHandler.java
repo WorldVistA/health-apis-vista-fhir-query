@@ -8,6 +8,8 @@ import gov.va.api.health.r4.api.elements.Extension;
 import gov.va.api.health.vistafhirquery.service.controller.RequestPayloadExceptions.ExtensionFieldHasUnexpectedNumberOfValues;
 import gov.va.api.health.vistafhirquery.service.controller.RequestPayloadExceptions.ExtensionMissingRequiredField;
 import gov.va.api.health.vistafhirquery.service.controller.WriteableFilemanValueFactory;
+import gov.va.api.health.vistafhirquery.service.controller.definitions.MappableCodeableConceptDefinition;
+import gov.va.api.health.vistafhirquery.service.controller.definitions.MappableExtensionDefinition;
 import gov.va.api.lighthouse.charon.models.lhslighthouserpcgateway.LhsLighthouseRpcGatewayCoverageWrite.WriteableFilemanValue;
 import java.util.ArrayList;
 import java.util.List;
@@ -16,7 +18,6 @@ import lombok.Getter;
 import lombok.NonNull;
 
 public class CodeableConceptExtensionHandler extends AbstractSingleFieldExtensionHandler {
-
   @Getter private final List<String> codingSystems;
 
   /** All args constructor. */
@@ -32,8 +33,29 @@ public class CodeableConceptExtensionHandler extends AbstractSingleFieldExtensio
     this.codingSystems = codingSystems;
   }
 
+  @Builder(
+      builderClassName = "CodeableConceptExtensionHandlerMappableDefinitionBuilder",
+      builderMethodName = "using")
+  CodeableConceptExtensionHandler(
+      MappableExtensionDefinition<MappableCodeableConceptDefinition> definition,
+      WriteableFilemanValueFactory filemanFactory,
+      int index) {
+    super(
+        definition.structureDefinition(),
+        definition.valueDefinition().isRequired() ? Required.REQUIRED : Required.OPTIONAL,
+        filemanFactory,
+        definition.valueDefinition().vistaField(),
+        index);
+    this.codingSystems = List.of(definition.valueDefinition().valueSet());
+  }
+
   public static CodeableConceptExtensionHandlerBuilder forDefiningUrl(String definingUrl) {
     return CodeableConceptExtensionHandler.builder().definingUrl(definingUrl);
+  }
+
+  public static CodeableConceptExtensionHandlerMappableDefinitionBuilder forDefinition(
+      MappableExtensionDefinition<MappableCodeableConceptDefinition> definition) {
+    return CodeableConceptExtensionHandler.using().definition(definition);
   }
 
   @Override

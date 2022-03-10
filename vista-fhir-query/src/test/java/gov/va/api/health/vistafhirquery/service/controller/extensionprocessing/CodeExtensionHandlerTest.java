@@ -1,22 +1,32 @@
 package gov.va.api.health.vistafhirquery.service.controller.extensionprocessing;
 
-import static gov.va.api.health.vistafhirquery.service.controller.extensionprocessing.ExtensionHandler.Required.REQUIRED;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThatExceptionOfType;
 
 import gov.va.api.health.r4.api.elements.Extension;
 import gov.va.api.health.vistafhirquery.service.controller.RequestPayloadExceptions.ExtensionMissingRequiredField;
 import gov.va.api.health.vistafhirquery.service.controller.WriteableFilemanValueFactory;
+import gov.va.api.health.vistafhirquery.service.controller.definitions.MappableCodeDefinition;
+import gov.va.api.health.vistafhirquery.service.controller.definitions.MappableExtensionDefinition;
 import gov.va.api.lighthouse.charon.models.lhslighthouserpcgateway.LhsLighthouseRpcGatewayCoverageWrite;
+import java.util.function.Function;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 
 public class CodeExtensionHandlerTest {
   private CodeExtensionHandler _handler(int index) {
-    return CodeExtensionHandler.forDefiningUrl("http://fugazi.com/code")
-        .required(REQUIRED)
-        .fieldNumber("#.field_number")
+    return CodeExtensionHandler.builder()
+        .definition(
+            MappableExtensionDefinition.forValueDefinition(
+                    MappableCodeDefinition.<String, String>builder()
+                        .vistaField("#.field_number")
+                        .fromCode(Function.identity())
+                        .toCode(Function.identity())
+                        .isRequired(true)
+                        .build())
+                .structureDefinition("http://fugazi.com/code")
+                .build())
         .index(index)
         .filemanFactory(WriteableFilemanValueFactory.forFile("file_number"))
         .build();

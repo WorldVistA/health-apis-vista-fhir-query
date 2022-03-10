@@ -279,13 +279,15 @@ public class R4CoverageToInsuranceBufferTransformer {
         type.coding().stream()
             .filter(
                 coding ->
-                    InsuranceBufferStructureDefinitions.INQ_SERVICE_TYPE_CODE.equals(
-                        coding.system()))
+                    InsuranceBufferDefinitions.get()
+                        .inqServiceTypeCode()
+                        .valueSet()
+                        .equals(coding.system()))
             .collect(toList());
     if (serviceTypeCoding.size() != 1) {
       throw UnexpectedNumberOfValues.builder()
           .identifyingFieldJsonPath(".type.coding[].system")
-          .identifyingFieldValue(InsuranceBufferStructureDefinitions.INQ_SERVICE_TYPE_CODE)
+          .identifyingFieldValue(InsuranceBufferDefinitions.get().inqServiceTypeCode().valueSet())
           .jsonPath(".type.coding[]")
           .exactExpectedCount(1)
           .receivedCount(serviceTypeCoding.size())
@@ -294,7 +296,7 @@ public class R4CoverageToInsuranceBufferTransformer {
     return factoryRegistry()
         .get(InsuranceVerificationProcessor.FILE_NUMBER)
         .forCoding(
-            InsuranceVerificationProcessor.INQ_SERVICE_TYPE_CODE_1,
+            InsuranceBufferDefinitions.get().inqServiceTypeCode().vistaField(),
             indexRegistry().get(InsuranceVerificationProcessor.FILE_NUMBER),
             type.coding().get(0))
         .orElseThrow(() -> MissingRequiredField.builder().jsonPath(".type.coding[].code").build());
@@ -343,8 +345,11 @@ public class R4CoverageToInsuranceBufferTransformer {
     InsurancePlan containedInsurancePlan =
         containedResourceReader.find(InsurancePlan.class, referenceId);
     var reader =
-        IdentifierReader.builder()
-            .readableIdentifierDefinitions(insurancePlanIdentifierRecords())
+        IdentifierReader.forDefinitions(
+                List.of(
+                    InsuranceBufferDefinitions.get().groupNumber(),
+                    InsuranceBufferDefinitions.get().bankingIdentificationNumber(),
+                    InsuranceBufferDefinitions.get().processorControlNumber()))
             .filemanFactory(factoryRegistry().get(InsuranceVerificationProcessor.FILE_NUMBER))
             .indexRegistry(indexRegistry())
             .build();
@@ -411,25 +416,6 @@ public class R4CoverageToInsuranceBufferTransformer {
             .index(indexRegistry().get(InsuranceVerificationProcessor.FILE_NUMBER))
             .required(OPTIONAL)
             .booleanStringMapping(YES_NO)
-            .build());
-  }
-
-  private List<IdentifierReader.ReadableIdentifierDefinition> insurancePlanIdentifierRecords() {
-    return List.of(
-        IdentifierReader.ReadableIdentifierDefinition.builder()
-            .field(InsuranceVerificationProcessor.GROUP_NUMBER)
-            .system(InsuranceBufferStructureDefinitions.GROUP_NUMBER)
-            .isRequired(true)
-            .build(),
-        IdentifierReader.ReadableIdentifierDefinition.builder()
-            .field(InsuranceVerificationProcessor.BANKING_IDENTIFICATION_NUMBER)
-            .system(InsuranceBufferStructureDefinitions.BANKING_IDENTIFICATION_NUMBER)
-            .isRequired(false)
-            .build(),
-        IdentifierReader.ReadableIdentifierDefinition.builder()
-            .field(InsuranceVerificationProcessor.PROCESSOR_CONTROL_NUMBER_PCN)
-            .system(InsuranceBufferStructureDefinitions.PROCESSOR_CONTROL_NUMBER_PCN)
-            .isRequired(false)
             .build());
   }
 
@@ -551,13 +537,9 @@ public class R4CoverageToInsuranceBufferTransformer {
 
   private List<ExtensionHandler> organizationExtensionHandlers() {
     return List.of(
-        CodeableConceptExtensionHandler.forDefiningUrl(
-                InsuranceBufferStructureDefinitions.REIMBURSE)
+        CodeableConceptExtensionHandler.forDefinition(InsuranceBufferDefinitions.get().reimburse())
             .filemanFactory(factoryRegistry().get(InsuranceVerificationProcessor.FILE_NUMBER))
             .index(indexRegistry().get(InsuranceVerificationProcessor.FILE_NUMBER))
-            .fieldNumber(InsuranceVerificationProcessor.REIMBURSE)
-            .codingSystem(InsuranceBufferStructureDefinitions.REIMBURSE_URN_OID)
-            .required(OPTIONAL)
             .build());
   }
 
@@ -680,8 +662,7 @@ public class R4CoverageToInsuranceBufferTransformer {
     RelatedPerson containedRelatedPerson =
         containedResourceReader.find(RelatedPerson.class, referenceId);
     var reader =
-        IdentifierReader.builder()
-            .readableIdentifierDefinitions(relatedPersonIdentifierRecords())
+        IdentifierReader.forDefinitions(List.of(InsuranceBufferDefinitions.get().insuredsSsn()))
             .filemanFactory(factoryRegistry().get(InsuranceVerificationProcessor.FILE_NUMBER))
             .indexRegistry(indexRegistry())
             .build();
@@ -779,21 +760,10 @@ public class R4CoverageToInsuranceBufferTransformer {
 
   private List<ExtensionHandler> relatedPersonExtensionHandlers() {
     return List.of(
-        CodeExtensionHandler.forDefiningUrl(InsuranceBufferStructureDefinitions.INSUREDS_SEX_URL)
+        CodeExtensionHandler.builder()
+            .definition(InsuranceBufferDefinitions.get().insuredsSex())
             .filemanFactory(factoryRegistry().get(InsuranceVerificationProcessor.FILE_NUMBER))
-            .fieldNumber(InsuranceVerificationProcessor.INSUREDS_SEX)
             .index(indexRegistry().get(InsuranceVerificationProcessor.FILE_NUMBER))
-            .required(OPTIONAL)
-            .toCode(c -> Map.of("M", "M", "F", "F", "UNK", "EMPTY").get(c))
-            .build());
-  }
-
-  private List<IdentifierReader.ReadableIdentifierDefinition> relatedPersonIdentifierRecords() {
-    return List.of(
-        IdentifierReader.ReadableIdentifierDefinition.builder()
-            .field(InsuranceVerificationProcessor.INSUREDS_SSN)
-            .system(InsuranceBufferStructureDefinitions.INSURED_SSN_SYSTEM)
-            .isRequired(false)
             .build());
   }
 
@@ -890,8 +860,8 @@ public class R4CoverageToInsuranceBufferTransformer {
     return factoryRegistry()
         .get(InsuranceVerificationProcessor.FILE_NUMBER)
         .forString(
-            InsuranceVerificationProcessor.TYPE_OF_PLAN,
-            indexRegistry().get(InsuranceVerificationProcessor.TYPE_OF_PLAN),
+            InsuranceBufferDefinitions.get().typeOfPlan().vistaField(),
+            indexRegistry().get(InsuranceBufferDefinitions.get().typeOfPlan().vistaField()),
             type.coding().get(0).display())
         .orElse(null);
   }
