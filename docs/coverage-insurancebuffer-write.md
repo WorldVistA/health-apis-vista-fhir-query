@@ -33,15 +33,18 @@
 
 ## Contained Resources
 
+For more information on contained resources, view FHIR's documentation
+[here](http://hl7.org/fhir/R4/references.html#contained).
+
 ### InsurancePlan
 
 #### Supported Fields
 
 |Path|Required|Notes|
 |---|---|---|
-|`.resourceType` | Required | Must be `InsurancePlan`. |
-| `.id` | Required | Must match the id provided in the `Coverage` `.class[0].value` field. |
-| `.extension[]` | Required | See [Supported Extensions](#supported-extensions) below. |
+| `.resourceType` | Required | Must be `InsurancePlan`. |
+| `.id` | Required | Must match the id provided in the `Coverage` `.class[0].value` field (without the `#`). |
+| `.extension[]` | Optional | See [Supported Extensions](#supported-extensions) below. |
 | `.identifier[]` | Required | See [Supported Identifiers](#supported-identifiers) below. |
 | `.name` | Optional | This is the name that the insurance company uses to identify the plan. |
 | `.plan[]` | Optional | Should contain 1 entry. |
@@ -51,9 +54,10 @@
 <details>
 <summary><strong>Type of Plan</strong></summary>
 
-System `urn:oid:2.16.840.1.113883.3.8901.3.1.355803.8009`
+System `urn:oid:2.16.840.1.113883.3.8901.3.1.3558033.408009`
 
-The type of plan may be dependent on the type of coverage provided by the insurance company and may affect the type of benefits that are available for the plan.
+The type of plan may be dependent on the type of coverage provided by the insurance company and may affect the type of
+benefits that are available for the plan.
 
 - `ACCIDENT AND HEALTH INSURANCE`
 - `AUTOMOBILE`
@@ -125,11 +129,12 @@ The type of plan may be dependent on the type of coverage provided by the insura
 
 | Defining URL | Type | Required | Notes |
 |---|---|---|---|
-| `http://va.gov/fhir/StructureDefinition/insuranceplan-isUtilizationReviewRequired` | `valueBoolean` | Required | Answer `true` if Utilization Review is required by the insurance company for this policy. |
-| `http://va.gov/fhir/StructureDefinition/insuranceplan-isPreCertificationRequired` | `valueBoolean` | Required | Answer `true` if this policy requires Pre-certification of all non-emergent admissions. |
-| `http://va.gov/fhir/StructureDefinition/insuranceplan-isCertificationRequiredForAmbulatoryCare` | `valueBoolean` | Required | Answer `true` if this plan requires certification of ambulatory procedures. This may include Ambulatory surgeries, CAT scans, MRI, non-invasive procedures, etc. |
-| `http://va.gov/fhir/StructureDefinition/insuranceplan-excludePreexistingConditions` | `valueBoolean` | Required | Answer `true` if the policy excludes any pre existing conditions. |
-| `http://va.gov/fhir/StructureDefinition/insuranceplan-areBenefitsAssignable` | `valueBoolean` | Required | If this policy will allow assignment of benefits then answer `true`. |
+| `http://va.gov/fhir/StructureDefinition/insuranceplan-isUtilizationReviewRequired` | `valueBoolean` | Optional | Answer `true` if Utilization Review is required by the insurance company for this policy. |
+| `http://va.gov/fhir/StructureDefinition/insuranceplan-isPreCertificationRequired` | `valueBoolean` | Optional | Answer `true` if this policy requires Pre-certification of all non-emergent admissions. |
+| `http://va.gov/fhir/StructureDefinition/insuranceplan-isCertificationRequiredForAmbulatoryCare` | `valueBoolean` | Optional | Answer `true` if this plan requires certification of ambulatory procedures. This may include Ambulatory surgeries, CAT scans, MRI, non-invasive procedures, etc. |
+| `http://va.gov/fhir/StructureDefinition/insuranceplan-excludePreexistingConditions` | `valueBoolean` | Optional | Answer `true` if the policy excludes any pre existing conditions. |
+| `http://va.gov/fhir/StructureDefinition/insuranceplan-areBenefitsAssignable` | `valueBoolean` | Optional | If this policy will allow assignment of benefits then answer `true`. |
+
 #### Supported Identifiers
 
 Several identifiers are supported.
@@ -150,6 +155,7 @@ Several identifiers are supported.
 |---|---|---
 | `.system` | Optional | `urn:oid:2.16.840.1.113883.3.8901.3.1.3558033.40801` |
 | `.value` | Optional | The Plan's Banking Identification Number (BIN). Used for NCPDP  transmissions. |
+
 </details>
 
 <details>
@@ -159,6 +165,7 @@ Several identifiers are supported.
 |---|---|---
 | `.system` | Optional | `urn:oid:2.16.840.1.113883.3.8901.3.1.3558033.408011` |
 | `.value` | Optional | The Plan's Processor Control Number (PCN). Used for NCPDP  transmissions. |
+
 </details>
 
 ### Organization
@@ -191,8 +198,6 @@ Several identifiers are supported.
 |---|---|---|---|
 | `http://va.gov/fhir/StructureDefinition/organization-willReimburseForCare` | `valueCodeableConcept` | Optional | `.coding[0].system` is `urn:oid:2.16.840.1.113883.3.8901.3.1.3558033.208005`. `.coding[0].value` is _
 Will Reimburse For Care Codes_ defined below. |
-
-
 
 ### Will Reimburse For Care Codes
 
@@ -244,6 +249,7 @@ received.
 Administrative Gender Codes_ defined below. |
 
 ### Administrative Gender Codes
+
 Used with
 
 - `http://hl7.org/fhir/us/core/STU4/StructureDefinition-us-core-birthsex`
