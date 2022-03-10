@@ -231,6 +231,9 @@ public class R4CoverageToInsuranceBufferTransformer {
                   .valueReceived(period.start())
                   .build();
             });
+    if (isBlank(period.end())) {
+      return dates;
+    }
     var endDateTime =
         tryParseDateTime(period.end())
             .orElseThrow(

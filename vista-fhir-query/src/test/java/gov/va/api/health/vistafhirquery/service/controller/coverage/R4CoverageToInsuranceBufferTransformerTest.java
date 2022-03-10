@@ -3,6 +3,7 @@ package gov.va.api.health.vistafhirquery.service.controller.coverage;
 import static gov.va.api.health.vistafhirquery.service.controller.coverage.CoverageStructureDefinitions.SUBSCRIBER_RELATIONSHIP_CODE_SYSTEM;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
+import static org.junit.jupiter.params.provider.Arguments.arguments;
 
 import gov.va.api.health.r4.api.datatypes.Address;
 import gov.va.api.health.r4.api.datatypes.CodeableConcept;
@@ -13,9 +14,9 @@ import gov.va.api.health.r4.api.datatypes.Identifier;
 import gov.va.api.health.r4.api.datatypes.Period;
 import gov.va.api.health.r4.api.elements.Reference;
 import gov.va.api.health.r4.api.resources.Coverage;
-import gov.va.api.health.r4.api.resources.InsurancePlan;
+import gov.va.api.health.r4.api.resources.InsurancePlan.Plan;
 import gov.va.api.health.r4.api.resources.Organization;
-import gov.va.api.health.vistafhirquery.service.controller.RequestPayloadExceptions;
+import gov.va.api.health.vistafhirquery.service.controller.RequestPayloadExceptions.EndDateOccursBeforeStartDate;
 import gov.va.api.health.vistafhirquery.service.controller.RequestPayloadExceptions.InvalidStringLengthInclusively;
 import gov.va.api.health.vistafhirquery.service.controller.RequestPayloadExceptions.MissingRequiredField;
 import gov.va.api.health.vistafhirquery.service.controller.RequestPayloadExceptions.UnexpectedNumberOfValues;
@@ -24,9 +25,56 @@ import gov.va.api.lighthouse.charon.models.lhslighthouserpcgateway.InsuranceVeri
 import gov.va.api.lighthouse.charon.models.lhslighthouserpcgateway.LhsLighthouseRpcGatewayCoverageWrite.WriteableFilemanValue;
 import java.util.List;
 import java.util.Set;
+import java.util.stream.Stream;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
+import org.junit.jupiter.params.provider.NullAndEmptySource;
 
 public class R4CoverageToInsuranceBufferTransformerTest {
+  private static Stream<Arguments> effectiveAndExpirationDateValidation() {
+    return Stream.of(
+        arguments(null, MissingRequiredField.class),
+        arguments(Period.builder().build(), UnexpectedValueForField.class),
+        arguments(Period.builder().start("badDate").build(), UnexpectedValueForField.class),
+        arguments(
+            Period.builder().start("1993-01-12T00:00:00Z").end("badDate").build(),
+            UnexpectedValueForField.class),
+        arguments(
+            Period.builder().start("2025-01-01T00:00:00Z").end("1993-01-12T00:00:00Z").build(),
+            EndDateOccursBeforeStartDate.class));
+  }
+
+  private static Stream<Arguments> typeOfPlanInvalidValueThrows() {
+    var definition = InsuranceBufferDefinitions.get().typeOfPlan();
+    return Stream.of(
+        arguments(
+            List.of(Plan.builder().build(), Plan.builder().build()),
+            UnexpectedNumberOfValues.class),
+        arguments(
+            Plan.builder()
+                .type(
+                    CodeableConcept.builder()
+                        .coding(
+                            List.of(
+                                Coding.builder().system(definition.valueSet()).display("X").build(),
+                                Coding.builder()
+                                    .system(definition.valueSet())
+                                    .display("Y")
+                                    .build()))
+                        .build())
+                .build()
+                .asList(),
+            UnexpectedNumberOfValues.class));
+  }
+
+  private static Stream<Arguments> typeOfPlanIsOptional() {
+    return Stream.of(
+        arguments(Plan.builder().build().asList()),
+        arguments(Plan.builder().type(CodeableConcept.builder().build()).build().asList()));
+  }
+
   private R4CoverageToInsuranceBufferTransformer _transformer() {
     return R4CoverageToInsuranceBufferTransformer.builder()
         .coverage(CoverageSamples.R4.create().coverageInsuranceBufferRead("p1", "123", "c1"))
@@ -257,36 +305,11 @@ public class R4CoverageToInsuranceBufferTransformerTest {
                         List.of(Address.builder().build(), Address.builder().build())));
   }
 
-  @Test
-  void effectiveDateAndExpirationDate() {
-    // Null
-    assertThatExceptionOfType(MissingRequiredField.class)
-        .isThrownBy(() -> _transformer().effectiveAndExpirationDate(null));
-    assertThatExceptionOfType(UnexpectedValueForField.class)
-        .isThrownBy(() -> _transformer().effectiveAndExpirationDate(Period.builder().build()));
-    // Bad start date
-    assertThatExceptionOfType(UnexpectedValueForField.class)
-        .isThrownBy(
-            () ->
-                _transformer()
-                    .effectiveAndExpirationDate(Period.builder().start("badDate").build()));
-    // Bad end date
-    assertThatExceptionOfType(UnexpectedValueForField.class)
-        .isThrownBy(
-            () ->
-                _transformer()
-                    .effectiveAndExpirationDate(
-                        Period.builder().start("1993-01-12T00:00:00Z").end("badDate").build()));
-    // End date before start date
-    assertThatExceptionOfType(RequestPayloadExceptions.EndDateOccursBeforeStartDate.class)
-        .isThrownBy(
-            () ->
-                _transformer()
-                    .effectiveAndExpirationDate(
-                        Period.builder()
-                            .start("2025-01-01T00:00:00Z")
-                            .end("1993-01-12T00:00:00Z")
-                            .build()));
+  @ParameterizedTest
+  @MethodSource
+  void effectiveAndExpirationDateValidation(Period sample, Class<Throwable> isThrown) {
+    assertThatExceptionOfType(isThrown)
+        .isThrownBy(() -> _transformer().effectiveAndExpirationDate(sample));
   }
 
   @Test
@@ -298,6 +321,16 @@ public class R4CoverageToInsuranceBufferTransformerTest {
                     .coverage(Coverage.builder().build())
                     .build()
                     .toInsuranceBuffer());
+  }
+
+  @Test
+  void expirationDateIsOptional() {
+    assertThat(
+            _transformer()
+                .effectiveAndExpirationDate(Period.builder().start("1993-01-12T00:00:00Z").build()))
+        .hasSize(1)
+        .singleElement()
+        .hasFieldOrPropertyWithValue("value", "2930112");
   }
 
   @Test
@@ -496,47 +529,16 @@ public class R4CoverageToInsuranceBufferTransformerTest {
         .containsExactlyInAnyOrderElementsOf(expected);
   }
 
-  @Test
-  void typeOfPlan() {
-    // Null plan
-    assertThat(_transformer().typeOfPlan(null)).isNull();
-    // Empty list
-    assertThat(_transformer().typeOfPlan(List.of())).isNull();
-    // Null codeableconcept
-    assertThatExceptionOfType(MissingRequiredField.class)
-        .isThrownBy(() -> _transformer().typeOfPlan(InsurancePlan.Plan.builder().build().asList()));
-    // Null coding
-    assertThatExceptionOfType(MissingRequiredField.class)
-        .isThrownBy(
-            () ->
-                _transformer()
-                    .typeOfPlan(
-                        InsurancePlan.Plan.builder()
-                            .type(CodeableConcept.builder().build())
-                            .build()
-                            .asList()));
-    // Too many plans
-    assertThatExceptionOfType(UnexpectedNumberOfValues.class)
-        .isThrownBy(
-            () ->
-                _transformer()
-                    .typeOfPlan(
-                        List.of(
-                            InsurancePlan.Plan.builder().build(),
-                            InsurancePlan.Plan.builder().build())));
-    // Too many codings
-    assertThatExceptionOfType(UnexpectedNumberOfValues.class)
-        .isThrownBy(
-            () ->
-                _transformer()
-                    .typeOfPlan(
-                        InsurancePlan.Plan.builder()
-                            .type(
-                                CodeableConcept.builder()
-                                    .coding(
-                                        List.of(Coding.builder().build(), Coding.builder().build()))
-                                    .build())
-                            .build()
-                            .asList()));
+  @ParameterizedTest
+  @MethodSource
+  void typeOfPlanInvalidValueThrows(List<Plan> sample, Class<Throwable> isThrown) {
+    assertThatExceptionOfType(isThrown).isThrownBy(() -> _transformer().typeOfPlan(sample));
+  }
+
+  @ParameterizedTest
+  @NullAndEmptySource
+  @MethodSource
+  void typeOfPlanIsOptional(List<Plan> sample) {
+    assertThat(_transformer().typeOfPlan(sample)).isNull();
   }
 }
