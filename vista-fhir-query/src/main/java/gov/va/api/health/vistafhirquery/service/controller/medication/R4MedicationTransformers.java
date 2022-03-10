@@ -4,22 +4,31 @@ import static gov.va.api.health.vistafhirquery.service.controller.R4Transformers
 import static gov.va.api.health.vistafhirquery.service.controller.R4Transformers.isBlank;
 import static gov.va.api.health.vistafhirquery.service.controller.R4Transformers.toBigDecimal;
 import static gov.va.api.health.vistafhirquery.service.controller.R4Transformers.toResourceId;
+import static org.apache.commons.lang3.StringUtils.isNotBlank;
 import static org.apache.commons.lang3.StringUtils.trimToNull;
 
 import gov.va.api.health.r4.api.datatypes.CodeableConcept;
 import gov.va.api.health.r4.api.datatypes.Coding;
 import gov.va.api.health.r4.api.datatypes.SimpleQuantity;
 import gov.va.api.health.r4.api.elements.Dosage;
+import gov.va.api.health.r4.api.elements.Dosage.DoseAndRate;
 import gov.va.api.lighthouse.charon.models.vprgetpatientdata.Meds.Med.Product;
 import gov.va.api.lighthouse.charon.models.vprgetpatientdata.Meds.Med.Product.ProductDetail;
 import gov.va.api.lighthouse.charon.models.vprgetpatientdata.VprGetPatientData;
+import java.math.BigDecimal;
+import java.util.List;
+import java.util.regex.Pattern;
 import lombok.Getter;
 
 @Getter
 public class R4MedicationTransformers {
-  /** Create a dosage from a sig and ptInstruction. */
-  public static Dosage dosageInstruction(String sig, String ptInstructions) {
-    if (allBlank(sig, ptInstructions)) {
+
+  /**
+   * Create a dosage from a sig and ptInstruction.
+   */
+  public static Dosage dosageInstruction(String sig, String ptInstructions, String doseValue,
+      String doseUnit) {
+    if (allBlank(sig, ptInstructions, doseValue, doseUnit)) {
       return null;
     }
     return Dosage.builder()
@@ -28,7 +37,9 @@ public class R4MedicationTransformers {
         .build();
   }
 
-  /** Create a codeableConcept from a VPR Med Domain product. */
+  /**
+   * Create a codeableConcept from a VPR Med Domain product.
+   */
   public static CodeableConcept medicationCodeableConcept(Product product) {
     if (product == null || allBlank(product.name(), product.clazz())) {
       return null;
@@ -40,7 +51,9 @@ public class R4MedicationTransformers {
         .build();
   }
 
-  /** Create a MedicationRequest id from and vista id, patientIcn and site. */
+  /**
+   * Create a MedicationRequest id from and vista id, patientIcn and site.
+   */
   public static String medicationRequestIdFrom(String vistaMedId, String patientIcn, String site) {
     if (isBlank(vistaMedId)) {
       return null;
@@ -48,7 +61,9 @@ public class R4MedicationTransformers {
     return toResourceId(patientIcn, site, VprGetPatientData.Domains.meds, vistaMedId);
   }
 
-  /** Create a coding from a VPR Med Domain productDetail. */
+  /**
+   * Create a coding from a VPR Med Domain productDetail.
+   */
   public static Coding productCoding(ProductDetail maybeDetail) {
     if (isBlank(maybeDetail)) {
       return null;
@@ -63,7 +78,9 @@ public class R4MedicationTransformers {
         .build();
   }
 
-  /** Create a SimpleQuantity using a decimal string and unit (form). */
+  /**
+   * Create a SimpleQuantity using a decimal string and unit (form).
+   */
   public static SimpleQuantity quantity(String quantity, String form) {
     var decimalValue = toBigDecimal(quantity);
     if (decimalValue == null) {
