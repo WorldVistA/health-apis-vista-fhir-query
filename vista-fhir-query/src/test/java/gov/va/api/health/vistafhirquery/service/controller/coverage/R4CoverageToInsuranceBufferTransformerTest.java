@@ -477,7 +477,7 @@ public class R4CoverageToInsuranceBufferTransformerTest {
 
   @Test
   void serviceDate() {
-    assertThat(_transformer().serviceDate(null)).isNotNull();
+    assertThat(_transformer().coverageExtensions(null)).isNotNull();
   }
 
   @Test

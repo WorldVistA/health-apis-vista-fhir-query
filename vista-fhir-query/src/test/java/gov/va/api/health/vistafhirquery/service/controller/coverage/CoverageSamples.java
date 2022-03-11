@@ -292,7 +292,7 @@ public class CoverageSamples {
           .extension(
               Extension.builder()
                   .url(InsuranceBufferDefinitions.get().serviceDate().structureDefinition())
-                  .valueDate("2022-03-09")
+                  .valueDate("2033-02-01")
                   .build()
                   .asList())
           .contained(
@@ -560,7 +560,7 @@ public class CoverageSamples {
               InsuranceVerificationProcessor.SUBSCRIBER_ADDRESS_COUNTRY, "UNITED STATES"),
           insuranceBufferValue(
               InsuranceVerificationProcessor.SUBSCRIBER_ADDRESS_SUBDIVISION, "CUTSORTIUM"),
-          insuranceBufferValue(InsuranceVerificationProcessor.SERVICE_DATE, "01023333"));
+          insuranceBufferValue(InsuranceVerificationProcessor.SERVICE_DATE, "02012033"));
     }
 
     public LhsLighthouseRpcGatewayResponse.Results createInsuranceBufferResults(String id) {
@@ -705,7 +705,7 @@ public class CoverageSamples {
       fields.put(
           InsuranceVerificationProcessor.TYPE_OF_PLAN,
           Values.of("PREFERRED PROVIDER ORGANIZATION (PPO)", "40"));
-      fields.put(InsuranceVerificationProcessor.SERVICE_DATE, Values.of("01.02.3333", "3220310"));
+      fields.put(InsuranceVerificationProcessor.SERVICE_DATE, Values.of("02.01.2033", "3330201"));
       return Map.copyOf(fields);
     }
 

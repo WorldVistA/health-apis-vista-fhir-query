@@ -22,7 +22,7 @@ public class DateExtensionHandlerTest {
                     MappableDateDefinition.builder()
                         .vistaField("#.field_number")
                         .isRequired(true)
-                        .dateFormatter(DateTimeFormatter.ofPattern("MMddyyyy"))
+                        .vistaDateFormatter(DateTimeFormatter.ofPattern("MMddyyyy"))
                         .build())
                 .structureDefinition("http://fugazi.com/date")
                 .build())

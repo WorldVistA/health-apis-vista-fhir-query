@@ -10,5 +10,5 @@ import lombok.Value;
 public class MappableDateDefinition {
   @NonNull String vistaField;
   boolean isRequired;
-  @NonNull DateTimeFormatter dateFormatter;
+  @NonNull DateTimeFormatter vistaDateFormatter;
 }

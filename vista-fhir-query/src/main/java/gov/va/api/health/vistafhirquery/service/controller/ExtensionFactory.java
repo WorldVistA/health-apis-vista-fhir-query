@@ -9,16 +9,10 @@ import gov.va.api.health.r4.api.datatypes.Quantity;
 import gov.va.api.health.r4.api.elements.Extension;
 import gov.va.api.health.r4.api.elements.Reference;
 import gov.va.api.health.vistafhirquery.service.controller.definitions.MappableCodeableConceptDefinition;
-import gov.va.api.health.vistafhirquery.service.controller.definitions.MappableDateDefinition;
 import gov.va.api.health.vistafhirquery.service.controller.definitions.MappableExtensionDefinition;
-import gov.va.api.lighthouse.charon.models.FilemanDate;
 import gov.va.api.lighthouse.charon.models.lhslighthouserpcgateway.LhsLighthouseRpcGatewayResponse;
 import java.math.BigDecimal;
-import java.sql.Date;
-import java.text.SimpleDateFormat;
-import java.time.ZoneId;
 import java.util.Map;
-import java.util.function.Function;
 import lombok.AllArgsConstructor;
 
 @AllArgsConstructor(staticName = "of")
@@ -36,12 +30,6 @@ public class ExtensionFactory {
                 .build())
         .url(url)
         .build();
-  }
-
-  private Extension buildExtensionWithValueDate(FilemanDate fm, String url) {
-    var formatter = new SimpleDateFormat("yyyy-MM-dd");
-    var date = Date.from(fm.instant());
-    return Extension.builder().valueDate(formatter.format(date)).url(url).build();
   }
 
   /** Creates a valueCode extension. */
@@ -122,28 +110,6 @@ public class ExtensionFactory {
       return null;
     }
     return Extension.builder().url(url).valueString(value.get()).build();
-  }
-
-  /** Creates a valueDate extension with an internal value. */
-  public Extension ofValueDateFromInternalValue(
-      MappableExtensionDefinition<MappableDateDefinition> definition) {
-    return ofValueDateFromInternalValue(
-        definition.valueDefinition().vistaField(),
-        definition.structureDefinition(),
-        s -> FilemanDate.from(s, ZoneId.of("UTC")));
-  }
-
-  /** Creates a value date extension with an internal value. */
-  public Extension ofValueDateFromInternalValue(
-      String fieldNumber, String url, Function<String, FilemanDate> stringToFilemanDate) {
-    if (isBlank(fieldNumber)) {
-      return null;
-    }
-    return entry
-        .internal(fieldNumber)
-        .map(stringToFilemanDate)
-        .map(value -> buildExtensionWithValueDate(value, url))
-        .orElse(null);
   }
 
   /** Creates a valueBoolean extension. */

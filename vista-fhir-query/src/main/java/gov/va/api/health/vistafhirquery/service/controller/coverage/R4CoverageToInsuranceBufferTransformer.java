@@ -196,6 +196,34 @@ public class R4CoverageToInsuranceBufferTransformer {
             .build());
   }
 
+  Set<WriteableFilemanValue> coverageExtensions(List<Extension> extensions) {
+    Set<WriteableFilemanValue> coverageExtensions = new HashSet<>();
+    var serviceDateExtension =
+        Safe.stream(extensions)
+            .filter(
+                e ->
+                    InsuranceBufferDefinitions.get()
+                        .serviceDate()
+                        .structureDefinition()
+                        .equals(e.url()))
+            .collect(toList());
+    if (serviceDateExtension.isEmpty()) {
+      coverageExtensions.add(
+          factoryRegistry()
+              .get(InsuranceVerificationProcessor.FILE_NUMBER)
+              .forString(
+                  InsuranceVerificationProcessor.SERVICE_DATE,
+                  indexRegistry().get(InsuranceVerificationProcessor.FILE_NUMBER),
+                  today())
+              .get());
+    } else {
+      var coverageExtensionProcessor =
+          R4ExtensionProcessor.of(".extension[]", coverageExtensionHandlers());
+      coverageExtensions.add(coverageExtensionProcessor.process(extensions).get(0));
+    }
+    return coverageExtensions;
+  }
+
   WriteableFilemanValue dateEntered() {
     return factoryRegistry()
         .get(InsuranceVerificationProcessor.FILE_NUMBER)
@@ -778,30 +806,6 @@ public class R4CoverageToInsuranceBufferTransformer {
             .build());
   }
 
-  WriteableFilemanValue serviceDate(List<Extension> extensions) {
-    var serviceDateExtension =
-        Safe.stream(extensions)
-            .filter(
-                e ->
-                    InsuranceBufferDefinitions.get()
-                        .serviceDate()
-                        .structureDefinition()
-                        .equals(e.url()))
-            .collect(toList());
-    if (serviceDateExtension.isEmpty()) {
-      return factoryRegistry()
-          .get(InsuranceVerificationProcessor.FILE_NUMBER)
-          .forString(
-              InsuranceVerificationProcessor.SERVICE_DATE,
-              indexRegistry().get(InsuranceVerificationProcessor.FILE_NUMBER),
-              today())
-          .get();
-    }
-    var coverageExtensionProcessor =
-        R4ExtensionProcessor.of(".extension[]", coverageExtensionHandlers());
-    return coverageExtensionProcessor.process(extensions).get(0);
-  }
-
   WriteableFilemanValue sourceOfInformation() {
     return WriteableFilemanValue.builder()
         .file("355.12")
@@ -822,7 +826,6 @@ public class R4CoverageToInsuranceBufferTransformer {
   }
 
   WriteableFilemanValue subscriberId(String subscriberId) {
-
     return factoryRegistry()
         .get(InsuranceVerificationProcessor.FILE_NUMBER)
         .forString(
@@ -839,7 +842,7 @@ public class R4CoverageToInsuranceBufferTransformer {
     fields.add(overrideFreshnessFlag());
     fields.add(dateEntered());
     fields.add(sourceOfInformation());
-    fields.add(serviceDate(coverage().extension()));
+    fields.addAll(coverageExtensions(coverage().extension()));
     fields.add(patientId(coverage().beneficiary()));
     fields.add(dependent(coverage().dependent()));
     fields.add(order(coverage().order()));

@@ -32,6 +32,7 @@ import gov.va.api.health.vistafhirquery.service.controller.PatientTypeCoordinate
 import gov.va.api.health.vistafhirquery.service.controller.R4Transformers;
 import gov.va.api.health.vistafhirquery.service.controller.definitions.MappableCodeableConceptDefinition;
 import gov.va.api.health.vistafhirquery.service.controller.definitions.MappableIdentifierDefinition;
+import gov.va.api.lighthouse.charon.models.FilemanDate;
 import gov.va.api.lighthouse.charon.models.lhslighthouserpcgateway.InsuranceVerificationProcessor;
 import gov.va.api.lighthouse.charon.models.lhslighthouserpcgateway.LhsLighthouseRpcGatewayResponse;
 import gov.va.api.lighthouse.charon.models.lhslighthouserpcgateway.LhsLighthouseRpcGatewayResponse.FilemanEntry;
@@ -218,13 +219,8 @@ public class InsuranceBufferToR4CoverageTransformer {
   }
 
   private List<Extension> coverageExtensions(LhsLighthouseRpcGatewayResponse.FilemanEntry entry) {
-    ExtensionFactory extensions = ExtensionFactory.of(entry, YES_NO);
     return emptyToNull(
-        Stream.of(
-                extensions.ofValueDateFromInternalValue(
-                    InsuranceBufferDefinitions.get().serviceDate()))
-            .filter(Objects::nonNull)
-            .collect(Collectors.toList()));
+        Stream.of(serviceDate(entry)).filter(Objects::nonNull).collect(Collectors.toList()));
   }
 
   private List<Extension> insurancePlanExtensions(FilemanEntry entry) {
@@ -367,6 +363,20 @@ public class InsuranceBufferToR4CoverageTransformer {
             relationship ->
                 CodeableConcept.builder().coding(relationship.asCoding().asList()).build())
         .orElse(null);
+  }
+
+  private Extension serviceDate(LhsLighthouseRpcGatewayResponse.FilemanEntry entry) {
+    var serviceDate = entry.internal(InsuranceVerificationProcessor.SERVICE_DATE);
+    if (serviceDate.isEmpty()) {
+      return null;
+    }
+    FilemanDate fmd = FilemanDate.from(serviceDate.get(), vistaZoneId);
+    DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd").withZone(vistaZoneId);
+    var date = formatter.format(fmd.instant());
+    return Extension.builder()
+        .valueDate(date)
+        .url(InsuranceBufferDefinitions.get().serviceDate().structureDefinition())
+        .build();
   }
 
   private List<Address> subscriberAddress(FilemanEntry entry) {

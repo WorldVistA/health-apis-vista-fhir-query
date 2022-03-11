@@ -5,7 +5,7 @@ import static gov.va.api.health.vistafhirquery.service.controller.R4Transformers
 import static gov.va.api.health.vistafhirquery.service.controller.R4Transformers.tryParseDate;
 
 import gov.va.api.health.r4.api.elements.Extension;
-import gov.va.api.health.vistafhirquery.service.controller.RequestPayloadExceptions;
+import gov.va.api.health.vistafhirquery.service.controller.RequestPayloadExceptions.ExtensionMissingRequiredField;
 import gov.va.api.health.vistafhirquery.service.controller.RequestPayloadExceptions.UnexpectedValueForExtensionField;
 import gov.va.api.health.vistafhirquery.service.controller.WriteableFilemanValueFactory;
 import gov.va.api.health.vistafhirquery.service.controller.definitions.MappableDateDefinition;
@@ -32,13 +32,13 @@ public class DateExtensionHandler extends AbstractSingleFieldExtensionHandler {
         filemanFactory,
         definition.valueDefinition().vistaField(),
         index);
-    this.dateFormatter = definition.valueDefinition().dateFormatter();
+    this.dateFormatter = definition.valueDefinition().vistaDateFormatter();
   }
 
   @Override
   public List<WriteableFilemanValue> handle(String jsonPath, Extension extension) {
     if (isBlank(extension.valueDate())) {
-      throw RequestPayloadExceptions.ExtensionMissingRequiredField.builder()
+      throw ExtensionMissingRequiredField.builder()
           .jsonPath(jsonPath)
           .definingUrl(definingUrl())
           .requiredFieldJsonPath(".valueDate")
