@@ -17,8 +17,8 @@
 | `.beneficiary.identifier` | Required | |
 | `.beneficiary.identifier.type.coding[0].code` | Required | Must be `MB`. |
 | `.beneficiary.identifier.value` | Required | Subscriber's primary ID number. This number is assigned by the payer and can be found on the subscriber's insurance card. |
-| `.effectiveDate` | Required | The date this policy went into effect for this patient. Must not be after expiration date |
-| `.expirationDate` | Required | The date this policy expires for this patient. Must not be before effective date. |
+| `.period.start` | Required | The date this policy went into effect for this patient. Must not be after `period.end`. |
+| `.period.end` | Conditional | The date this policy expires for this patient. Specify if the coverage ends on a certain date. Must not be before `period.start`. |
 | `.relationship.coding[]` | Required | Must contain 1 entry. |
 | `.relationship.coding[0].system` | Required | Must be `http://terminology.hl7.org/CodeSystem/subscriber-relationship` |
 | `.relationship.coding[0].code` | Required | Must be one of the codes defined in the above system.  |
@@ -175,6 +175,7 @@ Several identifiers are supported.
 |Path|Required|Notes|
 |---|---|---|
 |`.resourceType` | Required | Must be `Organization`. |
+| `.active` | Required | Must be `true`. |
 | `.id` | Required | Must match the id provided in the `Coverage` `.payor[0]` field. |
 | `.name` | Required | The name of the Insurance Carrier that provides coverage for this patient. 3-30 characters in length. |
 |`.address[]` | Optional | Should contain at most 1 entry. |
@@ -185,11 +186,12 @@ Several identifiers are supported.
 |`.address[0].city` | Optional | 2-25 characters. |
 |`.address[0].state` | Optional | 2 characters. |
 |`.address[0].postalCode` | Optional | Format `[0-9]{9}` or `[0-9]{5}-[0-9]{4}`. |
-| `contact.telecom.value` | Optional | The insurance carriers phone number where specific inquires should be made. 7-20 characters in length.
-| `contact.telecom.system` | Optional | Should be `phone`.
-| `contact.purpose` | Optional | Should be `BILL` or `PRECERT`.
-| `.telecom.system` | Optional | Should be `phone`.
-| `.telecom.value` | Optional | The phone number at which this insurance company can be reached. 7-20 characters in length.
+| `.contact[].telecom[].value` | Optional | The insurance carriers phone number where specific inquires should be made. 7-20 characters in length.
+| `.contact[].telecom[].system` | Optional | Should be `phone`.
+| `.contact.purpose` | Optional | Should be `BILL` or `PRECERT`.
+| `.telecom[]` | Optional | Should contain at most 1 item.
+| `.telecom[].system` | Optional | Should be `phone`.
+| `.telecom[].value` | Optional | The phone number at which this insurance company can be reached. 7-20 characters in length.
 | `.extension[]` | Optional | See [Supported Extensions](#supported-extensions) below. |
 
 ## Supported Extensions
@@ -236,10 +238,12 @@ received.
 |`.address[0].country` | Optional | Subscriber's country, 2-3 characters. |
 |`.address[0].district` | Optional | Subscriber's district, 1-3 characters. |
 |`.address[0].postalCode` | Optional | Subscriber's zipcode,1-15 characters. |
-| `.telecom.system` | Optional | Should be `phone`.
-| `.telecom.value` | Optional | The phone number at which this insurance company can be reached. 7-20 characters in length.
+| `.telecom[]` | Optional | Should contain at most 1 item. |
+| `.telecom[0].system` | Optional | Should be `phone`.
+| `.telecom[0].value` | Optional | The phone number at which this insurance company can be reached. 7-20 characters in length.
 | `.extension[]` | Optional | See [Supported Extensions](#supported-extensions) below. |
-| `.name.text` | Required | The name of the person who holds the policy. Must be 2-30 characters in length.
+| `.name[]` | Required | Must contain 1 item.
+| `.name[0].text` | Required | The name of the person who holds the policy. Must be 2-30 characters in length.
 
 ## Supported Extensions
 

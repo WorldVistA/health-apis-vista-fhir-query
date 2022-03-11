@@ -9,12 +9,14 @@ import gov.va.api.health.r4.api.datatypes.CodeableConcept;
 import gov.va.api.health.r4.api.datatypes.Coding;
 import gov.va.api.health.r4.api.datatypes.SimpleQuantity;
 import gov.va.api.health.r4.api.elements.Dosage;
+import gov.va.api.health.r4.api.elements.Extension;
 import gov.va.api.health.r4.api.elements.Reference;
 import gov.va.api.health.r4.api.resources.MedicationDispense;
 import gov.va.api.health.r4.api.resources.MedicationDispense.Status;
 import gov.va.api.health.vistafhirquery.service.controller.DateSearchBoundaries;
 import gov.va.api.health.vistafhirquery.service.controller.medication.MedicationSamples;
 import gov.va.api.health.vistafhirquery.service.controller.medication.MedicationSamples.Vista;
+import gov.va.api.lighthouse.charon.models.CodeAndNameXmlAttribute;
 import gov.va.api.lighthouse.charon.models.ValueOnlyXmlAttribute;
 import gov.va.api.lighthouse.charon.models.vprgetpatientdata.Meds.Med.Fill;
 import gov.va.api.lighthouse.charon.models.vprgetpatientdata.Meds.Med.Product;
@@ -121,6 +123,31 @@ class R4MedicationDispenseTransformerTest {
         Arguments.of("", "PTI", Dosage.builder().patientInstruction("PTI").build().asList()));
   }
 
+  static Stream<Arguments> facility() {
+    return Stream.of(
+        Arguments.of(null, null),
+        Arguments.of(
+            CodeAndNameXmlAttribute.of("673", "TAMPA (JAH VAH)"),
+            Reference.builder().display("TAMPA (JAH VAH)").build()),
+        Arguments.of(CodeAndNameXmlAttribute.of("673", ""), null));
+  }
+
+  private static List<Extension> fillsRemaining(int remaining) {
+    return Extension.builder()
+        .url("http://hl7.org/fhir/StructureDefinition/medicationdispense-refillsRemaining")
+        .valueInteger(remaining)
+        .build()
+        .asList();
+  }
+
+  static Stream<Arguments> fillsRemaining() {
+    return Stream.of(
+        Arguments.of(null, "3", 1, fillsRemaining(2)),
+        Arguments.of("", "3", 1, fillsRemaining(2)),
+        Arguments.of("1", "3", 1, fillsRemaining(1)),
+        Arguments.of(null, null, 1, null));
+  }
+
   static Stream<Arguments> medicationCodeableConcept() {
     return Stream.of(
         Arguments.of(null, null),
@@ -181,11 +208,24 @@ class R4MedicationDispenseTransformerTest {
     assertThat(actual).isEqualTo(expected);
   }
 
+  @ParameterizedTest
+  @MethodSource
+  void facility(CodeAndNameXmlAttribute facility, Reference expectedReference) {
+    assertThat(_tx().facility(facility)).isEqualTo(expectedReference);
+  }
+
   @Test
   void fillDateIsRequiredToBeConsideredViable() {
     var fill = MedicationSamples.Vista.create().fill();
     assertThat(_tx().isViable(fill)).isTrue();
     assertThat(_tx().isViable(fill.fillDate(null))).isFalse();
+  }
+
+  @ParameterizedTest
+  @MethodSource
+  void fillsRemaining(
+      String fillsRemaining, String fillsAllowed, int fillSize, List<Extension> expected) {
+    assertThat(_tx().fillsRemaining(fillsRemaining, fillsAllowed, fillSize)).isEqualTo(expected);
   }
 
   @Test

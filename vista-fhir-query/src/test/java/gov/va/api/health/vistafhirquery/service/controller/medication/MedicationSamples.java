@@ -64,6 +64,7 @@ public class MedicationSamples {
           .sig("TAKE 1 TAB BY MOUTH EVERY DAY")
           .ptInstructions(ValueOnlyXmlAttribute.of("take with food"))
           .fill(fills == null ? null : Arrays.asList(fills))
+          .fillsRemaining(ValueOnlyXmlAttribute.of("1"))
           .product(
               List.of(
                   Product.builder()
