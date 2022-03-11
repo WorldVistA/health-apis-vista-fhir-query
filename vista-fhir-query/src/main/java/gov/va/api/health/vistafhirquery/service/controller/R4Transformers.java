@@ -17,8 +17,10 @@ import gov.va.api.lighthouse.charon.models.vprgetpatientdata.VprGetPatientData;
 import java.math.BigDecimal;
 import java.time.DateTimeException;
 import java.time.Instant;
+import java.time.LocalDate;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeParseException;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
@@ -306,12 +308,31 @@ public class R4Transformers {
         .pack();
   }
 
+  /** Formats a local date or returns an Empty Optional. */
+  public static Optional<String> tryFormatDate(
+      LocalDate dateTime, DateTimeFormatter dateTimeFormatter) {
+    try {
+      return Optional.of(dateTimeFormatter.format(dateTime));
+    } catch (DateTimeException e) {
+      return Optional.empty();
+    }
+  }
+
   /** Formats an instant or returns an Empty Optional. */
   public static Optional<String> tryFormatDateTime(
       Instant dateTime, DateTimeFormatter dateTimeFormatter) {
     try {
       return Optional.of(dateTimeFormatter.format(dateTime));
     } catch (DateTimeException e) {
+      return Optional.empty();
+    }
+  }
+
+  /** Parses a date in local date format or returns and Empty Optional. */
+  public static Optional<LocalDate> tryParseDate(String dateAsString) {
+    try {
+      return Optional.ofNullable(dateAsString).map(LocalDate::parse);
+    } catch (DateTimeParseException e) {
       return Optional.empty();
     }
   }

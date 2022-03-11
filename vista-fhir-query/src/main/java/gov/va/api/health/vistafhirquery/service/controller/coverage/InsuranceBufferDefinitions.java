@@ -4,9 +4,11 @@ import static gov.va.api.health.vistafhirquery.service.controller.R4Transformers
 
 import gov.va.api.health.vistafhirquery.service.controller.definitions.MappableCodeDefinition;
 import gov.va.api.health.vistafhirquery.service.controller.definitions.MappableCodeableConceptDefinition;
+import gov.va.api.health.vistafhirquery.service.controller.definitions.MappableDateDefinition;
 import gov.va.api.health.vistafhirquery.service.controller.definitions.MappableExtensionDefinition;
 import gov.va.api.health.vistafhirquery.service.controller.definitions.MappableIdentifierDefinition;
 import gov.va.api.lighthouse.charon.models.lhslighthouserpcgateway.InsuranceVerificationProcessor;
+import java.time.format.DateTimeFormatter;
 import java.util.Map;
 
 public class InsuranceBufferDefinitions {
@@ -85,6 +87,18 @@ public class InsuranceBufferDefinitions {
                 .build())
         .structureDefinition(
             "http://va.gov/fhir/StructureDefinition/organization-willReimburseForCare")
+        .build();
+  }
+
+  /** Service Date. */
+  public MappableExtensionDefinition<MappableDateDefinition> serviceDate() {
+    return MappableExtensionDefinition.forValueDefinition(
+            MappableDateDefinition.builder()
+                .vistaField(InsuranceVerificationProcessor.SERVICE_DATE)
+                .vistaDateFormatter(DateTimeFormatter.ofPattern("MMddyyyy"))
+                .isRequired(false)
+                .build())
+        .structureDefinition("http://va.gov/fhir/StructureDefinition/coverage-serviceDate")
         .build();
   }
 

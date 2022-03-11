@@ -32,6 +32,7 @@ import gov.va.api.health.vistafhirquery.service.controller.PatientTypeCoordinate
 import gov.va.api.health.vistafhirquery.service.controller.R4Transformers;
 import gov.va.api.health.vistafhirquery.service.controller.definitions.MappableCodeableConceptDefinition;
 import gov.va.api.health.vistafhirquery.service.controller.definitions.MappableIdentifierDefinition;
+import gov.va.api.lighthouse.charon.models.FilemanDate;
 import gov.va.api.lighthouse.charon.models.lhslighthouserpcgateway.InsuranceVerificationProcessor;
 import gov.va.api.lighthouse.charon.models.lhslighthouserpcgateway.LhsLighthouseRpcGatewayResponse;
 import gov.va.api.lighthouse.charon.models.lhslighthouserpcgateway.LhsLighthouseRpcGatewayResponse.FilemanEntry;
@@ -79,6 +80,7 @@ public class InsuranceBufferToR4CoverageTransformer {
           InsuranceVerificationProcessor.PROCESSOR_CONTROL_NUMBER_PCN,
           InsuranceVerificationProcessor.PT_RELATIONSHIP_HIPAA,
           InsuranceVerificationProcessor.REIMBURSE,
+          InsuranceVerificationProcessor.SERVICE_DATE,
           InsuranceVerificationProcessor.STATE,
           InsuranceVerificationProcessor.STREET_ADDRESS_LINE_1,
           InsuranceVerificationProcessor.STREET_ADDRESS_LINE_2,
@@ -216,14 +218,9 @@ public class InsuranceBufferToR4CoverageTransformer {
         .asList();
   }
 
-  private List<Extension> extensions(LhsLighthouseRpcGatewayResponse.FilemanEntry entry) {
-    ExtensionFactory extensions = ExtensionFactory.of(entry, YES_NO);
+  private List<Extension> coverageExtensions(LhsLighthouseRpcGatewayResponse.FilemanEntry entry) {
     return emptyToNull(
-        Stream.of(
-                extensions.ofCodeableConceptFromExternalValue(
-                    InsuranceBufferDefinitions.get().reimburse()))
-            .filter(Objects::nonNull)
-            .collect(Collectors.toList()));
+        Stream.of(serviceDate(entry)).filter(Objects::nonNull).collect(Collectors.toList()));
   }
 
   private List<Extension> insurancePlanExtensions(FilemanEntry entry) {
@@ -273,6 +270,17 @@ public class InsuranceBufferToR4CoverageTransformer {
       return emptyList();
     }
     return InsurancePlan.Plan.builder().type(typeOfPlan).build().asList();
+  }
+
+  private List<Extension> organizationExtensions(
+      LhsLighthouseRpcGatewayResponse.FilemanEntry entry) {
+    ExtensionFactory extensions = ExtensionFactory.of(entry, YES_NO);
+    return emptyToNull(
+        Stream.of(
+                extensions.ofCodeableConceptFromExternalValue(
+                    InsuranceBufferDefinitions.get().reimburse()))
+            .filter(Objects::nonNull)
+            .collect(Collectors.toList()));
   }
 
   private List<Address> payorAddress(FilemanEntry entry) {
@@ -355,6 +363,20 @@ public class InsuranceBufferToR4CoverageTransformer {
             relationship ->
                 CodeableConcept.builder().coding(relationship.asCoding().asList()).build())
         .orElse(null);
+  }
+
+  private Extension serviceDate(LhsLighthouseRpcGatewayResponse.FilemanEntry entry) {
+    var serviceDate = entry.internal(InsuranceVerificationProcessor.SERVICE_DATE);
+    var fmd = serviceDate.map(sd -> FilemanDate.from(sd, vistaZoneId));
+    if (fmd.isEmpty()) {
+      return null;
+    }
+    DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd").withZone(vistaZoneId);
+    var date = formatter.format(fmd.get().instant());
+    return Extension.builder()
+        .valueDate(date)
+        .url(InsuranceBufferDefinitions.get().serviceDate().structureDefinition())
+        .build();
   }
 
   private List<Address> subscriberAddress(FilemanEntry entry) {
@@ -450,6 +472,7 @@ public class InsuranceBufferToR4CoverageTransformer {
                     .ien(entry.ien())
                     .build()
                     .toString())
+            .extension(coverageExtensions(entry))
             .order(
                 entry
                     .internal(InsuranceVerificationProcessor.COORDINATION_OF_BENEFITS)
@@ -510,7 +533,7 @@ public class InsuranceBufferToR4CoverageTransformer {
             .active(true)
             .address(payorAddress(entry))
             .contact(contacts(entry))
-            .extension(extensions(entry))
+            .extension(organizationExtensions(entry))
             .name(
                 entry.internal(InsuranceVerificationProcessor.INSURANCE_COMPANY_NAME).orElse(null))
             .telecom(

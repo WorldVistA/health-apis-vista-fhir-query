@@ -186,6 +186,12 @@
       ]
     }
   ],
+  "extension": [
+    {
+      "url": "http://va.gov/fhir/StructureDefinition/coverage-serviceDate",
+      "valueDate": "2000-01-01"
+    }
+  ],
   "status": "draft",
   "type": {
     "coding": [
@@ -198,7 +204,7 @@
   "subscriber": {
     "reference": "#3"
   },
-  "subscriberId": "R50797109",
+  "subscriberId": "R50797108",
   "beneficiary": {
     "reference": "http://localhost:8090/data-query/r4/Patient/1011537977V693883",
     "identifier": {

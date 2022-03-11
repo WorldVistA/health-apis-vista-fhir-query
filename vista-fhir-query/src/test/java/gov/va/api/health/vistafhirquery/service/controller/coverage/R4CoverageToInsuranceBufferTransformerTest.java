@@ -509,6 +509,11 @@ public class R4CoverageToInsuranceBufferTransformerTest {
   }
 
   @Test
+  void serviceDate() {
+    assertThat(_transformer().coverageExtensions(null)).isNotNull();
+  }
+
+  @Test
   void subscriberId() {
     assertThatExceptionOfType(MissingRequiredField.class)
         .isThrownBy(() -> _transformer().subscriberId(null));
@@ -520,12 +525,7 @@ public class R4CoverageToInsuranceBufferTransformerTest {
     var expected =
         CoverageSamples.VistaLhsLighthouseRpcGateway.create().createInsuranceBufferInput();
     assertThat(_transformer().toInsuranceBuffer())
-        .filteredOn(
-            w ->
-                !Set.of(
-                        InsuranceVerificationProcessor.DATE_ENTERED,
-                        InsuranceVerificationProcessor.SERVICE_DATE)
-                    .contains(w.field()))
+        .filteredOn(w -> !Set.of(InsuranceVerificationProcessor.DATE_ENTERED).contains(w.field()))
         .containsExactlyInAnyOrderElementsOf(expected);
   }
 
