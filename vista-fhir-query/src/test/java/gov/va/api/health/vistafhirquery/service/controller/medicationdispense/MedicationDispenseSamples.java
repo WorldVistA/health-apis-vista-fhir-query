@@ -10,6 +10,7 @@ import gov.va.api.health.r4.api.datatypes.CodeableConcept;
 import gov.va.api.health.r4.api.datatypes.Coding;
 import gov.va.api.health.r4.api.datatypes.SimpleQuantity;
 import gov.va.api.health.r4.api.elements.Dosage;
+import gov.va.api.health.r4.api.elements.Extension;
 import gov.va.api.health.r4.api.elements.Meta;
 import gov.va.api.health.r4.api.elements.Reference;
 import gov.va.api.health.r4.api.resources.MedicationDispense;
@@ -93,6 +94,14 @@ public class MedicationDispenseSamples {
                   .asList())
           .authorizingPrescription(
               toReference("MedicationRequest", "sNp1+673+M33714", null).asList())
+          .extension(
+              Extension.builder()
+                  .url(
+                      "http://hl7.org/fhir/StructureDefinition/medicationdispense-refillsRemaining")
+                  .valueInteger(1)
+                  .build()
+                  .asList())
+          .location(Reference.builder().display("TAMPA (JAH VAH)").build())
           .build();
     }
   }
