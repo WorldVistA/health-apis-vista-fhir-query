@@ -15,6 +15,7 @@ import static io.micrometer.core.instrument.util.StringUtils.isNotBlank;
 
 import gov.va.api.health.fhir.api.Safe;
 import gov.va.api.health.r4.api.datatypes.SimpleQuantity;
+import gov.va.api.health.r4.api.elements.Extension;
 import gov.va.api.health.r4.api.elements.Meta;
 import gov.va.api.health.r4.api.elements.Reference;
 import gov.va.api.health.r4.api.resources.MedicationDispense;
@@ -26,6 +27,7 @@ import gov.va.api.health.vistafhirquery.service.controller.SegmentedVistaIdentif
 import gov.va.api.health.vistafhirquery.service.controller.medication.R4MedicationTransformers;
 import gov.va.api.health.vistafhirquery.service.util.Translation;
 import gov.va.api.health.vistafhirquery.service.util.Translations;
+import gov.va.api.lighthouse.charon.models.CodeAndNameXmlAttribute;
 import gov.va.api.lighthouse.charon.models.ValueOnlyXmlAttribute;
 import gov.va.api.lighthouse.charon.models.vprgetpatientdata.Meds.Med;
 import gov.va.api.lighthouse.charon.models.vprgetpatientdata.Meds.Med.Fill;
@@ -33,16 +35,18 @@ import gov.va.api.lighthouse.charon.models.vprgetpatientdata.VprGetPatientData;
 import gov.va.api.lighthouse.charon.models.vprgetpatientdata.VprGetPatientData.Domains;
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.function.Predicate;
 import java.util.stream.Stream;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NonNull;
+import lombok.extern.slf4j.Slf4j;
 
 @Builder
 @Getter
+@Slf4j
 public class R4MedicationDispenseTransformer {
-
   private static final Translation<String, String> ROUTING_TO_DESTINATION_DISPLAY =
       Translations.ofStringToString()
           .from("W")
@@ -103,6 +107,44 @@ public class R4MedicationDispenseTransformer {
         .translate(valueOfValueOnlyXmlAttribute(routing))
         .map(display -> Reference.builder().display(display).build())
         .orElse(null);
+  }
+
+  Optional<Integer> determineRemainingFills(
+      String fillsRemaining, String fillsAllowed, int fillSize) {
+    try {
+      if (isNotBlank(fillsRemaining)) {
+        return Optional.of(Integer.parseInt(fillsRemaining));
+      }
+      if (isNotBlank(fillsAllowed)) {
+        return Optional.of(Integer.parseInt(fillsAllowed) - fillSize);
+      }
+    } catch (NumberFormatException e) {
+      log.info(
+          "Vista value was malformed: FillsRemaining ({}), FillsAllowed ({})",
+          fillsRemaining,
+          fillsAllowed);
+    }
+    return Optional.empty();
+  }
+
+  Reference facility(CodeAndNameXmlAttribute facility) {
+    if (facility == null) {
+      return null;
+    }
+    return R4Transformers.toReference("Location", null, facility.name());
+  }
+
+  List<Extension> fillsRemaining(String fillsRemaining, String fillsAllowed, int fillSize) {
+    Optional<Integer> calculatedFillsRemaining =
+        determineRemainingFills(fillsRemaining, fillsAllowed, fillSize);
+    if (calculatedFillsRemaining.isEmpty()) {
+      return null;
+    }
+    return Extension.builder()
+        .url("http://hl7.org/fhir/StructureDefinition/medicationdispense-refillsRemaining")
+        .valueInteger(calculatedFillsRemaining.get())
+        .build()
+        .asList();
   }
 
   MedicationDispenseId idOf(Med rpcMed, Fill fill) {
@@ -170,6 +212,12 @@ public class R4MedicationDispenseTransformer {
                 dosageInstruction(
                     rpcMed.sig(), valueOfValueOnlyXmlAttribute(rpcMed.ptInstructions()))))
         .authorizingPrescription(authorizingPrescription(valueOfValueOnlyXmlAttribute(rpcMed.id())))
+        .extension(
+            fillsRemaining(
+                valueOfValueOnlyXmlAttribute(rpcMed.fillsRemaining()),
+                valueOfValueOnlyXmlAttribute(rpcMed.fillsAllowed()),
+                Safe.list(rpcMed.fill()).size()))
+        .location(facility(rpcMed.facility()))
         .build();
   }
 }
