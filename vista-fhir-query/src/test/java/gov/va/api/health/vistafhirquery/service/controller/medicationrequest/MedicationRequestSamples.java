@@ -11,13 +11,13 @@ import gov.va.api.health.r4.api.datatypes.Coding;
 import gov.va.api.health.r4.api.datatypes.Period;
 import gov.va.api.health.r4.api.datatypes.SimpleQuantity;
 import gov.va.api.health.r4.api.elements.Dosage;
+import gov.va.api.health.r4.api.elements.Dosage.DoseAndRate;
 import gov.va.api.health.r4.api.elements.Meta;
 import gov.va.api.health.r4.api.resources.MedicationRequest;
 import gov.va.api.health.r4.api.resources.MedicationRequest.DispenseRequest;
 import gov.va.api.health.r4.api.resources.MedicationRequest.Intent;
 import gov.va.api.health.r4.api.resources.MedicationRequest.Status;
 import java.math.BigDecimal;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 import lombok.NoArgsConstructor;
@@ -37,7 +37,7 @@ public class MedicationRequestSamples {
       return MedicationRequest.Bundle.builder()
           .resourceType("Bundle")
           .total(totalRecords)
-          .link(Arrays.asList(links))
+          .link(List.of(links))
           .type(AbstractBundle.BundleType.searchset)
           .entry(
               resources.stream()
@@ -70,28 +70,28 @@ public class MedicationRequestSamples {
           .medicationCodeableConcept(CodeableConcept.builder().build())
           .requester(toReference("Practitioner", null, "HEMANN, LYNDA"))
           .category(
-              List.of(
-                  CodeableConcept.builder()
-                      .text("Inpatient")
-                      .coding(
-                          List.of(
-                              Coding.builder()
-                                  .code("inpatient")
-                                  .display("Inpatient")
-                                  .system(
-                                      "http://terminology.hl7.org/fhir/CodeSystem/medicationrequest-category")
-                                  .build()))
-                      .build()))
+              CodeableConcept.builder()
+                  .text("Inpatient")
+                  .coding(
+                      Coding.builder()
+                          .code("inpatient")
+                          .display("Inpatient")
+                          .system(
+                              "http://terminology.hl7.org/fhir/CodeSystem/medicationrequest-category")
+                          .build()
+                          .asList())
+                  .build()
+                  .asList())
           .medicationCodeableConcept(
               CodeableConcept.builder()
                   .text("WARFARIN")
                   .coding(
-                      List.of(
-                          Coding.builder()
-                              .system("https://www.pbm.va.gov/nationalformulary.asp")
-                              .code("BL110")
-                              .display("ANTICOAGULANTS")
-                              .build()))
+                      Coding.builder()
+                          .system("https://www.pbm.va.gov/nationalformulary.asp")
+                          .code("BL110")
+                          .display("ANTICOAGULANTS")
+                          .build()
+                          .asList())
                   .build())
           .dispenseRequest(
               DispenseRequest.builder()
@@ -108,6 +108,15 @@ public class MedicationRequestSamples {
               Dosage.builder()
                   .text("TAKE 1 TAB BY MOUTH EVERY DAY")
                   .patientInstruction("take with food")
+                  .doseAndRate(
+                      DoseAndRate.builder()
+                          .doseQuantity(
+                              SimpleQuantity.builder()
+                                  .value(BigDecimal.valueOf(1.0))
+                                  .unit("mg")
+                                  .build())
+                          .build()
+                          .asList())
                   .build()
                   .asList())
           .build();

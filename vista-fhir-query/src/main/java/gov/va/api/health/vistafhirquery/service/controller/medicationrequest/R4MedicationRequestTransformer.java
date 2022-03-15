@@ -149,7 +149,9 @@ public class R4MedicationRequestTransformer extends R4MedicationTransformers {
         .dosageInstruction(
             asListOrNull(
                 dosageInstruction(
-                    rpcMed.sig(), valueOfValueOnlyXmlAttribute(rpcMed.ptInstructions()))))
+                    rpcMed.sig(),
+                    valueOfValueOnlyXmlAttribute(rpcMed.ptInstructions()),
+                    rpcMed.dose())))
         .build();
   }
 }

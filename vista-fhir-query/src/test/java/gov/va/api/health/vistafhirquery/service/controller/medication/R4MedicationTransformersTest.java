@@ -4,9 +4,13 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import gov.va.api.health.r4.api.datatypes.CodeableConcept;
 import gov.va.api.health.r4.api.datatypes.Coding;
+import gov.va.api.health.r4.api.datatypes.SimpleQuantity;
 import gov.va.api.health.r4.api.elements.Dosage;
+import gov.va.api.health.r4.api.elements.Dosage.DoseAndRate;
+import gov.va.api.lighthouse.charon.models.vprgetpatientdata.Meds.Med.Dose;
 import gov.va.api.lighthouse.charon.models.vprgetpatientdata.Meds.Med.Product;
 import gov.va.api.lighthouse.charon.models.vprgetpatientdata.Meds.Med.Product.ProductDetail;
+import java.math.BigDecimal;
 import java.util.List;
 import java.util.stream.Stream;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -16,6 +20,7 @@ import org.mockito.Mockito;
 
 @SuppressWarnings("ALL")
 class R4MedicationTransformersTest {
+
   private final R4MedicationTransformers _tx =
       Mockito.mock(R4MedicationTransformers.class, Mockito.CALLS_REAL_METHODS);
 
@@ -41,13 +46,51 @@ class R4MedicationTransformersTest {
 
   static Stream<Arguments> dosageInstruction() {
     return Stream.of(
-        Arguments.of(null, null, null),
-        Arguments.of("", "", null),
-        Arguments.of("SIG", null, Dosage.builder().text("SIG").build()),
-        Arguments.of("SIG", "", Dosage.builder().text("SIG").build()),
-        Arguments.of("SIG", "PTI", Dosage.builder().text("SIG").patientInstruction("PTI").build()),
-        Arguments.of(null, "PTI", Dosage.builder().patientInstruction("PTI").build()),
-        Arguments.of("", "PTI", Dosage.builder().patientInstruction("PTI").build()));
+        Arguments.of(null, null, null, null),
+        Arguments.of("", "", null, null),
+        Arguments.of(
+            "SIG",
+            null,
+            List.of(Dose.builder().dose("20.0").units("mg ").build()),
+            Dosage.builder()
+                .text("SIG")
+                .doseAndRate(
+                    DoseAndRate.builder()
+                        .doseQuantity(
+                            SimpleQuantity.builder()
+                                .value(BigDecimal.valueOf(20.0))
+                                .unit("mg")
+                                .build())
+                        .build()
+                        .asList())
+                .build()),
+        Arguments.of("SIG", "", null, Dosage.builder().text("SIG").build()),
+        Arguments.of(
+            "SIG",
+            "PTI",
+            List.of(Dose.builder().dose("1 CAPSULE").build()),
+            Dosage.builder().text("SIG").patientInstruction("PTI").build()),
+        Arguments.of(
+            null,
+            "PTI",
+            List.of(Dose.builder().units("mg").build()),
+            Dosage.builder().patientInstruction("PTI").build()),
+        Arguments.of(
+            "",
+            "PTI",
+            List.of(Dose.builder().dose("0.5").units("mL").build()),
+            Dosage.builder()
+                .patientInstruction("PTI")
+                .doseAndRate(
+                    DoseAndRate.builder()
+                        .doseQuantity(
+                            SimpleQuantity.builder()
+                                .value(BigDecimal.valueOf(0.5))
+                                .unit("mL")
+                                .build())
+                        .build()
+                        .asList())
+                .build()));
   }
 
   static Stream<Arguments> medicationCodeableConcept() {
@@ -88,8 +131,8 @@ class R4MedicationTransformersTest {
 
   @ParameterizedTest
   @MethodSource
-  void dosageInstruction(String sig, String ptInstructions, Dosage expected) {
-    var actual = _tx.dosageInstruction(sig, ptInstructions);
+  void dosageInstruction(String sig, String ptInstructions, List<Dose> doses, Dosage expected) {
+    var actual = _tx.dosageInstruction(sig, ptInstructions, doses);
     assertThat(actual).isEqualTo(expected);
   }
 

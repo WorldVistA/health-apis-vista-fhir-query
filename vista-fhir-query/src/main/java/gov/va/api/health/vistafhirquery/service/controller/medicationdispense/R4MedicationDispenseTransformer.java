@@ -210,7 +210,9 @@ public class R4MedicationDispenseTransformer {
         .dosageInstruction(
             asListOrNull(
                 dosageInstruction(
-                    rpcMed.sig(), valueOfValueOnlyXmlAttribute(rpcMed.ptInstructions()))))
+                    rpcMed.sig(),
+                    valueOfValueOnlyXmlAttribute(rpcMed.ptInstructions()),
+                    rpcMed.dose())))
         .authorizingPrescription(authorizingPrescription(valueOfValueOnlyXmlAttribute(rpcMed.id())))
         .extension(
             fillsRemaining(

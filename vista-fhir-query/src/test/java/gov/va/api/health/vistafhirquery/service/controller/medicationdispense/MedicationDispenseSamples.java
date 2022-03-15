@@ -1,7 +1,6 @@
 package gov.va.api.health.vistafhirquery.service.controller.medicationdispense;
 
 import static gov.va.api.health.vistafhirquery.service.controller.R4Transformers.toReference;
-import static java.util.stream.Collectors.toList;
 
 import gov.va.api.health.r4.api.bundle.AbstractBundle;
 import gov.va.api.health.r4.api.bundle.AbstractEntry;
@@ -10,6 +9,7 @@ import gov.va.api.health.r4.api.datatypes.CodeableConcept;
 import gov.va.api.health.r4.api.datatypes.Coding;
 import gov.va.api.health.r4.api.datatypes.SimpleQuantity;
 import gov.va.api.health.r4.api.elements.Dosage;
+import gov.va.api.health.r4.api.elements.Dosage.DoseAndRate;
 import gov.va.api.health.r4.api.elements.Extension;
 import gov.va.api.health.r4.api.elements.Meta;
 import gov.va.api.health.r4.api.elements.Reference;
@@ -18,7 +18,6 @@ import gov.va.api.health.r4.api.resources.MedicationDispense.Status;
 import java.math.BigDecimal;
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.List;
 import lombok.NoArgsConstructor;
 import lombok.experimental.UtilityClass;
 
@@ -50,7 +49,7 @@ public class MedicationDispenseSamples {
                                       .mode(AbstractEntry.SearchMode.match)
                                       .build())
                               .build())
-                  .collect(toList()))
+                  .toList())
           .build();
     }
 
@@ -68,12 +67,12 @@ public class MedicationDispenseSamples {
               CodeableConcept.builder()
                   .text("WARFARIN")
                   .coding(
-                      List.of(
-                          Coding.builder()
-                              .system("https://www.pbm.va.gov/nationalformulary.asp")
-                              .code("BL110")
-                              .display("ANTICOAGULANTS")
-                              .build()))
+                      Coding.builder()
+                          .system("https://www.pbm.va.gov/nationalformulary.asp")
+                          .code("BL110")
+                          .display("ANTICOAGULANTS")
+                          .build()
+                          .asList())
                   .build())
           .whenHandedOver("2011-05-08T00:00:00Z")
           .quantity(SimpleQuantity.builder().value(new BigDecimal("30")).build())
@@ -90,6 +89,15 @@ public class MedicationDispenseSamples {
               Dosage.builder()
                   .text("TAKE 1 TAB BY MOUTH EVERY DAY")
                   .patientInstruction("take with food")
+                  .doseAndRate(
+                      DoseAndRate.builder()
+                          .doseQuantity(
+                              SimpleQuantity.builder()
+                                  .value(BigDecimal.valueOf(1.0))
+                                  .unit("mg")
+                                  .build())
+                          .build()
+                          .asList())
                   .build()
                   .asList())
           .authorizingPrescription(

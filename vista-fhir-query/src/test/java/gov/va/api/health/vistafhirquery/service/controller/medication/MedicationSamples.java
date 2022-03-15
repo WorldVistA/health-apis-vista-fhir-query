@@ -5,6 +5,7 @@ import gov.va.api.lighthouse.charon.models.FilemanDate;
 import gov.va.api.lighthouse.charon.models.ValueOnlyXmlAttribute;
 import gov.va.api.lighthouse.charon.models.vprgetpatientdata.Meds;
 import gov.va.api.lighthouse.charon.models.vprgetpatientdata.Meds.Med;
+import gov.va.api.lighthouse.charon.models.vprgetpatientdata.Meds.Med.Dose;
 import gov.va.api.lighthouse.charon.models.vprgetpatientdata.Meds.Med.Fill;
 import gov.va.api.lighthouse.charon.models.vprgetpatientdata.Meds.Med.Product;
 import gov.va.api.lighthouse.charon.models.vprgetpatientdata.Meds.Med.Product.ProductDetail;
@@ -63,6 +64,7 @@ public class MedicationSamples {
           .vaType(ValueOnlyXmlAttribute.of("I"))
           .sig("TAKE 1 TAB BY MOUTH EVERY DAY")
           .ptInstructions(ValueOnlyXmlAttribute.of("take with food"))
+          .dose(List.of(Dose.builder().dose("1.0").units("mg").build()))
           .fill(fills == null ? null : Arrays.asList(fills))
           .fillsRemaining(ValueOnlyXmlAttribute.of("1"))
           .product(

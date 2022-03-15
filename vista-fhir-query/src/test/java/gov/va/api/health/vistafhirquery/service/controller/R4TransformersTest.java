@@ -1,6 +1,7 @@
 package gov.va.api.health.vistafhirquery.service.controller;
 
 import static gov.va.api.health.vistafhirquery.service.controller.R4Transformers.allBlank;
+import static gov.va.api.health.vistafhirquery.service.controller.R4Transformers.anyBlank;
 import static gov.va.api.health.vistafhirquery.service.controller.R4Transformers.asListOrNull;
 import static gov.va.api.health.vistafhirquery.service.controller.R4Transformers.codeableconceptHasCodingSystem;
 import static gov.va.api.health.vistafhirquery.service.controller.R4Transformers.extensionForSystem;
@@ -47,6 +48,15 @@ public class R4TransformersTest {
         Arguments.of(List.of("", Map.of(), 1), false));
   }
 
+  static Stream<Arguments> blankAny() {
+    return Stream.of(
+        Arguments.of(List.of("a", 1, List.of()), true),
+        Arguments.of(List.of(Optional.empty(), List.of(), "", Map.of(), " "), true),
+        Arguments.of(List.of("a", 1, 1.2, true), false),
+        Arguments.of(List.of(Map.of(), "a"), true),
+        Arguments.of(List.of("", 1), true));
+  }
+
   static Stream<Arguments> blankOne() {
     return Stream.of(
         Arguments.of(null, true),
@@ -75,18 +85,25 @@ public class R4TransformersTest {
     assertThat(toBigDecimal(null)).isNull();
     assertThat(toBigDecimal("")).isNull();
     assertThat(toBigDecimal("hello")).isNull();
-    assertThat(toBigDecimal("0.")).isNull();
-    assertThat(toBigDecimal(".0")).isNull();
     assertThat(toBigDecimal(".")).isNull();
     assertThat(toBigDecimal("0.0.0")).isNull();
-    assertThat(toBigDecimal("1")).isEqualTo(new BigDecimal("1"));
+    assertThat(toBigDecimal("0.")).isEqualTo(new BigDecimal("0"));
+    assertThat(toBigDecimal(".0")).isEqualTo(new BigDecimal("0.0"));
+    assertThat(toBigDecimal("0.1")).isEqualTo(new BigDecimal("0.1"));
     assertThat(toBigDecimal("1.1")).isEqualTo(new BigDecimal("1.1"));
+    assertThat(toBigDecimal("1")).isEqualTo(new BigDecimal("1"));
   }
 
   @ParameterizedTest
   @MethodSource
   void blankAll(List<Object> objects, boolean expected) {
     assertThat(allBlank(objects.toArray())).isEqualTo(expected);
+  }
+
+  @ParameterizedTest
+  @MethodSource
+  void blankAny(List<Object> objects, boolean expected) {
+    assertThat(anyBlank(objects.toArray())).isEqualTo(expected);
   }
 
   @ParameterizedTest

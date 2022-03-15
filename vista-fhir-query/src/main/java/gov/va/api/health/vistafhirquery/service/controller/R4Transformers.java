@@ -27,7 +27,6 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.function.Function;
-import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import lombok.NonNull;
 import lombok.experimental.UtilityClass;
@@ -37,7 +36,6 @@ import org.apache.commons.lang3.StringUtils;
 /** Utility class for common transformations. */
 @UtilityClass
 public class R4Transformers {
-  private static final Pattern BIG_DECIMAL_PATTERN = Pattern.compile("\\d+(\\.\\d+)?");
 
   /**
    * Return false if at least one value in the given list is a non-blank string, or a non-null
@@ -50,6 +48,19 @@ public class R4Transformers {
       }
     }
     return true;
+  }
+
+  /**
+   * Return true if at least one value in the given list is a non-blank string, or a non-null
+   * object.
+   */
+  public static boolean anyBlank(Object... values) {
+    for (Object obj : values) {
+      if (isBlank(obj)) {
+        return true;
+      }
+    }
+    return false;
   }
 
   /** Wrap a coding in a codeable concept. */
@@ -206,14 +217,15 @@ public class R4Transformers {
   }
 
   /** Creates a BigDecimal from a string if possible, otherwise returns null. */
-  public static BigDecimal toBigDecimal(String string) {
-    if (isBlank(string)) {
+  public static BigDecimal toBigDecimal(String maybeDecimal) {
+    if (isBlank(maybeDecimal)) {
       return null;
     }
-    if (BIG_DECIMAL_PATTERN.matcher(string).matches()) {
-      return new BigDecimal(string);
+    try {
+      return new BigDecimal(maybeDecimal);
+    } catch (NumberFormatException e) {
+      return null;
     }
-    return null;
   }
 
   /** Transform a FileMan date to a human date with a specified timezone. */
