@@ -227,16 +227,6 @@ public class R4CoverageToInsuranceBufferTransformer {
     return coverageExtensions;
   }
 
-  WriteableFilemanValue dateEntered() {
-    return factoryRegistry()
-        .get(InsuranceVerificationProcessor.FILE_NUMBER)
-        .forString(
-            InsuranceVerificationProcessor.DATE_ENTERED,
-            indexRegistry().get(InsuranceVerificationProcessor.FILE_NUMBER),
-            today())
-        .get();
-  }
-
   private WriteableFilemanValue dependent(String dependent) {
     return factoryRegistry
         .get(InsuranceVerificationProcessor.FILE_NUMBER)
@@ -526,16 +516,6 @@ public class R4CoverageToInsuranceBufferTransformer {
     }
   }
 
-  WriteableFilemanValue overrideFreshnessFlag() {
-    return factoryRegistry()
-        .get(InsuranceVerificationProcessor.FILE_NUMBER)
-        .forString(
-            InsuranceVerificationProcessor.OVERRIDE_FRESHNESS_FLAG,
-            indexRegistry().get(InsuranceVerificationProcessor.FILE_NUMBER),
-            "0")
-        .get();
-  }
-
   private String parseFilemanDateIgnoringTime(Instant instant) {
     return FilemanDate.from(instant.truncatedTo(ChronoUnit.DAYS))
         .formatAsDateTime(ZoneId.of("UTC"));
@@ -739,25 +719,6 @@ public class R4CoverageToInsuranceBufferTransformer {
             .build());
   }
 
-  WriteableFilemanValue sourceOfInformation() {
-    return WriteableFilemanValue.builder()
-        .file("355.12")
-        .index(indexRegistry().get(InsuranceVerificationProcessor.FILE_NUMBER))
-        .field("ien")
-        .value("22")
-        .build();
-  }
-
-  WriteableFilemanValue status() {
-    return factoryRegistry()
-        .get(InsuranceVerificationProcessor.FILE_NUMBER)
-        .forString(
-            InsuranceVerificationProcessor.STATUS,
-            indexRegistry().get(InsuranceVerificationProcessor.FILE_NUMBER),
-            "E")
-        .get();
-  }
-
   WriteableFilemanValue subscriberId(String subscriberId) {
     return factoryRegistry()
         .get(InsuranceVerificationProcessor.FILE_NUMBER)
@@ -775,10 +736,6 @@ public class R4CoverageToInsuranceBufferTransformer {
     if (isBlank(coverage().contained())) {
       throw MissingRequiredField.builder().jsonPath(".contained[]").build();
     }
-    fields.add(status());
-    fields.add(overrideFreshnessFlag());
-    fields.add(dateEntered());
-    fields.add(sourceOfInformation());
     fields.addAll(coverageExtensions(coverage().extension()));
     fields.add(patientId(coverage().beneficiary()));
     fields.add(dependent(coverage().dependent()));

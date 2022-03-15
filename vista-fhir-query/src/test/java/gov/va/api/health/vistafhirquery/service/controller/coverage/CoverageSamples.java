@@ -501,12 +501,9 @@ public class CoverageSamples {
 
     public Set<WriteableFilemanValue> createInsuranceBufferInput() {
       return Set.of(
-          pointerTo("355.12", "22"),
           insuranceBufferValue(InsuranceVerificationProcessor.PT_RELATIONSHIP_HIPAA, "SPOUSE"),
           insuranceBufferValue(InsuranceVerificationProcessor.PATIENT_ID, "13579"),
           insuranceBufferValue(InsuranceVerificationProcessor.GROUP_NUMBER, "GRP123456"),
-          insuranceBufferValue(InsuranceVerificationProcessor.OVERRIDE_FRESHNESS_FLAG, "0"),
-          insuranceBufferValue(InsuranceVerificationProcessor.STATUS, "E"),
           insuranceBufferValue(InsuranceVerificationProcessor.INQ_SERVICE_TYPE_CODE_1, "1"),
           insuranceBufferValue(InsuranceVerificationProcessor.EFFECTIVE_DATE, "2920112"),
           insuranceBufferValue(InsuranceVerificationProcessor.EXPIRATION_DATE, "3250101"),

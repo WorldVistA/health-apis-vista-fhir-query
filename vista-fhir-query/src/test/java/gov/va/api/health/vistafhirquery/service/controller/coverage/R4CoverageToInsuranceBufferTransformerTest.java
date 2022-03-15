@@ -28,7 +28,6 @@ import gov.va.api.health.vistafhirquery.service.controller.coverage.R4CoverageTo
 import gov.va.api.lighthouse.charon.models.lhslighthouserpcgateway.InsuranceVerificationProcessor;
 import gov.va.api.lighthouse.charon.models.lhslighthouserpcgateway.LhsLighthouseRpcGatewayCoverageWrite.WriteableFilemanValue;
 import java.util.List;
-import java.util.Set;
 import java.util.stream.Stream;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -545,9 +544,7 @@ public class R4CoverageToInsuranceBufferTransformerTest {
   void toInsuranceBuffer() {
     var expected =
         CoverageSamples.VistaLhsLighthouseRpcGateway.create().createInsuranceBufferInput();
-    assertThat(_transformer().toInsuranceBuffer())
-        .filteredOn(w -> !Set.of(InsuranceVerificationProcessor.DATE_ENTERED).contains(w.field()))
-        .containsExactlyInAnyOrderElementsOf(expected);
+    assertThat(_transformer().toInsuranceBuffer()).containsExactlyInAnyOrderElementsOf(expected);
   }
 
   @ParameterizedTest
