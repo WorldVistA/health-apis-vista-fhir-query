@@ -7,6 +7,7 @@
 |`.resourceType` | Required | Must be `Coverage`. |
 | `.id` | Conditional | Should be omitted on create. |
 | `.contained[]` | Required | See [Contained Resources](#contained-resources) below for a list of contained resources that must exist in any order. |
+| `.extension[]` | Optional | See [Supported Extensions](#supported-extensions) below. |
 | `.status` | Required | Must be `draft`. |
 | `.type` | Required | |
 | `.type.coding[]` | Required | |
@@ -30,6 +31,13 @@
 | `.class[0].type.coding[0].system` | Required | Must be `http://terminology.hl7.org/CodeSystem/coverage-class`. |
 | `.class[0].type.coding[0].code` | Required | Must be `group`. |
 | `.class[0].value` | Required | Must be a reference to an `InsurancePlan` resource in the `.contained[]` field. |
+
+## Supported Extensions
+
+| Defining URL | Type | Required | Notes |
+|---|---|---|---|
+| `http://va.gov/fhir/StructureDefinition/coverage-serviceDate` | `valueDate` | Optional | `.valueDate` must be in [date](https://www.hl7.org/fhir/datatypes.html#date) format if populated. If left blank, it will default to the date the request was sent. |
+
 
 ## Contained Resources
 
