@@ -67,7 +67,6 @@ public class MedicationRequestSamples {
           .intent(Intent.order)
           .authoredOn("2011-03-01T11:32:17Z")
           .status(Status.stopped)
-          .medicationCodeableConcept(CodeableConcept.builder().build())
           .requester(toReference("Practitioner", null, "HEMANN, LYNDA"))
           .category(
               CodeableConcept.builder()
