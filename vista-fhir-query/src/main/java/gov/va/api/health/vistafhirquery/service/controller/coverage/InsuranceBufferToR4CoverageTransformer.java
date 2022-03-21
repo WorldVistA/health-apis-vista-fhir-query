@@ -39,6 +39,7 @@ import gov.va.api.lighthouse.charon.models.lhslighthouserpcgateway.LhsLighthouse
 import java.time.ZoneId;
 import java.time.ZoneOffset;
 import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -110,6 +111,25 @@ public class InsuranceBufferToR4CoverageTransformer {
 
   @NonNull LhsLighthouseRpcGatewayResponse.Results results;
 
+  private List<ContainableResource<Coverage, ?>> alwaysContained(FilemanEntry entry) {
+    return List.of(
+        ContainableResource.<Coverage, InsurancePlan>builder()
+            .containedResource(toInsurancePlan(entry))
+            .applyReferenceId((c, id) -> c.coverageClass(coverageClass(id)))
+            .build(),
+        ContainableResource.<Coverage, Organization>builder()
+            .containedResource(toOrganization(entry))
+            .applyReferenceId(
+                (o, id) ->
+                    o.payor(
+                        Reference.builder()
+                            .type(Organization.class.getSimpleName())
+                            .reference(id)
+                            .build()
+                            .asList()))
+            .build());
+  }
+
   private Reference beneficiary(@NonNull String patientIcn, Optional<String> maybePatientId) {
     var ref = toReference(Patient.class.getSimpleName(), patientIcn, null);
     if (ref == null) {
@@ -170,36 +190,6 @@ public class InsuranceBufferToR4CoverageTransformer {
         Stream.of(billingContact(entry), precertificationContact(entry))
             .filter(Objects::nonNull)
             .collect(Collectors.toList()));
-  }
-
-  private ContainedResourceWriter<Coverage> contained(FilemanEntry entry) {
-    return ContainedResourceWriter.of(
-        List.of(
-            ContainableResource.<Coverage, InsurancePlan>builder()
-                .containedResource(toInsurancePlan(entry))
-                .applyReferenceId((c, id) -> c.coverageClass(coverageClass(id)))
-                .build(),
-            ContainableResource.<Coverage, Organization>builder()
-                .containedResource(toOrganization(entry))
-                .applyReferenceId(
-                    (o, id) ->
-                        o.payor(
-                            Reference.builder()
-                                .type(Organization.class.getSimpleName())
-                                .reference(id)
-                                .build()
-                                .asList()))
-                .build(),
-            ContainableResource.<Coverage, RelatedPerson>builder()
-                .containedResource(toRelatedPerson(entry))
-                .applyReferenceId(
-                    (c, id) ->
-                        c.subscriber(
-                            Reference.builder()
-                                .type(RelatedPerson.class.getSimpleName())
-                                .reference(id)
-                                .build()))
-                .build()));
   }
 
   private List<Coverage.CoverageClass> coverageClass(String referenceId) {
@@ -354,17 +344,6 @@ public class InsuranceBufferToR4CoverageTransformer {
         .build();
   }
 
-  private CodeableConcept relationship(String ptRelationshipHipaa) {
-    if (isBlank(ptRelationshipHipaa)) {
-      return null;
-    }
-    return SubscriberToBeneficiaryRelationship.forCode(ptRelationshipHipaa)
-        .map(
-            relationship ->
-                CodeableConcept.builder().coding(relationship.asCoding().asList()).build())
-        .orElse(null);
-  }
-
   private Extension serviceDate(LhsLighthouseRpcGatewayResponse.FilemanEntry entry) {
     var serviceDate = entry.internal(InsuranceVerificationProcessor.SERVICE_DATE);
     var fmd = serviceDate.map(sd -> FilemanDate.from(sd, vistaZoneId));
@@ -462,6 +441,7 @@ public class InsuranceBufferToR4CoverageTransformer {
     if (entry == null || isBlank(entry.fields())) {
       return null;
     }
+    List<ContainableResource<Coverage, ?>> contained = new ArrayList<>(alwaysContained(entry));
     var coverage =
         Coverage.builder()
             .id(
@@ -495,10 +475,27 @@ public class InsuranceBufferToR4CoverageTransformer {
             .relationship(
                 entry
                     .internal(InsuranceVerificationProcessor.PT_RELATIONSHIP_HIPAA)
-                    .map(this::relationship)
+                    .flatMap(SubscriberToBeneficiaryRelationship::forCode)
+                    .map(
+                        code -> {
+                          if (SubscriberToBeneficiaryRelationship.SELF != code) {
+                            contained.add(
+                                ContainableResource.<Coverage, RelatedPerson>builder()
+                                    .containedResource(toRelatedPerson(entry))
+                                    .applyReferenceId(
+                                        (c, id) ->
+                                            c.subscriber(
+                                                Reference.builder()
+                                                    .type(RelatedPerson.class.getSimpleName())
+                                                    .reference(id)
+                                                    .build()))
+                                    .build());
+                          }
+                          return CodeableConcept.builder().coding(code.asCoding().asList()).build();
+                        })
                     .orElse(null))
             .build();
-    contained(entry).addContainedResources(coverage);
+    ContainedResourceWriter.<Coverage>of(contained).addContainedResources(coverage);
     return coverage;
   }
 

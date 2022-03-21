@@ -3,6 +3,8 @@ package gov.va.api.health.vistafhirquery.service.controller.coverage;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import gov.va.api.health.r4.api.elements.Extension;
+import gov.va.api.health.r4.api.resources.Coverage;
+import gov.va.api.health.r4.api.resources.RelatedPerson;
 import gov.va.api.lighthouse.charon.models.lhslighthouserpcgateway.InsuranceVerificationProcessor;
 import gov.va.api.lighthouse.charon.models.lhslighthouserpcgateway.LhsLighthouseRpcGatewayResponse;
 import gov.va.api.lighthouse.charon.models.lhslighthouserpcgateway.LhsLighthouseRpcGatewayResponse.FilemanEntry;
@@ -22,7 +24,8 @@ class InsuranceBufferToR4CoverageTransformerTest {
 
   private InsuranceBufferToR4CoverageTransformer _transformer() {
     return _transformer(
-        CoverageSamples.VistaLhsLighthouseRpcGateway.create().createInsuranceBufferResults("ien1"));
+        CoverageSamples.VistaLhsLighthouseRpcGateway.create()
+            .createInsuranceBufferResults("ien1", SubscriberToBeneficiaryRelationship.SPOUSE));
   }
 
   @Test
@@ -52,6 +55,11 @@ class InsuranceBufferToR4CoverageTransformerTest {
                 .build());
   }
 
+  private boolean coverageHasContainedRelatedPersonResource(Coverage coverage) {
+    return coverage.contained().stream()
+        .anyMatch(contained -> RelatedPerson.class.equals(contained.getClass()));
+  }
+
   @Test
   void empty() {
     assertThat(_transformer(Results.builder().build()).toFhir()).isEmpty();
@@ -70,14 +78,26 @@ class InsuranceBufferToR4CoverageTransformerTest {
   }
 
   @Test
+  void relatedPersonResourceIsOmittedWhenRelationshipIsSelf() {
+    var actual =
+        _transformer(
+                CoverageSamples.VistaLhsLighthouseRpcGateway.create()
+                    .createInsuranceBufferResults(
+                        "ien-1", SubscriberToBeneficiaryRelationship.SELF))
+            .toFhir();
+    assertThat(actual).noneMatch(this::coverageHasContainedRelatedPersonResource);
+  }
+
+  @Test
   void toFhir() {
     var expected = CoverageSamples.R4.create().coverageInsuranceBufferRead("p1", "123", "ien1");
     CoverageSamples.R4.cleanUpContainedReferencesForComparison(expected);
-    assertThat(
-            _transformer()
-                .toFhir()
-                .peek(CoverageSamples.R4::cleanUpContainedReferencesForComparison))
-        .usingRecursiveComparison()
-        .isEqualTo(expected.asList());
+    var actual =
+        _transformer()
+            .toFhir()
+            .peek(CoverageSamples.R4::cleanUpContainedReferencesForComparison)
+            .toList();
+    assertThat(actual).usingRecursiveComparison().isEqualTo(expected.asList());
+    assertThat(actual).allSatisfy(this::coverageHasContainedRelatedPersonResource);
   }
 }

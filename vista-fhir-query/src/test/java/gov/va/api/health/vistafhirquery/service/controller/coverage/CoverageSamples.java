@@ -561,6 +561,11 @@ public class CoverageSamples {
     }
 
     public LhsLighthouseRpcGatewayResponse.Results createInsuranceBufferResults(String id) {
+      return createInsuranceBufferResults(id, SubscriberToBeneficiaryRelationship.SPOUSE);
+    }
+
+    public LhsLighthouseRpcGatewayResponse.Results createInsuranceBufferResults(
+        String id, SubscriberToBeneficiaryRelationship relationship) {
       return LhsLighthouseRpcGatewayResponse.Results.builder()
           .results(
               List.of(
@@ -569,7 +574,7 @@ public class CoverageSamples {
                       .ien(id)
                       .index("1")
                       .status("1")
-                      .fields(insuranceBufferFields())
+                      .fields(insuranceBufferFields(relationship))
                       .build()))
           .build();
     }
@@ -620,14 +625,17 @@ public class CoverageSamples {
           .build();
     }
 
-    private Map<String, Values> insuranceBufferFields() {
+    private Map<String, Values> insuranceBufferFields(
+        SubscriberToBeneficiaryRelationship relationship) {
       Map<String, Values> fields = new HashMap<>();
       fields.put(
           InsuranceVerificationProcessor.INSURANCE_COMPANY_NAME,
           Values.of("BCBS OF SHANKSVILLE", "BCBS OF SHANKSVILLE"));
       fields.put(InsuranceVerificationProcessor.INQ_SERVICE_TYPE_CODE_1, Values.of("1", "1"));
       fields.put(InsuranceVerificationProcessor.PATIENT_ID, Values.of("13579", "13579"));
-      fields.put(InsuranceVerificationProcessor.PT_RELATIONSHIP_HIPAA, Values.of("SPOUSE", "01"));
+      fields.put(
+          InsuranceVerificationProcessor.PT_RELATIONSHIP_HIPAA,
+          Values.of(relationship.display(), relationship.code()));
       fields.put(InsuranceVerificationProcessor.SUBSCRIBER_ID, Values.of("R50797108", "R50797108"));
       fields.put(InsuranceVerificationProcessor.EFFECTIVE_DATE, Values.of("2920112", "2920112"));
       fields.put(InsuranceVerificationProcessor.EXPIRATION_DATE, Values.of("3250101", "3250101"));
