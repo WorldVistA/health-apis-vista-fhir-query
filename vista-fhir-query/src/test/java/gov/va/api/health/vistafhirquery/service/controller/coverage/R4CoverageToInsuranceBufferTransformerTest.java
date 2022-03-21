@@ -437,7 +437,13 @@ public class R4CoverageToInsuranceBufferTransformerTest {
                                 Identifier.builder()
                                     .type(
                                         CodeableConcept.builder()
-                                            .coding(List.of(Coding.builder().code("MB").build()))
+                                            .coding(
+                                                List.of(
+                                                    Coding.builder()
+                                                        .code("MB")
+                                                        .system(
+                                                            "http://terminology.hl7.org/CodeSystem/v2-0203")
+                                                        .build()))
                                             .build())
                                     .build())
                             .build()));

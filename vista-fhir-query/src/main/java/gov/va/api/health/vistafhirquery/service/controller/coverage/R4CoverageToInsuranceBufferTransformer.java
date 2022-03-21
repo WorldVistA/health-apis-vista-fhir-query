@@ -47,6 +47,7 @@ import gov.va.api.lighthouse.charon.models.FilemanDate;
 import gov.va.api.lighthouse.charon.models.lhslighthouserpcgateway.InsuranceVerificationProcessor;
 import gov.va.api.lighthouse.charon.models.lhslighthouserpcgateway.LhsLighthouseRpcGatewayCoverageWrite.WriteableFilemanValue;
 import java.time.Instant;
+import java.time.LocalDate;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
@@ -199,32 +200,23 @@ public class R4CoverageToInsuranceBufferTransformer {
             .build());
   }
 
-  Set<WriteableFilemanValue> coverageExtensions(List<Extension> extensions) {
-    Set<WriteableFilemanValue> coverageExtensions = new HashSet<>();
-    var serviceDateExtension =
-        Safe.stream(extensions)
-            .filter(
-                e ->
-                    InsuranceBufferDefinitions.get()
-                        .serviceDate()
-                        .structureDefinition()
-                        .equals(e.url()))
-            .collect(toList());
-    if (serviceDateExtension.isEmpty()) {
-      coverageExtensions.add(
-          factoryRegistry()
-              .get(InsuranceVerificationProcessor.FILE_NUMBER)
-              .forString(
-                  InsuranceVerificationProcessor.SERVICE_DATE,
-                  indexRegistry().get(InsuranceVerificationProcessor.FILE_NUMBER),
-                  today())
-              .get());
-    } else {
-      var coverageExtensionProcessor =
-          R4ExtensionProcessor.of(".extension[]", coverageExtensionHandlers());
-      coverageExtensions.add(coverageExtensionProcessor.process(extensions).get(0));
+  List<WriteableFilemanValue> coverageExtensions(List<Extension> extensions) {
+    var extensionProcessor = R4ExtensionProcessor.of(".extension[]", coverageExtensionHandlers());
+    var serviceDateDefinition = InsuranceBufferDefinitions.get().serviceDate();
+    if (!serviceDateDefinition.isInCollection(extensions)) {
+      return extensionProcessor.process(
+          Stream.concat(Stream.of(defaultServiceDateExtension()), Safe.stream(extensions))
+              .toList());
     }
-    return coverageExtensions;
+    return extensionProcessor.process(extensions);
+  }
+
+  private Extension defaultServiceDateExtension() {
+    return Extension.builder()
+        .url(InsuranceBufferDefinitions.get().serviceDate().structureDefinition())
+        .valueDate(
+            DateTimeFormatter.ofPattern("yyyy-MM-dd").format(LocalDate.now(ZoneId.of("UTC"))))
+        .build();
   }
 
   private WriteableFilemanValue dependent(String dependent) {
@@ -528,12 +520,16 @@ public class R4CoverageToInsuranceBufferTransformer {
     var isMemberId =
         Optional.ofNullable(beneficiary.identifier().type()).map(CodeableConcept::coding).stream()
             .flatMap(Collection::stream)
-            .anyMatch(coding -> "MB".equals(coding.code()));
+            .anyMatch(
+                coding ->
+                    "MB".equals(coding.code())
+                        && "http://terminology.hl7.org/CodeSystem/v2-0203".equals(coding.system()));
     if (!isMemberId) {
       throw UnexpectedNumberOfValues.builder()
           .jsonPath(".beneficiary.identifier")
-          .identifyingFieldJsonPath(".type.coding[].code")
-          .identifyingFieldValue("MB")
+          .identifyingFieldJsonPath(".type.coding[]")
+          .identifyingFieldValue(
+              ".system=http://terminology.hl7.org/CodeSystem/v2-0203 and .code=MB")
           .exactExpectedCount(1)
           .receivedCount(0)
           .build();
@@ -748,10 +744,6 @@ public class R4CoverageToInsuranceBufferTransformer {
     fields.addAll(organization());
     fields.addAll(relatedPerson());
     return fields.stream().filter(Objects::nonNull).collect(Collectors.toSet());
-  }
-
-  private String today() {
-    return vistaDateFormatter().format(Instant.now());
   }
 
   private List<WriteableFilemanValue> unknownToEmpty(List<WriteableFilemanValue> extensions) {

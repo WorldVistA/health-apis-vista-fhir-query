@@ -96,7 +96,7 @@ public class InsuranceBufferDefinitions {
             MappableDateDefinition.builder()
                 .vistaField(InsuranceVerificationProcessor.SERVICE_DATE)
                 .vistaDateFormatter(DateTimeFormatter.ofPattern("MMddyyyy"))
-                .isRequired(false)
+                .isRequired(true)
                 .build())
         .structureDefinition("http://va.gov/fhir/StructureDefinition/coverage-serviceDate")
         .build();

@@ -62,7 +62,12 @@ public class CoverageIT {
                     Identifier.builder()
                         .type(
                             CodeableConcept.builder()
-                                .coding(Coding.builder().code("MB").build().asList())
+                                .coding(
+                                    Coding.builder()
+                                        .system("http://terminology.hl7.org/CodeSystem/v2-0203")
+                                        .code("MB")
+                                        .build()
+                                        .asList())
                                 .build())
                         .value("1234")
                         .build())
