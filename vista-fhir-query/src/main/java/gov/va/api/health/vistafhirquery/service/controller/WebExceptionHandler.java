@@ -304,7 +304,10 @@ public final class WebExceptionHandler {
     return responseFor("unauthorized", e, request, emptyList(), true, null);
   }
 
-  @ExceptionHandler({RequestPayloadExceptions.BadRequestPayload.class})
+  @ExceptionHandler({
+    LhsGatewayExceptions.AttemptToCreateDuplicateRecord.class,
+    RequestPayloadExceptions.BadRequestPayload.class
+  })
   @ResponseStatus(HttpStatus.UNPROCESSABLE_ENTITY)
   OperationOutcome handleUnprocessableEntity(Exception e, HttpServletRequest request) {
     return responseFor("structure", e, request, emptyList(), true, null);

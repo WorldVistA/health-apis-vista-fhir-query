@@ -14,6 +14,7 @@ import gov.va.api.health.r4.api.datatypes.CodeableConcept;
 import gov.va.api.health.r4.api.datatypes.Coding;
 import gov.va.api.health.r4.api.elements.Narrative;
 import gov.va.api.health.r4.api.resources.OperationOutcome;
+import gov.va.api.health.vistafhirquery.service.controller.LhsGatewayExceptions.AttemptToCreateDuplicateRecord;
 import gov.va.api.health.vistafhirquery.service.controller.ResourceExceptions.CannotUpdateResourceWithMismatchedIds;
 import gov.va.api.health.vistafhirquery.service.mpifhirqueryclient.MpiFhirQueryClientExceptions;
 import java.util.List;
@@ -37,7 +38,6 @@ import org.springframework.web.client.HttpServerErrorException;
 import org.springframework.web.client.ResourceAccessException;
 
 public class WebExceptionHandlerTest {
-
   private OperationOutcome _addDetails(OperationOutcome oo, String code, String display) {
     oo.issue()
         .get(0)
@@ -109,7 +109,6 @@ public class WebExceptionHandlerTest {
     // code: processing
     // coding: MSG_RESOURCE_ID_MISSING (if resource.id == null)
     // coding: MSG_RESOURCE_ID_MISMATCH (if url != resource.id)
-
     var ooNotSameId =
         _handler()
             .handleCannotUpdateResourceWithMismatchedIds(
@@ -122,7 +121,6 @@ public class WebExceptionHandlerTest {
                 _operationOutcome("processing"),
                 "MSG_RESOURCE_ID_MISMATCH",
                 "Resource Id Mismatch"));
-
     var ooNotPresentInResource =
         _handler()
             .handleCannotUpdateResourceWithMismatchedIds(
@@ -272,6 +270,15 @@ public class WebExceptionHandlerTest {
                             .diagnostics("bar must not be null")
                             .build()))
                 .build());
+  }
+
+  @Test
+  void vistaRecordAlreadyExists() {
+    var duplicate =
+        AttemptToCreateDuplicateRecord.builder().recordType("Fugazi").errorData(Map.of()).build();
+    var oo = _handler().handleUnprocessableEntity(duplicate, _request());
+    assertHasMessageExtension(oo, true);
+    assertThat(_removeIdAndExtension(oo)).isEqualTo(_operationOutcome("structure"));
   }
 
   @Value
