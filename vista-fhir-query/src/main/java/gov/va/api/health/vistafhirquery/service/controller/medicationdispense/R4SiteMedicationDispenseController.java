@@ -92,14 +92,14 @@ public class R4SiteMedicationDispenseController implements R4MedicationDispenseA
       HttpServletRequest request,
       @PathVariable(value = "site") String site,
       @RequestParam(name = "patient") String patientIcn,
-      @RequestParam(name = "date", required = false) @Size(max = 2) String[] date,
+      @RequestParam(name = "whenprepared", required = false) @Size(max = 2) String[] whenPrepared,
       @RequestParam(
               value = "_count",
               required = false,
               defaultValue = "${vista-fhir-query.default-page-size}")
           int count) {
     var fillFilter =
-        DateSearchBoundaries.optionallyOf(date)
+        DateSearchBoundaries.optionallyOf(whenPrepared)
             .map(R4MedicationDispenseTransformer::acceptOnlyWithFillDateInRange)
             .orElse(acceptAll());
     var rpcRequest =

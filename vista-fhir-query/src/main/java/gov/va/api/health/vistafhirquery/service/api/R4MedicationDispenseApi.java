@@ -163,11 +163,10 @@ public interface R4MedicationDispenseApi {
           String icn,
       @Parameter(
               in = ParameterIn.QUERY,
-              name = "date",
-              required = false,
-              description = "Date range to filter VistA Med fillDate by.")
+              name = "whenprepared",
+              description = "Date range to filter dispenses by the date the Rx fill was prepared.")
           @Size(max = 2)
-          String[] date,
+          String[] whenPrepared,
       @Parameter(
               in = ParameterIn.QUERY,
               name = "_count",

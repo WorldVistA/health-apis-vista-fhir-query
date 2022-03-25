@@ -135,7 +135,7 @@ public class R4SiteMedicationDispenseControllerTest {
 
   @Test
   void searchByPatientWithDate() {
-    var httpRequest = requestFromUri("?date=gt2020&patient=p1");
+    var httpRequest = requestFromUri("?whenprepared=gt2020&patient=p1");
     var rpcRequest =
         VprGetPatientData.Request.builder()
             .context(Optional.ofNullable(vistaApiConfig.getVprGetPatientDataContext()))
