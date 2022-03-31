@@ -157,7 +157,7 @@ public class InsuranceBufferToR4CoverageTransformer {
 
   private Organization.Contact billingContact(FilemanEntry entry) {
     var billingPhoneNumber =
-        entry.internal(InsuranceVerificationProcessor.BILLING_PHONE_NUMBER).map(this::phone);
+        entry.external(InsuranceVerificationProcessor.BILLING_PHONE_NUMBER).map(this::phone);
     if (isBlank(billingPhoneNumber)) {
       return null;
     }
@@ -238,7 +238,7 @@ public class InsuranceBufferToR4CoverageTransformer {
   private Identifier insurancePlanIdentifier(
       FilemanEntry entry, MappableIdentifierDefinition definition) {
     return entry
-        .internal(definition.vistaField())
+        .external(definition.vistaField())
         .map(num -> Identifier.builder().system(definition.system()).value(num).build())
         .orElse(null);
   }
@@ -275,14 +275,14 @@ public class InsuranceBufferToR4CoverageTransformer {
 
   private List<Address> payorAddress(FilemanEntry entry) {
     String streetAddressLine1 =
-        entry.internal(InsuranceVerificationProcessor.STREET_ADDRESS_LINE_1).orElse(null);
+        entry.external(InsuranceVerificationProcessor.STREET_ADDRESS_LINE_1).orElse(null);
     String streetAddressLine2 =
-        entry.internal(InsuranceVerificationProcessor.STREET_ADDRESS_LINE_2).orElse(null);
+        entry.external(InsuranceVerificationProcessor.STREET_ADDRESS_LINE_2).orElse(null);
     String streetAddressLine3 =
-        entry.internal(InsuranceVerificationProcessor.STREET_ADDRESS_LINE_3).orElse(null);
-    String city = entry.internal(InsuranceVerificationProcessor.CITY).orElse(null);
+        entry.external(InsuranceVerificationProcessor.STREET_ADDRESS_LINE_3).orElse(null);
+    String city = entry.external(InsuranceVerificationProcessor.CITY).orElse(null);
     String state = entry.external(InsuranceVerificationProcessor.STATE).orElse(null);
-    String zipCode = entry.internal(InsuranceVerificationProcessor.ZIP_CODE).orElse(null);
+    String zipCode = entry.external(InsuranceVerificationProcessor.ZIP_CODE).orElse(null);
     if (allBlank(
         streetAddressLine1, streetAddressLine2, streetAddressLine3, city, state, zipCode)) {
       return null;
@@ -360,19 +360,19 @@ public class InsuranceBufferToR4CoverageTransformer {
 
   private List<Address> subscriberAddress(FilemanEntry entry) {
     String streetAddressLine1 =
-        entry.internal(InsuranceVerificationProcessor.SUBSCRIBER_ADDRESS_LINE_1).orElse(null);
+        entry.external(InsuranceVerificationProcessor.SUBSCRIBER_ADDRESS_LINE_1).orElse(null);
     String streetAddressLine2 =
-        entry.internal(InsuranceVerificationProcessor.SUBSCRIBER_ADDRESS_LINE_2).orElse(null);
+        entry.external(InsuranceVerificationProcessor.SUBSCRIBER_ADDRESS_LINE_2).orElse(null);
     String city =
-        entry.internal(InsuranceVerificationProcessor.SUBSCRIBER_ADDRESS_CITY).orElse(null);
+        entry.external(InsuranceVerificationProcessor.SUBSCRIBER_ADDRESS_CITY).orElse(null);
     String state =
         entry.external(InsuranceVerificationProcessor.SUBSCRIBER_ADDRESS_STATE).orElse(null);
     String country =
         entry.external(InsuranceVerificationProcessor.SUBSCRIBER_ADDRESS_COUNTRY).orElse(null);
     String subdivision =
-        entry.internal(InsuranceVerificationProcessor.SUBSCRIBER_ADDRESS_SUBDIVISION).orElse(null);
+        entry.external(InsuranceVerificationProcessor.SUBSCRIBER_ADDRESS_SUBDIVISION).orElse(null);
     String zipCode =
-        entry.internal(InsuranceVerificationProcessor.SUBSCRIBER_ADDRESS_ZIP).orElse(null);
+        entry.external(InsuranceVerificationProcessor.SUBSCRIBER_ADDRESS_ZIP).orElse(null);
     if (allBlank(
         streetAddressLine1, streetAddressLine2, city, subdivision, state, country, zipCode)) {
       return null;
@@ -407,7 +407,7 @@ public class InsuranceBufferToR4CoverageTransformer {
   private List<Identifier> subscriberIdentifier(FilemanEntry entry) {
     var definition = InsuranceBufferDefinitions.get().insuredsSsn();
     return entry
-        .internal(definition.vistaField())
+        .external(definition.vistaField())
         .map(
             ssn ->
                 Identifier.builder()
@@ -432,7 +432,7 @@ public class InsuranceBufferToR4CoverageTransformer {
 
   private List<HumanName> subscriberName(FilemanEntry entry) {
     return entry
-        .internal(InsuranceVerificationProcessor.NAME_OF_INSURED)
+        .external(InsuranceVerificationProcessor.NAME_OF_INSURED)
         .map(n -> HumanName.builder().text(n).build().asList())
         .orElse(null);
   }
@@ -455,23 +455,23 @@ public class InsuranceBufferToR4CoverageTransformer {
             .extension(coverageExtensions(entry))
             .order(
                 entry
-                    .internal(InsuranceVerificationProcessor.COORDINATION_OF_BENEFITS)
+                    .external(InsuranceVerificationProcessor.COORDINATION_OF_BENEFITS)
                     .map(R4Transformers::toInteger)
                     .orElse(null))
             .period(period(entry))
             .meta(Meta.builder().source(site()).build())
             .status(Status.draft)
             .dependent(
-                entry.internal(InsuranceVerificationProcessor.PHARMACY_PERSON_CODE).orElse(null))
+                entry.external(InsuranceVerificationProcessor.PHARMACY_PERSON_CODE).orElse(null))
             .type(
                 entry
-                    .internal(InsuranceBufferDefinitions.get().inqServiceTypeCode().vistaField())
+                    .external(InsuranceBufferDefinitions.get().inqServiceTypeCode().vistaField())
                     .map(this::type)
                     .orElse(null))
-            .subscriberId(entry.internal(InsuranceVerificationProcessor.SUBSCRIBER_ID).orElse(null))
+            .subscriberId(entry.external(InsuranceVerificationProcessor.SUBSCRIBER_ID).orElse(null))
             .beneficiary(
                 beneficiary(
-                    patientIcn(), entry.internal(InsuranceVerificationProcessor.PATIENT_ID)))
+                    patientIcn(), entry.external(InsuranceVerificationProcessor.PATIENT_ID)))
             .relationship(
                 entry
                     .internal(InsuranceVerificationProcessor.PT_RELATIONSHIP_HIPAA)
@@ -515,7 +515,7 @@ public class InsuranceBufferToR4CoverageTransformer {
         InsurancePlan.builder()
             .extension(insurancePlanExtensions(entry))
             .identifier(insurancePlanIdentifiers(entry))
-            .name(entry.internal(InsuranceVerificationProcessor.GROUP_NAME).orElse(null))
+            .name(entry.external(InsuranceVerificationProcessor.GROUP_NAME).orElse(null))
             .plan(insurancePlanType(entry))
             .build();
     if (InsurancePlan.builder().build().equals(ip)) {
@@ -532,10 +532,10 @@ public class InsuranceBufferToR4CoverageTransformer {
             .contact(contacts(entry))
             .extension(organizationExtensions(entry))
             .name(
-                entry.internal(InsuranceVerificationProcessor.INSURANCE_COMPANY_NAME).orElse(null))
+                entry.external(InsuranceVerificationProcessor.INSURANCE_COMPANY_NAME).orElse(null))
             .telecom(
                 entry
-                    .internal(InsuranceVerificationProcessor.PHONE_NUMBER)
+                    .external(InsuranceVerificationProcessor.PHONE_NUMBER)
                     .map(this::phone)
                     .map(ContactPoint::asList)
                     .orElse(null))
@@ -556,7 +556,7 @@ public class InsuranceBufferToR4CoverageTransformer {
             .address(subscriberAddress(entry))
             .telecom(
                 entry
-                    .internal(InsuranceVerificationProcessor.SUBSCRIBER_PHONE)
+                    .external(InsuranceVerificationProcessor.SUBSCRIBER_PHONE)
                     .map(this::phone)
                     .map(ContactPoint::asList)
                     .orElse(null))
