@@ -34,6 +34,7 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 import org.junit.jupiter.params.provider.NullAndEmptySource;
+import org.junit.jupiter.params.provider.ValueSource;
 
 public class R4CoverageToInsuranceBufferTransformerTest {
   private static Stream<Arguments> effectiveAndExpirationDateValidation() {
@@ -92,6 +93,14 @@ public class R4CoverageToInsuranceBufferTransformerTest {
                 .get())
         .indexRegistry(FilemanIndexRegistry.create())
         .factoryRegistry(FilemanFactoryRegistry.create())
+        .build();
+  }
+
+  private ContainedInsurancePlanTransformer _insurancePlanTransformer() {
+    return ContainedInsurancePlanTransformer.builder()
+        .factoryRegistry(FilemanFactoryRegistry.create())
+        .indexRegistry(FilemanIndexRegistry.create())
+        .insurancePlan(CoverageSamples.R4.create().containedInsurancePlan("ip1"))
         .build();
   }
 
@@ -354,6 +363,16 @@ public class R4CoverageToInsuranceBufferTransformerTest {
   }
 
   @Test
+  void groupName() {
+    assertThat(_insurancePlanTransformer().groupName(null)).isEmpty();
+    assertThat(_insurancePlanTransformer().groupName("")).isEmpty();
+    assertThat(_insurancePlanTransformer().groupName("  ")).isEmpty();
+    assertThat(_insurancePlanTransformer().groupName("abcd"))
+        .map(WriteableFilemanValue::value)
+        .contains("abcd");
+  }
+
+  @Test
   void inqServiceTypeCode1() {
     assertThatExceptionOfType(UnexpectedNumberOfValues.class)
         .isThrownBy(
@@ -381,6 +400,13 @@ public class R4CoverageToInsuranceBufferTransformerTest {
             () ->
                 _transformer()
                     .insuranceCompanyName("0123456789101112131415161718192021222324252627282930"));
+  }
+
+  @ParameterizedTest
+  @ValueSource(strings = {"a", "abcdefghijklmnopqrstuvwxyz"})
+  void invalidGroupNameThrows(String groupName) {
+    assertThatExceptionOfType(InvalidStringLengthInclusively.class)
+        .isThrownBy(() -> _insurancePlanTransformer().groupName(groupName));
   }
 
   @Test

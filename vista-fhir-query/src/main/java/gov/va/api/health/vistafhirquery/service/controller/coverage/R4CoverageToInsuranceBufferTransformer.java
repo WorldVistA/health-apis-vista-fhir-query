@@ -804,6 +804,17 @@ public class R4CoverageToInsuranceBufferTransformer {
     }
 
     Optional<WriteableFilemanValue> groupName(String name) {
+      if (isBlank(name)) {
+        return Optional.empty();
+      }
+      if (!isStringLengthInRangeInclusively(2, 20, name)) {
+        throw InvalidStringLengthInclusively.builder()
+            .jsonPath(".name")
+            .inclusiveMinimum(2)
+            .inclusiveMaximum(20)
+            .received(name.length())
+            .build();
+      }
       return factoryRegistry()
           .get(InsuranceVerificationProcessor.FILE_NUMBER)
           .forString(

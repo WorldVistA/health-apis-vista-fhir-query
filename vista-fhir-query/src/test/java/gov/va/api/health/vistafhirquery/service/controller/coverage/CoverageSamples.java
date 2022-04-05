@@ -153,10 +153,10 @@ public class CoverageSamples {
               .build());
     }
 
-    private InsurancePlan containedInsurancePlan(String id) {
+    InsurancePlan containedInsurancePlan(String id) {
       return InsurancePlan.builder()
           .id(id)
-          .name("BCBS OF SHANKSVILLE GROUP")
+          .name("GROUP OF SHANKSVILLE")
           .extension(insurancePlanExtensions())
           .identifier(
               List.of(
@@ -507,8 +507,7 @@ public class CoverageSamples {
           insuranceBufferValue(InsuranceVerificationProcessor.INQ_SERVICE_TYPE_CODE_1, "1"),
           insuranceBufferValue(InsuranceVerificationProcessor.EFFECTIVE_DATE, "2920112"),
           insuranceBufferValue(InsuranceVerificationProcessor.EXPIRATION_DATE, "3250101"),
-          insuranceBufferValue(
-              InsuranceVerificationProcessor.GROUP_NAME, "BCBS OF SHANKSVILLE GROUP"),
+          insuranceBufferValue(InsuranceVerificationProcessor.GROUP_NAME, "GROUP OF SHANKSVILLE"),
           insuranceBufferValue(InsuranceVerificationProcessor.UTILIZATION_REVIEW_REQUIRED, "YES"),
           insuranceBufferValue(InsuranceVerificationProcessor.PRECERTIFICATION_REQUIRED, "YES"),
           insuranceBufferValue(InsuranceVerificationProcessor.AMBULATORY_CARE_CERTIFICATION, "YES"),
@@ -692,7 +691,7 @@ public class CoverageSamples {
           InsuranceVerificationProcessor.REIMBURSE, Values.of("WILL REIMBURSE", "WILL REIMBURSE"));
       fields.put(
           InsuranceVerificationProcessor.GROUP_NAME,
-          Values.of("BCBS OF SHANKSVILLE GROUP", "BCBS OF SHANKSVILLE GROUP"));
+          Values.of("GROUP OF SHANKSVILLE", "GROUP OF SHANKSVILLE"));
       fields.put(InsuranceVerificationProcessor.UTILIZATION_REVIEW_REQUIRED, Values.of("YES", "1"));
       fields.put(InsuranceVerificationProcessor.PRECERTIFICATION_REQUIRED, Values.of("YES", "1"));
       fields.put(
