@@ -2,6 +2,7 @@ package gov.va.api.health.vistafhirquery.service.controller.medication;
 
 import static gov.va.api.health.vistafhirquery.service.controller.R4Transformers.allBlank;
 import static gov.va.api.health.vistafhirquery.service.controller.R4Transformers.anyBlank;
+import static gov.va.api.health.vistafhirquery.service.controller.R4Transformers.emptyToNull;
 import static gov.va.api.health.vistafhirquery.service.controller.R4Transformers.isBlank;
 import static gov.va.api.health.vistafhirquery.service.controller.R4Transformers.toBigDecimal;
 import static gov.va.api.health.vistafhirquery.service.controller.R4Transformers.toResourceId;
@@ -13,6 +14,7 @@ import gov.va.api.health.r4.api.datatypes.Coding;
 import gov.va.api.health.r4.api.datatypes.SimpleQuantity;
 import gov.va.api.health.r4.api.elements.Dosage;
 import gov.va.api.health.r4.api.elements.Dosage.DoseAndRate;
+import gov.va.api.health.r4.api.elements.Extension;
 import gov.va.api.lighthouse.charon.models.vprgetpatientdata.Meds.Med.Dose;
 import gov.va.api.lighthouse.charon.models.vprgetpatientdata.Meds.Med.Product;
 import gov.va.api.lighthouse.charon.models.vprgetpatientdata.Meds.Med.Product.ProductDetail;
@@ -27,33 +29,41 @@ public class R4MedicationTransformers {
 
   /** Create a dosage from a sig and ptInstruction. */
   public static Dosage dosageInstruction(String sig, String ptInstructions, List<Dose> doses) {
-
-    if (allBlank(sig, ptInstructions, doses)) {
-      return null;
-    }
-
     List<DoseAndRate> doseAndRates =
         Safe.stream(doses)
             .map(R4MedicationTransformers::doseAndRate)
             .filter(Objects::nonNull)
             .toList();
 
+    if (allBlank(sig, ptInstructions, doseAndRates)) {
+      return null;
+    }
+
     return Dosage.builder()
         .text(trimToNull(sig))
         .patientInstruction(trimToNull(ptInstructions))
-        .doseAndRate(doseAndRates.isEmpty() ? null : doseAndRates)
+        .doseAndRate(emptyToNull(doseAndRates))
         .build();
   }
 
   private static DoseAndRate doseAndRate(Dose dose) {
+    if (isBlank(dose.dose())) {
+      return null;
+    }
+    var builder = DoseAndRate.builder();
     String unit = trimToNull(dose.units());
     BigDecimal value = toBigDecimal(dose.dose());
     if (anyBlank(unit, value)) {
-      return null;
+      builder.extension(
+          Extension.builder()
+              .url("http://hl7.org/fhir/StructureDefinition/originalText")
+              .valueString(dose.dose())
+              .build()
+              .asList());
+    } else {
+      builder.doseQuantity(SimpleQuantity.builder().unit(unit).value(value).build());
     }
-    return DoseAndRate.builder()
-        .doseQuantity(SimpleQuantity.builder().unit(unit).value(value).build())
-        .build();
+    return builder.build();
   }
 
   /** Create a codeableConcept from a VPR Med Domain product. */

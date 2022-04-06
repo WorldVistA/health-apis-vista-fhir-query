@@ -7,6 +7,7 @@ import gov.va.api.health.r4.api.datatypes.Coding;
 import gov.va.api.health.r4.api.datatypes.SimpleQuantity;
 import gov.va.api.health.r4.api.elements.Dosage;
 import gov.va.api.health.r4.api.elements.Dosage.DoseAndRate;
+import gov.va.api.health.r4.api.elements.Extension;
 import gov.va.api.lighthouse.charon.models.vprgetpatientdata.Meds.Med.Dose;
 import gov.va.api.lighthouse.charon.models.vprgetpatientdata.Meds.Med.Product;
 import gov.va.api.lighthouse.charon.models.vprgetpatientdata.Meds.Med.Product.ProductDetail;
@@ -20,12 +21,47 @@ import org.mockito.Mockito;
 
 @SuppressWarnings("ALL")
 class R4MedicationTransformersTest {
-
   private final R4MedicationTransformers _tx =
       Mockito.mock(R4MedicationTransformers.class, Mockito.CALLS_REAL_METHODS);
 
   static CodeableConcept _cc(String text, List<Coding> codings) {
     return CodeableConcept.builder().text(text).coding(codings).build();
+  }
+
+  static Dosage _dosageWithDoseAndRate(
+      String text, String ptInstructions, BigDecimal value, String unit) {
+    return Dosage.builder()
+        .text(text)
+        .patientInstruction(ptInstructions)
+        .doseAndRate(
+            DoseAndRate.builder()
+                .doseQuantity(SimpleQuantity.builder().value(value).unit(unit).build())
+                .build()
+                .asList())
+        .build();
+  }
+
+  static Dosage _dosageWithExtension(String text, String ptInstructions, String valueString) {
+    return Dosage.builder()
+        .text(text)
+        .patientInstruction(ptInstructions)
+        .doseAndRate(
+            valueString != null
+                ? DoseAndRate.builder()
+                    .extension(
+                        Extension.builder()
+                            .url("http://hl7.org/fhir/StructureDefinition/originalText")
+                            .valueString(valueString)
+                            .build()
+                            .asList())
+                    .build()
+                    .asList()
+                : null)
+        .build();
+  }
+
+  static List<Dose> _dose(String dose, String units) {
+    return List.of(Dose.builder().dose(dose).units(units).build());
   }
 
   static Product _product(String name, ProductDetail detail) {
@@ -48,49 +84,24 @@ class R4MedicationTransformersTest {
     return Stream.of(
         Arguments.of(null, null, null, null),
         Arguments.of("", "", null, null),
+        Arguments.of("", "", _dose("", "mg"), null),
         Arguments.of(
             "SIG",
             null,
-            List.of(Dose.builder().dose("20.0").units("mg ").build()),
-            Dosage.builder()
-                .text("SIG")
-                .doseAndRate(
-                    DoseAndRate.builder()
-                        .doseQuantity(
-                            SimpleQuantity.builder()
-                                .value(BigDecimal.valueOf(20.0))
-                                .unit("mg")
-                                .build())
-                        .build()
-                        .asList())
-                .build()),
+            _dose("20", "mg"),
+            _dosageWithDoseAndRate("SIG", null, BigDecimal.valueOf(20), "mg")),
         Arguments.of("SIG", "", null, Dosage.builder().text("SIG").build()),
         Arguments.of(
             "SIG",
             "PTI",
-            List.of(Dose.builder().dose("1 CAPSULE").build()),
-            Dosage.builder().text("SIG").patientInstruction("PTI").build()),
-        Arguments.of(
-            null,
-            "PTI",
-            List.of(Dose.builder().units("mg").build()),
-            Dosage.builder().patientInstruction("PTI").build()),
+            _dose("1 CAPSULE", null),
+            _dosageWithExtension("SIG", "PTI", "1 CAPSULE")),
+        Arguments.of(null, "PTI", _dose(null, "mg"), _dosageWithExtension(null, "PTI", null)),
         Arguments.of(
             "",
             "PTI",
-            List.of(Dose.builder().dose("0.5").units("mL").build()),
-            Dosage.builder()
-                .patientInstruction("PTI")
-                .doseAndRate(
-                    DoseAndRate.builder()
-                        .doseQuantity(
-                            SimpleQuantity.builder()
-                                .value(BigDecimal.valueOf(0.5))
-                                .unit("mL")
-                                .build())
-                        .build()
-                        .asList())
-                .build()));
+            _dose("0.5", "mL"),
+            _dosageWithDoseAndRate(null, "PTI", BigDecimal.valueOf(0.5), "mL")));
   }
 
   static Stream<Arguments> medicationCodeableConcept() {
