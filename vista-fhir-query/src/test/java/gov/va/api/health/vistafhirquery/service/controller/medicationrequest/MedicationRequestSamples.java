@@ -12,6 +12,7 @@ import gov.va.api.health.r4.api.datatypes.Period;
 import gov.va.api.health.r4.api.datatypes.SimpleQuantity;
 import gov.va.api.health.r4.api.elements.Dosage;
 import gov.va.api.health.r4.api.elements.Dosage.DoseAndRate;
+import gov.va.api.health.r4.api.elements.Extension;
 import gov.va.api.health.r4.api.elements.Meta;
 import gov.va.api.health.r4.api.resources.MedicationRequest;
 import gov.va.api.health.r4.api.resources.MedicationRequest.DispenseRequest;
@@ -116,6 +117,23 @@ public class MedicationRequestSamples {
                                   .build())
                           .build()
                           .asList())
+                  .build()
+                  .asList())
+          .extension(
+              Extension.builder()
+                  .url(
+                      "http://va.gov/fhir/StructureDefinition/medicationrequest-pharmacyOrderStatus")
+                  .valueCodeableConcept(
+                      CodeableConcept.builder()
+                          .text("DISCONTINUED")
+                          .coding(
+                              Coding.builder()
+                                  .display("DISCONTINUED")
+                                  .code("12")
+                                  .system("http://va.gov/fhir/ValueSet/VistAPharmacyOrderStatus")
+                                  .build()
+                                  .asList())
+                          .build())
                   .build()
                   .asList())
           .build();

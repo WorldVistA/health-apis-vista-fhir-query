@@ -6,6 +6,7 @@ import gov.va.api.health.r4.api.datatypes.CodeableConcept;
 import gov.va.api.health.r4.api.datatypes.Coding;
 import gov.va.api.health.r4.api.datatypes.Period;
 import gov.va.api.health.r4.api.datatypes.SimpleQuantity;
+import gov.va.api.health.r4.api.elements.Extension;
 import gov.va.api.health.r4.api.elements.Reference;
 import gov.va.api.health.r4.api.resources.MedicationRequest.DispenseRequest;
 import gov.va.api.health.r4.api.resources.MedicationRequest.Status;
@@ -20,7 +21,6 @@ import java.util.stream.Stream;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
-import org.junit.jupiter.params.provider.CsvSource;
 import org.junit.jupiter.params.provider.MethodSource;
 
 class R4MedicationRequestTransformerTest {
@@ -50,7 +50,6 @@ class R4MedicationRequestTransformerTest {
     BiFunction<BigDecimal, String, SimpleQuantity> quantity =
         (v, u) -> SimpleQuantity.builder().value(v).unit(u).build();
     BiFunction<String, String, Period> period = (s, e) -> Period.builder().start(s).end(e).build();
-
     return Stream.of(
         Arguments.of(null, null, null, null, null, null),
         Arguments.of("", "", "", "", "", null),
@@ -105,6 +104,45 @@ class R4MedicationRequestTransformerTest {
             Reference.builder().display("fugazi").build()));
   }
 
+  static Stream<Arguments> status() {
+    return Stream.of(
+        Arguments.of("HOLD", Status.active, statusExtension("HOLD", "3")),
+        Arguments.of("PROVIDER HOLD", Status.active, statusExtension("PROVIDER HOLD", "16")),
+        Arguments.of("DRUG INTERACTIONS", Status.draft, statusExtension("DRUG INTERACTIONS", "4")),
+        Arguments.of("NON-VERIFIED", Status.draft, statusExtension("NON-VERIFIED", "1")),
+        Arguments.of("ACTIVE", Status.active, statusExtension("ACTIVE", "0")),
+        Arguments.of("SUSPENDED", Status.active, statusExtension("SUSPENDED", "5")),
+        Arguments.of("DISCONTINUED", Status.stopped, statusExtension("DISCONTINUED", "12")),
+        Arguments.of(
+            "DISCONTINUED (EDIT)", Status.stopped, statusExtension("DISCONTINUED (EDIT)", "15")),
+        Arguments.of(
+            "DISCONTINUED BY PROVIDER",
+            Status.stopped,
+            statusExtension("DISCONTINUED BY PROVIDER", "14")),
+        Arguments.of("DELETED", Status.entered_in_error, statusExtension("DELETED", "13")),
+        Arguments.of("EXPIRED", Status.completed, statusExtension("EXPIRED", "11")),
+        Arguments.of(null, Status.unknown, null),
+        Arguments.of("fugazi", Status.unknown, null),
+        Arguments.of("", Status.unknown, null));
+  }
+
+  private static Extension statusExtension(String vaStatus, String code) {
+    return Extension.builder()
+        .url("http://va.gov/fhir/StructureDefinition/medicationrequest-pharmacyOrderStatus")
+        .valueCodeableConcept(
+            CodeableConcept.builder()
+                .coding(
+                    Coding.builder()
+                        .code(code)
+                        .display(vaStatus)
+                        .system("http://va.gov/fhir/ValueSet/VistAPharmacyOrderStatus")
+                        .build()
+                        .asList())
+                .text(vaStatus)
+                .build())
+        .build();
+  }
+
   private R4MedicationRequestTransformer _transformer(VprGetPatientData.Response.Results results) {
     return R4MedicationRequestTransformer.builder()
         .site("673")
@@ -151,25 +189,10 @@ class R4MedicationRequestTransformerTest {
   }
 
   @ParameterizedTest
-  @CsvSource(
-      nullValues = "null",
-      value = {
-        "HOLD,active",
-        "PROVIDER HOLD,active",
-        "DRUG INTERACTIONS,draft",
-        "NON-VERIFIED,draft",
-        "ACTIVE,active",
-        "SUSPENDED,active",
-        "DISCONTINUED,stopped",
-        "DISCONTINUED (EDIT),stopped",
-        "DISCONTINUED BY PROVIDER,stopped",
-        "DELETED,entered_in_error",
-        "EXPIRED,completed",
-        "null,unknown",
-        "fugazi,unknown"
-      })
-  void status(String status, Status expected) {
-    assertThat(_transformer().status(status)).isEqualTo(expected);
+  @MethodSource
+  void status(String status, Status expectedFhirStatus, Extension expectedVaStatus) {
+    assertThat(_transformer().fhirStatus(status)).isEqualTo(expectedFhirStatus);
+    assertThat(_transformer().vistaStatus(status)).isEqualTo(expectedVaStatus);
   }
 
   @Test

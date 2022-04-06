@@ -18,6 +18,7 @@ import gov.va.api.health.r4.api.datatypes.CodeableConcept;
 import gov.va.api.health.r4.api.datatypes.Coding;
 import gov.va.api.health.r4.api.datatypes.Period;
 import gov.va.api.health.r4.api.datatypes.SimpleQuantity;
+import gov.va.api.health.r4.api.elements.Extension;
 import gov.va.api.health.r4.api.elements.Meta;
 import gov.va.api.health.r4.api.elements.Reference;
 import gov.va.api.health.r4.api.resources.MedicationRequest;
@@ -65,6 +66,38 @@ public class R4MedicationRequestTransformer extends R4MedicationTransformers {
           .to(Status.completed)
           .build();
 
+  private static final Translation<String, String> VISTA_STATUS_TO_CODE =
+      Translations.ofStringToString()
+          .whenNullOrEmpty(returnNull())
+          .whenNotFound(ignoreAndReturnNull())
+          .from("ACTIVE")
+          .to("0")
+          .from("NON-VERIFIED")
+          .to("1")
+          .from("REFILL")
+          .to("2")
+          .from("HOLD")
+          .to("3")
+          .from("DRUG INTERACTIONS")
+          .to("4")
+          .from("SUSPENDED")
+          .to("5")
+          .from("DONE")
+          .to("10")
+          .from("EXPIRED")
+          .to("11")
+          .from("DISCONTINUED")
+          .to("12")
+          .from("DELETED")
+          .to("13")
+          .from("DISCONTINUED BY PROVIDER")
+          .to("14")
+          .from("DISCONTINUED (EDIT)")
+          .to("15")
+          .from("PROVIDER HOLD")
+          .to("16")
+          .build();
+
   @NonNull String site;
 
   @NonNull String patientIcn;
@@ -106,16 +139,16 @@ public class R4MedicationRequestTransformer extends R4MedicationTransformers {
         .build();
   }
 
+  /** Return the appropriate FHIR status for the corresponding VistA vaStatus. */
+  Status fhirStatus(String vistaStatus) {
+    return VISTA_STATUS_TO_STATUS.translate(vistaStatus).orElse(Status.unknown);
+  }
+
   Reference requester(Med.Provider orderingProvider) {
     if (isBlank(orderingProvider) || isBlank(orderingProvider.name())) {
       return null;
     }
     return toReference("Practitioner", null, orderingProvider.name());
-  }
-
-  /** Return the appropriate FHIR status for the corresponding VistA vaStatus. */
-  Status status(String vistaStatus) {
-    return VISTA_STATUS_TO_STATUS.translate(vistaStatus).orElse(Status.unknown);
   }
 
   /** Convert VistA Med data to R4 Fhir data. */
@@ -131,7 +164,8 @@ public class R4MedicationRequestTransformer extends R4MedicationTransformers {
         .subject(toReference("Patient", patientIcn, null))
         .intent(Intent.order)
         .authoredOn(optionalInstantToString(toHumanDateTime(rpcMed.ordered())))
-        .status(status(valueOfValueOnlyXmlAttribute(rpcMed.vaStatus())))
+        .status(fhirStatus(valueOfValueOnlyXmlAttribute(rpcMed.vaStatus())))
+        .extension(vistaStatus(valueOfValueOnlyXmlAttribute(rpcMed.vaStatus())).asList())
         .category(category(valueOfValueOnlyXmlAttribute(rpcMed.vaType())))
         .medicationCodeableConcept(
             Safe.stream(rpcMed.product())
@@ -152,6 +186,27 @@ public class R4MedicationRequestTransformer extends R4MedicationTransformers {
                     rpcMed.sig(),
                     valueOfValueOnlyXmlAttribute(rpcMed.ptInstructions()),
                     rpcMed.dose())))
+        .build();
+  }
+
+  Extension vistaStatus(String vistaStatus) {
+    String code = VISTA_STATUS_TO_CODE.translate(vistaStatus).orElse(null);
+    if (isBlank(code)) {
+      return null;
+    }
+    return Extension.builder()
+        .url("http://va.gov/fhir/StructureDefinition/medicationrequest-pharmacyOrderStatus")
+        .valueCodeableConcept(
+            CodeableConcept.builder()
+                .text(vistaStatus)
+                .coding(
+                    Coding.builder()
+                        .code(code)
+                        .display(vistaStatus)
+                        .system("http://va.gov/fhir/ValueSet/VistAPharmacyOrderStatus")
+                        .build()
+                        .asList())
+                .build())
         .build();
   }
 }
