@@ -54,7 +54,7 @@ For more information on contained resources, view FHIR's documentation
 | `.id` | Required | Must match the id provided in the `Coverage` `.class[0].value` field (without the `#`). |
 | `.extension[]` | Optional | See [Supported Extensions](#supported-extensions) below. |
 | `.identifier[]` | Required | See [Supported Identifiers](#supported-identifiers) below. |
-| `.name` | Optional | This is the name that the insurance company uses to identify the plan. |
+| `.name` | Optional | This is the name that the insurance company uses to identify the plan. Must be between 2-20 characters in length. |
 | `.plan[]` | Optional | Should contain 1 entry. |
 | `.plan[0].type.coding[0].system` | Optional | Should be `urn:oid:2.16.840.1.113883.3.8901.3.1.3558033.408009`. |
 | `.plan[0].type.coding[0].display` | Optional | Should of the plan type. See _Type of Plan_ defined below. |
