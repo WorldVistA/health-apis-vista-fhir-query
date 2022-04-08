@@ -2,26 +2,40 @@
 set -euo pipefail
 # ==================================================
 
-test -n "${K8S_ENVIRONMENT}"
-test -n "${K8S_LOAD_BALANCER}"
+function init() {
+  if [ -z "${SENTINEL_BASE_DIR:-}" ]; then SENTINEL_BASE_DIR=/sentinel; fi
+  cd $SENTINEL_BASE_DIR
 
-if [ -z "${SENTINEL_BASE_DIR:-}" ]; then SENTINEL_BASE_DIR=/sentinel; fi
-cd $SENTINEL_BASE_DIR
+  # Use the defaults unless the deployment configs are set
+  if [ -n "${DEPLOYMENT_ENVIRONMENT:-}" ]; then SENTINEL_ENV="${DEPLOYMENT_ENVIRONMENT}"; fi
+
+  if [ -n "${DEPLOYMENT_TEST_HOST:-}" ]
+  then
+    test -n "${DEPLOYMENT_TEST_PROTOCOL}"
+    VFQ_URL="${DEPLOYMENT_TEST_PROTOCOL}://${DEPLOYMENT_TEST_HOST}"
+  fi
+
+  if [ -n "${DEPLOYMENT_TEST_PORT:-}" ]; then VFQ_PORT=${DEPLOYMENT_TEST_PORT}; fi
+
+  test -n "${SENTINEL_ENV}"
+  SYSTEM_PROPERTIES="-Dsentinel=${SENTINEL_ENV}"
+}
 
 # ==================================================
 
 main() {
-  if [ -z "${SENTINEL_ENV:-}" ]; then SENTINEL_ENV="${K8S_ENVIRONMENT}"; fi
-  if [ -z "${VFQ_URL:-}" ]; then VFQ_URL="https://${K8S_LOAD_BALANCER}"; fi
-
-  SYSTEM_PROPERTIES="-Dsentinel=${SENTINEL_ENV} \
-    -Dsentinel.internal.url=${VFQ_URL} \
-    -Dsentinel.r4.url=${VFQ_URL}"
-
+  if [ -n "${VFQ_URL:-}" ]
+  then
+    addToSystemProperties "sentinel.internal.url" "${VFQ_URL}"
+    addToSystemProperties "sentinel.r4.url" "${VFQ_URL}"
+  fi
+  if [ -n "${VFQ_PORT:-}" ]
+  then
+    addToSystemProperties "sentinel.internal.port" "${VFQ_PORT}"
+    addToSystemProperties "sentinel.r4.port" "${VFQ_PORT}"
+  fi
   if [ -n "${VFQ_API_PATH:-}" ]; then  addToSystemProperties "sentinel.internal.api-path" "${VFQ_API_PATH}"; fi
   if [ -n "${VFQ_R4_API_PATH:-}" ]; then  addToSystemProperties "sentinel.r4.api-path" "${VFQ_R4_API_PATH}"; fi
-  if [ -n "${VFQ_PORT:-}" ]; then addToSystemProperties "sentinel.internal.port" "${VFQ_PORT}"; fi
-  if [ -n "${VFQ_R4_PORT:-}" ]; then addToSystemProperties "sentinel.r4.port" "${VFQ_R4_PORT}"; fi
   if [ -n "${MAGIC_ACCESS_TOKEN:-}" ]; then addToSystemProperties "access-token" "${MAGIC_ACCESS_TOKEN}"; fi
   if [ -n "${VFQ_CLIENT_KEY:-}" ]; then addToSystemProperties "client-key" "${VFQ_CLIENT_KEY}"; fi
   if [ -n "${VISTA_CONNECTIVITY_ICN_AT_SITES:-}" ]; then addToSystemProperties "vista-connectivity.icn-at-sites" "${VISTA_CONNECTIVITY_ICN_AT_SITES}"; fi
@@ -60,4 +74,5 @@ populateSsoiSystemProperties() {
 
 # ==================================================
 
+init
 main $@

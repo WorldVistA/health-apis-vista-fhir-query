@@ -33,13 +33,13 @@ run() {
   esac
   local secrets=config/secrets.conf
   if [ -f "${secrets}" ]; then SECRETS_OPTION="--env-file=${secrets}"; fi
+
   docker run \
     --rm \
     --network="host" \
     ${SECRETS_OPTION:-} \
-    -e K8S_LOAD_BALANCER=$THIS_MACHINE \
-    -e VFQ_URL=http://$THIS_MACHINE:8095 \
-    -e K8S_ENVIRONMENT=${ENV:-local} \
+    -e VFQ_URL=http://$THIS_MACHINE \
+    -e VFQ_PORT=8095 \
     -e SENTINEL_ENV=${ENV:-local} \
     -e CLIENT_KEY="${CLIENT_KEY:-hello}" \
     ghcr.io/department-of-veterans-affairs/health-apis-vista-fhir-query-tests:latest \
