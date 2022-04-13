@@ -4,21 +4,21 @@
   <parent>
     <groupId>gov.va.api.health</groupId>
     <artifactId>service-starter</artifactId>
-    <version>9.0.8</version>
+    <version>10.0.0</version>
     <relativePath/>
   </parent>
   <artifactId>vista-fhir-query</artifactId>
   <version>2.0.169-SNAPSHOT</version>
   <packaging>jar</packaging>
   <properties>
-    <charon.version>6.0.0</charon.version>
+    <charon.version>6.0.3</charon.version>
     <docker.organization>ghcr.io/department-of-veterans-affairs</docker.organization>
-    <fhir-resources.version>10.0.26</fhir-resources.version>
+    <fhir-resources.version>11.0.0</fhir-resources.version>
     <jacoco.coverage>0.94</jacoco.coverage>
     <mssql-jdbc.version>9.2.1.jre15</mssql-jdbc.version>
-    <swagger-examples-maven-plugin.version>3.0.0</swagger-examples-maven-plugin.version>
+    <swagger-examples-maven-plugin.version>3.0.2</swagger-examples-maven-plugin.version>
     <swagger-maven-plugin.version>2.1.10</swagger-maven-plugin.version>
-    <talos.version>2.0.0</talos.version>
+    <talos.version>3.0.0</talos.version>
   </properties>
   <dependencies>
     <dependency>
