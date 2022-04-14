@@ -110,19 +110,25 @@ public class R4MedicationDispenseTransformer {
   }
 
   Optional<Integer> determineRemainingFills(
-      String fillsRemaining, String fillsAllowed, int fillSize) {
+      String fillsRemaining, String refillsAllowed, int fillSize) {
     try {
       if (isNotBlank(fillsRemaining)) {
         return Optional.of(Integer.parseInt(fillsRemaining));
       }
-      if (isNotBlank(fillsAllowed)) {
-        return Optional.of(Integer.parseInt(fillsAllowed) - fillSize);
+      if (isNotBlank(refillsAllowed)) {
+        /*
+         * The first fill isn't a refill, so the total times the prescription can be filled is 
+         * the first fill plus number of refills. The fill size indicates the total number of 
+         * times the medication has been filled, including first time and any refills.
+         */
+        int totalFillsAllowed = Integer.parseInt(refillsAllowed) + 1;
+        return Optional.of(totalFillsAllowed - fillSize);
       }
     } catch (NumberFormatException e) {
       log.info(
           "Vista value was malformed: FillsRemaining ({}), FillsAllowed ({})",
           fillsRemaining,
-          fillsAllowed);
+          refillsAllowed);
     }
     return Optional.empty();
   }
@@ -134,9 +140,9 @@ public class R4MedicationDispenseTransformer {
     return R4Transformers.toReference("Location", null, facility.name());
   }
 
-  List<Extension> fillsRemaining(String fillsRemaining, String fillsAllowed, int fillSize) {
+  List<Extension> fillsRemaining(String fillsRemaining, String refillsAllowed, int fillSize) {
     Optional<Integer> calculatedFillsRemaining =
-        determineRemainingFills(fillsRemaining, fillsAllowed, fillSize);
+        determineRemainingFills(fillsRemaining, refillsAllowed, fillSize);
     if (calculatedFillsRemaining.isEmpty()) {
       return null;
     }

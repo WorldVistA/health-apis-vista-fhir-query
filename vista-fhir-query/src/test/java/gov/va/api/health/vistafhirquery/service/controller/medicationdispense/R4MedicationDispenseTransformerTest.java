@@ -142,8 +142,8 @@ class R4MedicationDispenseTransformerTest {
 
   static Stream<Arguments> fillsRemaining() {
     return Stream.of(
-        Arguments.of(null, "3", 1, fillsRemaining(2)),
-        Arguments.of("", "3", 1, fillsRemaining(2)),
+        Arguments.of(null, "3", 1, fillsRemaining(3)),
+        Arguments.of("", "3", 2, fillsRemaining(2)),
         Arguments.of("1", "3", 1, fillsRemaining(1)),
         Arguments.of(null, null, 1, null));
   }

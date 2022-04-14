@@ -66,7 +66,7 @@ public class MedicationSamples {
           .ptInstructions(ValueOnlyXmlAttribute.of("take with food"))
           .dose(List.of(Dose.builder().dose("1.0").units("mg").build()))
           .fill(fills == null ? null : Arrays.asList(fills))
-          .fillsRemaining(ValueOnlyXmlAttribute.of("1"))
+          .fillsRemaining(ValueOnlyXmlAttribute.of("3"))
           .product(
               List.of(
                   Product.builder()

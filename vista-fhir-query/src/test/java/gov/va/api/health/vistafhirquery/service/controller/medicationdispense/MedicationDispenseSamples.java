@@ -106,7 +106,7 @@ public class MedicationDispenseSamples {
               Extension.builder()
                   .url(
                       "http://hl7.org/fhir/StructureDefinition/medicationdispense-refillsRemaining")
-                  .valueInteger(1)
+                  .valueInteger(3)
                   .build()
                   .asList())
           .location(Reference.builder().display("TAMPA (JAH VAH)").build())
