@@ -117,8 +117,8 @@ public class R4MedicationDispenseTransformer {
       }
       if (isNotBlank(refillsAllowed)) {
         /*
-         * The first fill isn't a refill, so the total times the prescription can be filled is 
-         * the first fill plus number of refills. The fill size indicates the total number of 
+         * The first fill isn't a refill, so the total times the prescription can be filled is
+         * the first fill plus number of refills. The fill size indicates the total number of
          * times the medication has been filled, including first time and any refills.
          */
         int totalFillsAllowed = Integer.parseInt(refillsAllowed) + 1;
