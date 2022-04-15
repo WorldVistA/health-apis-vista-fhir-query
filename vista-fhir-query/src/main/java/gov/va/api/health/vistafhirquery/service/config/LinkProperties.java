@@ -27,8 +27,8 @@ import org.springframework.context.annotation.Configuration;
 @Builder
 @Slf4j
 public class LinkProperties {
-
   private String publicUrl;
+
   private String publicR4BasePath;
 
   /**
@@ -38,6 +38,7 @@ public class LinkProperties {
   private Map<String, String> customR4UrlAndPath;
 
   private int defaultPageSize;
+
   private int maxPageSize;
 
   public Map<String, String> getCustomR4UrlAndPath() {
@@ -58,10 +59,10 @@ public class LinkProperties {
   /** Links. */
   @Accessors(fluent = true)
   public static class Links {
-
     private static final String SITE_PLACEHOLDER = "{site}";
 
     private final String baseUrl;
+
     private final Map<String, String> urlForResource;
 
     Links(String publicUrl, String publicBasePath, @NonNull Map<String, String> publicR4Link) {
@@ -69,12 +70,15 @@ public class LinkProperties {
       urlForResource = publicR4Link;
     }
 
-    public String baseUrl(@NonNull String site) {
-      return baseUrl.replace(SITE_PLACEHOLDER, site);
+    /** Create a base URL for Resource and Site. */
+    public String baseUrlForResourceAndSite(@NonNull String resource, @NonNull String site) {
+      return urlForResource
+          .getOrDefault(resource, baseUrlForSite(site))
+          .replace(SITE_PLACEHOLDER, site);
     }
 
-    public String baseUrl(@NonNull String resource, @NonNull String site) {
-      return urlForResource.getOrDefault(resource, baseUrl(site)).replace(SITE_PLACEHOLDER, site);
+    public String baseUrlForSite(@NonNull String site) {
+      return baseUrl.replace(SITE_PLACEHOLDER, site);
     }
 
     public String readUrl(@NonNull String site, @NonNull String resource, @NonNull String id) {
@@ -100,7 +104,7 @@ public class LinkProperties {
      * site placeholder are allowed, in which case substitution is ignored.
      */
     public String resourceUrl(@NonNull String site, @NonNull String resource) {
-      return baseUrl(resource, site) + "/" + resource;
+      return baseUrlForResourceAndSite(resource, site) + "/" + resource;
     }
 
     /**
