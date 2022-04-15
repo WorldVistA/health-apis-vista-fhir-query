@@ -50,7 +50,7 @@ public class CoverageInsuranceBufferCreateForPatientTest {
                 CodeableConcept.builder()
                     .coding(
                         Coding.builder()
-                            .system("urn:oid:2.16.840.1.113883.3.8901.3.1.3558033.608012")
+                            .system("urn:oid:2.16.840.1.113883.3.8901.3.1.3558033.8808001")
                             .code("1")
                             .build()
                             .asList())
@@ -67,7 +67,12 @@ public class CoverageInsuranceBufferCreateForPatientTest {
                         Identifier.builder()
                             .type(
                                 CodeableConcept.builder()
-                                    .coding(Coding.builder().code("MB").build().asList())
+                                    .coding(
+                                        Coding.builder()
+                                            .system("http://terminology.hl7.org/CodeSystem/v2-0203")
+                                            .code("MB")
+                                            .build()
+                                            .asList())
                                     .build())
                             .value("1234")
                             .build()))
@@ -168,6 +173,7 @@ public class CoverageInsuranceBufferCreateForPatientTest {
   private Organization organization(TestContext ctx) {
     return Organization.builder()
         .id("2")
+        .active(Boolean.TRUE)
         .extension(
             Extension.builder()
                 .url(InsuranceBufferDefinitions.get().reimburse().structureDefinition())
