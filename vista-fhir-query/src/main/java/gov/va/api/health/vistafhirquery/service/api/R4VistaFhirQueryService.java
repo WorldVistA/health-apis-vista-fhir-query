@@ -25,6 +25,8 @@ import javax.ws.rs.Path;
             "system/Coverage.write",
             "system/Endpoint.read",
             "system/InsurancePlan.read",
+            "patient/MedicationDispense.read",
+            "patient/MedicationRequest.read",
             "patient/Observation.read",
             "system/Organization.read",
             "offline_access",
@@ -40,6 +42,8 @@ import javax.ws.rs.Path;
             "system/Coverage.write",
             "system/Endpoint.read",
             "system/InsurancePlan.read",
+            "patient/MedicationDispense.read",
+            "patient/MedicationRequest.read",
             "patient/Observation.read",
             "system/Organization.read",
             "offline_access",
@@ -98,6 +102,9 @@ import javax.ws.rs.Path;
                             description = "write coverages"),
                         @OAuthScope(name = "system/Endpoint.read", description = "read endpoints"),
                         @OAuthScope(
+                            name = "patient/MedicationDispense.read",
+                            description = "read medicationDispenses"),
+                        @OAuthScope(
                             name = "patient/MedicationRequest.read",
                             description = "read medicationRequests"),
                         @OAuthScope(
@@ -129,6 +136,9 @@ import javax.ws.rs.Path;
                             name = "system/Coverage.write",
                             description = "write coverages"),
                         @OAuthScope(name = "system/Endpoint.read", description = "read endpoints"),
+                        @OAuthScope(
+                            name = "patient/MedicationDispense.read",
+                            description = "read medicationDispenses"),
                         @OAuthScope(
                             name = "patient/MedicationRequest.read",
                             description = "read medicationRequests"),
