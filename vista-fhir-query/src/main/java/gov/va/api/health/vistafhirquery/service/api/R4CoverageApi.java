@@ -23,7 +23,7 @@ public interface R4CoverageApi {
       summary = "Coverage Create",
       description = "http://hl7.org/fhir/us/carin/StructureDefinition/carin-bb-coverage",
       tags = {"Coverage"})
-  @Path("/hcs/{site}/Coverage")
+  @Path("/hcs/{site}/r4/Coverage")
   @ApiResponses({
     @ApiResponse(responseCode = "201", description = "Record created"),
     @ApiResponse(
@@ -91,7 +91,7 @@ public interface R4CoverageApi {
       summary = "Coverage Read",
       description = "http://hl7.org/fhir/us/carin/StructureDefinition/carin-bb-coverage",
       tags = {"Coverage"})
-  @Path("/hcs/{site}/Coverage/{id}")
+  @Path("/hcs/{site}/r4/Coverage/{id}")
   @ApiResponse(
       responseCode = "200",
       description = "Record found",
@@ -133,7 +133,7 @@ public interface R4CoverageApi {
       summary = "Coverage Search",
       description = "http://hl7.org/fhir/us/carin/StructureDefinition/carin-bb-coverage",
       tags = {"Coverage"})
-  @Path("/hcs/{site}/Coverage")
+  @Path("/hcs/{site}/r4/Coverage")
   @ApiResponse(
       responseCode = "200",
       description = "Record found",

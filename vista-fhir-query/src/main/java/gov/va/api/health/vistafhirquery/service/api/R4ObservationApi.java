@@ -22,7 +22,7 @@ public interface R4ObservationApi {
       description = "http://hl7.org/fhir/us/core/StructureDefinition/us-core-observation-lab",
       tags = {"Observation"})
   @GET
-  @Path("/hcs/{site}/Observation/{id}")
+  @Path("/hcs/{site}/r4/Observation/{id}")
   @ApiResponses({
     @ApiResponse(
         responseCode = "200",
@@ -94,7 +94,7 @@ public interface R4ObservationApi {
       description = "http://hl7.org/fhir/us/core/StructureDefinition/us-core-observation-lab",
       tags = {"Observation"})
   @GET
-  @Path("/hcs/{site}/Observation")
+  @Path("/hcs/{site}/r4/Observation")
   @ApiResponses({
     @ApiResponse(
         responseCode = "200",

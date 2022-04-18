@@ -15,7 +15,7 @@ public interface R4MetadataApi {
       description = "http://hl7.org/fhir/R4/capabilitystatement.html",
       tags = "Metadata")
   @GET
-  @Path("metadata")
+  @Path("/metadata")
   @ApiResponse(
       responseCode = "200",
       description = "Record found",

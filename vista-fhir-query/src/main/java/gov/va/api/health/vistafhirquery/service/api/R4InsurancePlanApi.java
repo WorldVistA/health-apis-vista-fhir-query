@@ -19,7 +19,7 @@ public interface R4InsurancePlanApi {
       summary = "InsurancePlan Read",
       description = "https://www.hl7.org/fhir/insuranceplan.html",
       tags = {"InsurancePlan"})
-  @Path("/hcs/{site}/InsurancePlan/{id}")
+  @Path("/hcs/{site}/r4/InsurancePlan/{id}")
   @ApiResponses({
     @ApiResponse(
         responseCode = "200",
@@ -89,7 +89,7 @@ public interface R4InsurancePlanApi {
       description = "https://www.hl7.org/fhir/insuranceplan.html",
       tags = {"InsurancePlan"})
   @GET
-  @Path("/hcs/{site}/InsurancePlan")
+  @Path("/hcs/{site}/r4/InsurancePlan")
   @ApiResponses({
     @ApiResponse(
         responseCode = "200",

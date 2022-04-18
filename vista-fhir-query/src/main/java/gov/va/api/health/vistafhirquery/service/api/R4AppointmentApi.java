@@ -21,7 +21,7 @@ public interface R4AppointmentApi {
       summary = "Appointment Read",
       description = "https://www.hl7.org/fhir/R4/appointment.html",
       tags = {"Appointment"})
-  @Path("/hcs/{site}/Appointment/{id}")
+  @Path("/hcs/{site}/r4/Appointment/{id}")
   @ApiResponses({
     @ApiResponse(
         responseCode = "200",
@@ -93,7 +93,7 @@ public interface R4AppointmentApi {
       summary = "Appointment Search",
       description = "https://www.hl7.org/fhir/R4/appointment.html",
       tags = {"Appointment"})
-  @Path("/hcs/{site}/Appointment")
+  @Path("/hcs/{site}/r4/Appointment")
   @ApiResponses({
     @ApiResponse(
         responseCode = "200",

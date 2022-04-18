@@ -20,7 +20,7 @@ public interface R4OrganizationApi {
           "https://hl7.org/fhir/us/core/STU4/StructureDefinition-us-core-organization.html",
       tags = {"Organization"})
   @GET
-  @Path("/hcs/{site}/Organization/{id}")
+  @Path("/hcs/{site}/r4/Organization/{id}")
   @ApiResponses({
     @ApiResponse(
         responseCode = "200",
@@ -90,7 +90,7 @@ public interface R4OrganizationApi {
           "https://hl7.org/fhir/us/core/STU4/StructureDefinition-us-core-organization.html",
       tags = {"Organization"})
   @GET
-  @Path("/hcs/{site}/Organization")
+  @Path("/hcs/{site}/r4/Organization")
   @ApiResponses({
     @ApiResponse(
         responseCode = "200",

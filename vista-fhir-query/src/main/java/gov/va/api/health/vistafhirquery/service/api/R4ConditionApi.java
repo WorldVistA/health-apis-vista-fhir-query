@@ -22,7 +22,7 @@ public interface R4ConditionApi {
       description = "http://hl7.org/fhir/us/core/StructureDefinition-us-core-condition.html",
       tags = {"Condition"})
   @GET
-  @Path("/hcs/{site}/Condition/{id}")
+  @Path("/hcs/{site}/r4/Condition/{id}")
   @ApiResponses({
     @ApiResponse(
         responseCode = "200",
@@ -94,7 +94,7 @@ public interface R4ConditionApi {
       description = "http://www.hl7.org/fhir/us/core/StructureDefinition-us-core-condition.html",
       tags = {"Condition"})
   @GET
-  @Path("/hcs/{site}/Condition")
+  @Path("/hcs/{site}/r4/Condition")
   @ApiResponses({
     @ApiResponse(
         responseCode = "200",
