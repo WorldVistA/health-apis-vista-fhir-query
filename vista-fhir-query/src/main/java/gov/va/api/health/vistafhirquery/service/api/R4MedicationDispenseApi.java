@@ -93,7 +93,7 @@ public interface R4MedicationDispenseApi {
   @Operation(
       summary = "Medication Dispense Search",
       description = "https://www.hl7.org/fhir/medicationdispense.html",
-      tags = {"Medication Dispense"})
+      tags = {"MedicationDispense"})
   @Path("/hcs/{site}/r4/MedicationDispense")
   @ApiResponses({
     @ApiResponse(
