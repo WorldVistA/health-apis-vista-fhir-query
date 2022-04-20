@@ -1,5 +1,6 @@
 package gov.va.api.health.vistafhirquery.service.controller.coverage;
 
+import static gov.va.api.health.vistafhirquery.service.controller.coverage.CoverageStructureDefinitions.COVERAGE_CLASS_CODE_SYSTEM;
 import static gov.va.api.health.vistafhirquery.service.controller.coverage.CoverageStructureDefinitions.SUBSCRIBER_RELATIONSHIP_CODE_SYSTEM;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
@@ -20,6 +21,7 @@ import gov.va.api.health.r4.api.resources.Organization;
 import gov.va.api.health.vistafhirquery.service.controller.FilemanFactoryRegistry;
 import gov.va.api.health.vistafhirquery.service.controller.FilemanIndexRegistry;
 import gov.va.api.health.vistafhirquery.service.controller.RequestPayloadExceptions.EndDateOccursBeforeStartDate;
+import gov.va.api.health.vistafhirquery.service.controller.RequestPayloadExceptions.InvalidContainedResource;
 import gov.va.api.health.vistafhirquery.service.controller.RequestPayloadExceptions.InvalidStringLengthInclusively;
 import gov.va.api.health.vistafhirquery.service.controller.RequestPayloadExceptions.MissingRequiredField;
 import gov.va.api.health.vistafhirquery.service.controller.RequestPayloadExceptions.UnexpectedNumberOfValues;
@@ -27,6 +29,7 @@ import gov.va.api.health.vistafhirquery.service.controller.RequestPayloadExcepti
 import gov.va.api.health.vistafhirquery.service.controller.coverage.R4CoverageToInsuranceBufferTransformer.ContainedInsurancePlanTransformer;
 import gov.va.api.lighthouse.charon.models.lhslighthouserpcgateway.InsuranceVerificationProcessor;
 import gov.va.api.lighthouse.charon.models.lhslighthouserpcgateway.LhsLighthouseRpcGatewayCoverageWrite.WriteableFilemanValue;
+import java.time.Instant;
 import java.util.List;
 import java.util.stream.Stream;
 import org.junit.jupiter.api.Test;
@@ -105,9 +108,11 @@ public class R4CoverageToInsuranceBufferTransformerTest {
   }
 
   private R4CoverageToInsuranceBufferTransformer _transformer() {
-    return R4CoverageToInsuranceBufferTransformer.builder()
-        .coverage(CoverageSamples.R4.create().coverageInsuranceBufferRead("p1", "123", "c1"))
-        .build();
+    return _transformer(CoverageSamples.R4.create().coverageInsuranceBufferRead("p1", "123", "c1"));
+  }
+
+  private R4CoverageToInsuranceBufferTransformer _transformer(Coverage coverage) {
+    return R4CoverageToInsuranceBufferTransformer.builder().coverage(coverage).build();
   }
 
   @Test
@@ -334,6 +339,13 @@ public class R4CoverageToInsuranceBufferTransformerTest {
                         List.of(Address.builder().build(), Address.builder().build())));
   }
 
+  @Test
+  void effectiveAndExpirationDateAreSame() {
+    var date = Instant.now();
+    var period = Period.builder().start(date.toString()).end(date.toString()).build();
+    assertThat(_transformer().effectiveAndExpirationDate(period)).hasSize(2);
+  }
+
   @ParameterizedTest
   @MethodSource
   void effectiveAndExpirationDateValidation(Period sample, Class<Throwable> isThrown) {
@@ -400,6 +412,35 @@ public class R4CoverageToInsuranceBufferTransformerTest {
             () ->
                 _transformer()
                     .insuranceCompanyName("0123456789101112131415161718192021222324252627282930"));
+  }
+
+  @Test
+  void insurancePlan() {
+    /* Missing field. */
+    assertThatExceptionOfType(MissingRequiredField.class)
+        .isThrownBy(() -> _transformer().insurancePlan(null));
+    assertThatExceptionOfType(MissingRequiredField.class)
+        .isThrownBy(() -> _transformer().insurancePlan(List.of()));
+    /* Too manies. */
+    var coverageClass =
+        Coverage.CoverageClass.builder()
+            .type(
+                CodeableConcept.builder()
+                    .coding(
+                        Coding.builder()
+                            .system(COVERAGE_CLASS_CODE_SYSTEM)
+                            .code("group")
+                            .build()
+                            .asList())
+                    .build())
+            .build();
+    assertThatExceptionOfType(UnexpectedNumberOfValues.class)
+        .isThrownBy(() -> _transformer().insurancePlan(List.of(coverageClass, coverageClass)));
+    /* Invalid contained InsurancePlan. */
+    var coverage = CoverageSamples.R4.create().coverageInsuranceBufferRead("p1", "123", "c1");
+    ((InsurancePlan) coverage.contained().get(0)).identifier(null);
+    assertThatExceptionOfType(InvalidContainedResource.class)
+        .isThrownBy(() -> _transformer(coverage).insurancePlan(coverage.coverageClass()));
   }
 
   @ParameterizedTest

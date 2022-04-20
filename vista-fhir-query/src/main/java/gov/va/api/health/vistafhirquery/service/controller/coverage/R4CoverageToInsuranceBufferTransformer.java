@@ -266,7 +266,7 @@ public class R4CoverageToInsuranceBufferTransformer {
                         .dataType("http://hl7.org/fhir/R4/datatypes.html#dateTime")
                         .valueReceived(period.end())
                         .build());
-    if (!endDateTime.isAfter(startInstant.get())) {
+    if (startInstant.get().isAfter(endDateTime)) {
       throw EndDateOccursBeforeStartDate.builder().jsonPath(".period").build();
     }
     var endDate = parseFilemanDateIgnoringTime(endDateTime);
