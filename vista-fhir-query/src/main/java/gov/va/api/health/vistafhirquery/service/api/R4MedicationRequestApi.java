@@ -21,7 +21,7 @@ public interface R4MedicationRequestApi {
       summary = "Medication Request Read",
       description = "http://hl7.org/fhir/us/core/StructureDefinition/us-core-medicationrequest",
       tags = {"MedicationRequest"})
-  @Path("/hcs/{site}/r4/MedicationRequest/{id}")
+  @Path("/MedicationRequest/{id}")
   @ApiResponses({
     @ApiResponse(
         responseCode = "200",
@@ -93,7 +93,7 @@ public interface R4MedicationRequestApi {
       summary = "Medication Request Search",
       description = "http://hl7.org/fhir/us/core/StructureDefinition/us-core-medicationrequest",
       tags = {"MedicationRequest"})
-  @Path("/hcs/{site}/r4/MedicationRequest")
+  @Path("/MedicationRequest")
   @ApiResponses({
     @ApiResponse(
         responseCode = "200",

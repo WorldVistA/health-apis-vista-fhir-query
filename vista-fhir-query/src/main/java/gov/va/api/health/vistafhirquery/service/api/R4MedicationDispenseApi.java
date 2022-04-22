@@ -22,7 +22,7 @@ public interface R4MedicationDispenseApi {
       summary = "Medication Dispense Read",
       description = "https://www.hl7.org/fhir/medicationdispense.html",
       tags = {"MedicationDispense"})
-  @Path("/hcs/{site}/r4/MedicationDispense/{id}")
+  @Path("/MedicationDispense/{id}")
   @ApiResponses({
     @ApiResponse(
         responseCode = "200",
@@ -94,7 +94,7 @@ public interface R4MedicationDispenseApi {
       summary = "Medication Dispense Search",
       description = "https://www.hl7.org/fhir/medicationdispense.html",
       tags = {"MedicationDispense"})
-  @Path("/hcs/{site}/r4/MedicationDispense")
+  @Path("/MedicationDispense")
   @ApiResponses({
     @ApiResponse(
         responseCode = "200",
