@@ -141,7 +141,7 @@
                 <argument>-Dvista-fhir-query.rpc-principals.file=${project.basedir}/src/test/resources/principals.json</argument>
                 <argument>-Dvista-fhir-query.internal.client-keys=~shanktopus~</argument>
                 <argument>-Dvista-fhir-query.public-web-exception-key=-shanktopus-for-the-win-</argument>
-                <argument>-Dvista-fhir-query.mfq-base-url=http://localhost:8096</argument>
+                <argument>-Dclient.mpi-fhir-query.base-url=http://localhost:8096</argument>
                 <argument>-Dids-client.encoded-ids.i2-enabled=false</argument>
                 <argument>-Dids-client.encoded-ids.i3-enabled=true</argument>
                 <argument>-Dids-client.encoded-ids.encoding-key=fhir-query</argument>
