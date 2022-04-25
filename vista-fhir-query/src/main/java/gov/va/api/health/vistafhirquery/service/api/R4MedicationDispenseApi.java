@@ -76,6 +76,7 @@ public interface R4MedicationDispenseApi {
   MedicationDispense medicationDispenseRead(
       @Parameter(hidden = true) HttpServletRequest request,
       @Parameter(
+              hidden = true,
               in = ParameterIn.PATH,
               name = "site",
               required = true,
@@ -148,6 +149,7 @@ public interface R4MedicationDispenseApi {
   MedicationDispense.Bundle medicationDispenseSearch(
       @Parameter(hidden = true) HttpServletRequest request,
       @Parameter(
+              hidden = true,
               in = ParameterIn.PATH,
               name = "site",
               required = true,

@@ -75,6 +75,7 @@ public interface R4MedicationRequestApi {
   MedicationRequest medicationRequestRead(
       @Parameter(hidden = true) HttpServletRequest request,
       @Parameter(
+              hidden = true,
               in = ParameterIn.PATH,
               name = "site",
               required = true,
@@ -147,6 +148,7 @@ public interface R4MedicationRequestApi {
   MedicationRequest.Bundle medicationRequestSearch(
       @Parameter(hidden = true) HttpServletRequest request,
       @Parameter(
+              hidden = true,
               in = ParameterIn.PATH,
               name = "site",
               required = true,

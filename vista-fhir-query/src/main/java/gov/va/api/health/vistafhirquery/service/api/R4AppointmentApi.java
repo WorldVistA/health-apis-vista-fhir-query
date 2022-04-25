@@ -75,6 +75,7 @@ public interface R4AppointmentApi {
   Appointment appointmentRead(
       @Parameter(hidden = true) HttpServletRequest request,
       @Parameter(
+              hidden = true,
               in = ParameterIn.PATH,
               name = "site",
               required = true,
@@ -144,6 +145,7 @@ public interface R4AppointmentApi {
   Appointment.Bundle appointmentSearch(
       @Parameter(hidden = true) HttpServletRequest request,
       @Parameter(
+              hidden = true,
               in = ParameterIn.PATH,
               name = "site",
               required = true,

@@ -75,6 +75,7 @@ public interface R4ObservationApi {
   })
   Observation observationRead(
       @Parameter(
+              hidden = true,
               in = ParameterIn.PATH,
               name = "site",
               required = true,
@@ -148,6 +149,7 @@ public interface R4ObservationApi {
   Observation.Bundle observationSearch(
       @Parameter(hidden = true) HttpServletRequest request,
       @Parameter(
+              hidden = true,
               in = ParameterIn.PATH,
               name = "site",
               required = true,

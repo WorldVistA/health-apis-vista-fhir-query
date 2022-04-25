@@ -75,6 +75,7 @@ public interface R4ConditionApi {
   })
   Condition conditionRead(
       @Parameter(
+              hidden = true,
               in = ParameterIn.PATH,
               name = "site",
               required = true,
@@ -148,6 +149,7 @@ public interface R4ConditionApi {
   Condition.Bundle conditionSearch(
       @Parameter(hidden = true) HttpServletRequest request,
       @Parameter(
+              hidden = true,
               in = ParameterIn.PATH,
               name = "site",
               required = true,
