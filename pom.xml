@@ -7,7 +7,7 @@
     <version>11.0.0</version>
   </parent>
   <artifactId>vista-fhir-query-parent</artifactId>
-  <version>2.0.180</version>
+  <version>2.0.181-SNAPSHOT</version>
   <packaging>pom</packaging>
   <properties>
     <github.repository-name>health-apis-vista-fhir-query</github.repository-name>
