@@ -4,13 +4,14 @@
   <parent>
     <groupId>gov.va.api.health</groupId>
     <artifactId>service-starter</artifactId>
-    <version>10.0.1</version>
+    <version>11.0.0</version>
     <relativePath/>
   </parent>
   <artifactId>vista-fhir-query</artifactId>
   <version>2.0.180-SNAPSHOT</version>
   <packaging>jar</packaging>
   <properties>
+    <github.repository-name>health-apis-vista-fhir-query</github.repository-name>
     <charon.version>6.0.5</charon.version>
     <docker.organization>ghcr.io/department-of-veterans-affairs</docker.organization>
     <fhir-resources.version>11.0.2</fhir-resources.version>
