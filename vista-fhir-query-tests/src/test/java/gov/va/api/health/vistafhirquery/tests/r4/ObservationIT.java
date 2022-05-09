@@ -95,14 +95,6 @@ public class ObservationIT {
   }
 
   @Test
-  void searchNotMe() {
-    assumeEnvironmentNotIn(Environment.LOCAL);
-    verifier.verify(
-        verifier.test(
-            403, OperationOutcome.class, "Observation?patient={patient}", testIds.unknown()));
-  }
-
-  @Test
   void searchVitalSign() {
     assumeEnvironmentNotIn(Environment.STAGING);
     verifier.verifyAll(
