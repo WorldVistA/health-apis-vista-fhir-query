@@ -15,13 +15,23 @@ public class MedicationDispenseId {
   @NonNull String fillDate;
 
   private MedicationDispenseId(String privateId) {
-    var colon = privateId.lastIndexOf(':');
-    if (colon == -1 || colon == privateId.length() - 1) {
+    /*
+     * colon is not compliant with FHIR ID characters when using clear IDs. We'll retain parsing it
+     * for backwards compatibility.
+     *
+     * This class is dumb. I hate it very much.
+     */
+    var whyIsThisNotJustPartOfSegmentIdDelimiter = privateId.lastIndexOf(':');
+    if (whyIsThisNotJustPartOfSegmentIdDelimiter == -1) {
+      whyIsThisNotJustPartOfSegmentIdDelimiter = privateId.lastIndexOf('.');
+    }
+    if (whyIsThisNotJustPartOfSegmentIdDelimiter == -1
+        || whyIsThisNotJustPartOfSegmentIdDelimiter == privateId.length() - 1) {
       throw new MalformedId("Missing fill date: " + privateId);
     }
-    var extractedVistaId = privateId.substring(0, colon);
+    var extractedVistaId = privateId.substring(0, whyIsThisNotJustPartOfSegmentIdDelimiter);
     this.vistaId = SegmentedVistaIdentifier.unpack(extractedVistaId);
-    this.fillDate = privateId.substring(colon + 1);
+    this.fillDate = privateId.substring(whyIsThisNotJustPartOfSegmentIdDelimiter + 1);
   }
 
   public static MedicationDispenseId fromString(@NonNull String privateId) {
@@ -30,7 +40,7 @@ public class MedicationDispenseId {
 
   @Override
   public String toString() {
-    return vistaId().pack() + ":" + fillDate();
+    return vistaId().pack() + "." + fillDate();
   }
 
   public static class MalformedId extends RuntimeException {

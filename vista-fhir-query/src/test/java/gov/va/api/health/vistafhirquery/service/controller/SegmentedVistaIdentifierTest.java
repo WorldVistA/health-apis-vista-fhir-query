@@ -9,6 +9,7 @@ import gov.va.api.health.ids.api.ResourceIdentity;
 import gov.va.api.health.ids.client.IdsClientProperties;
 import gov.va.api.health.ids.client.IdsClientProperties.EncodedIdsFormatProperties;
 import gov.va.api.health.ids.client.RestIdentityServiceClientConfig;
+import gov.va.api.health.r4.api.Fhir;
 import gov.va.api.health.vistafhirquery.idsmapping.VistaFhirQueryIdsCodebookSupplier;
 import gov.va.api.health.vistafhirquery.service.controller.SegmentedVistaIdentifier.FormatCompressedAppointment;
 import gov.va.api.health.vistafhirquery.service.controller.SegmentedVistaIdentifier.PatientIdentifierType;
@@ -16,6 +17,7 @@ import gov.va.api.health.vistafhirquery.service.controller.SegmentedVistaIdentif
 import gov.va.api.lighthouse.charon.models.vprgetpatientdata.VprGetPatientData;
 import gov.va.api.lighthouse.charon.models.vprgetpatientdata.VprGetPatientData.Domains;
 import java.util.List;
+import java.util.regex.Pattern;
 import java.util.stream.Stream;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -62,7 +64,7 @@ public class SegmentedVistaIdentifierTest {
                 .vprRpcDomain(Domains.vitals)
                 .recordId("CH;6929384.839997;14")
                 .build(),
-            "sN1011537977V693883+673+VCH;6929384.839997;14"),
+            "sN1011537977V693883-673-VCH;6929384.839997;14"),
         arguments(
             SegmentedVistaIdentifier.builder()
                 .patientIdentifierType(PatientIdentifierType.VISTA_PATIENT_FILE_ID)
@@ -71,7 +73,7 @@ public class SegmentedVistaIdentifierTest {
                 .vprRpcDomain(Domains.labs)
                 .recordId("CH;6929384.839997;14")
                 .build(),
-            "sD1011537977V693883+673+LCH;6929384.839997;14"),
+            "sD1011537977V693883-673-LCH;6929384.839997;14"),
         arguments(
             SegmentedVistaIdentifier.builder()
                 .patientIdentifierType(PatientIdentifierType.NATIONAL_ICN)
@@ -80,7 +82,7 @@ public class SegmentedVistaIdentifierTest {
                 .vprRpcDomain(Domains.labs)
                 .recordId("CH;6929384.839997;14")
                 .build(),
-            "sN1011537977V693883+673a+LCH;6929384.839997;14"),
+            "sN1011537977V693883-673a-LCH;6929384.839997;14"),
         arguments(
             SegmentedVistaIdentifier.builder()
                 .patientIdentifierType(PatientIdentifierType.NATIONAL_ICN)
@@ -89,7 +91,7 @@ public class SegmentedVistaIdentifierTest {
                 .vprRpcDomain(Domains.labs)
                 .recordId("XH;6929384.839997;14")
                 .build(),
-            "sN1011537977V693883+673+LXH;6929384.839997;14"),
+            "sN1011537977V693883-673-LXH;6929384.839997;14"),
         arguments(
             SegmentedVistaIdentifier.builder()
                 .patientIdentifierType(PatientIdentifierType.NATIONAL_ICN)
@@ -98,7 +100,7 @@ public class SegmentedVistaIdentifierTest {
                 .vprRpcDomain(Domains.labs)
                 .recordId("CH;6929384.839997;14")
                 .build(),
-            "sNa1011537977V693883+673+LCH;6929384.839997;14"));
+            "sNa1011537977V693883-673-LCH;6929384.839997;14"));
   }
 
   @Test
@@ -117,6 +119,26 @@ public class SegmentedVistaIdentifierTest {
     assertThat(unpack(compacted)).isEqualTo(sample);
   }
 
+  @ParameterizedTest
+  @ValueSource(
+      strings = {
+        "H;6929384.839997;14",
+        "ABC:123",
+        "xIS-RESTOREx",
+        "?!@#$%^&*",
+        "(){}[]<>",
+        "~-+:;?/|\\"
+      })
+  void fhirCompliantCharacters(String unsafe) {
+    Pattern safePattern = Pattern.compile(Fhir.ID);
+    var hopefullySafe = FhirCompliantCharacters.encodeNonCompliantCharacters(unsafe);
+    assertThat(safePattern.matcher(hopefullySafe).matches())
+        .withFailMessage("Unsafe conversion: %s -> %s", unsafe, hopefullySafe)
+        .isTrue();
+    var roundTrip = FhirCompliantCharacters.decodeNonCompliantCharacters(hopefullySafe);
+    assertThat(roundTrip).isEqualTo(unsafe);
+  }
+
   @Test
   void formatOfToString() {
     assertThat(
@@ -125,10 +147,10 @@ public class SegmentedVistaIdentifierTest {
                 .patientIdentifier("icn")
                 .siteId("siteId")
                 .vprRpcDomain(VprGetPatientData.Domains.vitals)
-                .recordId("vistaId")
+                .recordId("vista-id")
                 .build()
                 .toString())
-        .isEqualTo("Nicn+siteId+VvistaId");
+        .isEqualTo("Nicn-siteId-Vvista-id");
   }
 
   @SuppressWarnings("ResultOfMethodCallIgnored")
@@ -270,11 +292,24 @@ public class SegmentedVistaIdentifierTest {
                 .recordId("vistaId")
                 .build()
                 .pack())
-        .isEqualTo("sNicn+siteId+VvistaId");
+        .isEqualTo("sNicn-siteId-VvistaId");
   }
 
   @Test
   void parseIdSuccessfully() {
+    assertThat(unpack("Nicn-siteId-LvistaId"))
+        .isEqualTo(
+            SegmentedVistaIdentifier.builder()
+                .patientIdentifierType(SegmentedVistaIdentifier.PatientIdentifierType.NATIONAL_ICN)
+                .patientIdentifier("icn")
+                .siteId("siteId")
+                .vprRpcDomain(VprGetPatientData.Domains.labs)
+                .recordId("vistaId")
+                .build());
+  }
+
+  @Test
+  void parseIdSuccessfullyBackwardsCompatible() {
     assertThat(unpack("Nicn+siteId+LvistaId"))
         .isEqualTo(
             SegmentedVistaIdentifier.builder()
@@ -288,7 +323,18 @@ public class SegmentedVistaIdentifierTest {
 
   @ParameterizedTest
   @ValueSource(
-      strings = {"x+123+Vabc", "+123+abc", "123", "123+abc", "D123+abc+V456+def", "D123+abc+x"})
+      strings = {
+        "x+123+Vabc",
+        "+123+abc",
+        "123",
+        "123+abc",
+        "D123+abc+x",
+        "x-123-Vabc",
+        "-123-abc",
+        "123",
+        "123-abc",
+        "D123-abc-x"
+      })
   void parseInvalidSegmentThrowsIllegalArgument(String segment) {
     assertThatExceptionOfType(IllegalArgumentException.class).isThrownBy(() -> unpack(segment));
   }

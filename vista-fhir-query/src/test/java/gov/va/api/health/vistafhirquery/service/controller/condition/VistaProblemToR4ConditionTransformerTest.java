@@ -149,7 +149,7 @@ public class VistaProblemToR4ConditionTransformerTest {
   void idFrom() {
     assertThat(tx().idFrom(null)).isNull();
     assertThat(tx().idFrom(ValueOnlyXmlAttribute.of(""))).isNull();
-    assertThat(tx().idFrom(ValueOnlyXmlAttribute.of("p1"))).isEqualTo("sNp1+123+Pp1");
+    assertThat(tx().idFrom(ValueOnlyXmlAttribute.of("p1"))).isEqualTo("sNp1-123-Pp1");
   }
 
   @Test
@@ -186,7 +186,7 @@ public class VistaProblemToR4ConditionTransformerTest {
                 .toFhir()
                 .findFirst()
                 .get())
-        .isEqualTo(ConditionProblemListSamples.R4.create().condition("sNp1+123+Pp1"));
+        .isEqualTo(ConditionProblemListSamples.R4.create().condition("sNp1-123-Pp1"));
   }
 
   private VistaProblemToR4ConditionTransformer tx() {

@@ -12,7 +12,7 @@ import org.junit.jupiter.params.provider.MethodSource;
 
 public class MedicationDispenseIdTest {
   static Stream<Arguments> formatOfToString() {
-    return Stream.of(Arguments.of("sNp1+673+M33714:3110507", "sNp1+673+M33714:3110507"));
+    return Stream.of(Arguments.of("sNp1-673-M33714:3110507", "sNp1-673-M33714.3110507"));
   }
 
   @ParameterizedTest
@@ -24,14 +24,14 @@ public class MedicationDispenseIdTest {
 
   @Test
   void fromStringParsesFillDate() {
-    var medicationDispenseId = MedicationDispenseId.fromString("sNp1+673+M33714:3110507");
-    assertThat(medicationDispenseId.vistaId().toString()).isEqualTo("Np1+673+M33714");
+    var medicationDispenseId = MedicationDispenseId.fromString("sNp1-673-M33714.3110507");
+    assertThat(medicationDispenseId.vistaId().toString()).isEqualTo("Np1-673-M33714");
     assertThat(medicationDispenseId.fillDate()).isEqualTo("3110507");
   }
 
   @Test
   void fromStringThrowsIfMissingFillDate() {
     assertThatExceptionOfType(MalformedId.class)
-        .isThrownBy(() -> MedicationDispenseId.fromString("sNp1+673+M33714"));
+        .isThrownBy(() -> MedicationDispenseId.fromString("sNp1-673-M33714"));
   }
 }

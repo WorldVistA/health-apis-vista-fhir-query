@@ -54,7 +54,7 @@ public class MedicationDispenseSamples {
     }
 
     public MedicationDispense medicationDispense() {
-      return medicationDispense("sNp1+673+M33714:3110507");
+      return medicationDispense("sNp1-673-M33714.3110507");
     }
 
     public MedicationDispense medicationDispense(String id) {
@@ -101,7 +101,7 @@ public class MedicationDispenseSamples {
                   .build()
                   .asList())
           .authorizingPrescription(
-              toReference("MedicationRequest", "sNp1+673+M33714", null).asList())
+              toReference("MedicationRequest", "sNp1-673-M33714", null).asList())
           .extension(
               Extension.builder()
                   .url(

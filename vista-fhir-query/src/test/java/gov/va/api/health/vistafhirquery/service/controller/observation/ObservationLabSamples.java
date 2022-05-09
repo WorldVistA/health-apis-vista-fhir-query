@@ -63,7 +63,7 @@ public class ObservationLabSamples {
     }
 
     Observation observation() {
-      return observation("673", "sNp1+673+LCH;6899283.889996;741");
+      return observation("673", "sNp1-673-LCH;6899283.889996;741");
     }
 
     Observation observation(String site, String id) {

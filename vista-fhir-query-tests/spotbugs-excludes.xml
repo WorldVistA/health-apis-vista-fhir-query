@@ -1,4 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <FindBugsFilter>
-  <!-- Exclusions can be defined here and should include a comment on why the finding can be ignored -->
+  <!-- This not a hard coded password... it's not even a password. And it's dynamically determined from system properties. -->
+  <Match>
+    <Or>
+      <Class name="gov.va.api.health.vistafhirquery.tests.SystemDefinitions"/>
+    </Or>
+    <Bug pattern="HARD_CODE_PASSWORD"/>
+  </Match>
 </FindBugsFilter>

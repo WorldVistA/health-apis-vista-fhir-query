@@ -390,7 +390,7 @@ public class R4SiteConditionControllerTest {
             .results(ConditionEncounterDiagnosisSamples.Vista.create().visit());
     when(charonClient.request(any(CharonRequest.class)))
         .thenReturn(charonResponseFor(charonRequest, charonResponse));
-    witnessProtection.add("con1", "sNp1+123+TT;2931013.07;23:391.2");
+    witnessProtection.add("con1", "sNp1-123-TT;2931013.07;23-391.2");
     var actual = _controller().conditionRead("123", "con1");
     assertThat(json(actual))
         .isEqualTo(json(ConditionEncounterDiagnosisSamples.R4.create().condition()));
@@ -411,7 +411,7 @@ public class R4SiteConditionControllerTest {
             .results(ConditionEncounterDiagnosisSamples.Vista.create().visit());
     when(charonClient.request(any(CharonRequest.class)))
         .thenReturn(charonResponseFor(charonRequest, charonResponse));
-    witnessProtection.add("con1", "sNp1+123+TT;2931013.07;23:391.2");
+    witnessProtection.add("con1", "sNp1-123-TT;2931013.07;23-391.2");
     var actual =
         _controller()
             .conditionSearch(request, "123", null, "con1", null, null, null, null, null, 15);

@@ -102,7 +102,7 @@ public class VprVisitToR4ConditionTransformerTest {
   void idFrom() {
     assertThat(tx().idFrom(null, "100")).isNull();
     assertThat(tx().idFrom("p1", "")).isNull();
-    assertThat(tx().idFrom("p1", "100.1")).isEqualTo("sNp1+123+Tp1:100.1");
+    assertThat(tx().idFrom("p1", "100.1")).isEqualTo("sNp1-123-Tp1-100.1");
   }
 
   @Test
@@ -121,7 +121,7 @@ public class VprVisitToR4ConditionTransformerTest {
                 .toFhir()
                 .findFirst()
                 .get())
-        .isEqualTo(ConditionEncounterDiagnosisSamples.R4.create().condition("sNp1+123+Tv1:391.2"));
+        .isEqualTo(ConditionEncounterDiagnosisSamples.R4.create().condition("sNp1-123-Tv1-391.2"));
   }
 
   private VprVisitToR4ConditionTransformer tx() {

@@ -57,7 +57,7 @@ public class MedicationRequestSamples {
     }
 
     public MedicationRequest medicationRequest() {
-      return medicationRequest("sNp1+673+M33714");
+      return medicationRequest("sNp1-673-M33714");
     }
 
     public MedicationRequest medicationRequest(String id) {

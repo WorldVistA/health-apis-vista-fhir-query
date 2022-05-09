@@ -78,7 +78,7 @@ public class R4AppointmentTransformerTest {
   void idFrom() {
     assertThat(tx().idFrom(null)).isNull();
     assertThat(tx().idFrom("")).isNull();
-    assertThat(tx().idFrom("p1")).isEqualTo("sNp1+123+Ap1");
+    assertThat(tx().idFrom("p1")).isEqualTo("sNp1-123-Ap1");
   }
 
   @ParameterizedTest

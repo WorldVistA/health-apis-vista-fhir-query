@@ -75,7 +75,7 @@ public class R4SiteObservationControllerTest {
 
   @Test
   void readIdSiteMismatchThrowsNotFound() {
-    witnessProtection.add("obs1", "sNp1+123+V456");
+    witnessProtection.add("obs1", "sNp1-123-V456");
     assertThatExceptionOfType(NotFound.class)
         .isThrownBy(() -> _controller().observationRead("456", "obs1"));
   }
@@ -88,10 +88,10 @@ public class R4SiteObservationControllerTest {
     var answer =
         answerFor(captor).value(results).invocationResult(_invocationResult(results)).build();
     when(charon.request(captor.capture())).thenAnswer(answer);
-    witnessProtection.add("obs1", "sNp1+123+L456");
+    witnessProtection.add("obs1", "sNp1-123-L456");
     var actual = _controller().observationRead("123", "obs1");
     assertThat(json(actual))
-        .isEqualTo(json(ObservationLabSamples.Fhir.create().observation("123", "sNp1+123+L456")));
+        .isEqualTo(json(ObservationLabSamples.Fhir.create().observation("123", "sNp1-123-L456")));
   }
 
   @Test
@@ -103,14 +103,14 @@ public class R4SiteObservationControllerTest {
     var answer =
         answerFor(captor).value(results).invocationResult(_invocationResult(results)).build();
     when(charon.request(captor.capture())).thenAnswer(answer);
-    witnessProtection.add("obs1", "sNp1+123+V456");
+    witnessProtection.add("obs1", "sNp1-123-V456");
     assertThatExceptionOfType(NotFound.class)
         .isThrownBy(() -> _controller().observationRead("123", "obs1"));
   }
 
   @Test
   void readUnknownIdThrowsNotFound() {
-    witnessProtection.add("obs1", "sNp1+123+V456");
+    witnessProtection.add("obs1", "sNp1-123-V456");
     assertThatExceptionOfType(NotFound.class)
         .isThrownBy(() -> _controller().observationRead("123", "obs2"));
   }
@@ -124,10 +124,10 @@ public class R4SiteObservationControllerTest {
     var answer =
         answerFor(captor).value(results).invocationResult(_invocationResult(results)).build();
     when(charon.request(captor.capture())).thenAnswer(answer);
-    witnessProtection.add("obs1", "sNp1+123+V456");
+    witnessProtection.add("obs1", "sNp1-123-V456");
     var actual = _controller().observationRead("123", "obs1");
     assertThat(json(actual))
-        .isEqualTo(json(ObservationVitalSamples.Fhir.create().weight("123", "sNp1+123+V456")));
+        .isEqualTo(json(ObservationVitalSamples.Fhir.create().weight("123", "sNp1-123-V456")));
   }
 
   @Test
@@ -140,13 +140,13 @@ public class R4SiteObservationControllerTest {
     var answer =
         answerFor(captor).value(results).invocationResult(_invocationResult(results)).build();
     when(charon.request(captor.capture())).thenAnswer(answer);
-    witnessProtection.add("obs1", "sNp1+123+V456");
+    witnessProtection.add("obs1", "sNp1-123-V456");
     var actual =
         _controller().observationSearch(request, "123", null, "obs1", null, null, null, null, 15);
     var expected =
         ObservationVitalSamples.Fhir.asBundle(
             "http://fugazi.com/hcs/123/r4",
-            List.of(ObservationVitalSamples.Fhir.create().bloodPressure("123", "sNp1+123+V456")),
+            List.of(ObservationVitalSamples.Fhir.create().bloodPressure("123", "sNp1-123-V456")),
             1,
             ObservationVitalSamples.Fhir.link(
                 BundleLink.LinkRelation.self,
@@ -165,13 +165,13 @@ public class R4SiteObservationControllerTest {
     var answer =
         answerFor(captor).value(results).invocationResult(_invocationResult(results)).build();
     when(charon.request(captor.capture())).thenAnswer(answer);
-    witnessProtection.add("obs1", "sNp1+123+V456");
+    witnessProtection.add("obs1", "sNp1-123-V456");
     var actual =
         _controller().observationSearch(request, "123", null, null, "obs1", null, null, null, 15);
     var expected =
         ObservationVitalSamples.Fhir.asBundle(
             "http://fugazi.com/hcs/123/r4",
-            List.of(ObservationVitalSamples.Fhir.create().bloodPressure("123", "sNp1+123+V456")),
+            List.of(ObservationVitalSamples.Fhir.create().bloodPressure("123", "sNp1-123-V456")),
             1,
             ObservationVitalSamples.Fhir.link(
                 BundleLink.LinkRelation.self,
@@ -202,10 +202,10 @@ public class R4SiteObservationControllerTest {
         ObservationVitalSamples.Fhir.asBundle(
             "http://fugazi.com/hcs/123/r4",
             List.of(
-                ObservationVitalSamples.Fhir.create().weight("123", "sNp1+123+V789"),
-                ObservationVitalSamples.Fhir.create().bloodPressure("123", "sNp1+123+V456"),
+                ObservationVitalSamples.Fhir.create().weight("123", "sNp1-123-V789"),
+                ObservationVitalSamples.Fhir.create().bloodPressure("123", "sNp1-123-V456"),
                 ObservationLabSamples.Fhir.create()
-                    .observation("123", "sNp1+123+LCH;6899283.889996;741")),
+                    .observation("123", "sNp1-123-LCH;6899283.889996;741")),
             3,
             ObservationVitalSamples.Fhir.link(
                 BundleLink.LinkRelation.self,
@@ -238,7 +238,7 @@ public class R4SiteObservationControllerTest {
             "http://fugazi.com/hcs/123/r4",
             List.of(
                 ObservationLabSamples.Fhir.create()
-                    .observation("123", "sNp1+123+LCH;6899283.889996;741")),
+                    .observation("123", "sNp1-123-LCH;6899283.889996;741")),
             1,
             ObservationVitalSamples.Fhir.link(
                 BundleLink.LinkRelation.self,
@@ -270,8 +270,8 @@ public class R4SiteObservationControllerTest {
         ObservationVitalSamples.Fhir.asBundle(
             "http://fugazi.com/hcs/123/r4",
             List.of(
-                ObservationVitalSamples.Fhir.create().weight("123", "sNp1+123+V789"),
-                ObservationVitalSamples.Fhir.create().bloodPressure("123", "sNp1+123+V456")),
+                ObservationVitalSamples.Fhir.create().weight("123", "sNp1-123-V789"),
+                ObservationVitalSamples.Fhir.create().bloodPressure("123", "sNp1-123-V456")),
             2,
             ObservationVitalSamples.Fhir.link(
                 BundleLink.LinkRelation.self,
@@ -303,8 +303,8 @@ public class R4SiteObservationControllerTest {
         ObservationVitalSamples.Fhir.asBundle(
             "http://fugazi.com/hcs/123/r4",
             List.of(
-                ObservationVitalSamples.Fhir.create().weight("123", "sNp1+123+V789"),
-                ObservationVitalSamples.Fhir.create().bloodPressure("123", "sNp1+123+V456")),
+                ObservationVitalSamples.Fhir.create().weight("123", "sNp1-123-V789"),
+                ObservationVitalSamples.Fhir.create().bloodPressure("123", "sNp1-123-V456")),
             2,
             ObservationVitalSamples.Fhir.link(
                 BundleLink.LinkRelation.self,

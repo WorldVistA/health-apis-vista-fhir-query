@@ -14,12 +14,16 @@ import gov.va.api.health.ids.api.PublicToPrivateIdTransformation;
 import gov.va.api.health.ids.api.Registration;
 import gov.va.api.health.ids.api.ResourceIdentity;
 import gov.va.api.health.ids.client.IdEncoder;
+import gov.va.api.health.ids.client.IdEncoder.BadId;
+import gov.va.api.health.r4.api.Fhir;
 import gov.va.api.health.r4.api.bundle.AbstractBundle;
 import gov.va.api.health.r4.api.bundle.AbstractEntry;
 import gov.va.api.health.r4.api.resources.Resource;
+import gov.va.api.health.vistafhirquery.service.controller.FhirCompliantCharacters;
 import gov.va.api.health.vistafhirquery.service.controller.RequestPayloadExceptions.EmptyRequestPayload;
 import gov.va.api.health.vistafhirquery.service.controller.ResourceExceptions;
 import gov.va.api.health.vistafhirquery.service.controller.ResourceExceptions.NotFound;
+import gov.va.api.health.vistafhirquery.service.controller.SegmentedVistaIdentifier;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 import java.util.List;
@@ -28,9 +32,11 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.function.BiConsumer;
 import java.util.function.Function;
+import java.util.regex.Pattern;
 import java.util.stream.Stream;
 import lombok.Builder;
 import lombok.NonNull;
+import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
 import lombok.Value;
 import lombok.extern.slf4j.Slf4j;
@@ -60,6 +66,8 @@ public class WitnessProtectionAdvice extends IdentitySubstitution<ProtectedRefer
 
   private final Map<Type, WitnessProtectionAgent<?>> agents;
 
+  private boolean clearIds;
+
   /** Create a new instance. */
   @Builder
   @Autowired
@@ -67,12 +75,19 @@ public class WitnessProtectionAdvice extends IdentitySubstitution<ProtectedRefer
       @NonNull ProtectedReferenceFactory protectedReferenceFactory,
       @NonNull AlternatePatientIds alternatePatientIds,
       @NonNull IdentityService identityService,
-      List<WitnessProtectionAgent<?>> availableAgents) {
-    super(identityService, ProtectedReference::asResourceIdentity, NotFound::new);
+      List<WitnessProtectionAgent<?>> availableAgents,
+      @org.springframework.beans.factory.annotation.Value("${vista-fhir-query.clear-ids:false}")
+          boolean clearIds) {
+    super(
+        clearIds ? new ClearIdentityService(identityService) : identityService,
+        ProtectedReference::asResourceIdentity,
+        NotFound::new);
     this.protectedReferenceFactory = protectedReferenceFactory;
     this.alternatePatientIds = alternatePatientIds;
+    this.clearIds = clearIds;
     this.agents =
         availableAgents.stream().collect(toMap(WitnessProtectionAdvice::agentType, identity()));
+    log.info("Clear ID support enabled: {}", clearIds);
     log.info(
         "Witness protection is available for {}",
         agents.keySet().stream().map(t -> ((Class<?>) t).getSimpleName()).collect(joining(", ")));
@@ -98,7 +113,6 @@ public class WitnessProtectionAdvice extends IdentitySubstitution<ProtectedRefer
       @org.springframework.lang.NonNull MethodParameter methodParameter,
       @org.springframework.lang.NonNull Type type,
       @org.springframework.lang.NonNull Class<? extends HttpMessageConverter<?>> converterType) {
-
     var identityOperations =
         IdentityProcessor.builder()
             .transformation(
@@ -182,10 +196,13 @@ public class WitnessProtectionAdvice extends IdentitySubstitution<ProtectedRefer
         safeLookup(publicId).stream()
             .findFirst()
             .orElseThrow(() -> NotFound.because("Failed to lookup id: %s", publicId));
-    var expectedResourceType = protectedReferenceFactory.resourceTypeFor(resourceType);
-    if (!expectedResourceType.equals(resourceIdentity.resource())) {
-      throw ResourceExceptions.ExpectationFailed.because(
-          "Expected id %s to be of type: %s", publicId, expectedResourceType);
+    if (!"CLEAR".equals(resourceIdentity.system())) {
+      var expectedResourceType = protectedReferenceFactory.resourceTypeFor(resourceType);
+      if (!expectedResourceType.equals(resourceIdentity.resource())) {
+        log.error("Bad ID: Wanted {} {}, got {}", publicId, expectedResourceType, resourceIdentity);
+        throw ResourceExceptions.ExpectationFailed.because(
+            "Expected id %s to be of type: %s", publicId, expectedResourceType);
+      }
     }
     return resourceIdentity.identifier();
   }
@@ -292,10 +309,22 @@ public class WitnessProtectionAdvice extends IdentitySubstitution<ProtectedRefer
 
   @Override
   public String toPrivateId(String publicId) {
-    return identityService.lookup(publicId).stream()
-        .map(ResourceIdentity::identifier)
-        .findFirst()
-        .orElse(publicId);
+    try {
+      return identityService.lookup(publicId).stream()
+          .map(ResourceIdentity::identifier)
+          .findFirst()
+          .orElse(publicId);
+    } catch (BadId e) {
+      /*
+       * When clear ID support is enabled, we still to honor incoming encrypted IDs. If we fail to
+       * decrypted them, they assume they were already clear. If clear ID support is disabled, then
+       * this ID is hot garbage.
+       */
+      if (clearIds) {
+        return publicId;
+      }
+      throw e;
+    }
   }
 
   @Override
@@ -314,6 +343,72 @@ public class WitnessProtectionAdvice extends IdentitySubstitution<ProtectedRefer
         .findFirst()
         .orElseThrow(
             () -> new IllegalStateException("Could not generate private id for resource."));
+  }
+
+  /**
+   * OMG I HATE YOU SO MUCH. THIS IS A DUMB HACK TO HANDLE THE TRANSITION CASE BETWEEN SUPPORTING
+   * ENCODED AND CLEAR IDS. THIS WILL BE DELETED ONCE WE FULLY TRANSITION TO CLEAR.
+   */
+  @RequiredArgsConstructor
+  private static class ClearIdentityService implements IdentityService {
+    private static final Pattern FHIR_ID_PATTERN = Pattern.compile(Fhir.ID);
+
+    private final IdentityService backwardCompatible;
+
+    private boolean isPacked(String id) {
+      /*
+       * oh lawdy ... there are two ways of producing IDs... some are packed
+       * SegmentedVistaIdentifiers. So are just random strings with non-FHIR compliant characters.
+       *
+       * I hate this class, too.
+       */
+      if (!FHIR_ID_PATTERN.matcher(id).matches()) {
+        /*
+         * It's a little cheaper to see if the ID is compliant. If it's not, then we know it's not
+         * packed. If is, then it _may_ be packed.
+         */
+        return false;
+      }
+      try {
+        SegmentedVistaIdentifier.unpack(id);
+        return true;
+      } catch (IllegalArgumentException e) {
+        return false;
+      }
+    }
+
+    @Override
+    public List<ResourceIdentity> lookup(String id) {
+      if (id.startsWith("I3-")) {
+        return backwardCompatible.lookup(id);
+      }
+      return List.of(
+          ResourceIdentity.builder()
+              .system("CLEAR")
+              .resource("UNKNOWN")
+              .identifier(restoreIfNotUnpackable(id))
+              .build());
+    }
+
+    @Override
+    public List<Registration> register(List<ResourceIdentity> identities) {
+      return identities.stream()
+          .map(
+              i ->
+                  Registration.builder()
+                      .uuid(
+                          isPacked(i.identifier())
+                              ? i.identifier()
+                              : FhirCompliantCharacters.encodeNonCompliantCharacters(
+                                  i.identifier()))
+                      .resourceIdentities(List.of(i))
+                      .build())
+          .toList();
+    }
+
+    private String restoreIfNotUnpackable(String id) {
+      return isPacked(id) ? id : FhirCompliantCharacters.decodeNonCompliantCharacters(id);
+    }
   }
 
   @Value

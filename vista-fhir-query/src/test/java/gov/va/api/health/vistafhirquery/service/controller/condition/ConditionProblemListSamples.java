@@ -54,7 +54,7 @@ public class ConditionProblemListSamples {
     }
 
     public Condition condition() {
-      return condition("sNp1+123+PP;2931013.07;23");
+      return condition("sNp1-123-PP;2931013.07;23");
     }
 
     public Condition condition(String id) {

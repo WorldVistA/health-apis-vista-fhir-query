@@ -33,6 +33,7 @@ import javax.validation.constraints.Size;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.NonNull;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -52,6 +53,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @AllArgsConstructor(onConstructor_ = {@Autowired, @NonNull})
 @RequestMapping(produces = {"application/json", "application/fhir+json"})
+@Slf4j
 public class R4SiteObservationController implements R4ObservationApi {
   private final CharonClient charon;
 
@@ -126,6 +128,7 @@ public class R4SiteObservationController implements R4ObservationApi {
     try {
       identifier = SegmentedVistaIdentifier.unpack(witnessProtection.toPrivateId(id));
     } catch (IdEncoder.BadId | IllegalArgumentException e) {
+      log.error("Failed to understand ID {}", id, e);
       throw NotFound.because("Could not unpack id: " + id);
     }
     if (!urlSite.equals(identifier.siteId())) {

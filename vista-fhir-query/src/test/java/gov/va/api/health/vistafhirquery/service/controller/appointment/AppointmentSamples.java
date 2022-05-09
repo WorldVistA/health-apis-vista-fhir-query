@@ -54,7 +54,7 @@ public class AppointmentSamples {
     }
 
     public Appointment appointment() {
-      return appointment("sNp1+673+AA;2931013.07;23");
+      return appointment("sNp1-673-AA;2931013.07;23");
     }
 
     public Appointment appointment(String id) {

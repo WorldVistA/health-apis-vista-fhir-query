@@ -123,7 +123,7 @@ class R4MedicationTransformersTest {
 
   static Stream<Arguments> medicationRequestIdFrom() {
     return Stream.of(
-        Arguments.of("1234", "100053443", "673", "sN100053443+673+M1234"),
+        Arguments.of("1234", "100053443", "673", "sN100053443-673-M1234"),
         Arguments.of("", "111", "673", null),
         Arguments.of(null, "111", "673", null));
   }

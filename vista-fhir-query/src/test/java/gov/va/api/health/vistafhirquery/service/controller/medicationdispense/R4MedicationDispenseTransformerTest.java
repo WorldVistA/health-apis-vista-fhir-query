@@ -80,7 +80,7 @@ class R4MedicationDispenseTransformerTest {
     return Stream.of(
         Arguments.of(
             MedicationSamples.Vista.create().med().id().value(),
-            Reference.builder().reference("MedicationRequest/sNp1+673+M33714").build().asList()),
+            Reference.builder().reference("MedicationRequest/sNp1-673-M33714").build().asList()),
         Arguments.of("", null),
         Arguments.of(null, null));
   }

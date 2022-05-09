@@ -132,6 +132,7 @@
                 <argument>-Dlogging.level.root=INFO</argument>
                 <argument>-Dloader=gov.va.api.health.vistafhirquery.service.Application</argument>
                 <argument>-Duser.timezone=UTC</argument>
+                <argument>-Dvista-fhir-query.clear-ids=true</argument>
                 <argument>-Dvista.api.url=http://localhost:8096</argument>
                 <argument>-Dvista.api.vpr-get-patient-data-context=MOCKSERVICES</argument>
                 <argument>-Dvista-fhir-query.public-url=http://localhost:8095</argument>
@@ -166,6 +167,38 @@
             <goals>
               <goal>stop-all</goal>
             </goals>
+          </execution>
+        </executions>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-failsafe-plugin</artifactId>
+        <executions>
+          <execution>
+            <id>integration-tests-with-clear-ids</id>
+            <goals>
+              <goal>integration-test</goal>
+              <goal>verify</goal>
+            </goals>
+            <configuration>
+              <systemProperties>
+                <property>
+                  <name>clarify-key</name>
+                  <value>fhir-query</value>
+                </property>
+              </systemProperties>
+              <skip>false</skip>
+            </configuration>
+          </execution>
+          <execution>
+            <id>default</id>
+            <goals>
+              <goal>integration-test</goal>
+              <goal>verify</goal>
+            </goals>
+            <configuration>
+              <skip>false</skip>
+            </configuration>
           </execution>
         </executions>
       </plugin>

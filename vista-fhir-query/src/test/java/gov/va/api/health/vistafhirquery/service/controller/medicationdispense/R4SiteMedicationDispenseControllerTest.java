@@ -101,7 +101,7 @@ public class R4SiteMedicationDispenseControllerTest {
     var charonResponse = MedicationSamples.Vista.create().results();
     when(charonClient.request(any(CharonRequest.class)))
         .thenReturn(_charonResponseFor(charonRequest, charonResponse));
-    witnessProtection.add("p1", "sNp1+673+M33714:3110507");
+    witnessProtection.add("p1", "sNp1-673-M33714.3110507");
     var actual = _controller().medicationDispenseRead(httpRequest, "673", "p1");
     assertThat(json(actual))
         .isEqualTo(json(MedicationDispenseSamples.R4.create().medicationDispense()));

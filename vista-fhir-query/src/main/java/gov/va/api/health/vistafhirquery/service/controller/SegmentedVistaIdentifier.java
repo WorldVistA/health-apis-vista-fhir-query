@@ -23,7 +23,6 @@ import lombok.Value;
 @Value
 @Builder
 public class SegmentedVistaIdentifier {
-
   public static final BiMap<Character, Domains> DOMAIN_ABBREVIATIONS =
       new BiMap<>(
           Map.of(
@@ -50,8 +49,11 @@ public class SegmentedVistaIdentifier {
 
   @NonNull String recordId;
 
-  private static SegmentedVistaIdentifier fromString(String data) {
-    String[] segmentParts = data.split("\\+", -1);
+  private static SegmentedVistaIdentifier backwardsCompatibleFromString(String data) {
+    // + is backwards compatible delimiter
+    boolean oldFormat = data.contains("+");
+    var delimiter = oldFormat ? "\\+" : "-";
+    String[] segmentParts = data.split(delimiter, 3);
     if (segmentParts.length != 3) {
       throw new IllegalArgumentException(
           "SegmentedVistaIdentifier are expected to have 3 parts "
@@ -67,13 +69,21 @@ public class SegmentedVistaIdentifier {
       throw new IllegalArgumentException(
           "Identifier value had invalid domain type abbreviation: " + segmentParts[2].charAt(0));
     }
+    String recordId =
+        oldFormat
+            ? segmentParts[2].substring(1)
+            : FhirCompliantCharacters.encodeNonCompliantCharacters(segmentParts[2].substring(1));
     return SegmentedVistaIdentifier.builder()
         .patientIdentifierType(PatientIdentifierType.fromAbbreviation(segmentParts[0].charAt(0)))
         .patientIdentifier(segmentParts[0].substring(1))
         .siteId(segmentParts[1])
         .vprRpcDomain(domainType)
-        .recordId(segmentParts[2].substring(1))
+        .recordId(recordId)
         .build();
+  }
+
+  private static SegmentedVistaIdentifier fromString(String data) {
+    return backwardsCompatibleFromString(data);
   }
 
   private static boolean isIdentifierPackable(
@@ -90,7 +100,6 @@ public class SegmentedVistaIdentifier {
     if (!site.matcher(vis.siteId()).matches()) {
       return false;
     }
-
     return recordId.matcher(vis.recordId()).matches();
   }
 
@@ -108,10 +117,11 @@ public class SegmentedVistaIdentifier {
   @Override
   public String toString() {
     return String.join(
-        "+",
+        "-",
         patientIdentifierType().abbreviation() + patientIdentifier(),
         siteId(),
-        DOMAIN_ABBREVIATIONS.rightToLeft(vprRpcDomain(), null) + recordId());
+        DOMAIN_ABBREVIATIONS.rightToLeft(vprRpcDomain(), null)
+            + FhirCompliantCharacters.decodeNonCompliantCharacters(recordId()));
   }
 
   /** The type of a Vista identifier which can be DFN, local ICN, or National ICN. */

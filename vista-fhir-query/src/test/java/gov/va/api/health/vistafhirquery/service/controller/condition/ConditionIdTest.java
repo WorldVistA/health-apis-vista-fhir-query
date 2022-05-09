@@ -11,8 +11,8 @@ import org.junit.jupiter.params.provider.MethodSource;
 public class ConditionIdTest {
   static Stream<Arguments> formatOfToString() {
     return Stream.of(
-        Arguments.of("sNp1+123+TT;2931013.07;23:391.2", "sNp1+123+TT;2931013.07;23:391.2"),
-        Arguments.of("sNp1+123+PP;2931013.07;23", "sNp1+123+PP;2931013.07;23"));
+        Arguments.of("sNp1-123-TT;2931013.07;23-391.2", "sNp1-123-TT;2931013.07;23-391.2"),
+        Arguments.of("sNp1-123-PP;2931013.07;23", "sNp1-123-PP;2931013.07;23"));
   }
 
   @ParameterizedTest
@@ -24,15 +24,15 @@ public class ConditionIdTest {
 
   @Test
   void problemId() {
-    var conditionId = ConditionId.fromString("sNp1+123+PP;2931013.07;23");
-    assertThat(conditionId.vistaId().toString()).isEqualTo("Np1+123+PP;2931013.07;23");
+    var conditionId = ConditionId.fromString("sNp1-123-PP;2931013.07;23");
+    assertThat(conditionId.vistaId().toString()).isEqualTo("Np1-123-PP;2931013.07;23");
     assertThat(conditionId.icdCode().isEmpty()).isTrue();
   }
 
   @Test
   void visitsId() {
-    var conditionId = ConditionId.fromString("sNp1+123+TT;2931013.07;23:391.2");
-    assertThat(conditionId.vistaId().toString()).isEqualTo("Np1+123+TT;2931013.07;23");
+    var conditionId = ConditionId.fromString("sNp1-123-TT;2931013.07;23-391.2");
+    assertThat(conditionId.vistaId().toString()).isEqualTo("Np1-123-TT;2931013.07;23");
     assertThat(conditionId.icdCode().get()).isEqualTo("391.2");
   }
 }

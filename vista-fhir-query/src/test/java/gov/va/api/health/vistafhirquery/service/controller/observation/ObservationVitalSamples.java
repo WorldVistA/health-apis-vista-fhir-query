@@ -110,7 +110,7 @@ public class ObservationVitalSamples {
     }
 
     public Observation bloodPressure() {
-      return bloodPressure("673", "sNp1+673+V32071");
+      return bloodPressure("673", "sNp1-673-V32071");
     }
 
     public Observation bloodPressure(String site, String id) {
@@ -232,7 +232,7 @@ public class ObservationVitalSamples {
     }
 
     public Observation weight() {
-      return weight("673", "sNp1+673+V32076");
+      return weight("673", "sNp1-673-V32076");
     }
 
     public Observation weight(String site, String idSegment) {
