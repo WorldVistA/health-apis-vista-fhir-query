@@ -11,11 +11,13 @@ import gov.va.api.lighthouse.testclients.clientcredentials.ClientCredentialsRequ
 import io.restassured.RestAssured;
 import io.restassured.http.Method;
 import java.net.URI;
+import java.net.URL;
 import java.util.List;
 import java.util.Map;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NonNull;
+import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpHeaders;
 
@@ -74,9 +76,22 @@ public class CreateResourceVerifier {
     }
   }
 
+  @SneakyThrows
   private IsResource getNewResourceById(String locationUrl) {
     assertThat(locationUrl).isNotBlank();
+
+    var readUrl = new URL(locationUrl);
+    var searchUrl = new URL(serviceDefinition().urlWithApiPath());
+    log.info("Verifying newly created resource can be read at {}", locationUrl);
+    if (!searchUrl.getHost().equals(readUrl.getHost())) {
+      log.info(
+          "Blue/Green environment detected. Ignoring {} and using {} instead",
+          readUrl.getHost(),
+          searchUrl.getHost());
+      locationUrl = locationUrl.replace(readUrl.getHost(), searchUrl.getHost());
+    }
     log.info("Verify {} is {} status (200)", locationUrl, requestBody().getClass().getSimpleName());
+
     var response =
         RestAssured.given()
             .relaxedHTTPSValidation()
